@@ -6,9 +6,14 @@ import "./App.css";
 import Admin from "./admin/Admin";
 
 function App() {
+  const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
   const pathname = window.location.pathname;
-  const isAdmin = pathname.startsWith("/admin");
-  const pageSlug = pathname.split("/").filter(Boolean)[0] || "";
+  const relativePath = pathname.startsWith(basePath)
+    ? pathname.slice(basePath.length)
+    : pathname;
+
+  const isAdmin = relativePath === "/admin" || relativePath.startsWith("/admin/");
+  const pageSlug = relativePath.split("/").filter(Boolean)[0] || "";
 
   if (isAdmin) {
     return <Admin />;
