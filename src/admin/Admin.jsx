@@ -12,6 +12,7 @@ import PostsManager from "./PostsManager";
 import DocumentsManager from "./DocumentsManager";
 import UsersManager from "./UsersManager";
 import CustomizationManager from "./CustomizationManager";
+import HomeTabsManager from "./HomeTabsManager";
 
 function Admin() {
   const [session, setSession] = useState(null);
@@ -352,6 +353,10 @@ function Admin() {
     return <UsersManager onBack={() => setPage("dashboard")} />;
   }
 
+  if (page === "home-tabs") {
+    return <HomeTabsManager onBack={() => setPage("dashboard")} />;
+  }
+
   if (page === "customization") {
     return <CustomizationManager onBack={() => setPage("dashboard")} />;
   }
@@ -515,6 +520,16 @@ function Admin() {
           <button onClick={() => setPage("settings")} className="admin-module">
             <strong>Settings</strong>
             <span>Manage website settings</span>
+          </button>
+
+          <button onClick={() => setPage("customization")} className="admin-module">
+            <strong>Customization</strong>
+            <span>Customize homepage appearance</span>
+          </button>
+
+          <button onClick={() => setPage("home-tabs")} className="admin-module">
+            <strong>Home Tabs</strong>
+            <span>Manage homepage navigation</span>
           </button>
 
           <button onClick={() => setPage("customization")} className="admin-module">
