@@ -11,6 +11,7 @@ import AnnouncementsManager from "./AnnouncementsManager";
 import PostsManager from "./PostsManager";
 import DocumentsManager from "./DocumentsManager";
 import UsersManager from "./UsersManager";
+import CustomizationManager from "./CustomizationManager";
 
 function Admin() {
   const [session, setSession] = useState(null);
@@ -351,6 +352,10 @@ function Admin() {
     return <UsersManager onBack={() => setPage("dashboard")} />;
   }
 
+  if (page === "customization") {
+    return <CustomizationManager onBack={() => setPage("dashboard")} />;
+  }
+
   if (page === "settings") {
     return (
       <main className="admin-page">
@@ -510,6 +515,11 @@ function Admin() {
           <button onClick={() => setPage("settings")} className="admin-module">
             <strong>Settings</strong>
             <span>Manage website settings</span>
+          </button>
+
+          <button onClick={() => setPage("customization")} className="admin-module">
+            <strong>Customization</strong>
+            <span>Customize homepage appearance</span>
           </button>
         </div>
       </section>
