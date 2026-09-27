@@ -62,19 +62,19 @@ function DynamicPage({ slug }) {
   }
 
   if (error || !page) {
-    return <div className="app"><main className="section"><div className="container"><h1>Page not found</h1><p>{error}</p><a href="/">Back to Home</a></div></main></div>;
+    return <div className="app"><main className="section"><div className="container"><h1>Page not found</h1><p>{error}</p><a href={import.meta.env.BASE_URL}>Back to Home</a></div></main></div>;
   }
 
   return (
     <div className="app">
       <header className="header">
         <div className="container header-inner">
-          <a className="brand" href="/">
+          <a className="brand" href={import.meta.env.BASE_URL}>
             <span className="brand-mark">D</span>
             <span>Community</span>
           </a>
           <nav className="nav">
-            <a href="/">Home</a>
+            <a href={import.meta.env.BASE_URL}>Home</a>
             <a href="/admin">Admin</a>
           </nav>
         </div>
@@ -109,7 +109,7 @@ function DynamicPage({ slug }) {
               ))}
             </div>
 
-            <a className="button secondary" href="/">
+            <a className="button secondary" href={import.meta.env.BASE_URL}>
               Back to Home
             </a>
           </div>
@@ -312,7 +312,7 @@ function PublicSite() {
     <div className="app">
       <header className="header">
         <div className="container header-inner">
-          <a className="brand" href="/">
+          <a className="brand" href={import.meta.env.BASE_URL}>
             <span className="brand-mark">D</span>
             <span>{siteName}</span>
           </a>
