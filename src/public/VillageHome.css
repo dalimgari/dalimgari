@@ -1,0 +1,296 @@
+.village-site {
+  min-height: 100vh;
+  background: #f5f7f5;
+  color: #172018;
+  font-family: "Noto Sans Bengali", "Nirmala UI", sans-serif;
+}
+
+.village-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: rgba(255,255,255,.96);
+  border-bottom: 1px solid #e4e8e4;
+  backdrop-filter: blur(10px);
+}
+
+.village-topbar-inner {
+  max-width: 1200px;
+  min-height: 64px;
+  margin: auto;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.village-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: inherit;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.village-brand-mark {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #1f6b45;
+  color: white;
+  font-size: 14px;
+}
+
+.village-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.language-switch,
+.login-button,
+.hero-explore-button {
+  border: 0;
+  border-radius: 8px;
+  padding: 9px 14px;
+  cursor: pointer;
+  text-decoration: none;
+  font: inherit;
+}
+
+.language-switch {
+  background: #eef3ef;
+  color: #23402d;
+}
+
+.login-button {
+  background: #1f6b45;
+  color: white;
+}
+
+.village-hero {
+  position: relative;
+  min-height: 540px;
+  display: flex;
+  align-items: center;
+  background-image: var(--village-wallpaper);
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+}
+
+.village-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(0,0,0,.68), rgba(0,0,0,.2));
+}
+
+.village-hero-content {
+  position: relative;
+  z-index: 1;
+  width: min(900px, 100%);
+  margin: auto;
+  padding: 80px 22px;
+  color: white;
+}
+
+.village-hero-kicker {
+  display: block;
+  margin-bottom: 10px;
+  opacity: .9;
+}
+
+.village-hero h1 {
+  margin: 0 0 16px;
+  font-size: clamp(38px, 7vw, 76px);
+  line-height: 1.08;
+}
+
+.village-hero p {
+  max-width: 720px;
+  margin: 0 0 24px;
+  font-size: 18px;
+  line-height: 1.8;
+}
+
+.hero-explore-button {
+  background: white;
+  color: #1f6b45;
+  font-weight: 700;
+}
+
+.wallpaper-soft .village-hero-overlay {
+  background: linear-gradient(90deg, rgba(255,255,255,.72), rgba(255,255,255,.2));
+}
+
+.wallpaper-soft .village-hero-content {
+  color: #172018;
+}
+
+.wallpaper-dark .village-hero-overlay {
+  background: rgba(0,0,0,.72);
+}
+
+.wallpaper-warm .village-hero-overlay {
+  background: linear-gradient(90deg, rgba(74,48,24,.7), rgba(74,48,24,.2));
+}
+
+.wallpaper-nature .village-hero-overlay {
+  background: linear-gradient(90deg, rgba(20,72,45,.7), rgba(20,72,45,.15));
+}
+
+.village-tabs-wrap {
+  position: sticky;
+  top: 64px;
+  z-index: 900;
+  background: white;
+  border-bottom: 1px solid #e3e8e3;
+  box-shadow: 0 2px 10px rgba(0,0,0,.04);
+}
+
+.village-tabs {
+  max-width: 1200px;
+  margin: auto;
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.village-tabs button {
+  flex: 0 0 auto;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  padding: 16px 18px;
+  color: #526056;
+  cursor: pointer;
+  font: inherit;
+  white-space: nowrap;
+}
+
+.village-tabs button:hover,
+.village-tabs button.active {
+  color: #1f6b45;
+  border-bottom-color: #1f6b45;
+  background: #f7faf7;
+}
+
+.village-main-content {
+  max-width: 1100px;
+  margin: auto;
+  padding: 28px 18px 60px;
+  scroll-margin-top: 130px;
+}
+
+.village-content-card {
+  background: white;
+  border: 1px solid #e3e8e3;
+  border-radius: 14px;
+  padding: 28px;
+  box-shadow: 0 4px 18px rgba(20,40,25,.05);
+}
+
+.village-section-kicker {
+  color: #1f6b45;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.village-content-card h2 {
+  margin: 8px 0 14px;
+  font-size: 30px;
+}
+
+.village-content-card p {
+  line-height: 1.9;
+}
+
+.village-info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.village-info-grid > div {
+  padding: 18px;
+  border-radius: 10px;
+  background: #f5f8f5;
+}
+
+.village-info-grid strong,
+.village-info-grid span {
+  display: block;
+}
+
+.village-info-grid span {
+  margin-top: 7px;
+}
+
+.village-footer {
+  padding: 30px 18px;
+  text-align: center;
+  background: #17251c;
+  color: white;
+}
+
+.village-footer span {
+  display: block;
+  margin-top: 6px;
+  opacity: .75;
+}
+
+.village-loading {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+}
+
+@media (max-width: 700px) {
+  .village-topbar-inner {
+    min-height: 58px;
+    padding: 0 12px;
+  }
+
+  .village-brand {
+    font-size: 16px;
+  }
+
+  .village-brand-mark {
+    width: 34px;
+    height: 34px;
+  }
+
+  .village-tabs-wrap {
+    top: 58px;
+  }
+
+  .village-hero {
+    min-height: 460px;
+  }
+
+  .village-hero-content {
+    padding: 60px 18px;
+  }
+
+  .village-hero h1 {
+    font-size: 42px;
+  }
+
+  .village-hero p {
+    font-size: 16px;
+  }
+
+  .village-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .village-content-card {
+    padding: 20px;
+  }
+}

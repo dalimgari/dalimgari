@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "./lib/supabase";
 import "./App.css";
 import Admin from "./admin/Admin";
+import VillageHome from "./public/VillageHome";
 
 function App() {
   const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -23,7 +24,7 @@ function App() {
     return <DynamicPage slug={pageSlug} />;
   }
 
-  return <PublicSite />;
+  return <VillageHome />;
 }
 
 function DynamicPage({ slug }) {
