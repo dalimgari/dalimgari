@@ -7,6 +7,7 @@ import UsersManager from "./UsersManager";
 import HomeTabsManager from "./HomeTabsManager";
 import LinksManager from "./LinksManager";
 import CustomizationManager from "./CustomizationManager";
+import GalleryManager from "./GalleryManager";
 
 const MODULES = [
   ["website-information", "Website Information"],
@@ -268,6 +269,10 @@ function Admin() {
 
   if (page === "website-information") {
     return <CustomizationManager />;
+  }
+
+  if (page === "photo-management") {
+    return <GalleryManager />;
   }
 
   if (page === "posts") {
