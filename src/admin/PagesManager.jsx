@@ -2,221 +2,378 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import MediaInput from "./MediaInput";
 
-export default function PagesManager({ onBack }) {
+const CONTENT_TYPES = [
+  "info",
+  "article",
+  "gallery",
+  "people",
+  "video",
+  "news",
+  "events",
+  "custom"
+];
+
+function PagesManager({ onBack }) {
   const [pages, setPages] = useState([]);
-  const [editingId, setEditingId] = useState(null);
-  const [slug, setSlug] = useState("");
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [coverImage, setCoverImage] = useState("");
-  const [published, setPublished] = useState(true);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    id: "",
+    title: "",
+    slug: "",
+    content_type: "custom",
+    content: "",
+    cover_image: "",
+    published: true
+  });
+  const [editing, setEditing] = useState(false);
   const [message, setMessage] = useState("");
-
-  async function loadPages() {
-    setLoading(true);
-
-    const { data, error } = await supabase
-      .from("pages")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      setMessage(error.message);
-    } else {
-      setPages(data || []);
-    }
-
-    setLoading(false);
-  }
 
   useEffect(() => {
     loadPages();
   }, []);
 
+  async function loadPages() {
+    const { data, error } = await supabase
+      .from("pages")
+      .select(
+        "id, slug, title, content, content_type, cover_image, published, created_at, updated_at"
+      )
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+
+    setPages(data || []);
+  }
+
   function resetForm() {
-    setEditingId(null);
-    setSlug("");
-    setTitle("");
-    setContent("");
-    setCoverImage("");
-    setPublished(true);
+    setForm({
+      id: "",
+      title: "",
+      slug: "",
+      content_type: "custom",
+      content: "",
+      cover_image: "",
+      published: true
+    });
+    setEditing(false);
     setMessage("");
   }
 
-  function normalizeSlug(value) {
+  function makeSlug(value) {
     return value
-      .toLowerCase()
       .trim()
+      .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "");
   }
 
-  function handleTitleChange(value) {
-    setTitle(value);
-
-    if (!editingId && !slug.trim()) {
-      setSlug(normalizeSlug(value));
-    }
-  }
-
   function editPage(page) {
-    setEditingId(page.id);
-    setSlug(page.slug || "");
-    setTitle(page.title || "");
-    setContent(page.content || "");
-    setCoverImage(page.cover_image || "");
-    setPublished(page.published !== false);
+    setForm({
+      id: page.id,
+      title: page.title || "",
+      slug: page.slug || "",
+      content_type: page.content_type || "custom",
+      content: page.content || "",
+      cover_image: page.cover_image || "",
+      published: page.published
+    });
+    setEditing(true);
     setMessage("");
   }
 
   async function savePage(event) {
     event.preventDefault();
-    setSaving(true);
     setMessage("");
 
-    const normalizedSlug = normalizeSlug(slug);
-
-    const payload = {
-      slug: normalizedSlug,
-      title: title.trim(),
-      content: content.trim(),
-      cover_image: coverImage.trim() || null,
-      published,
-      updated_at: new Date().toISOString()
-    };
-
-    if (!payload.slug || !payload.title.trim()) {
-      setMessage("Slug and title are required.");
-      setSaving(false);
+    if (!form.title.trim()) {
+      setMessage("Page title is required.");
       return;
     }
 
-    const query = editingId
-      ? supabase.from("pages").update(payload).eq("id", editingId)
-      : supabase.from("pages").insert(payload);
+    const slug = makeSlug(form.slug || form.title);
 
-    const { error } = await query;
+    if (!slug) {
+      setMessage("A valid URL slug is required.");
+      return;
+    }
+
+    const payload = {
+      title: form.title.trim(),
+      slug,
+      content_type: form.content_type,
+      content: form.content.trim(),
+      cover_image: form.cover_image || null,
+      published: form.published,
+      updated_at: new Date().toISOString()
+    };
+
+    let result;
+
+    if (editing) {
+      result = await supabase
+        .from("pages")
+        .update(payload)
+        .eq("id", form.id);
+    } else {
+      result = await supabase
+        .from("pages")
+        .insert(payload);
+    }
+
+    if (result.error) {
+      setMessage(result.error.message);
+      return;
+    }
+
+    resetForm();
+    setMessage("Page saved successfully.");
+    await loadPages();
+  }
+
+  async function togglePublished(page) {
+    const { error } = await supabase
+      .from("pages")
+      .update({
+        published: !page.published,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", page.id);
 
     if (error) {
       setMessage(error.message);
-    } else {
-      setMessage("Page saved successfully.");
-      resetForm();
-      await loadPages();
+      return;
     }
 
-    setSaving(false);
+    await loadPages();
   }
 
-  async function deletePage(id) {
-    if (!window.confirm("Delete this page?")) return;
+  async function deletePage(page) {
+    if (!window.confirm("Delete this page?")) {
+      return;
+    }
 
     const { error } = await supabase
       .from("pages")
       .delete()
-      .eq("id", id);
+      .eq("id", page.id);
 
     if (error) {
       setMessage(error.message);
-    } else {
-      setMessage("Page deleted successfully.");
-      await loadPages();
+      return;
     }
+
+    if (form.id === page.id) {
+      resetForm();
+    }
+
+    setMessage("Page deleted successfully.");
+    await loadPages();
   }
 
   return (
-    <div className="admin-manager">
-      <div className="admin-manager-header">
-        <button type="button" onClick={onBack}>
-          Dashboard
-        </button>
-        <h2>Pages Manager</h2>
-        <button type="button" onClick={resetForm}>
-          New Page
-        </button>
-      </div>
-
-      <form onSubmit={savePage} className="admin-form">
-        <input
-          type="text"
-          placeholder="Page slug"
-          value={slug}
-          onChange={(event) => setSlug(normalizeSlug(event.target.value))}
-        />
-
-        <input
-          type="text"
-          placeholder="Page title"
-          value={title}
-          onChange={(event) => handleTitleChange(event.target.value)}
-        />
-
-        <textarea
-          placeholder="Page content"
-          value={content}
-          onChange={(event) => setContent(event.target.value)}
-          rows={10}
-        />
-
-        <MediaInput
-          value={coverImage}
-          onChange={setCoverImage}
-          folder="pages"
-          accept="image/*"
-        />
-
-        <label>
-          <input
-            type="checkbox"
-            checked={published}
-            onChange={(event) => setPublished(event.target.checked)}
-          />
-          Published
-        </label>
-
+    <main className="admin-page">
+      <header className="admin-header">
         <div>
-          <button type="submit" disabled={saving}>
-            {saving ? "Saving..." : "Save Page"}
-          </button>
-
-          {editingId && (
-            <button type="button" onClick={resetForm}>
-              Cancel
-            </button>
-          )}
+          <p className="admin-eyebrow">
+            Administration
+          </p>
+          <h1>Pages</h1>
         </div>
 
+        <div className="admin-header-actions">
+          <button
+            type="button"
+            onClick={onBack}
+          >
+            Dashboard
+          </button>
+        </div>
+      </header>
+
+      <section className="admin-content">
+        <div className="admin-welcome">
+          <h2>
+            {editing ? "Edit Page" : "Create Page"}
+          </h2>
+          <p>
+            Create a page and select its content type.
+          </p>
+        </div>
+
+        <form
+          className="admin-form"
+          onSubmit={savePage}
+        >
+          <label>
+            Page Name
+            <input
+              type="text"
+              value={form.title}
+              onChange={(event) =>
+                setForm({
+                  ...form,
+                  title: event.target.value
+                })
+              }
+              required
+            />
+          </label>
+
+          <label>
+            URL Slug
+            <input
+              type="text"
+              value={form.slug}
+              onChange={(event) =>
+                setForm({
+                  ...form,
+                  slug: event.target.value
+                })
+              }
+              placeholder="page-url"
+            />
+          </label>
+
+          <label>
+            Content Type
+            <select
+              value={form.content_type}
+              onChange={(event) =>
+                setForm({
+                  ...form,
+                  content_type: event.target.value
+                })
+              }
+            >
+              {CONTENT_TYPES.map((type) => (
+                <option
+                  key={type}
+                  value={type}
+                >
+                  {type}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label>
+            Content
+            <textarea
+              rows="10"
+              value={form.content}
+              onChange={(event) =>
+                setForm({
+                  ...form,
+                  content: event.target.value
+                })
+              }
+            />
+          </label>
+
+          <label>
+            Cover Media
+            <MediaInput
+              value={form.cover_image}
+              onChange={(value) =>
+                setForm({
+                  ...form,
+                  cover_image: value
+                })
+              }
+              folder="pages"
+              accept={
+                form.content_type === "video"
+                  ? "video/*"
+                  : "image/*,video/*"
+              }
+            />
+          </label>
+
+          <label>
+            <input
+              type="checkbox"
+              checked={form.published}
+              onChange={(event) =>
+                setForm({
+                  ...form,
+                  published: event.target.checked
+                })
+              }
+            />
+            Published
+          </label>
+
+          <div className="admin-header-actions">
+            <button type="submit">
+              {editing ? "Update Page" : "Save Page"}
+            </button>
+
+            {editing && (
+              <button
+                type="button"
+                onClick={resetForm}
+              >
+                Cancel
+              </button>
+            )}
+          </div>
+        </form>
+
         {message && <p>{message}</p>}
-      </form>
 
-      <div className="admin-list">
-        {loading ? (
-          <p>Loading...</p>
-        ) : pages.length === 0 ? (
-          <p>No pages found.</p>
-        ) : (
-          pages.map((page) => (
-            <div key={page.id} className="admin-list-item">
-              <div>
-                <strong>{page.title}</strong>
-                <div>/{page.slug}</div>
-                <div>{page.published ? "Published" : "Draft"}</div>
-              </div>
+        <div className="admin-module-grid">
+          {pages.map((page) => (
+            <div
+              className="admin-module"
+              key={page.id}
+            >
+              <strong>{page.title}</strong>
 
-              <div>
-                <button type="button" onClick={() => editPage(page)}>
+              <span>
+                /{page.slug} · {page.content_type} ·{" "}
+                {page.published
+                  ? "Published"
+                  : "Hidden"}
+              </span>
+
+              <div className="admin-header-actions">
+                <button
+                  type="button"
+                  onClick={() =>
+                    togglePublished(page)
+                  }
+                >
+                  {page.published
+                    ? "Hide"
+                    : "Publish"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    editPage(page)
+                  }
+                >
                   Edit
                 </button>
-                <button type="button" onClick={() => deletePage(page.id)}>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    deletePage(page)
+                  }
+                >
                   Delete
                 </button>
               </div>
             </div>
-          ))
-        )}
-      </div>
-    </div>
+          ))}
+        </div>
+      </section>
+    </main>
   );
 }
+
+export default PagesManager;
