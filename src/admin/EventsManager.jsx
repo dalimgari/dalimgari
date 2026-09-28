@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import MediaInput from "./MediaInput";
 
-function EventsManager() {
+function EventsManager({ onBack }) {
   const [items, setItems] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [title, setTitle] = useState("");
@@ -145,13 +145,13 @@ function EventsManager() {
         <button
           type="button"
           className="manager-back"
-          onClick={() => window.location.reload()}
+          onClick={onBack}
         >
           Dashboard
         </button>
       </div>
 
-      <form className="manager-form" onSubmit={addEvent}>
+      <form className="manager-form" onSubmit={saveEvent}>
         <input
           value={title}
           onChange={(event) => setTitle(event.target.value)}

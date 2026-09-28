@@ -144,7 +144,7 @@ function AnnouncementsManager() {
         </div>
       </div>
 
-      <form className="manager-form" onSubmit={addAnnouncement}>
+      <form className="manager-form" onSubmit={saveAnnouncement}>
         <input
           value={title}
           onChange={(event) => setTitle(event.target.value)}

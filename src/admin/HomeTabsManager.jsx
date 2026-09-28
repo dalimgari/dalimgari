@@ -1,125 +1,164 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 
-const CONTENT_TYPES = [
-  "home",
-  "info",
-  "article",
-  "gallery",
-  "people",
-  "video",
-  "news",
-  "events",
-  "custom"
-];
-
-function HomeTabsManager({ onBack }) {
+export default function HomeTabsManager({ onBack }) {
   const [tabs, setTabs] = useState([]);
-  const [form, setForm] = useState({
-    id: "",
-    tab_key: "",
-    title_bn: "",
-    title_en: "",
-    content_type: "custom",
-    enabled: true
-  });
-  const [editing, setEditing] = useState(false);
+  const [pages, setPages] = useState([]);
+  const [pageId, setPageId] = useState("");
+  const [editingId, setEditingId] = useState(null);
+  const [enabled, setEnabled] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    loadTabs();
+    loadData();
   }, []);
 
-  async function loadTabs() {
-    const { data, error } = await supabase
-      .from("site_tabs")
-      .select("*")
-      .order("sort_order", { ascending: true });
+  async function loadData() {
+    setLoading(true);
 
-    if (error) {
-      setMessage(error.message);
-      return;
+    const [tabsResult, pagesResult] = await Promise.all([
+      supabase
+        .from("site_tabs")
+        .select(`
+          id,
+          tab_key,
+          page_id,
+          sort_order,
+          enabled,
+          pages (
+            id,
+            slug,
+            title,
+            content_type,
+            published
+          )
+        `)
+        .order("sort_order", { ascending: true }),
+
+      supabase
+        .from("pages")
+        .select("id, slug, title, content_type, published")
+        .eq("published", true)
+        .order("created_at", { ascending: true })
+    ]);
+
+    if (tabsResult.error) {
+      setMessage(tabsResult.error.message);
+    } else {
+      setTabs(tabsResult.data || []);
     }
 
-    setTabs(data || []);
+    if (pagesResult.error) {
+      setMessage(pagesResult.error.message);
+    } else {
+      setPages(pagesResult.data || []);
+    }
+
+    setLoading(false);
   }
 
   function resetForm() {
-    setForm({
-      id: "",
-      tab_key: "",
-      title_bn: "",
-      title_en: "",
-      content_type: "custom",
-      enabled: true
-    });
-    setEditing(false);
+    setPageId("");
+    setEditingId(null);
+    setEnabled(true);
+    setMessage("");
   }
 
   function editTab(tab) {
-    setForm({
-      id: tab.id,
-      tab_key: tab.tab_key,
-      title_bn: tab.title_bn,
-      title_en: tab.title_en,
-      content_type: tab.content_type,
-      enabled: tab.enabled
-    });
-    setEditing(true);
+    setEditingId(tab.id);
+    setPageId(tab.page_id || "");
+    setEnabled(tab.enabled !== false);
     setMessage("");
+  }
+
+  function getNextTabNumber() {
+    const numbers = tabs
+      .map((tab) => {
+        const match = String(tab.tab_key || "").match(
+          /^tab(\d+)$/
+        );
+
+        return match ? Number(match[1]) : 0;
+      })
+      .filter(Boolean);
+
+    return numbers.length > 0
+      ? Math.max(...numbers) + 1
+      : 1;
   }
 
   async function saveTab(event) {
     event.preventDefault();
-    setMessage("");
 
-    if (!form.tab_key || !form.title_bn || !form.title_en) {
-      setMessage("Required fields are missing.");
+    if (!pageId) {
+      setMessage("Select a page.");
       return;
     }
 
-    const payload = {
-      tab_key: form.tab_key.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "-"),
-      title_bn: form.title_bn.trim(),
-      title_en: form.title_en.trim(),
-      content_type: form.content_type,
-      enabled: form.enabled,
-      updated_at: new Date().toISOString()
-    };
+    setSaving(true);
+    setMessage("");
 
-    let result;
+    const duplicate = tabs.find(
+      (tab) =>
+        tab.page_id === pageId &&
+        tab.id !== editingId
+    );
 
-    if (editing) {
-      result = await supabase
-        .from("site_tabs")
-        .update(payload)
-        .eq("id", form.id);
-    } else {
-      const nextOrder =
-        tabs.length > 0
-          ? Math.max(...tabs.map((tab) => tab.sort_order)) + 1
-          : 1;
-
-      result = await supabase
-        .from("site_tabs")
-        .insert({
-          ...payload,
-          sort_order: nextOrder
-        });
+    if (duplicate) {
+      setMessage(
+        "This page is already assigned to a home tab."
+      );
+      setSaving(false);
+      return;
     }
 
-    if (result.error) {
-      setMessage(result.error.message);
+    let error;
+
+    if (editingId) {
+      const result = await supabase
+        .from("site_tabs")
+        .update({
+          page_id: pageId,
+          enabled,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", editingId);
+
+      error = result.error;
+    } else {
+      const nextNumber = getNextTabNumber();
+
+      const result = await supabase
+        .from("site_tabs")
+        .insert({
+          tab_key: `tab${nextNumber}`,
+          page_id: pageId,
+          sort_order: tabs.length + 1,
+          enabled
+        });
+
+      error = result.error;
+    }
+
+    if (error) {
+      setMessage(error.message);
+      setSaving(false);
       return;
     }
 
     resetForm();
-    setMessage("Tab saved successfully.");
-    loadTabs();
+    setMessage("Home tab saved successfully.");
+    await loadData();
+
+    setSaving(false);
   }
 
   async function deleteTab(id) {
-    if (!window.confirm("Delete this tab?")) return;
+    if (!window.confirm("Delete this home tab?")) {
+      return;
+    }
 
     const { error } = await supabase
       .from("site_tabs")
@@ -131,8 +170,8 @@ function HomeTabsManager({ onBack }) {
       return;
     }
 
-    setMessage("Tab deleted successfully.");
-    loadTabs();
+    setMessage("Home tab deleted successfully.");
+    await loadData();
   }
 
   async function toggleTab(tab) {
@@ -149,13 +188,18 @@ function HomeTabsManager({ onBack }) {
       return;
     }
 
-    loadTabs();
+    await loadData();
   }
 
   async function moveTab(index, direction) {
     const targetIndex = index + direction;
 
-    if (targetIndex < 0 || targetIndex >= tabs.length) return;
+    if (
+      targetIndex < 0 ||
+      targetIndex >= tabs.length
+    ) {
+      return;
+    }
 
     const current = tabs[index];
     const target = tabs[targetIndex];
@@ -186,74 +230,64 @@ function HomeTabsManager({ onBack }) {
       return;
     }
 
-    loadTabs();
+    await loadData();
   }
+
+  const assignedPageIds = tabs
+    .filter((tab) => tab.id !== editingId)
+    .map((tab) => tab.page_id);
+
+  const availablePages = pages.filter(
+    (page) =>
+      page.published !== false &&
+      !assignedPageIds.includes(page.id)
+  );
 
   return (
     <main className="admin-page">
       <header className="admin-header">
         <div>
-          <p className="admin-eyebrow">Administration</p>
+          <p className="admin-eyebrow">
+            Administration
+          </p>
           <h1>Home Tabs</h1>
         </div>
 
-        <div className="admin-header-actions">
-          <button type="button" onClick={onBack}>
-            Dashboard
-          </button>
-        </div>
+        <button type="button" onClick={onBack}>
+          Dashboard
+        </button>
       </header>
 
       <section className="admin-content">
         <div className="admin-welcome">
-          <h2>Homepage Navigation</h2>
-          <p>Manage homepage tabs and their order.</p>
+          <h2>Homepage Tabs</h2>
+          <p>
+            Create a tab by selecting an existing page.
+          </p>
         </div>
 
-        <form className="admin-form" onSubmit={saveTab}>
+        <form
+          className="admin-form"
+          onSubmit={saveTab}
+        >
           <label>
-            Tab Key
-            <input
-              value={form.tab_key}
-              onChange={(event) =>
-                setForm({ ...form, tab_key: event.target.value })
-              }
-              disabled={editing}
-              placeholder="tab-key"
-            />
-          </label>
-
-          <label>
-            Bangla Title
-            <input
-              value={form.title_bn}
-              onChange={(event) =>
-                setForm({ ...form, title_bn: event.target.value })
-              }
-            />
-          </label>
-
-          <label>
-            English Title
-            <input
-              value={form.title_en}
-              onChange={(event) =>
-                setForm({ ...form, title_en: event.target.value })
-              }
-            />
-          </label>
-
-          <label>
-            Content Type
+            Page
             <select
-              value={form.content_type}
+              value={pageId}
               onChange={(event) =>
-                setForm({ ...form, content_type: event.target.value })
+                setPageId(event.target.value)
               }
             >
-              {CONTENT_TYPES.map((type) => (
-                <option key={type} value={type}>
-                  {type}
+              <option value="">
+                Select a page
+              </option>
+
+              {availablePages.map((page) => (
+                <option
+                  key={page.id}
+                  value={page.id}
+                >
+                  {page.title} /{page.slug}
                 </option>
               ))}
             </select>
@@ -262,21 +296,31 @@ function HomeTabsManager({ onBack }) {
           <label>
             <input
               type="checkbox"
-              checked={form.enabled}
+              checked={enabled}
               onChange={(event) =>
-                setForm({ ...form, enabled: event.target.checked })
+                setEnabled(event.target.checked)
               }
             />
-            Enabled
+            Show on homepage
           </label>
 
           <div className="admin-header-actions">
-            <button type="submit">
-              {editing ? "Update Tab" : "Add Tab"}
+            <button
+              type="submit"
+              disabled={saving}
+            >
+              {saving
+                ? "Saving..."
+                : editingId
+                  ? "Update Tab"
+                  : "Create Tab"}
             </button>
 
-            {editing && (
-              <button type="button" onClick={resetForm}>
+            {editingId && (
+              <button
+                type="button"
+                onClick={resetForm}
+              >
                 Cancel
               </button>
             )}
@@ -286,52 +330,87 @@ function HomeTabsManager({ onBack }) {
         {message && <p>{message}</p>}
 
         <div className="admin-module-grid">
-          {tabs.map((tab, index) => (
-            <div className="admin-module" key={tab.id}>
-              <strong>
-                {tab.title_bn} / {tab.title_en}
-              </strong>
+          {loading ? (
+            <p>Loading...</p>
+          ) : tabs.length === 0 ? (
+            <p>No homepage tabs found.</p>
+          ) : (
+            tabs.map((tab, index) => (
+              <div
+                className="admin-module"
+                key={tab.id}
+              >
+                <strong>
+                  {tab.tab_key}
+                </strong>
 
-              <span>
-                {tab.tab_key} · {tab.content_type} ·{" "}
-                {tab.enabled ? "Enabled" : "Disabled"}
-              </span>
+                <span>
+                  {tab.pages?.title || ""}
+                  {" · "}
+                  /{tab.pages?.slug || ""}
+                  {" · "}
+                  {tab.enabled
+                    ? "Enabled"
+                    : "Disabled"}
+                </span>
 
-              <div className="admin-header-actions">
-                <button
-                  type="button"
-                  onClick={() => moveTab(index, -1)}
-                  disabled={index === 0}
-                >
-                  Up
-                </button>
+                <div className="admin-header-actions">
+                  <button
+                    type="button"
+                    disabled={index === 0}
+                    onClick={() =>
+                      moveTab(index, -1)
+                    }
+                  >
+                    Up
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={() => moveTab(index, 1)}
-                  disabled={index === tabs.length - 1}
-                >
-                  Down
-                </button>
+                  <button
+                    type="button"
+                    disabled={
+                      index === tabs.length - 1
+                    }
+                    onClick={() =>
+                      moveTab(index, 1)
+                    }
+                  >
+                    Down
+                  </button>
 
-                <button type="button" onClick={() => toggleTab(tab)}>
-                  {tab.enabled ? "Disable" : "Enable"}
-                </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      toggleTab(tab)
+                    }
+                  >
+                    {tab.enabled
+                      ? "Hide"
+                      : "Show"}
+                  </button>
 
-                <button type="button" onClick={() => editTab(tab)}>
-                  Edit
-                </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      editTab(tab)
+                    }
+                  >
+                    Edit
+                  </button>
 
-                <button type="button" onClick={() => deleteTab(tab.id)}>
-                  Delete
-                </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      deleteTab(tab.id)
+                    }
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </section>
     </main>
   );
 }
-
-export default HomeTabsManager;

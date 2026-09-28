@@ -11,7 +11,7 @@ function makeSlug(text) {
     .replace(/-+/g, "-");
 }
 
-function NewsManager() {
+function NewsManager({ onBack }) {
   const [items, setItems] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [title, setTitle] = useState("");
@@ -149,13 +149,13 @@ function NewsManager() {
         <button
           type="button"
           className="manager-back"
-          onClick={() => window.location.reload()}
+          onClick={onBack}
         >
           Dashboard
         </button>
       </div>
 
-      <form className="manager-form" onSubmit={addNews}>
+      <form className="manager-form" onSubmit={saveNews}>
         <input
           value={title}
           onChange={(event) => setTitle(event.target.value)}

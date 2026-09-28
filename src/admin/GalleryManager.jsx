@@ -158,7 +158,7 @@ function GalleryManager() {
         </div>
       </div>
 
-      <form className="manager-form" onSubmit={addGallery}>
+      <form className="manager-form" onSubmit={saveGallery}>
         <input
           value={title}
           onChange={(event) => setTitle(event.target.value)}

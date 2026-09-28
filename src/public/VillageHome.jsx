@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import "./VillageHome.css";
+import PageRenderer from "./PageRenderer";
 
 function VillageHome() {
   const [settings, setSettings] = useState({});
   const [tabs, setTabs] = useState([]);
-  const [activeTab, setActiveTab] = useState(null);
+  const [activeTab, setActiveTab] = useState("");
   const [language, setLanguage] = useState("bn");
   const [loading, setLoading] = useState(true);
 
@@ -41,25 +42,34 @@ function VillageHome() {
           )
         `)
         .eq("enabled", true)
+        .not("page_id", "is", null)
         .order("sort_order", { ascending: true })
     ]);
 
-    const map = {};
+    const settingsMap = {};
 
     (settingsResult.data || []).forEach((item) => {
-      map[item.key] =
+      settingsMap[item.key] =
         typeof item.value === "string"
           ? item.value
           : item.value?.value || "";
     });
 
     const validTabs = (tabsResult.data || []).filter(
-      (tab) => tab.pages && tab.pages.published
+      (tab) =>
+        tab.pages &&
+        tab.pages.published !== false
     );
 
-    setSettings(map);
+    setSettings(settingsMap);
     setTabs(validTabs);
-    setActiveTab(validTabs[0]?.tab_key || null);
+
+    if (validTabs.length > 0) {
+      setActiveTab(validTabs[0].tab_key);
+    } else {
+      setActiveTab("");
+    }
+
     setLoading(false);
   }
 
@@ -79,25 +89,25 @@ function VillageHome() {
     (tab) => tab.tab_key === activeTab
   );
 
-  const page = currentTab?.pages || null;
+  const currentPage = currentTab?.pages || null;
 
   const text =
     language === "bn"
       ? {
           login: "লগইন",
           language: "English",
-          explore: "গ্রামকে জানুন",
+          explore: "আরও দেখুন",
           loading: "লোড হচ্ছে...",
-          empty: "এই পৃষ্ঠায় এখনো কোনো তথ্য নেই।",
-          home: "হোম"
+          empty: "এই পেজে এখনো কোনো তথ্য যুক্ত করা হয়নি।",
+          back: "হোম"
         }
       : {
           login: "Login",
           language: "বাংলা",
-          explore: "Explore Village",
+          explore: "Explore",
           loading: "Loading...",
-          empty: "This page does not contain any information yet.",
-          home: "Home"
+          empty: "No information has been added to this page yet.",
+          back: "Home"
         };
 
   function selectTab(tabKey) {
@@ -114,7 +124,7 @@ function VillageHome() {
   }
 
   function renderPageContent() {
-    if (!page) {
+    if (!currentPage) {
       return (
         <section className="village-content-card">
           <p>{text.empty}</p>
@@ -124,48 +134,14 @@ function VillageHome() {
 
     return (
       <section className="village-content-card">
-        <span className="village-section-kicker">
-          {page.content_type}
-        </span>
+        <PageRenderer page={currentPage} />
 
-        <h2>{page.title}</h2>
-
-        {page.cover_image && (
-          <img
-            src={page.cover_image}
-            alt={page.title}
-            className="card-image"
-          />
-        )}
-
-        <div className="page-content">
-          {(page.content || "").split(/\n\s*\n/).map(
-            (paragraph, index) => (
-              <p key={index}>
-                {paragraph.split("\n").map(
-                  (line, lineIndex) => (
-                    <span key={lineIndex}>
-                      {line}
-                      {lineIndex <
-                        paragraph.split("\n").length - 1 && (
-                        <br />
-                      )}
-                    </span>
-                  )
-                )}
-              </p>
-            )
-          )}
-        </div>
-
-        {page.slug && (
-          <a
-            className="button secondary"
-            href={`${import.meta.env.BASE_URL}${page.slug}`}
-          >
-            {page.title}
-          </a>
-        )}
+        <a
+          className="village-page-link"
+          href={`${import.meta.env.BASE_URL}${currentPage.slug}`}
+        >
+          {text.explore}
+        </a>
       </section>
     );
   }
@@ -187,8 +163,9 @@ function VillageHome() {
             href={import.meta.env.BASE_URL}
           >
             <span className="village-brand-mark">
-              {siteName.slice(0, 2)}
+              দা
             </span>
+
             <span>{siteName}</span>
           </a>
 
@@ -268,7 +245,7 @@ function VillageHome() {
                     selectTab(tab.tab_key)
                   }
                 >
-                  {tab.pages.title}
+                  {tab.pages?.title || ""}
                 </button>
               ))}
             </nav>

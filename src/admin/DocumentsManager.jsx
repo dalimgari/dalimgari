@@ -153,7 +153,7 @@ function DocumentsManager() {
         </div>
       </div>
 
-      <form className="manager-form" onSubmit={addDocument}>
+      <form className="manager-form" onSubmit={saveDocument}>
         <input
           value={title}
           onChange={(event) => setTitle(event.target.value)}

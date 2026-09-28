@@ -5,29 +5,81 @@ export default function UserDashboard({ session, onBack }) {
   const [profile, setProfile] = useState(null);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [age, setAge] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [saving, setSaving] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
     loadProfile();
-  }, []);
+  }, [session.user.id]);
 
   async function loadProfile() {
-    const { data, error } = await supabase
+    setError("");
+
+    const { data, error: loadError } = await supabase
       .from("profiles")
-      .select("*")
+      .select(
+        "id, full_name, avatar_url, phone, age, date_of_birth, created_at"
+      )
       .eq("id", session.user.id)
       .maybeSingle();
 
-    if (error) {
-      setError(error.message);
+    if (loadError) {
+      setError(loadError.message);
       return;
     }
 
     setProfile(data);
     setName(data?.full_name || "");
     setPhone(data?.phone || "");
+    setAge(data?.age ?? "");
+    setDateOfBirth(data?.date_of_birth || "");
+    setAvatarUrl(data?.avatar_url || "");
+  }
+
+  async function handleAvatarUpload(event) {
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    setUploading(true);
+    setMessage("");
+    setError("");
+
+    const safeName = file.name
+      .toLowerCase()
+      .replace(/[^a-z0-9._-]+/g, "-");
+
+    const path =
+      `avatars/${session.user.id}/${crypto.randomUUID()}-${safeName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("media")
+      .upload(path, file, {
+        cacheControl: "3600",
+        upsert: false
+      });
+
+    if (uploadError) {
+      setError(uploadError.message);
+      setUploading(false);
+      return;
+    }
+
+    const { data } = supabase.storage
+      .from("media")
+      .getPublicUrl(path);
+
+    setAvatarUrl(data.publicUrl);
+    setMessage("Photo uploaded. Save profile to keep it.");
+    setUploading(false);
   }
 
   async function saveProfile(event) {
@@ -37,12 +89,29 @@ export default function UserDashboard({ session, onBack }) {
     setMessage("");
     setError("");
 
+    const parsedAge =
+      age === "" ? null : Number(age);
+
+    if (
+      parsedAge !== null &&
+      (!Number.isInteger(parsedAge) ||
+        parsedAge < 0 ||
+        parsedAge > 150)
+    ) {
+      setError("Please enter a valid age.");
+      setSaving(false);
+      return;
+    }
+
     const { error: saveError } = await supabase
       .from("profiles")
       .upsert({
         id: session.user.id,
         full_name: name.trim() || null,
         phone: phone.trim() || null,
+        age: parsedAge,
+        date_of_birth: dateOfBirth || null,
+        avatar_url: avatarUrl || null,
         updated_at: new Date().toISOString()
       });
 
@@ -56,6 +125,40 @@ export default function UserDashboard({ session, onBack }) {
     setSaving(false);
   }
 
+  async function changePassword(event) {
+    event.preventDefault();
+
+    setMessage("");
+    setError("");
+
+    if (!newPassword || newPassword.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    setChangingPassword(true);
+
+    const { error: passwordError } =
+      await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+    if (passwordError) {
+      setError(passwordError.message);
+    } else {
+      setNewPassword("");
+      setConfirmPassword("");
+      setMessage("Password changed successfully.");
+    }
+
+    setChangingPassword(false);
+  }
+
   async function logout() {
     await supabase.auth.signOut();
     window.location.href = "/";
@@ -67,52 +170,179 @@ export default function UserDashboard({ session, onBack }) {
         <div className="section-heading">
           <p className="eyebrow">My Account</p>
           <h1>User Dashboard</h1>
-          <p>{session.user.email}</p>
         </div>
 
-        <form className="manager-form" onSubmit={saveProfile}>
+        <section className="manager-form">
+          <h2>Profile</h2>
+
+          {avatarUrl && (
+            <img
+              src={avatarUrl}
+              alt="Profile"
+              style={{
+                width: "120px",
+                height: "120px",
+                borderRadius: "50%",
+                objectFit: "cover"
+              }}
+            />
+          )}
+
           <label>
-            Name
+            Profile Photo
             <input
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              placeholder="Your name"
+              type="file"
+              accept="image/*"
+              onChange={handleAvatarUpload}
+              disabled={uploading}
             />
           </label>
 
-          <label>
-            Phone
-            <input
-              value={phone}
-              onChange={(event) => setPhone(event.target.value)}
-              placeholder="Phone number"
-            />
-          </label>
+          <form onSubmit={saveProfile}>
+            <label>
+              Name
+              <input
+                value={name}
+                onChange={(event) =>
+                  setName(event.target.value)
+                }
+                required
+              />
+            </label>
 
-          <button type="submit" disabled={saving}>
-            {saving ? "Saving..." : "Save Profile"}
-          </button>
+            <label>
+              Phone
+              <input
+                value={phone}
+                onChange={(event) =>
+                  setPhone(event.target.value)
+                }
+              />
+            </label>
 
-          {message && <p className="manager-message">{message}</p>}
-          {error && <p className="manager-error">{error}</p>}
-        </form>
+            <label>
+              Email
+              <input
+                type="email"
+                value={session.user.email || ""}
+                readOnly
+              />
+            </label>
 
-        <div className="hero-actions">
-          <button type="button" className="button secondary" onClick={onBack}>
-            Back to Website
-          </button>
+            <label>
+              Age
+              <input
+                type="number"
+                min="0"
+                max="150"
+                value={age}
+                onChange={(event) =>
+                  setAge(event.target.value)
+                }
+              />
+            </label>
 
-          <button type="button" className="button secondary" onClick={logout}>
-            Sign Out
-          </button>
-        </div>
+            <label>
+              Date of Birth
+              <input
+                type="date"
+                value={dateOfBirth}
+                onChange={(event) =>
+                  setDateOfBirth(event.target.value)
+                }
+              />
+            </label>
+
+            <button
+              type="submit"
+              disabled={saving || uploading}
+            >
+              {saving ? "Saving..." : "Save Profile"}
+            </button>
+          </form>
+        </section>
+
+        <section className="manager-form">
+          <h2>Change Password</h2>
+
+          <form onSubmit={changePassword}>
+            <label>
+              New Password
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(event) =>
+                  setNewPassword(event.target.value)
+                }
+                autoComplete="new-password"
+                minLength="6"
+                required
+              />
+            </label>
+
+            <label>
+              Confirm Password
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(event) =>
+                  setConfirmPassword(event.target.value)
+                }
+                autoComplete="new-password"
+                minLength="6"
+                required
+              />
+            </label>
+
+            <button
+              type="submit"
+              disabled={changingPassword}
+            >
+              {changingPassword
+                ? "Changing..."
+                : "Change Password"}
+            </button>
+          </form>
+        </section>
+
+        {message && (
+          <p className="manager-message">
+            {message}
+          </p>
+        )}
+
+        {error && (
+          <p className="manager-error">
+            {error}
+          </p>
+        )}
 
         {profile && (
           <p>
             Account created:{" "}
-            {new Date(profile.created_at).toLocaleDateString()}
+            {new Date(
+              profile.created_at
+            ).toLocaleDateString()}
           </p>
         )}
+
+        <div className="hero-actions">
+          <button
+            type="button"
+            className="button secondary"
+            onClick={onBack}
+          >
+            Back to Website
+          </button>
+
+          <button
+            type="button"
+            className="button secondary"
+            onClick={logout}
+          >
+            Sign Out
+          </button>
+        </div>
       </div>
     </main>
   );

@@ -318,3 +318,28 @@
   height: 100%;
   border: 0;
 }
+
+.village-page-cover {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  margin: 1.5rem 0;
+  border-radius: 18px;
+  object-fit: cover;
+}
+
+.village-page-content {
+  line-height: 1.9;
+}
+
+.village-page-content p {
+  margin: 0 0 1rem;
+}
+
+.village-page-link {
+  display: inline-block;
+  margin-top: 1rem;
+  text-decoration: none;
+}
+
