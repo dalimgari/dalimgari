@@ -15,14 +15,14 @@
 }
 
 .village-topbar-inner {
-  max-width: 1200px;
-  min-height: 64px;
+  max-width: 1280px;
+  min-height: 68px;
   margin: auto;
   padding: 0 18px;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr minmax(280px, 520px) 1fr;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  gap: 18px;
 }
 
 .village-brand {
@@ -35,26 +35,67 @@
   font-size: 18px;
 }
 
-.village-brand-mark {
-  width: 38px;
-  height: 38px;
-  display: grid;
-  place-items: center;
+.village-brand-logo {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
   border-radius: 50%;
-  background: #1f6b45;
-  color: white;
-  font-size: 14px;
+}
+
+.village-global-search {
+  position: relative;
+  width: 100%;
+}
+
+.village-global-search input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #dce3dc;
+  border-radius: 24px;
+  padding: 11px 18px;
+  outline: none;
+  background: #f7f9f7;
+  font: inherit;
+}
+
+.village-global-search input:focus {
+  border-color: #1f6b45;
+  background: white;
+}
+
+.village-search-results {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e2e7e2;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(20,40,25,.12);
+  overflow: hidden;
+}
+
+.village-search-results a,
+.village-search-results span {
+  display: block;
+  padding: 12px 16px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.village-search-results a:hover {
+  background: #f3f7f3;
 }
 
 .village-top-actions {
   display: flex;
+  justify-content: flex-end;
   align-items: center;
   gap: 8px;
 }
 
 .language-switch,
-.login-button,
-.hero-explore-button {
+.login-button {
   border: 0;
   border-radius: 8px;
   padding: 9px 14px;
@@ -78,6 +119,7 @@
   min-height: 540px;
   display: flex;
   align-items: center;
+  justify-content: center;
   background-image: var(--village-wallpaper);
   background-size: cover;
   background-position: center;
@@ -87,7 +129,7 @@
 .village-hero-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, rgba(0,0,0,.68), rgba(0,0,0,.2));
+  background: rgba(0,0,0,.48);
 }
 
 .village-hero-content {
@@ -96,13 +138,8 @@
   width: min(900px, 100%);
   margin: auto;
   padding: 80px 22px;
+  text-align: center;
   color: white;
-}
-
-.village-hero-kicker {
-  display: block;
-  margin-bottom: 10px;
-  opacity: .9;
 }
 
 .village-hero h1 {
@@ -112,20 +149,13 @@
 }
 
 .village-hero p {
-  max-width: 720px;
-  margin: 0 0 24px;
-  font-size: 18px;
+  margin: 0;
+  font-size: clamp(18px, 2.5vw, 28px);
   line-height: 1.8;
 }
 
-.hero-explore-button {
-  background: white;
-  color: #1f6b45;
-  font-weight: 700;
-}
-
 .wallpaper-soft .village-hero-overlay {
-  background: linear-gradient(90deg, rgba(255,255,255,.72), rgba(255,255,255,.2));
+  background: rgba(255,255,255,.62);
 }
 
 .wallpaper-soft .village-hero-content {
@@ -137,36 +167,44 @@
 }
 
 .wallpaper-warm .village-hero-overlay {
-  background: linear-gradient(90deg, rgba(74,48,24,.7), rgba(74,48,24,.2));
+  background: rgba(74,48,24,.56);
 }
 
 .wallpaper-nature .village-hero-overlay {
-  background: linear-gradient(90deg, rgba(20,72,45,.7), rgba(20,72,45,.15));
+  background: rgba(20,72,45,.56);
 }
 
-.village-tabs-wrap {
-  position: sticky;
-  top: 64px;
-  z-index: 900;
+.village-main-content {
+  max-width: 1160px;
+  margin: auto;
+  padding: 32px 18px 64px;
+  scroll-margin-top: 90px;
+}
+
+.village-content-card {
   background: white;
-  border-bottom: 1px solid #e3e8e3;
-  box-shadow: 0 2px 10px rgba(0,0,0,.04);
+  border: 1px solid #e3e8e3;
+  border-radius: 22px;
+  padding: 18px;
+  box-shadow: 0 8px 30px rgba(20,40,25,.07);
 }
 
 .village-tabs {
-  max-width: 1200px;
-  margin: auto;
   display: flex;
+  justify-content: flex-end;
+  gap: 6px;
   overflow-x: auto;
-  scrollbar-width: thin;
+  border-bottom: 1px solid #e5e9e5;
+  padding-bottom: 8px;
+  direction: rtl;
 }
 
 .village-tabs button {
   flex: 0 0 auto;
   border: 0;
-  border-bottom: 3px solid transparent;
+  border-radius: 9px;
   background: transparent;
-  padding: 16px 18px;
+  padding: 12px 17px;
   color: #526056;
   cursor: pointer;
   font: inherit;
@@ -175,73 +213,53 @@
 
 .village-tabs button:hover,
 .village-tabs button.active {
-  color: #1f6b45;
-  border-bottom-color: #1f6b45;
-  background: #f7faf7;
+  background: #1f6b45;
+  color: white;
 }
 
-.village-main-content {
-  max-width: 1100px;
-  margin: auto;
-  padding: 28px 18px 60px;
-  scroll-margin-top: 130px;
+.village-page-content {
+  padding: 28px 10px 10px;
 }
 
-.village-content-card {
-  background: white;
-  border: 1px solid #e3e8e3;
-  border-radius: 14px;
-  padding: 28px;
-  box-shadow: 0 4px 18px rgba(20,40,25,.05);
-}
-
-.village-section-kicker {
-  color: #1f6b45;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.village-content-card h2 {
-  margin: 8px 0 14px;
-  font-size: 30px;
-}
-
-.village-content-card p {
-  line-height: 1.9;
-}
-
-.village-info-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  margin-top: 24px;
-}
-
-.village-info-grid > div {
-  padding: 18px;
-  border-radius: 10px;
-  background: #f5f8f5;
-}
-
-.village-info-grid strong,
-.village-info-grid span {
-  display: block;
-}
-
-.village-info-grid span {
-  margin-top: 7px;
+.village-empty {
+  padding: 40px 10px;
+  text-align: center;
 }
 
 .village-footer {
-  padding: 30px 18px;
+  padding: 28px 18px;
   text-align: center;
   background: #17251c;
   color: white;
 }
 
-.village-footer span {
-  display: block;
-  margin-top: 6px;
+.village-footer-links {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.village-footer-links a {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255,255,255,.1);
+  color: white;
+  text-decoration: none;
+}
+
+.village-footer-links img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.village-footer-copyright {
+  margin-top: 16px;
   opacity: .75;
 }
 
@@ -251,95 +269,47 @@
   place-items: center;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 800px) {
   .village-topbar-inner {
-    min-height: 58px;
+    grid-template-columns: 1fr auto;
+    min-height: 62px;
     padding: 0 12px;
   }
 
+  .village-global-search {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    padding-bottom: 10px;
+  }
+
+  .village-top-actions {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
   .village-brand {
-    font-size: 16px;
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
   }
 
-  .village-brand-mark {
-    width: 34px;
-    height: 34px;
-  }
-
-  .village-tabs-wrap {
-    top: 58px;
+  .village-brand span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .village-hero {
-    min-height: 460px;
+    min-height: 430px;
   }
 
-  .village-hero-content {
-    padding: 60px 18px;
-  }
-
-  .village-hero h1 {
-    font-size: 42px;
-  }
-
-  .village-hero p {
-    font-size: 16px;
-  }
-
-  .village-info-grid {
-    grid-template-columns: 1fr;
+  .village-main-content {
+    padding-left: 10px;
+    padding-right: 10px;
   }
 
   .village-content-card {
-    padding: 20px;
+    border-radius: 16px;
+    padding: 12px;
   }
 }
-
-.wallpaper-black-fade .village-hero-overlay {
-  background: linear-gradient(
-    90deg,
-    rgba(0, 0, 0, 0.9) 0%,
-    rgba(0, 0, 0, 0.72) 35%,
-    rgba(0, 0, 0, 0.28) 72%,
-    rgba(0, 0, 0, 0) 100%
-  );
-}
-
-.page-video-embed {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  overflow: hidden;
-  border-radius: 1rem;
-}
-
-.page-video-embed iframe {
-  width: 100%;
-  height: 100%;
-  border: 0;
-}
-
-.village-page-cover {
-  display: block;
-  width: 100%;
-  max-width: 100%;
-  height: auto;
-  margin: 1.5rem 0;
-  border-radius: 18px;
-  object-fit: cover;
-}
-
-.village-page-content {
-  line-height: 1.9;
-}
-
-.village-page-content p {
-  margin: 0 0 1rem;
-}
-
-.village-page-link {
-  display: inline-block;
-  margin-top: 1rem;
-  text-decoration: none;
-}
-
