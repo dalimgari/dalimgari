@@ -6,6 +6,7 @@ import PagesManager from "./PagesManager";
 import UsersManager from "./UsersManager";
 import HomeTabsManager from "./HomeTabsManager";
 import LinksManager from "./LinksManager";
+import CustomizationManager from "./CustomizationManager";
 
 const MODULES = [
   ["website-information", "Website Information"],
@@ -263,6 +264,10 @@ function Admin() {
         </form>
       </main>
     );
+  }
+
+  if (page === "website-information") {
+    return <CustomizationManager />;
   }
 
   if (page === "posts") {
