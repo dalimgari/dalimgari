@@ -1,65 +1,128 @@
+function isVideoUrl(url) {
+  if (!url) return false;
+
+  return (
+    /youtube\.com|youtu\.be|vimeo\.com/i.test(url) ||
+    /\.(mp4|webm|ogg)(\?.*)?$/i.test(url)
+  );
+}
+
 function PageRenderer({ page }) {
   if (!page) return null;
 
   const content = page.content || "";
+  const media = page.cover_image || "";
 
-  if (page.content_type === "gallery") {
+  function renderMedia() {
+    if (!media) return null;
+
+    if (page.content_type === "video" || isVideoUrl(media)) {
+      if (/youtube\.com|youtu\.be|vimeo\.com/i.test(media)) {
+        return (
+          <div className="page-video-embed">
+            <iframe
+              src={media}
+              title={page.title}
+              loading="lazy"
+              allowFullScreen
+            />
+          </div>
+        );
+      }
+
+      return (
+        <video
+          src={media}
+          controls
+          preload="metadata"
+          className="card-image"
+        />
+      );
+    }
+
     return (
-      <div className="page-type-gallery">
-        {page.cover_image && (
-          <img
-            src={page.cover_image}
-            alt={page.title}
-            className="card-image"
-          />
+      <img
+        src={media}
+        alt={page.title}
+        className="card-image"
+      />
+    );
+  }
+
+  function renderText() {
+    return (
+      <div className="page-content">
+        {content.split(/\n\s*\n/).map(
+          (paragraph, index) => (
+            <p key={index}>
+              {paragraph.split("\n").map(
+                (line, lineIndex) => (
+                  <span key={lineIndex}>
+                    {line}
+                    {lineIndex <
+                      paragraph.split("\n").length - 1 && (
+                      <br />
+                    )}
+                  </span>
+                )
+              )}
+            </p>
+          )
         )}
-        <div className="page-content">
-          {content && <p>{content}</p>}
-        </div>
       </div>
     );
   }
 
-  if (page.content_type === "video") {
+  if (page.content_type === "article") {
     return (
-      <div className="page-type-video">
-        {page.cover_image && (
-          <video
-            src={page.cover_image}
-            controls
-            className="card-image"
-          />
-        )}
-        <div className="page-content">
-          {content && <p>{content}</p>}
-        </div>
-      </div>
+      <article className="page-type-article">
+        {renderMedia()}
+        {renderText()}
+      </article>
+    );
+  }
+
+  if (page.content_type === "info") {
+    return (
+      <section className="page-type-info">
+        {renderMedia()}
+        {renderText()}
+      </section>
+    );
+  }
+
+  if (page.content_type === "gallery") {
+    return (
+      <section className="page-type-gallery">
+        {renderMedia()}
+        {renderText()}
+      </section>
     );
   }
 
   if (page.content_type === "people") {
     return (
-      <div className="page-type-people">
-        <div className="page-content">
-          {content && <p>{content}</p>}
-        </div>
-      </div>
+      <section className="page-type-people">
+        {renderMedia()}
+        {renderText()}
+      </section>
+    );
+  }
+
+  if (page.content_type === "video") {
+    return (
+      <section className="page-type-video">
+        {renderMedia()}
+        {renderText()}
+      </section>
     );
   }
 
   if (page.content_type === "news") {
     return (
       <article className="page-type-news">
-        {page.cover_image && (
-          <img
-            src={page.cover_image}
-            alt={page.title}
-            className="card-image"
-          />
-        )}
-        <div className="page-content">
-          {content && <p>{content}</p>}
-        </div>
+        {renderMedia()}
+        {renderText()}
       </article>
     );
   }
@@ -67,79 +130,17 @@ function PageRenderer({ page }) {
   if (page.content_type === "events") {
     return (
       <article className="page-type-events">
-        {page.cover_image && (
-          <img
-            src={page.cover_image}
-            alt={page.title}
-            className="card-image"
-          />
-        )}
-        <div className="page-content">
-          {content && <p>{content}</p>}
-        </div>
+        {renderMedia()}
+        {renderText()}
       </article>
-    );
-  }
-
-  if (page.content_type === "article") {
-    return (
-      <article className="page-type-article">
-        {page.cover_image && (
-          <img
-            src={page.cover_image}
-            alt={page.title}
-            className="card-image"
-          />
-        )}
-        <div className="page-content">
-          {content.split(/\n\s*\n/).map(
-            (paragraph, index) => (
-              <p key={index}>{paragraph}</p>
-            )
-          )}
-        </div>
-      </article>
-    );
-  }
-
-  if (page.content_type === "info") {
-    return (
-      <div className="page-type-info">
-        {page.cover_image && (
-          <img
-            src={page.cover_image}
-            alt={page.title}
-            className="card-image"
-          />
-        )}
-        <div className="page-content">
-          {content.split(/\n\s*\n/).map(
-            (paragraph, index) => (
-              <p key={index}>{paragraph}</p>
-            )
-          )}
-        </div>
-      </div>
     );
   }
 
   return (
-    <div className="page-type-custom">
-      {page.cover_image && (
-        <img
-          src={page.cover_image}
-          alt={page.title}
-          className="card-image"
-        />
-      )}
-      <div className="page-content">
-        {content.split(/\n\s*\n/).map(
-          (paragraph, index) => (
-            <p key={index}>{paragraph}</p>
-          )
-        )}
-      </div>
-    </div>
+    <section className="page-type-custom">
+      {renderMedia()}
+      {renderText()}
+    </section>
   );
 }
 
