@@ -1,3 +1,4 @@
+import { trackVisit } from "./public/visitorAnalytics";
 import { useEffect, useState } from "react";
 import { supabase } from "./lib/supabase";
 import "./App.css";
@@ -6,6 +7,7 @@ import VillageHome from "./public/VillageHome";
 import PageRenderer from "./public/PageRenderer";
 
 function App() {
+  useEffect(() => { trackVisit(); }, []);
   const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
   const pathname = window.location.pathname;
 
