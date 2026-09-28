@@ -200,6 +200,58 @@ export default function UserInformation({ onBack }) {
       .slice(0, 10);
   }, [visits]);
 
+  const operatingSystemStats = useMemo(() => {
+    const map = {};
+
+    visits.forEach((visit) => {
+      const key = visit.operating_system || "Unknown";
+      map[key] = (map[key] || 0) + 1;
+    });
+
+    return Object.entries(map)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10);
+  }, [visits]);
+
+  const languageStats = useMemo(() => {
+    const map = {};
+
+    visits.forEach((visit) => {
+      const key = visit.language || "Unknown";
+      map[key] = (map[key] || 0) + 1;
+    });
+
+    return Object.entries(map)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10);
+  }, [visits]);
+
+  const timezoneStats = useMemo(() => {
+    const map = {};
+
+    visits.forEach((visit) => {
+      const key = visit.timezone || "Unknown";
+      map[key] = (map[key] || 0) + 1;
+    });
+
+    return Object.entries(map)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10);
+  }, [visits]);
+
+  const pageStats = useMemo(() => {
+    const map = {};
+
+    visits.forEach((visit) => {
+      const key = visit.page_path || "/";
+      map[key] = (map[key] || 0) + 1;
+    });
+
+    return Object.entries(map)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 15);
+  }, [visits]);
+
   const browserStats = useMemo(() => {
     const map = {};
 
@@ -308,6 +360,98 @@ export default function UserInformation({ onBack }) {
                   </thead>
                   <tbody>
                     {deviceStats.map(([name, count]) => (
+                      <tr key={name}>
+                        <td>{name}</td>
+                        <td>{count}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section className="admin-content">
+              <h2>Operating Systems</h2>
+
+              <div className="admin-table-wrap">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Operating System</th>
+                      <th>Visits</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {operatingSystemStats.map(([name, count]) => (
+                      <tr key={name}>
+                        <td>{name}</td>
+                        <td>{count}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section className="admin-content">
+              <h2>Visitor Languages</h2>
+
+              <div className="admin-table-wrap">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Language</th>
+                      <th>Visits</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {languageStats.map(([name, count]) => (
+                      <tr key={name}>
+                        <td>{name}</td>
+                        <td>{count}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section className="admin-content">
+              <h2>Visitor Timezones</h2>
+
+              <div className="admin-table-wrap">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Timezone</th>
+                      <th>Visits</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {timezoneStats.map(([name, count]) => (
+                      <tr key={name}>
+                        <td>{name}</td>
+                        <td>{count}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section className="admin-content">
+              <h2>Most Visited Pages</h2>
+
+              <div className="admin-table-wrap">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Page</th>
+                      <th>Visits</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pageStats.map(([name, count]) => (
                       <tr key={name}>
                         <td>{name}</td>
                         <td>{count}</td>
