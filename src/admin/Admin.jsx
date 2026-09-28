@@ -312,7 +312,7 @@ function Admin() {
 
   if (page === "users") {
     return (
-      <UsersManager
+      <UserInformation
         onBack={() => setPage("dashboard")}
       />
     );
