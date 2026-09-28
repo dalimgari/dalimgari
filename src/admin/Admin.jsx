@@ -8,6 +8,7 @@ import HomeTabsManager from "./HomeTabsManager";
 import LinksManager from "./LinksManager";
 import CustomizationManager from "./CustomizationManager";
 import GalleryManager from "./GalleryManager";
+import VideosManager from "./VideosManager";
 
 const MODULES = [
   ["website-information", "Website Information"],
@@ -283,6 +284,10 @@ function Admin() {
     );
   }
 
+  if (page === "videos") {
+    return <VideosManager />;
+  }
+
   if (page === "pages") {
     return (
       <PagesManager
@@ -314,7 +319,7 @@ function Admin() {
   const placeholderMap = {
     "website-information": "Website Information",
     photos: "Photo Management",
-    videos: "Video Management",
+    "admin-information": "Admin Information",
     links: "Link Management",
     "admin-information": "Admin Information"
   };
