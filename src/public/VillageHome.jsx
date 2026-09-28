@@ -1,42 +1,65 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import "./VillageHome.css";
 
-const DEFAULT_TABS = [
-  { id: "home", label: "মূল পাতা", type: "home" },
-  { id: "details", label: "বিস্তারিত তথ্য", type: "article" },
-  { id: "nature", label: "প্রকৃতি ও দৃশ্যাবলী", type: "gallery" },
-  { id: "people", label: "গ্রামবাসী", type: "people" },
-  { id: "photos", label: "ফটো গ্যালারী", type: "gallery" },
-  { id: "videos", label: "ভিডিও গ্যালারী", type: "video" }
-];
-
 function VillageHome() {
   const [settings, setSettings] = useState({});
-  const [activeTab, setActiveTab] = useState("home");
+  const [tabs, setTabs] = useState([]);
+  const [activeTab, setActiveTab] = useState(null);
   const [language, setLanguage] = useState("bn");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadSettings();
+    loadHomepage();
   }, []);
 
-  async function loadSettings() {
-    const { data } = await supabase
-      .from("site_settings")
-      .select("*")
-      .order("created_at", { ascending: true });
+  async function loadHomepage() {
+    setLoading(true);
+
+    const [settingsResult, tabsResult] = await Promise.all([
+      supabase
+        .from("site_settings")
+        .select("*")
+        .order("created_at", { ascending: true }),
+
+      supabase
+        .from("site_tabs")
+        .select(`
+          id,
+          tab_key,
+          page_id,
+          sort_order,
+          enabled,
+          pages (
+            id,
+            slug,
+            title,
+            content,
+            content_type,
+            cover_image,
+            published
+          )
+        `)
+        .eq("enabled", true)
+        .order("sort_order", { ascending: true })
+    ]);
 
     const map = {};
 
-    (data || []).forEach((item) => {
+    (settingsResult.data || []).forEach((item) => {
       map[item.key] =
         typeof item.value === "string"
           ? item.value
           : item.value?.value || "";
     });
 
+    const validTabs = (tabsResult.data || []).filter(
+      (tab) => tab.pages && tab.pages.published
+    );
+
     setSettings(map);
+    setTabs(validTabs);
+    setActiveTab(validTabs[0]?.tab_key || null);
     setLoading(false);
   }
 
@@ -44,93 +67,57 @@ function VillageHome() {
   const tagline = settings.site_tagline || "";
   const description = settings.site_description || "";
 
-  const wallpaper = settings.hero_wallpaper || settings.village_wallpaper || "";
+  const wallpaper =
+    settings.hero_wallpaper ||
+    settings.village_wallpaper ||
+    "";
 
-  const wallpaperStyle = settings.wallpaper_style || "classic";
+  const wallpaperStyle =
+    settings.wallpaper_style || "classic";
 
-  const tabs = useMemo(() => {
-    try {
-      const configured = settings.home_tabs
-        ? JSON.parse(settings.home_tabs)
-        : null;
+  const currentTab = tabs.find(
+    (tab) => tab.tab_key === activeTab
+  );
 
-      if (Array.isArray(configured) && configured.length) {
-        return configured.filter((tab) => tab.enabled !== false);
-      }
-    } catch {
-      // Use defaults when stored configuration is invalid.
-    }
-
-    return DEFAULT_TABS;
-  }, [settings.home_tabs]);
+  const page = currentTab?.pages || null;
 
   const text =
     language === "bn"
       ? {
           login: "লগইন",
-          home: "মূল পাতা",
-          explore: "গ্রামকে জানুন",
           language: "English",
-          welcome: "স্বাগতম",
-          details: "ডালিমগাড়ী সম্পর্কে",
-          detailsText:
-            "এই গ্রামের ইতিহাস, মানুষ, প্রকৃতি ও জীবনযাত্রার তথ্য ধীরে ধীরে এখানে যুক্ত করা হবে।",
-          empty: "এই অংশের তথ্য শীঘ্রই যুক্ত করা হবে।"
+          explore: "গ্রামকে জানুন",
+          loading: "লোড হচ্ছে...",
+          empty: "এই পৃষ্ঠায় এখনো কোনো তথ্য নেই।",
+          home: "হোম"
         }
       : {
           login: "Login",
-          home: "Home",
-          explore: "Explore Village",
           language: "বাংলা",
-          welcome: "Welcome",
-          details: "About Dalimgari",
-          detailsText:
-            "Information about the village, its people, nature and everyday life will be added here.",
-          empty: "Information for this section will be added soon."
+          explore: "Explore Village",
+          loading: "Loading...",
+          empty: "This page does not contain any information yet.",
+          home: "Home"
         };
 
-  function selectTab(id) {
-    setActiveTab(id);
+  function selectTab(tabKey) {
+    setActiveTab(tabKey);
 
     requestAnimationFrame(() => {
       document
         .getElementById("village-content")
-        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+        ?.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
     });
   }
 
-  function renderContent() {
-    if (activeTab === "home") {
+  function renderPageContent() {
+    if (!page) {
       return (
-        <section className="village-content-card home-content">
-          <span className="village-section-kicker">{text.welcome}</span>
-          <h2>{siteName}</h2>
-          <p>{description}</p>
-
-          <div className="village-info-grid">
-            <div>
-              <strong>গ্রাম</strong>
-              <span>{siteName}</span>
-            </div>
-            <div>
-              <strong>পরিচয়</strong>
-              <span>{tagline}</span>
-            </div>
-            <div>
-              <strong>তথ্যভাণ্ডার</strong>
-              <span>ক্রমে সমৃদ্ধ হচ্ছে</span>
-            </div>
-          </div>
-        </section>
-      );
-    }
-
-    if (activeTab === "details") {
-      return (
-        <section className="village-content-card article-content">
-          <span className="village-section-kicker">বিস্তারিত</span>
-          <h2>{text.details}</h2>
-          <p>{text.detailsText}</p>
+        <section className="village-content-card">
+          <p>{text.empty}</p>
         </section>
       );
     }
@@ -138,10 +125,47 @@ function VillageHome() {
     return (
       <section className="village-content-card">
         <span className="village-section-kicker">
-          {tabs.find((tab) => tab.id === activeTab)?.label}
+          {page.content_type}
         </span>
-        <h2>{tabs.find((tab) => tab.id === activeTab)?.label}</h2>
-        <p>{text.empty}</p>
+
+        <h2>{page.title}</h2>
+
+        {page.cover_image && (
+          <img
+            src={page.cover_image}
+            alt={page.title}
+            className="card-image"
+          />
+        )}
+
+        <div className="page-content">
+          {(page.content || "").split(/\n\s*\n/).map(
+            (paragraph, index) => (
+              <p key={index}>
+                {paragraph.split("\n").map(
+                  (line, lineIndex) => (
+                    <span key={lineIndex}>
+                      {line}
+                      {lineIndex <
+                        paragraph.split("\n").length - 1 && (
+                        <br />
+                      )}
+                    </span>
+                  )
+                )}
+              </p>
+            )
+          )}
+        </div>
+
+        {page.slug && (
+          <a
+            className="button secondary"
+            href={`${import.meta.env.BASE_URL}${page.slug}`}
+          >
+            {page.title}
+          </a>
+        )}
       </section>
     );
   }
@@ -149,7 +173,7 @@ function VillageHome() {
   if (loading) {
     return (
       <div className="village-loading">
-        <div>লোড হচ্ছে...</div>
+        <div>{text.loading}</div>
       </div>
     );
   }
@@ -158,8 +182,13 @@ function VillageHome() {
     <div className="village-site">
       <header className="village-topbar">
         <div className="village-topbar-inner">
-          <a className="village-brand" href={import.meta.env.BASE_URL}>
-            <span className="village-brand-mark">দা</span>
+          <a
+            className="village-brand"
+            href={import.meta.env.BASE_URL}
+          >
+            <span className="village-brand-mark">
+              {siteName.slice(0, 2)}
+            </span>
             <span>{siteName}</span>
           </a>
 
@@ -168,7 +197,9 @@ function VillageHome() {
               type="button"
               className="language-switch"
               onClick={() =>
-                setLanguage((current) => (current === "bn" ? "en" : "bn"))
+                setLanguage((current) =>
+                  current === "bn" ? "en" : "bn"
+                )
               }
             >
               {text.language}
@@ -187,48 +218,74 @@ function VillageHome() {
       <main>
         <section
           className={`village-hero wallpaper-${wallpaperStyle}`}
-          style={{ "--village-wallpaper": `url("${wallpaper}")` }}
+          style={{
+            "--village-wallpaper": wallpaper
+              ? `url("${wallpaper}")`
+              : "none"
+          }}
         >
           <div className="village-hero-overlay" />
 
           <div className="village-hero-content">
-            <span className="village-hero-kicker">{tagline}</span>
+            <span className="village-hero-kicker">
+              {tagline}
+            </span>
+
             <h1>{siteName}</h1>
+
             <p>{description}</p>
 
-            <button
-              type="button"
-              className="hero-explore-button"
-              onClick={() => selectTab("home")}
-            >
-              {text.explore}
-            </button>
+            {tabs.length > 0 && (
+              <button
+                type="button"
+                className="hero-explore-button"
+                onClick={() =>
+                  selectTab(tabs[0].tab_key)
+                }
+              >
+                {text.explore}
+              </button>
+            )}
           </div>
         </section>
 
-        <div className="village-tabs-wrap">
-          <nav className="village-tabs" aria-label="Village sections">
-            {tabs.map((tab) => (
-              <button
-                type="button"
-                key={tab.id}
-                className={activeTab === tab.id ? "active" : ""}
-                onClick={() => selectTab(tab.id)}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </nav>
-        </div>
+        {tabs.length > 0 && (
+          <div className="village-tabs-wrap">
+            <nav
+              className="village-tabs"
+              aria-label="Village sections"
+            >
+              {tabs.map((tab) => (
+                <button
+                  type="button"
+                  key={tab.id}
+                  className={
+                    activeTab === tab.tab_key
+                      ? "active"
+                      : ""
+                  }
+                  onClick={() =>
+                    selectTab(tab.tab_key)
+                  }
+                >
+                  {tab.pages.title}
+                </button>
+              ))}
+            </nav>
+          </div>
+        )}
 
-        <section id="village-content" className="village-main-content">
-          {renderContent()}
+        <section
+          id="village-content"
+          className="village-main-content"
+        >
+          {renderPageContent()}
         </section>
       </main>
 
       <footer className="village-footer">
         <strong>{siteName}</strong>
-        <span>আমাদের গ্রাম, আমাদের পরিচয়</span>
+        <span>{tagline}</span>
       </footer>
     </div>
   );
