@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import "./VillageHome.css";
 import PageRenderer from "./PageRenderer";
+import AuthPanel from "./AuthPanel";
 
 function readSetting(value) {
   if (typeof value === "string") return value;
@@ -28,6 +29,7 @@ function VillageHome() {
   const [language, setLanguage] = useState("bn");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [authOpen, setAuthOpen] = useState(false);
 
   useEffect(() => {
     loadHomepage();
@@ -251,12 +253,13 @@ function VillageHome() {
               {language === "bn" ? "English" : "বাংলা"}
             </button>
 
-            <a
+            <button
+              type="button"
               className="login-button"
-              href={`${import.meta.env.BASE_URL}admin`}
+              onClick={() => setAuthOpen(true)}
             >
               Login
-            </a>
+            </button>
           </div>
         </div>
       </header>
@@ -313,6 +316,12 @@ function VillageHome() {
           </div>
         </section>
       </main>
+
+      {authOpen && (
+        <AuthPanel
+          onClose={() => setAuthOpen(false)}
+        />
+      )}
 
       <footer className="village-footer">
         <div className="village-footer-links">
