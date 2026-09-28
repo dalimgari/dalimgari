@@ -5,6 +5,7 @@ import PostsManager from "./PostsManager";
 import PagesManager from "./PagesManager";
 import UsersManager from "./UsersManager";
 import HomeTabsManager from "./HomeTabsManager";
+import LinksManager from "./LinksManager";
 
 const MODULES = [
   ["website-information", "Website Information"],
@@ -278,6 +279,10 @@ function Admin() {
         onBack={() => setPage("dashboard")}
       />
     );
+  }
+
+  if (page === "links") {
+    return <LinksManager />;
   }
 
   if (page === "tabs") {
