@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import MediaInput from "../components/MediaInput";
 
 export default function UserDashboard({ session, onBack }) {
   const [profile, setProfile] = useState(null);
@@ -12,7 +13,7 @@ export default function UserDashboard({ session, onBack }) {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [saving, setSaving] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
-  const [uploading, setUploading] = useState(false);
+
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -42,44 +43,6 @@ export default function UserDashboard({ session, onBack }) {
     setAge(data?.age ?? "");
     setDateOfBirth(data?.date_of_birth || "");
     setAvatarUrl(data?.avatar_url || "");
-  }
-
-  async function handleAvatarUpload(event) {
-    const file = event.target.files?.[0];
-
-    if (!file) return;
-
-    setUploading(true);
-    setMessage("");
-    setError("");
-
-    const safeName = file.name
-      .toLowerCase()
-      .replace(/[^a-z0-9._-]+/g, "-");
-
-    const path =
-      `avatars/${session.user.id}/${crypto.randomUUID()}-${safeName}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from("media")
-      .upload(path, file, {
-        cacheControl: "3600",
-        upsert: false
-      });
-
-    if (uploadError) {
-      setError(uploadError.message);
-      setUploading(false);
-      return;
-    }
-
-    const { data } = supabase.storage
-      .from("media")
-      .getPublicUrl(path);
-
-    setAvatarUrl(data.publicUrl);
-    setMessage("Photo uploaded. Save profile to keep it.");
-    setUploading(false);
   }
 
   async function saveProfile(event) {
@@ -190,13 +153,13 @@ export default function UserDashboard({ session, onBack }) {
 
           <label>
             Profile Photo
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleAvatarUpload}
-              disabled={uploading}
-            />
           </label>
+          <MediaInput
+            value={avatarUrl}
+            onChange={setAvatarUrl}
+            folder={`avatars/${session.user.id}`}
+            accept="image/*"
+          />
 
           <form onSubmit={saveProfile}>
             <label>
@@ -255,7 +218,7 @@ export default function UserDashboard({ session, onBack }) {
 
             <button
               type="submit"
-              disabled={saving || uploading}
+              disabled={saving}
             >
               {saving ? "Saving..." : "Save Profile"}
             </button>
