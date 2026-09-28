@@ -26,6 +26,7 @@ function VideosManager() {
     const { data, error } = await supabase
       .from("gallery")
       .select("*")
+      .eq("media_type", "video")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -114,7 +115,7 @@ function VideosManager() {
           ? "Video updated successfully."
           : "Video added successfully."
       );
-      await loadGallery();
+      await loadVideos();
     }
 
     setSaving(false);
@@ -146,7 +147,7 @@ function VideosManager() {
     }
 
     setMessage("Video deleted.");
-    await loadGallery();
+    await loadVideos();
   }
 
   return (
