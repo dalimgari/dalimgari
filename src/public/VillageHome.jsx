@@ -23,7 +23,21 @@ function getLocalized(settings, base, language) {
 
 function VillageHome() {
   useEffect(() => {
-    trackVisit();
+    let active = true;
+
+    async function recordVisit() {
+      const { data } = await supabase.auth.getSession();
+
+      if (active) {
+        await trackVisit(data.session?.user?.id || null);
+      }
+    }
+
+    recordVisit();
+
+    return () => {
+      active = false;
+    };
   }, []);
   const [settings, setSettings] = useState({});
   const [tabs, setTabs] = useState([]);
