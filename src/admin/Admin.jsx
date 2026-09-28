@@ -326,13 +326,7 @@ function Admin() {
     );
   }
 
-  const placeholderMap = {
-    "website-information": "Website Information",
-    photos: "Photo Management",
-    "admin-information": "Admin Information",
-    links: "Link Management",
-    "admin-information": "Admin Information"
-  };
+  const placeholderMap = {};
 
   if (placeholderMap[page]) {
     return renderPlaceholder(
