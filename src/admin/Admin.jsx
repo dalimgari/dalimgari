@@ -271,7 +271,7 @@ function Admin() {
     return <CustomizationManager />;
   }
 
-  if (page === "photo-management") {
+  if (page === "photos") {
     return <GalleryManager />;
   }
 
