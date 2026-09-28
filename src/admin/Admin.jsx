@@ -8,6 +8,7 @@ import HomeTabsManager from "./HomeTabsManager";
 import LinksManager from "./LinksManager";
 import CustomizationManager from "./CustomizationManager";
 import GalleryManager from "./GalleryManager";
+import AdminInformation from "./AdminInformation";
 import VideosManager from "./VideosManager";
 
 const MODULES = [
@@ -311,6 +312,14 @@ function Admin() {
   if (page === "users") {
     return (
       <UsersManager
+        onBack={() => setPage("dashboard")}
+      />
+    );
+  }
+
+  if (page === "admin-information") {
+    return (
+      <AdminInformation
         onBack={() => setPage("dashboard")}
       />
     );
