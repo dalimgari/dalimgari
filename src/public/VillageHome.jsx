@@ -3,6 +3,7 @@ import { supabase } from "../lib/supabase";
 import "./VillageHome.css";
 import PageRenderer from "./PageRenderer";
 import AuthPanel from "./AuthPanel";
+import { trackVisit } from "./visitorAnalytics";
 
 function readSetting(value) {
   if (typeof value === "string") return value;
@@ -21,6 +22,9 @@ function getLocalized(settings, base, language) {
 }
 
 function VillageHome() {
+  useEffect(() => {
+    trackVisit();
+  }, []);
   const [settings, setSettings] = useState({});
   const [tabs, setTabs] = useState([]);
   const [links, setLinks] = useState([]);
