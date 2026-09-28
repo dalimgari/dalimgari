@@ -45,7 +45,13 @@ function detectOperatingSystem() {
   return "Other";
 }
 
+let trackedThisLoad = false;
+
 export async function trackVisit(userId = null) {
+  if (trackedThisLoad) return;
+
+  trackedThisLoad = true;
+
   try {
     const visitor = getVisitorId();
 
