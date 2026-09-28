@@ -36,6 +36,8 @@ function App() {
 
 function DynamicPage({ slug }) {
   const [page, setPage] = useState(null);
+  const [settings, setSettings] = useState({});
+  const [links, setLinks] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -45,30 +47,61 @@ function DynamicPage({ slug }) {
   async function loadPage() {
     setLoading(true);
 
-    const { data } = await supabase
-      .from("pages")
-      .select(`
-        id,
-        slug,
-        title,
-        content,
-        content_type,
-        cover_image,
-        published
-      `)
-      .eq("slug", slug)
-      .eq("published", true)
-      .maybeSingle();
+    const [pageResult, settingsResult, linksResult] =
+      await Promise.all([
+        supabase
+          .from("pages")
+          .select(`
+            id,
+            slug,
+            title,
+            content,
+            content_type,
+            cover_image,
+            published
+          `)
+          .eq("slug", slug)
+          .eq("published", true)
+          .maybeSingle(),
 
-    setPage(data || null);
+        supabase
+          .from("site_settings")
+          .select("*")
+          .order("created_at", { ascending: true }),
+
+        supabase
+          .from("global_links")
+          .select("*")
+          .eq("enabled", true)
+          .order("sort_order", { ascending: true })
+      ]);
+
+    const settingsMap = {};
+
+    (settingsResult.data || []).forEach((item) => {
+      const value =
+        typeof item.value === "string"
+          ? item.value
+          : item.value?.value || "";
+
+      settingsMap[item.key] = value;
+    });
+
+    setPage(pageResult.data || null);
+    setSettings(settingsMap);
+    setLinks(linksResult.data || []);
     setLoading(false);
   }
 
+  const base = import.meta.env.BASE_URL.endsWith("/")
+    ? import.meta.env.BASE_URL
+    : `${import.meta.env.BASE_URL}/`;
+
   if (loading) {
     return (
-      <div className="app">
-        <main className="section">
-          <div className="container">
+      <div className="village-site">
+        <main className="village-main-content">
+          <div className="village-content-card">
             <p>Loading...</p>
           </div>
         </main>
@@ -78,74 +111,127 @@ function DynamicPage({ slug }) {
 
   if (!page) {
     return (
-      <div className="app">
-        <main className="section">
-          <div className="container">
+      <div className="village-site">
+        <main className="village-main-content">
+          <div className="village-content-card">
             <h1>Page not found</h1>
-            <a href={import.meta.env.BASE_URL}>Back to Home</a>
+            <a className="login-button" href={base}>
+              Back to Home
+            </a>
           </div>
         </main>
       </div>
     );
   }
 
-  const base = import.meta.env.BASE_URL.endsWith("/")
-    ? import.meta.env.BASE_URL
-    : `${import.meta.env.BASE_URL}/`;
+  const siteName =
+    settings.site_name ||
+    settings.site_title ||
+    "";
+
+  const logo =
+    settings.site_logo ||
+    settings.logo_url ||
+    "";
+
+  const copyright =
+    settings.copyright ||
+    settings.site_copyright ||
+    "";
 
   const pageUrl = `${base}${page.slug}`;
 
   return (
-    <div className="app">
-      <header className="header">
-        <div className="container header-inner">
-          <a className="brand" href={base}>
-            <span className="brand-mark">
-              {page.title.slice(0, 1)}
-            </span>
-            <span>{page.title}</span>
+    <div className="village-site">
+      <header className="village-topbar">
+        <div className="village-topbar-inner">
+          <a className="village-brand" href={base}>
+            {logo ? (
+              <img
+                className="village-brand-logo"
+                src={logo}
+                alt=""
+              />
+            ) : null}
+
+            <span>{siteName}</span>
           </a>
 
-          <nav className="nav">
-            <a href={base}>Home</a>
-            <a href={`${base}admin`}>Admin</a>
-          </nav>
+          <div className="village-global-search">
+            <a
+              className="login-button"
+              href={base}
+            >
+              Home
+            </a>
+          </div>
+
+          <div className="village-top-actions">
+            <a
+              className="login-button"
+              href={`${base}admin`}
+            >
+              Login
+            </a>
+          </div>
         </div>
       </header>
 
       <main>
-        <section className="section">
-          <div className="container">
-            <div className="section-heading">
-              <p className="eyebrow">
-                {page.content_type}
-              </p>
+        <section className="village-main-content">
+          <div className="village-content-card">
+            <div className="village-page-content">
               <h1>{page.title}</h1>
-            </div>
 
-            <PageRenderer page={page} />
+              <PageRenderer page={page} />
 
-            <div>
-              <a
-                className="button secondary"
-                href={base}
-              >
-                Back to Home
-              </a>
-            </div>
+              <div style={{ marginTop: "24px" }}>
+                <a
+                  className="login-button"
+                  href={base}
+                >
+                  Back to Home
+                </a>
+              </div>
 
-            <div style={{ marginTop: "1rem" }}>
-              <small>{pageUrl}</small>
+              <div style={{ marginTop: "16px" }}>
+                <small>{pageUrl}</small>
+              </div>
             </div>
           </div>
         </section>
       </main>
 
-      <footer className="footer">
-        <div className="container footer-inner">
-          <span>{page.title}</span>
-          <span>{pageUrl}</span>
+      <footer className="village-footer">
+        <div className="village-footer-links">
+          {links.map((link) => (
+            <a
+              key={link.id}
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={link.label || link.root_domain}
+              aria-label={link.label || link.root_domain}
+            >
+              {link.icon ? (
+                <img
+                  src={link.icon}
+                  alt=""
+                  width="28"
+                  height="28"
+                />
+              ) : (
+                <span>{link.root_domain}</span>
+              )}
+            </a>
+          ))}
         </div>
+
+        {copyright && (
+          <div className="village-footer-copyright">
+            {copyright}
+          </div>
+        )}
       </footer>
     </div>
   );
