@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
-import MediaInput from "./MediaInput";
+import MediaInput from "../components/MediaInput";
 
 function makeSlug(text) {
   return text
