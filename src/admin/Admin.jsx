@@ -10,6 +10,7 @@ import CustomizationManager from "./CustomizationManager";
 import GalleryManager from "./GalleryManager";
 import AdminInformation from "./AdminInformation";
 import VideosManager from "./VideosManager";
+import UserInformation from "./UserInformation";
 
 const MODULES = [
   ["website-information", "Website Information"],
@@ -18,8 +19,8 @@ const MODULES = [
   ["videos", "Video Management"],
   ["pages", "Page Management"],
   ["tabs", "Tab Management"],
-  ["links", "Link Management"],
-  ["users", "Users Management"],
+  
+  ["users", "User Information"],
   ["admin-information", "Admin Information"]
 ];
 
