@@ -1,0 +1,23 @@
+DALIMGARI VILLAGE WEBSITE - PROJECT REQUIREMENTS
+
+1. The project owner has no coding knowledge.
+2. The complete project must be manageable using only an Android phone.
+3. The complete project must be built and completed for free.
+4. No website/content information will be hardcoded inside the source code.
+5. Source code will contain only structure, design, logic, and functions.
+6. All website information/data will be stored in the database.
+7. The project must have an Admin Account System.
+8. Admin Login must open the Admin Dashboard.
+9. All website information must be entered and managed from the Admin Dashboard.
+10. Data entered through the Admin Dashboard must be saved to the appropriate database fields.
+11. Bengali will be the website's main/default language.
+12. The website must be switchable to English through translation.
+13. Do not use separate language fields such as Title.bn and Title.eng.
+14. The website must automatically select Day/Night mode and also allow manual mode changes.
+15. The homepage must have four main sections:
+   1. Header
+   2. Banner
+   3. Body
+   4. Footer
+
+These requirements are the core constraints for the project and must be followed during development.
