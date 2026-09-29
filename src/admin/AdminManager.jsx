@@ -17,6 +17,7 @@ const MODULES = [
   ["videos", "Video Management"],
   ["pages", "Page Management"],
   ["tabs", "Tab Management"],
+  ["links", "Link Management"],
   
   ["users", "User Information"],
   ["admin-information", "Admin Information"]
