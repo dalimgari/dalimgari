@@ -85,9 +85,9 @@ export default function PageManager({ onBack }) {
 
     setForm({
       slug: page.slug || "",
-      title: page.title || page.title || "",
       title: page.title || "",
-      content: page.content || page.content || "",
+      title: page.title || "",
+      content: page.content || "",
       content: page.content || "",
       content_type: page.content_type || "custom",
       cover_media: page.cover_media || "",
