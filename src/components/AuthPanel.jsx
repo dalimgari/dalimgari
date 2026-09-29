@@ -14,6 +14,7 @@ export default function AuthPanel({ onClose }) {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [open, setOpen] = useState(false);
+  const [recovery, setRecovery] = useState(false);
 
   useEffect(() => {
     loadSession();
@@ -58,6 +59,21 @@ export default function AuthPanel({ onClose }) {
     setSaving(true);
     setMessage("");
     setError("");
+
+    if (recovery) {
+      const { error: recoveryError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}${import.meta.env.BASE_URL}`
+      });
+
+      if (recoveryError) {
+        setError(recoveryError.message);
+      } else {
+        setMessage("Password recovery email sent.");
+      }
+
+      setSaving(false);
+      return;
+    }
 
     if (mode === "signup") {
       const { data, error: signupError } = await supabase.auth.signUp({
@@ -135,7 +151,12 @@ export default function AuthPanel({ onClose }) {
     return (
       <UserDashboard
         session={session}
-        onLogout={logout}
+        onBack={() => {
+          setSession(null);
+          setRole(null);
+          setOpen(false);
+          if (onClose) onClose();
+        }}
       />
     );
   }
@@ -163,7 +184,7 @@ export default function AuthPanel({ onClose }) {
             </button>
 
             <h2>
-              {mode === "signin" ? "Sign In" : "Create Account"}
+              {recovery ? "Reset Password" : mode === "signin" ? "Sign In" : "Create Account"}
             </h2>
 
             <form onSubmit={handleSubmit}>
@@ -208,15 +229,31 @@ export default function AuthPanel({ onClose }) {
               <button type="submit" disabled={saving}>
                 {saving
                   ? "Please wait..."
-                  : mode === "signin"
-                    ? "Sign In"
-                    : "Create Account"}
+                  : recovery
+                    ? "Send Recovery Email"
+                    : mode === "signin"
+                      ? "Sign In"
+                      : "Create Account"}
               </button>
             </form>
+
+            {mode === "signin" && !recovery && (
+              <button
+                type="button"
+                onClick={() => {
+                  setRecovery(true);
+                  setError("");
+                  setMessage("");
+                }}
+              >
+                Forgot password?
+              </button>
+            )}
 
             <button
               type="button"
               onClick={() => {
+                setRecovery(false);
                 setMode(mode === "signin" ? "signup" : "signin");
                 setError("");
                 setMessage("");
