@@ -133,16 +133,13 @@ function DynamicPage({ slug, language }) {
   }
 
   const siteName =
-    settings.website_name
-    "";
+    settings.website_name || "";
 
   const logo =
-    logo_url
-    "";
+    settings.logo_url || "";
 
   const copyright =
-    copyright
-    "";
+    settings.copyright || "";
 
   const pageUrl = `${base}${page.slug}`;
 

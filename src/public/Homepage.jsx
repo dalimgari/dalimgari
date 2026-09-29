@@ -141,9 +141,7 @@ function Homepage({ language, onLanguageChange }) {
     getLocalized(settings, "site_tagline", localLanguage);
 
   const logo =
-    settings.logo_url ||
-    settings.logo_url ||
-    "";
+    settings.logo_url || "";
 
   const wallpaper =
     settings.hero_wallpaper ||
