@@ -1,5 +1,10 @@
 DALIMGARI VILLAGE WEBSITE - PROJECT REQUIREMENTS
 
+PRIMARY TOP-LEVEL RULE
+Before deciding or performing any project work, always read and follow this PROJECT_REQUIREMENTS.txt file. If the project owner adds a new permanent requirement, it must be added to this file. If an existing requirement is changed, this file must be updated. This file is the primary and authoritative reference for project decisions and development.
+
+CORE REQUIREMENTS
+
 1. The project owner has no coding knowledge.
 2. The complete project must be manageable using only an Android phone.
 3. The complete project must be built and completed for free.
