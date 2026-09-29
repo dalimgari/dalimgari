@@ -133,18 +133,15 @@ function DynamicPage({ slug, language }) {
   }
 
   const siteName =
-    settings.site_name ||
-    settings.site_title ||
+    settings.website_name
     "";
 
   const logo =
-    settings.site_logo ||
-    settings.logo_url ||
+    logo_url
     "";
 
   const copyright =
-    settings.copyright ||
-    settings.site_copyright ||
+    copyright
     "";
 
   const pageUrl = `${base}${page.slug}`;

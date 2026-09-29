@@ -18,12 +18,12 @@ export default function PageManager({ onBack }) {
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState({
     slug: "",
-    title_bn: "",
-    title_en: "",
-    content_bn: "",
-    content_en: "",
+    title: "",
+    title: "",
+    content: "",
+    content: "",
     content_type: "custom",
-    cover_image: "",
+    cover_media: "",
     published: true
   });
   const [loading, setLoading] = useState(true);
@@ -44,7 +44,7 @@ export default function PageManager({ onBack }) {
     const { data, error } = await supabase
       .from("PageManagement")
       .select(
-        "id, slug, title, title_bn, title_en, content, content_bn, content_en, content_type, cover_image, published, created_at, updated_at"
+        "id, slug, title, title, title, content, content, content, content_type, cover_media, published, created_at, updated_at"
       )
       .order("created_at", { ascending: false });
 
@@ -61,12 +61,12 @@ export default function PageManager({ onBack }) {
     setEditingId(null);
     setForm({
       slug: "",
-      title_bn: "",
-      title_en: "",
-      content_bn: "",
-      content_en: "",
+      title: "",
+      title: "",
+      content: "",
+      content: "",
       content_type: "custom",
-      cover_image: "",
+      cover_media: "",
       published: true
     });
     setMessage("");
@@ -85,12 +85,12 @@ export default function PageManager({ onBack }) {
 
     setForm({
       slug: page.slug || "",
-      title_bn: page.title_bn || page.title || "",
-      title_en: page.title_en || "",
-      content_bn: page.content_bn || page.content || "",
-      content_en: page.content_en || "",
+      title: page.title || page.title || "",
+      title: page.title || "",
+      content: page.content || page.content || "",
+      content: page.content || "",
       content_type: page.content_type || "custom",
-      cover_image: page.cover_image || "",
+      cover_media: page.cover_media || "",
       published: page.published !== false
     });
 
@@ -102,7 +102,7 @@ export default function PageManager({ onBack }) {
 
     const slug = normalizeSlug(form.slug);
 
-    if (!slug || !form.title_bn.trim() || !form.title_en.trim()) {
+    if (!slug || !form.title.trim() || !form.title.trim()) {
       setMessage("Slug and title are required.");
       return;
     }
@@ -112,14 +112,14 @@ export default function PageManager({ onBack }) {
 
     const payload = {
       slug,
-      title: form.title_bn.trim(),
-      title_bn: form.title_bn.trim(),
-      title_en: form.title_en.trim(),
-      content: form.content_bn.trim(),
-      content_bn: form.content_bn.trim(),
-      content_en: form.content_en.trim(),
+      title: form.title.trim(),
+      title: form.title.trim(),
+      title: form.title.trim(),
+      content: form.content.trim(),
+      content: form.content.trim(),
+      content: form.content.trim(),
       content_type: form.content_type,
-      cover_image: form.cover_image.trim() || null,
+      cover_media: form.cover_media.trim() || null,
       published: form.published,
       updated_at: new Date().toISOString()
     };
@@ -230,18 +230,18 @@ export default function PageManager({ onBack }) {
           <input
             type="text"
             placeholder="Page title (Bangla)"
-            value={form.title_bn}
+            value={form.title}
             onChange={(event) => {
-              const title_bn = event.target.value;
+              const title = event.target.value;
 
               setForm((current) => ({
                 ...current,
-                title_bn,
+                title,
                 slug:
                   !editingId &&
                   !current.slug.trim()
-                    ? current.title_en
-                      ? normalizeSlug(current.title_en)
+                    ? current.title
+                      ? normalizeSlug(current.title)
                       : current.slug
                     : current.slug
               }));
@@ -251,17 +251,17 @@ export default function PageManager({ onBack }) {
           <input
             type="text"
             placeholder="Page title (English)"
-            value={form.title_en}
+            value={form.title}
             onChange={(event) => {
-              const title_en = event.target.value;
+              const title = event.target.value;
 
               setForm((current) => ({
                 ...current,
-                title_en,
+                title,
                 slug:
                   !editingId &&
                   !current.slug.trim()
-                    ? normalizeSlug(title_en)
+                    ? normalizeSlug(title)
                     : current.slug
               }));
             }}
@@ -303,11 +303,11 @@ export default function PageManager({ onBack }) {
 
           <textarea
             placeholder="Page content (Bangla)"
-            value={form.content_bn}
+            value={form.content}
             onChange={(event) =>
               setForm((current) => ({
                 ...current,
-                content_bn: event.target.value
+                content: event.target.value
               }))
             }
             rows={12}
@@ -315,22 +315,22 @@ export default function PageManager({ onBack }) {
 
           <textarea
             placeholder="Page content (English)"
-            value={form.content_en}
+            value={form.content}
             onChange={(event) =>
               setForm((current) => ({
                 ...current,
-                content_en: event.target.value
+                content: event.target.value
               }))
             }
             rows={12}
           />
 
           <MediaInput
-            value={form.cover_image}
+            value={form.cover_media}
             onChange={(value) =>
               setForm((current) => ({
                 ...current,
-                cover_image: value
+                cover_media: value
               }))
             }
             folder="pages"
@@ -390,7 +390,7 @@ export default function PageManager({ onBack }) {
               >
                 <div>
                   <strong>
-                    {page.title_bn || page.title_en || page.title}
+                    {page.title || page.title || page.title}
                   </strong>
 
                   <div>

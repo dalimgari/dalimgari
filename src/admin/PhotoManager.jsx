@@ -192,7 +192,7 @@ function PhotoManager() {
         <MediaInput
           value={mediaUrl}
           onChange={setMediaUrl}
-          folder="gallery"
+          folder="PhotoManagement"
           accept={mediaType === "video" ? "video/*" : "image/*"}
         />
 
@@ -214,7 +214,7 @@ function PhotoManager() {
         {loading ? (
           <p>Loading...</p>
         ) : items.length === 0 ? (
-          <p>No gallery items available.</p>
+          <p>No PhotoManagement items available.</p>
         ) : (
           items.map((item) => (
             <article className="manager-item" key={item.id}>

@@ -31,8 +31,8 @@ export default function TabManager({ onBack }) {
             id,
             slug,
             title,
-            title_bn,
-            title_en,
+            title,
+            title,
             content_type,
             published
           )
@@ -41,7 +41,7 @@ export default function TabManager({ onBack }) {
 
       supabase
         .from("PageManagement")
-        .select("id, slug, title, title_bn, title_en, content_type, published")
+        .select("id, slug, title, content_type, published")
         .eq("published", true)
         .order("created_at", { ascending: true })
     ]);
@@ -289,7 +289,7 @@ export default function TabManager({ onBack }) {
                   key={page.id}
                   value={page.id}
                 >
-                  {page.title_bn || page.title_en || page.title} /{page.slug}
+                  {page.title || page.title || page.title} /{page.slug}
                 </option>
               ))}
             </select>
@@ -347,7 +347,7 @@ export default function TabManager({ onBack }) {
                 </strong>
 
                 <span>
-                  {tab.pages?.title_bn || tab.pages?.title_en || tab.pages?.title || ""}
+                  {tab.pages?.title || tab.pages?.title || tab.pages?.title || ""}
                   {" · "}
                   /{tab.pages?.slug || ""}
                   {" · "}

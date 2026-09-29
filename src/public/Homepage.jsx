@@ -134,14 +134,14 @@ function Homepage({ language, onLanguageChange }) {
   }
 
   const siteName =
-    getLocalized(settings, "site_name", localLanguage) ||
+    getLocalized(settings, "website_name", localLanguage) ||
     getLocalized(settings, "site_title", localLanguage);
 
   const tagline =
     getLocalized(settings, "site_tagline", localLanguage);
 
   const logo =
-    settings.site_logo ||
+    settings.logo_url ||
     settings.logo_url ||
     "";
 

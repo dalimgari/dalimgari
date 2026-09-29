@@ -181,7 +181,7 @@ function PostManager({ onBack }) {
         <MediaInput
           value={mediaUrl}
           onChange={setMediaUrl}
-          folder="posts"
+          folder="PostManagement"
           accept={mediaType === "video" ? "video/*" : "image/*"}
         />
 
@@ -216,7 +216,7 @@ function PostManager({ onBack }) {
         {loading ? (
           <p>Loading...</p>
         ) : items.length === 0 ? (
-          <p>No posts available.</p>
+          <p>No PostManagement available.</p>
         ) : (
           items.map((item) => (
             <article className="manager-item" key={item.id}>
