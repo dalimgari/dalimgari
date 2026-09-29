@@ -11,18 +11,30 @@ CORE REQUIREMENTS
 4. No website/content information will be hardcoded inside the source code.
 5. Source code will contain only structure, design, logic, and functions.
 6. All website information/data will be stored in the database.
-7. The project must have an Admin Account System.
-8. Admin Login must open the Admin Dashboard.
-9. All website information must be entered and managed from the Admin Dashboard.
-10. Data entered through the Admin Dashboard must be saved to the appropriate database fields.
-11. Bengali will be the website's main/default language.
-12. The website must be switchable to English through translation.
-13. Do not use separate language fields such as Title.bn and Title.eng.
-14. The website must automatically select Day/Night mode and also allow manual mode changes.
-15. The homepage must have four main sections:
+7. The database architecture must be reusable by future applications. The database must be designed as a shared, application-independent data layer so other apps can use the same database in the future.
+8. Elements, components, functions, logic units, controllers, modules, layouts, files, and folders must have clear names related to their actual purpose and responsibility. Example naming concepts include controller/admin, layout/admindashboard, and module/websiteinformation. These examples are illustrative; names must accurately match their responsibility.
+9. All code, file names, and folder names must use lowercase letters only.
+10. Every file must be organized inside an appropriate, responsibility-based folder. Avoid unnecessary files at the project root.
+11. The project must have an Admin Account System.
+12. Admin Login must open the Admin Dashboard.
+13. All website information must be entered and managed from the Admin Dashboard.
+14. Data entered through the Admin Dashboard must be saved to the appropriate database fields.
+15. Bengali will be the website's main/default language.
+16. The website must be switchable to English through translation.
+17. Do not use separate language fields such as Title.bn and Title.eng.
+18. The website must automatically select Day/Night mode and also allow manual mode changes.
+19. The homepage must have four main sections:
    1. Header
    2. Banner
    3. Body
    4. Footer
+20. The homepage must have a left sidebar. The sidebar must be hidden by default and must open when the sidebar button is pressed.
+21. The complete website theme, fonts, and colors must be dynamic and configurable rather than hardcoded as fixed website content.
+22. The website must be responsive and designed for both mobile and web-view/desktop formats. The interface must adapt appropriately according to the device or viewport.
+23. At the top of the sidebar, show the admin's round profile image, name, email, and other links.
+24. Admin information must be managed through Admin Dashboard modules. Initially, the Admin Dashboard will contain two modules:
+   1. websiteinformation - fields for entering and managing all website information.
+   2. admininfo - fields for entering and managing the admin's information, social media profiles, and other links.
+25. Additional Admin Dashboard modules will be added incrementally in the future.
 
 These requirements are the core constraints for the project and must be followed during development.
