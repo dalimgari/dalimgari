@@ -42,8 +42,8 @@ CORE REQUIREMENTS
 29. When creating a page, the Admin Dashboard must provide a page title field and an HTML code field. The supplied HTML code must be saved in the database and the page must render according to the stored HTML code.
 30. A Global Unique Field / ID System must be used throughout the entire website. Every field/data entity must have a clear, understandable, unique identifier. Internal identifiers do not need to be exposed to the project owner in the user interface.
 31. The Global Unique Field / ID System must support dynamic collections of multiple records. Do not design repeated records using one generic value assignment such as page = 'a', page = 'b', page = 'c'. Each record must have its own unique identity, such as page1, page2, page3 conceptually, while the actual implementation should use a scalable unique identifier system.
-32. The Admin Dashboard must also have an analitica module for analytics-related functionality.
-33. The analitica module must show website visitor analytics and all types of visitor information that the system can legitimately and technically collect. Visitor analytics must be stored and structured so the information can be analyzed and displayed through the Admin Dashboard.
+32. The Admin Dashboard must also have an analysisinfo module for analytics-related functionality.
+33. The analysisinfo module must show website visitor analytics and all types of visitor information that the system can legitimately and technically collect. Visitor analytics must be stored and structured so the information can be analyzed and displayed through the Admin Dashboard.
 34. A Global Media Upload System must be used throughout the entire website. All media fields should use the same media management architecture unless a specific location explicitly requires a separate method.
 35. The Global Media Upload System must provide exactly three selectable methods:
    1. upload - upload media directly to the project's storage system and automatically obtain its URL/reference.
