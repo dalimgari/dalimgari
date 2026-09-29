@@ -1,0 +1,10 @@
+# Dalimgari Website — Final Requirements
+
+## 4. mobile-responsive.md
+
+- পুরো website fully responsive হবে।
+- Mobile, tablet এবং desktop screen-এর জন্য layout যথাযথভাবে মানিয়ে যাবে।
+- Button, input, menu, tab এবং অন্যান্য UI element screen অনুযায়ী auto-fit হবে।
+- Horizontal overflow থাকবে না।
+- Mobile screen-এ content কেটে যাবে না বা অপ্রয়োজনীয়ভাবে বাইরে বের হবে না।
+- Touch interaction-এর জন্য প্রয়োজনীয় spacing বজায় থাকবে।

@@ -1,0 +1,13 @@
+# Dalimgari Website — Final Requirements
+
+## 19. User Information.md
+
+- Admin Dashboard-এ website-এ তৈরি user account-এর সংখ্যা দেখা যাবে।
+- সব registered user database-style list-এ দেখা যাবে।
+- প্রয়োজনীয় user information দেখা যাবে।
+- User search/filter করার ব্যবস্থা রাখা যেতে পারে।
+- Admin user-এর permission পরিবর্তন করতে পারবে।
+- User block এবং unblock করা যাবে।
+- Blocked user login/authenticated functionality ব্যবহার করতে পারবে না।
+- User-এর password কখনো Admin Dashboard-এ দেখা যাবে না।
+- Admin নিজের permission-এর বাইরে কোনো operation করতে পারবে না।

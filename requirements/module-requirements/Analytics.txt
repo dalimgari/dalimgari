@@ -1,0 +1,34 @@
+# Dalimgari Website — Final Requirements
+
+## 22. Analytics
+
+Analytics module-এ website usage-এর structured statistics দেখানো হবে।
+
+### Visitor Analytics
+
+- Total Visitors
+- Unique Visitors
+- Page Views
+- Visit Date/Time
+- Average Visit/Session Time
+
+### Device Analytics
+
+- Device Type
+- Operating System
+- Browser
+
+### Time-based Analytics
+
+- Daily statistics
+- Weekly statistics
+- Monthly statistics
+- প্রয়োজন অনুযায়ী longer-period statistics
+
+### Rules
+
+- Visitor analytics এবং registered user's private information আলাদা রাখতে হবে।
+- Analytics-এর জন্য প্রয়োজনের অতিরিক্ত personal information সংগ্রহ করা যাবে না।
+- Admin Dashboard-এর authorized admin analytics দেখতে পারবে।
+- Analytics data aggregation-এর মাধ্যমে presentation করা যাবে।
+- Analytics data future reporting এবং chart-based visualization-এর জন্য structuredভাবে সংরক্ষণ করতে হবে।

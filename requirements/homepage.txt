@@ -1,0 +1,42 @@
+# Dalimgari Website — Final Requirements
+
+## 2. homepage.md
+
+- Homepage ৪টি প্রধান অংশে বিভক্ত হবে:
+  1. Header
+  2. Hero
+  3. Body
+  4. Footer
+
+### Header
+
+- বাম পাশে Logo এবং Village Name থাকবে।
+- মাঝখানে শুধু Global Search থাকবে।
+- ডান পাশে Login button থাকবে।
+- বর্তমানে Language Switch থাকবে না।
+
+### Hero
+
+- Village Name এবং Slogan থাকবে।
+- Village Name এবং Slogan কেন্দ্রে থাকবে।
+- Village Name সবচেয়ে prominent হবে।
+- Village Name এবং Slogan-এর size ও color আলাদা হবে, তবে visually balanced থাকবে।
+- Hero-এর বাম দিক থেকে black fade থাকবে এবং ধীরে ধীরে transparent হবে।
+
+### Body
+
+- একটি সুন্দর rectangular/rounded container থাকবে।
+- Tabs Admin Dashboard থেকে নিয়ন্ত্রণ করা যাবে।
+- Tabs উপরের বাম দিক থেকে ডান দিকে সাজানো থাকবে।
+- শুধুমাত্র enabled tabs Homepage-এ প্রদর্শিত হবে।
+- প্রথম enabled tab default active থাকবে।
+- Active tab-এর আলাদা visual state থাকবে।
+- Tab নিজে কোনো content রাখবে না; সংশ্লিষ্ট page প্রদর্শন করবে।
+
+### Footer
+
+- Link Management থেকে নির্বাচিত links-এর icons দেখাবে।
+- Footer-এর সব content center aligned থাকবে।
+- Icon-এ click করলে সংশ্লিষ্ট link open হবে।
+- Link-এর text আলাদাভাবে দেখানো হবে না, যদি Link Management-এ শুধু icon display করার জন্য নির্ধারিত থাকে।
+- Copyright information link icons-এর নিচে থাকবে।

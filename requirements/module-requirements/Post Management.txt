@@ -1,0 +1,21 @@
+# Dalimgari Website — Final Requirements
+
+## 17. Post Management.md
+
+- Post create, edit এবং delete করা যাবে।
+- Post creation-এর সময়:
+  - Post Title
+  - Optional Description
+  - Global Media Upload
+
+### Media
+
+- নতুন Photo/Video upload করা যাবে।
+- অথবা আগে upload করা Photo/Video নির্বাচন করা যাবে।
+- Photo/Video Management-এ থাকা existing media database থেকে reuse করা যাবে।
+
+### Display
+
+- Post কোথায় display হবে তা নির্ধারিত website/module configuration অনুযায়ী হবে।
+- Post listing এবং individual post view-এর ব্যবস্থা থাকবে।
+- প্রতিটি post-এর unique database identity থাকবে।

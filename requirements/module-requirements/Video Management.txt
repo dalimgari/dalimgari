@@ -1,0 +1,34 @@
+# Dalimgari Website — Final Requirements
+
+## 20. Video Management.md
+
+- Video add, edit এবং delete করা যাবে।
+- Video add করার সময়:
+  - Title
+  - Description
+  - Album (optional)
+
+### Album
+
+- Album create, edit এবং delete করা যাবে।
+- প্রতিটি album-এর unique database identity থাকবে।
+- Album reuse করা যাবে।
+
+### Display
+
+- Website-এ সব video অথবা নির্দিষ্ট album-এর video দেখানো যাবে।
+- Uploaded video database-style management list-এ দেখা যাবে।
+- List-এ:
+  - Name
+  - Video preview/thumbnail
+  - Album
+  - Upload Date
+
+### Media
+
+- Existing uploaded video Global Media Upload-এর Select method-এর মাধ্যমে পুনরায় ব্যবহার করা যাবে।
+
+### Album deletion
+
+- Album delete করলে video automatically delete হবে না।
+- Video-এর album association প্রয়োজন অনুযায়ী remove হবে।

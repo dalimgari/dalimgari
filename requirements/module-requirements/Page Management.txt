@@ -1,0 +1,14 @@
+# Dalimgari Website — Final Requirements
+
+## 15. Page Management.md
+
+- Website-এর ভিতরে standalone webpage তৈরি করা যাবে।
+- Page create করার সময়:
+  - Page Title
+  - HTML Code
+- HTML code অনুযায়ী page render হবে।
+- Page edit করা যাবে।
+- Page delete করা যাবে।
+- প্রতিটি page-এর unique database identity থাকবে।
+- Page system Tab Management-এর সাথে যুক্ত হতে পারবে।
+- Security policy অনুযায়ী unsafe HTML/script execution নিয়ন্ত্রণ করতে হবে।

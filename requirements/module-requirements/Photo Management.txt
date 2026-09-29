@@ -1,0 +1,34 @@
+# Dalimgari Website — Final Requirements
+
+## 16. Photo Management.md
+
+- Photo add, edit এবং delete করা যাবে।
+- Photo add করার সময়:
+  - Title
+  - Description
+  - Album (optional)
+
+### Album
+
+- Album create, edit এবং delete করা যাবে।
+- প্রতিটি album-এর unique database identity থাকবে।
+- একই album অন্য প্রয়োজনীয় module থেকে reuse করা যাবে।
+
+### Display
+
+- Website-এ সব photo অথবা নির্দিষ্ট album-এর photo দেখানো যাবে।
+- Uploaded photo database-style management list-এ দেখা যাবে।
+- List-এ অন্তত:
+  - Name
+  - Image
+  - Album
+  - Upload Date
+
+### Media
+
+- Existing uploaded photo Global Media Upload-এর Select method-এর মাধ্যমে পুনরায় ব্যবহার করা যাবে।
+
+### Album deletion
+
+- Album delete করলে album-এর photo automatically delete হবে না।
+- Photo-এর album association প্রয়োজন অনুযায়ী remove হবে।
