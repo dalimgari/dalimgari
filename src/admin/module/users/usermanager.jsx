@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { supabase } from "../lib/supabaseClient";
+import { supabase } from "../lib/supabaseclient";
 
 function getMonthKey(date) {
   return date.toISOString().slice(0, 7);

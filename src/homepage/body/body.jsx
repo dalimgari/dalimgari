@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { supabase } from "../lib/supabaseClient";
-import "./Homepage.css";
-import PageRenderer from "../components/PageRenderer";
-import AuthPanel from "../components/AuthPanel";
-import { trackVisit } from "../lib/visitorAnalytics";
+import { supabase } from "../../lib/supabaseclient";
+import "../../app/app.css";
+import PageRenderer from "../../components/pages/pagerenderer";
+import AuthPanel from "../../components/AuthPanel";
+import { trackVisit } from "../../lib/visitoranalytics";
 
 function Homepage() {
   const [website, setWebsite] = useState(null);
@@ -17,7 +17,6 @@ function Homepage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    trackVisit(window.location.pathname);
     loadHomepage();
   }, []);
 

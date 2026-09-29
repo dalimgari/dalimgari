@@ -1,12 +1,24 @@
 import { useEffect, useState } from "react";
-import { supabase } from "./lib/supabaseClient";
-import "./App.css";
-import AdminManager from "./admin/AdminManager";
-import Homepage from "./public/Homepage";
-import LoginPage from "./public/LoginPage";
-import PageRenderer from "./components/PageRenderer";
+import { supabase } from "../lib/supabaseclient";
+import "./app.css";
+import AdminManager from "../admin/dashboard/admindashboard";
+import Homepage from "../homepage/body/body";
+import LoginPage from "../homepage/login/login";
+import PageRenderer from "../components/pages/pagerenderer";
 
 function App() {
+  useEffect(() => {
+    const path = window.location.pathname;
+    const isPrivateRoute =
+      path.startsWith("/admin") ||
+      path.startsWith("/dashboard") ||
+      path.startsWith("/user");
+
+    if (!isPrivateRoute) {
+      trackVisit(path);
+    }
+  }, []);
+
   const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
   const pathname = window.location.pathname;
 

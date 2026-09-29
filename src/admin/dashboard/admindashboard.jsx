@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabaseClient";
-import "./AdminDashboard.css";
-import PostManager from "./PostManager";
-import PageManager from "./PageManager";
-import UserManager from "./UserManager";
-import TabManager from "./TabManager";
-import LinkManager from "./LinkManager";
-import WebsiteManager from "./WebsiteManager";
-import PhotoManager from "./PhotoManager";
-import VideoManager from "./VideoManager";
+import { supabase } from "../lib/supabaseclient";
+import "./admindashboard.css";
+import PostManager from "../module/posts/postmanager";
+import PageManager from "../module/pages/pagemanager";
+import UserManager from "../module/users/usermanager";
+import TabManager from "../module/tabs/tabmanager";
+import LinkManager from "../module/links/linkmanager";
+import WebsiteManager from "../module/website/websitemanager";
+import PhotoManager from "../module/photos/photomanager";
+import VideoManager from "../module/videos/videomanager";
 
 const MODULES = [
   ["website-information", "Website Information"],
@@ -19,7 +19,8 @@ const MODULES = [
   ["tabs", "Tab Management"],
   ["links", "Link Management"],
   ["users", "User Information"],
-  ["admin-information", "Admin Information"]
+  ["admin-information", "Admin Information"],
+  ["analytics", "Analytics"]
 ];
 
 function AdminAccountPanel({ onBack, onLogout }) {
@@ -59,6 +60,14 @@ function AdminAccountPanel({ onBack, onLogout }) {
       email: currentUser.email || null,
       user_id: currentUser.id
     });
+  }
+
+  if (page === "analytics") {
+    return (
+      <div className="admin-dashboard">
+        <Analytics />
+      </div>
+    );
   }
 
   return (
@@ -250,6 +259,11 @@ export default function AdminManager() {
   }
 
   function openModule(module) {
+    if (module === "analytics") {
+      setPage("analytics");
+      return;
+    }
+
     setPage(module);
   }
 

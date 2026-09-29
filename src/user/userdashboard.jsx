@@ -1,6 +1,6 @@
 import "./UserDashboard.css";
 import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabaseClient";
+import { supabase } from "../lib/supabaseclient";
 import MediaInput from "../components/MediaInput";
 
 export default function UserDashboard({ session, onBack }) {
