@@ -19,8 +19,6 @@ export default function PageManager({ onBack }) {
   const [form, setForm] = useState({
     slug: "",
     title: "",
-    title: "",
-    content: "",
     content: "",
     content_type: "custom",
     cover_media: "",
@@ -44,7 +42,7 @@ export default function PageManager({ onBack }) {
     const { data, error } = await supabase
       .from("PageManagement")
       .select(
-        "id, slug, title, title, title, content, content, content, content_type, cover_media, published, created_at, updated_at"
+        "id, slug, title, content, content_type, cover_media, published, created_at, updated_at"
       )
       .order("created_at", { ascending: false });
 
@@ -86,8 +84,6 @@ export default function PageManager({ onBack }) {
     setForm({
       slug: page.slug || "",
       title: page.title || "",
-      title: page.title || "",
-      content: page.content || "",
       content: page.content || "",
       content_type: page.content_type || "custom",
       cover_media: page.cover_media || "",
@@ -102,7 +98,7 @@ export default function PageManager({ onBack }) {
 
     const slug = normalizeSlug(form.slug);
 
-    if (!slug || !form.title.trim() || !form.title.trim()) {
+    if (!slug || !form.title.trim()) {
       setMessage("Slug and title are required.");
       return;
     }
@@ -113,10 +109,6 @@ export default function PageManager({ onBack }) {
     const payload = {
       slug,
       title: form.title.trim(),
-      title: form.title.trim(),
-      title: form.title.trim(),
-      content: form.content.trim(),
-      content: form.content.trim(),
       content: form.content.trim(),
       content_type: form.content_type,
       cover_media: form.cover_media.trim() || null,
@@ -250,25 +242,6 @@ export default function PageManager({ onBack }) {
 
           <input
             type="text"
-            placeholder="Page title (English)"
-            value={form.title}
-            onChange={(event) => {
-              const title = event.target.value;
-
-              setForm((current) => ({
-                ...current,
-                title,
-                slug:
-                  !editingId &&
-                  !current.slug.trim()
-                    ? normalizeSlug(title)
-                    : current.slug
-              }));
-            }}
-          />
-
-          <input
-            type="text"
             placeholder="Page slug"
             value={form.slug}
             onChange={(event) =>
@@ -303,18 +276,6 @@ export default function PageManager({ onBack }) {
 
           <textarea
             placeholder="Page content (Bangla)"
-            value={form.content}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                content: event.target.value
-              }))
-            }
-            rows={12}
-          />
-
-          <textarea
-            placeholder="Page content (English)"
             value={form.content}
             onChange={(event) =>
               setForm((current) => ({
@@ -390,7 +351,7 @@ export default function PageManager({ onBack }) {
               >
                 <div>
                   <strong>
-                    {page.title || page.title || page.title}
+                    {page.title || ""}
                   </strong>
 
                   <div>
