@@ -12,29 +12,42 @@ CORE REQUIREMENTS
 5. Source code will contain only structure, design, logic, and functions.
 6. All website information/data will be stored in the database.
 7. The database architecture must be reusable by future applications. The database must be designed as a shared, application-independent data layer so other apps can use the same database in the future.
-8. Elements, components, functions, logic units, controllers, modules, layouts, files, and folders must have clear names related to their actual purpose and responsibility. Example naming concepts include controller/admin, layout/admindashboard, and module/websiteinformation. These examples are illustrative; names must accurately match their responsibility.
-9. All code, file names, and folder names must use lowercase letters only.
-10. Every file must be organized inside an appropriate, responsibility-based folder. Avoid unnecessary files at the project root.
-11. The project must have an Admin Account System.
-12. Admin Login must open the Admin Dashboard.
-13. All website information must be entered and managed from the Admin Dashboard.
-14. Data entered through the Admin Dashboard must be saved to the appropriate database fields.
-15. Bengali will be the website's main/default language.
-16. The website must be switchable to English through translation.
-17. Do not use separate language fields such as Title.bn and Title.eng.
-18. The website must automatically select Day/Night mode and also allow manual mode changes.
-19. The homepage must have four main sections:
+8. Database keys and field names must be meaningful, understandable, and reusable across this website and future software/apps that use the same database. Naming must describe the data itself rather than being tied only to a specific interface.
+9. Elements, components, functions, logic units, controllers, modules, layouts, files, and folders must have clear names related to their actual purpose and responsibility. Example naming concepts include controller/admin, layout/admindashboard, and module/websiteinformation. These examples are illustrative; names must accurately match their responsibility.
+10. All code, file names, and folder names must use lowercase letters only.
+11. Every file must be organized inside an appropriate, responsibility-based folder. Avoid unnecessary files at the project root.
+12. The project must have an Admin Account System.
+13. Admin Login must open the Admin Dashboard.
+14. All website information must be entered and managed from the Admin Dashboard.
+15. Data entered through the Admin Dashboard must be saved to the appropriate database fields.
+16. Bengali will be the website's main/default language.
+17. The website must be switchable to English through translation.
+18. Do not use separate language fields such as Title.bn and Title.eng.
+19. The website must automatically select Day/Night mode and also allow manual mode changes.
+20. The homepage must have four main sections:
    1. Header
    2. Banner
    3. Body
    4. Footer
-20. The homepage must have a left sidebar. The sidebar must be hidden by default and must open when the sidebar button is pressed.
-21. The complete website theme, fonts, and colors must be dynamic and configurable rather than hardcoded as fixed website content.
-22. The website must be responsive and designed for both mobile and web-view/desktop formats. The interface must adapt appropriately according to the device or viewport.
-23. At the top of the sidebar, show the admin's round profile image, name, email, and other links.
-24. Admin information must be managed through Admin Dashboard modules. Initially, the Admin Dashboard will contain two modules:
+21. The homepage must have a left sidebar. The sidebar must be hidden by default and must open when the sidebar button is pressed.
+22. The complete website theme, fonts, and colors must be dynamic and configurable rather than hardcoded as fixed website content.
+23. The website must be responsive and designed for both mobile and web-view/desktop formats. The interface must adapt appropriately according to the device or viewport.
+24. At the top of the sidebar, show the admin's round profile image, name, email, and other links.
+25. Admin information must be managed through Admin Dashboard modules. Initially, the Admin Dashboard will contain two modules:
    1. websiteinformation - fields for entering and managing all website information.
    2. admininfo - fields for entering and managing the admin's information, social media profiles, and other links.
-25. Additional Admin Dashboard modules will be added incrementally in the future.
+26. Additional Admin Dashboard modules will be added incrementally in the future.
+27. The Admin Dashboard must also have a pagemanagement module for creating, editing, deleting, and controlling visibility of standalone pages.
+28. Page Management pages must be presented as tabs or buttons arranged from the top-left of the body. Each page must have a visibility control so it can be enabled or disabled for display in the body.
+29. When creating a page, the Admin Dashboard must provide a page title field and an HTML code field. The supplied HTML code must be saved in the database and the page must render according to the stored HTML code.
+30. A Global Unique Field / ID System must be used throughout the entire website. Every field/data entity must have a clear, understandable, unique identifier. Internal identifiers do not need to be exposed to the project owner in the user interface.
+31. The Global Unique Field / ID System must support dynamic collections of multiple records. Do not design repeated records using one generic value assignment such as page = 'a', page = 'b', page = 'c'. Each record must have its own unique identity, such as page1, page2, page3 conceptually, while the actual implementation should use a scalable unique identifier system.
+32. The Admin Dashboard must also have an analitica module for analytics-related functionality.
+33. A Global Media Upload System must be used throughout the entire website. All media fields should use the same media management architecture unless a specific location explicitly requires a separate method.
+34. The Global Media Upload System must provide exactly three selectable methods:
+   1. upload - upload media directly to the project's storage system and automatically obtain its URL/reference.
+   2. select file - select a previously uploaded file and use only its existing link/reference.
+   3. url - provide an external media URL hosted on another server/service, such as YouTube.
+35. A single media field must use only one media method at a time. Upload, select file, and URL methods must not be active simultaneously for the same media field.
 
 These requirements are the core constraints for the project and must be followed during development.
