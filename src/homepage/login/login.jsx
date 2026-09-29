@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabaseClient";
-import "../App.css";
+import { supabase } from "../../lib/supabaseclient";
+import "./login.css";
 
-export default function LoginPage() {
+export default function Login() {
   const [mode, setMode] = useState("signin");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -20,13 +20,15 @@ export default function LoginPage() {
 
   async function checkSession() {
     const { data } = await supabase.auth.getSession();
-
     if (!data.session) return;
+    await redirectUser(data.session.user.id);
+  }
 
+  async function redirectUser(userId) {
     const { data: profile } = await supabase
       .from("UserInformation")
       .select("role, account_enabled")
-      .eq("user_id", data.session.user.id)
+      .eq("user_id", userId)
       .eq("record_type", "user")
       .maybeSingle();
 
@@ -36,10 +38,10 @@ export default function LoginPage() {
       return;
     }
 
+    const base = import.meta.env.BASE_URL;
+
     window.location.href =
-      profile?.role === "admin"
-        ? `${import.meta.env.BASE_URL}admin`
-        : import.meta.env.BASE_URL;
+      profile?.role === "admin" ? `${base}admin` : base;
   }
 
   async function handleSubmit(event) {
@@ -50,6 +52,12 @@ export default function LoginPage() {
     setMessage("");
 
     if (mode === "recovery") {
+      if (!email.trim()) {
+        setError("Email is required.");
+        setSaving(false);
+        return;
+      }
+
       const { error: recoveryError } =
         await supabase.auth.resetPasswordForEmail(email.trim(), {
           redirectTo: `${window.location.origin}${import.meta.env.BASE_URL}`
@@ -78,19 +86,18 @@ export default function LoginPage() {
         return;
       }
 
-      if (!email.trim()) {
-        setError(
-          "Email is required for this signup method. Phone-only signup requires phone authentication to be enabled."
-        );
+      if (password.length < 6) {
+        setError("Password must be at least 6 characters.");
         setSaving(false);
         return;
       }
 
+      const signupData = email.trim()
+        ? { email: email.trim(), password }
+        : { phone: phone.trim(), password };
+
       const { data, error: signupError } =
-        await supabase.auth.signUp({
-          email: email.trim(),
-          password
-        });
+        await supabase.auth.signUp(signupData);
 
       if (signupError) {
         setError(signupError.message);
@@ -105,7 +112,7 @@ export default function LoginPage() {
             user_id: data.user.id,
             record_type: "user",
             name: name.trim(),
-            email: email.trim(),
+            email: email.trim() || null,
             phone: phone.trim() || null,
             address: address.trim() || null,
             date_of_birth: dateOfBirth || null,
@@ -121,8 +128,9 @@ export default function LoginPage() {
       }
 
       setMessage(
-        "Account created. Check your email if email confirmation is enabled."
+        "Account created. Check your verification message if required."
       );
+
       setMode("signin");
       setName("");
       setPhone("");
@@ -134,11 +142,18 @@ export default function LoginPage() {
       return;
     }
 
+    if (!email.trim() && !phone.trim()) {
+      setError("Mobile number or email is required.");
+      setSaving(false);
+      return;
+    }
+
+    const signinData = email.trim()
+      ? { email: email.trim(), password }
+      : { phone: phone.trim(), password };
+
     const { data, error: signinError } =
-      await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password
-      });
+      await supabase.auth.signInWithPassword(signinData);
 
     if (signinError) {
       setError(signinError.message);
@@ -147,24 +162,7 @@ export default function LoginPage() {
     }
 
     if (data.session) {
-      const { data: profile } = await supabase
-        .from("UserInformation")
-        .select("role, account_enabled")
-        .eq("user_id", data.session.user.id)
-        .eq("record_type", "user")
-        .maybeSingle();
-
-      if (profile?.account_enabled === false) {
-        await supabase.auth.signOut();
-        setError("This account is disabled.");
-        setSaving(false);
-        return;
-      }
-
-      window.location.href =
-        profile?.role === "admin"
-          ? `${import.meta.env.BASE_URL}admin`
-          : import.meta.env.BASE_URL;
+      await redirectUser(data.session.user.id);
     }
 
     setSaving(false);
@@ -173,9 +171,9 @@ export default function LoginPage() {
   const base = import.meta.env.BASE_URL;
 
   return (
-    <div className="auth-page">
-      <div className="auth-page-card">
-        <a className="auth-page-back" href={base}>
+    <main className="login-page">
+      <section className="login-card">
+        <a className="login-back" href={base}>
           Back to Home
         </a>
 
@@ -201,9 +199,7 @@ export default function LoginPage() {
               <input
                 type="date"
                 value={dateOfBirth}
-                onChange={(event) =>
-                  setDateOfBirth(event.target.value)
-                }
+                onChange={(event) => setDateOfBirth(event.target.value)}
               />
 
               <input
@@ -212,14 +208,16 @@ export default function LoginPage() {
                 onChange={(event) => setAddress(event.target.value)}
                 placeholder="Address"
               />
-
-              <input
-                type="tel"
-                value={phone}
-                onChange={(event) => setPhone(event.target.value)}
-                placeholder="Mobile Number"
-              />
             </>
+          )}
+
+          {mode !== "recovery" && (
+            <input
+              type="tel"
+              value={phone}
+              onChange={(event) => setPhone(event.target.value)}
+              placeholder="Mobile Number"
+            />
           )}
 
           <input
@@ -227,7 +225,6 @@ export default function LoginPage() {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             placeholder="Email"
-            required
           />
 
           {mode !== "recovery" && (
@@ -241,8 +238,8 @@ export default function LoginPage() {
             />
           )}
 
-          {error && <p className="auth-error">{error}</p>}
-          {message && <p className="auth-message">{message}</p>}
+          {error && <p className="login-error">{error}</p>}
+          {message && <p className="login-message">{message}</p>}
 
           <button type="submit" disabled={saving}>
             {saving
@@ -258,7 +255,7 @@ export default function LoginPage() {
         {mode === "signin" && (
           <button
             type="button"
-            className="auth-link-button"
+            className="login-link"
             onClick={() => {
               setMode("recovery");
               setError("");
@@ -272,7 +269,7 @@ export default function LoginPage() {
         {mode === "recovery" ? (
           <button
             type="button"
-            className="auth-link-button"
+            className="login-link"
             onClick={() => {
               setMode("signin");
               setError("");
@@ -284,7 +281,7 @@ export default function LoginPage() {
         ) : (
           <button
             type="button"
-            className="auth-link-button"
+            className="login-link"
             onClick={() => {
               setMode(mode === "signin" ? "signup" : "signin");
               setError("");
@@ -296,7 +293,7 @@ export default function LoginPage() {
               : "Already have an account? Login"}
           </button>
         )}
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }
