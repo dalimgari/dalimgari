@@ -1,11 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 
-const PERMISSIONS = [
-  { key: "media_upload", label: "Upload Media" },
-  { key: "media_delete", label: "Delete Media" }
-];
-
 function getMonthKey(date) {
   return date.toISOString().slice(0, 7);
 }
@@ -52,12 +47,18 @@ export default function UserManager({ onBack }) {
     setMessage("");
 
     const [usersResult, visitsResult] = await Promise.all([
-      supabase.from("UserInformation").select("*").eq("record_type", "user"),
+      supabase
+        .from("UserInformation")
+        .select("*")
+        .eq("record_type", "user")
+        .order("created_at", { ascending: false }),
+
       supabase
         .from("UserInformation")
         .select(
-          "id, visitor_id, user_id, visited_at, page_path, referrer, device_type, browser, operating_system, language, timezone, screen_width, screen_height, is_returning"
+          "id, visitor_id, user_id, visited_at, page_path, referrer, device_type, browser, operating_system, timezone, screen_width, screen_height, is_returning"
         )
+        .eq("record_type", "visit")
         .order("visited_at", { ascending: false })
         .limit(5000)
     ]);
@@ -79,15 +80,16 @@ export default function UserManager({ onBack }) {
     setLoading(false);
   }
 
-  async function changeRole(userId, role) {
-    setSaving(`${userId}:role`);
+  async function updateUser(userId, changes, successMessage) {
+    setSaving(userId);
     setError("");
     setMessage("");
 
     const { error: updateError } = await supabase
       .from("UserInformation")
-      .update({ role })
-      .eq("user_id", userId);
+      .update(changes)
+      .eq("user_id", userId)
+      .eq("record_type", "user");
 
     if (updateError) {
       setError(updateError.message);
@@ -97,72 +99,54 @@ export default function UserManager({ onBack }) {
 
     setUsers((current) =>
       current.map((user) =>
-        user.id === userId ? { ...user, role } : user
+        user.user_id === userId
+          ? { ...user, ...changes }
+          : user
       )
     );
 
     setSelectedUser((current) =>
-      current?.id === userId
-        ? { ...current, role }
+      current?.user_id === userId
+        ? { ...current, ...changes }
         : current
     );
 
-    setMessage("Role updated.");
+    setMessage(successMessage);
     setSaving("");
   }
 
-  async function togglePermission(userId, permission) {
-    const user = users.find((item) => item.id === userId);
-
-    if (!user) return;
-
-    const enabled = (user.permissions || []).includes(permission);
-
-    setSaving(`${userId}:${permission}`);
-    setError("");
-    setMessage("");
-
-    const result = enabled
-      ? await supabase
-          .from("UserInformation")
-          .delete()
-          .eq("user_id", userId)
-          .eq("permission", permission)
-      : await supabase
-          .from("UserInformation")
-          .insert({
-            user_id: userId,
-            permission
-          });
-
-    if (result.error) {
-      setError(result.error.message);
-      setSaving("");
-      return;
-    }
-
-    const nextPermissions = enabled
-      ? (user.permissions || []).filter(
-          (item) => item !== permission
-        )
-      : [...(user.permissions || []), permission];
-
-    setUsers((current) =>
-      current.map((item) =>
-        item.id === userId
-          ? { ...item, permissions: nextPermissions }
-          : item
-      )
+  async function changeRole(userId, role) {
+    await updateUser(
+      userId,
+      { role },
+      "Role updated."
     );
+  }
 
-    setSelectedUser((current) =>
-      current?.id === userId
-        ? { ...current, permissions: nextPermissions }
-        : current
+  async function toggleUploadPermission(user) {
+    await updateUser(
+      user.user_id,
+      { can_upload_media: !user.can_upload_media },
+      "Media upload permission updated."
     );
+  }
 
-    setMessage("Permission updated.");
-    setSaving("");
+  async function toggleDeletePermission(user) {
+    await updateUser(
+      user.user_id,
+      { can_delete_media: !user.can_delete_media },
+      "Media delete permission updated."
+    );
+  }
+
+  async function toggleAccount(user) {
+    await updateUser(
+      user.user_id,
+      { account_enabled: !user.account_enabled },
+      user.account_enabled
+        ? "Account disabled."
+        : "Account enabled."
+    );
   }
 
   const months = useMemo(() => getLastMonths(6), []);
@@ -170,7 +154,8 @@ export default function UserManager({ onBack }) {
   const monthlyStats = useMemo(() => {
     return months.map((month) => {
       const rows = visits.filter(
-        (visit) => getMonthKey(new Date(visit.visited_at)) === month.key
+        (visit) =>
+          getMonthKey(new Date(visit.visited_at)) === month.key
       );
 
       const visitors = new Set(
@@ -205,19 +190,6 @@ export default function UserManager({ onBack }) {
 
     visits.forEach((visit) => {
       const key = visit.operating_system || "Unknown";
-      map[key] = (map[key] || 0) + 1;
-    });
-
-    return Object.entries(map)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10);
-  }, [visits]);
-
-  const languageStats = useMemo(() => {
-    const map = {};
-
-    visits.forEach((visit) => {
-      const key = visit.language || "Unknown";
       map[key] = (map[key] || 0) + 1;
     });
 
@@ -270,7 +242,9 @@ export default function UserManager({ onBack }) {
   ).length;
 
   const uniqueVisitors = new Set(
-    visits.map((visit) => visit.visitor_id).filter(Boolean)
+    visits
+      .map((visit) => visit.visitor_id)
+      .filter(Boolean)
   ).size;
 
   return (
@@ -297,7 +271,9 @@ export default function UserManager({ onBack }) {
         {error && <p className="manager-error">{error}</p>}
 
         {loading ? (
-          <div className="admin-loading">Loading user information...</div>
+          <div className="admin-loading">
+            Loading user information...
+          </div>
         ) : (
           <>
             <div className="admin-grid">
@@ -394,29 +370,6 @@ export default function UserManager({ onBack }) {
             </section>
 
             <section className="admin-content">
-              <h2>Visitor Languages</h2>
-
-              <div className="admin-table-wrap">
-                <table className="admin-table">
-                  <thead>
-                    <tr>
-                      <th>Language</th>
-                      <th>Visits</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {languageStats.map(([name, count]) => (
-                      <tr key={name}>
-                        <td>{name}</td>
-                        <td>{count}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </section>
-
-            <section className="admin-content">
               <h2>Visitor Timezones</h2>
 
               <div className="admin-table-wrap">
@@ -498,8 +451,7 @@ export default function UserManager({ onBack }) {
                       <th>Age</th>
                       <th>Date of Birth</th>
                       <th>Role</th>
-                      <th>Account Created</th>
-                      <th>Permissions</th>
+                      <th>Status</th>
                     </tr>
                   </thead>
 
@@ -510,21 +462,16 @@ export default function UserManager({ onBack }) {
                         onClick={() => setSelectedUser(user)}
                         style={{ cursor: "pointer" }}
                       >
-                        <td>{user.full_name || "Unnamed user"}</td>
+                        <td>{user.name || "Unnamed user"}</td>
                         <td>{user.email || "—"}</td>
                         <td>{user.phone || "—"}</td>
                         <td>{user.age ?? "—"}</td>
                         <td>{user.date_of_birth || "—"}</td>
                         <td>{user.role || "user"}</td>
                         <td>
-                          {user.created_at
-                            ? new Date(
-                                user.created_at
-                              ).toLocaleString()
-                            : "—"}
-                        </td>
-                        <td>
-                          {(user.permissions || []).length}
+                          {user.account_enabled
+                            ? "Enabled"
+                            : "Disabled"}
                         </td>
                       </tr>
                     ))}
@@ -541,7 +488,7 @@ export default function UserManager({ onBack }) {
                       User Details
                     </p>
                     <h2>
-                      {selectedUser.full_name ||
+                      {selectedUser.name ||
                         selectedUser.email ||
                         "User"}
                     </h2>
@@ -559,25 +506,85 @@ export default function UserManager({ onBack }) {
                   <table className="admin-table">
                     <tbody>
                       <tr>
+                        <th>Name</th>
+                        <td>{selectedUser.name || "—"}</td>
+                      </tr>
+
+                      <tr>
                         <th>Email</th>
                         <td>{selectedUser.email || "—"}</td>
                       </tr>
+
                       <tr>
                         <th>Phone</th>
                         <td>{selectedUser.phone || "—"}</td>
                       </tr>
+
                       <tr>
-                        <th>Name</th>
-                        <td>{selectedUser.full_name || "—"}</td>
+                        <th>Address</th>
+                        <td>{selectedUser.address || "—"}</td>
                       </tr>
+
+                      <tr>
+                        <th>Date of Birth</th>
+                        <td>
+                          {selectedUser.date_of_birth || "—"}
+                        </td>
+                      </tr>
+
                       <tr>
                         <th>Age</th>
                         <td>{selectedUser.age ?? "—"}</td>
                       </tr>
+
                       <tr>
-                        <th>Date of Birth</th>
-                        <td>{selectedUser.date_of_birth || "—"}</td>
+                        <th>Profile Photo</th>
+                        <td>
+                          {selectedUser.profile_photo_url ? (
+                            <img
+                              src={selectedUser.profile_photo_url}
+                              alt=""
+                              width="60"
+                              height="60"
+                            />
+                          ) : (
+                            "—"
+                          )}
+                        </td>
                       </tr>
+
+                      <tr>
+                        <th>Role</th>
+                        <td>{selectedUser.role || "user"}</td>
+                      </tr>
+
+                      <tr>
+                        <th>Account Status</th>
+                        <td>
+                          {selectedUser.account_enabled
+                            ? "Enabled"
+                            : "Disabled"}
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <th>Upload Media</th>
+                        <td>
+                          {selectedUser.can_upload_media
+                            ? "Allowed"
+                            : "Not allowed"}
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <th>Delete Media</th>
+                        <td>
+                          {selectedUser.can_delete_media
+                            ? "Allowed"
+                            : "Not allowed"}
+                        </td>
+                      </tr>
+
                       <tr>
                         <th>Account Created</th>
                         <td>
@@ -588,9 +595,12 @@ export default function UserManager({ onBack }) {
                             : "—"}
                         </td>
                       </tr>
+
                       <tr>
                         <th>Password</th>
-                        <td>Protected by authentication system</td>
+                        <td>
+                          Protected by authentication system
+                        </td>
                       </tr>
                     </tbody>
                   </table>
@@ -600,12 +610,10 @@ export default function UserManager({ onBack }) {
 
                 <select
                   value={selectedUser.role || "user"}
-                  disabled={
-                    saving === `${selectedUser.id}:role`
-                  }
+                  disabled={saving === selectedUser.user_id}
                   onChange={(event) =>
                     changeRole(
-                      selectedUser.id,
+                      selectedUser.user_id,
                       event.target.value
                     )
                   }
@@ -614,29 +622,49 @@ export default function UserManager({ onBack }) {
                   <option value="admin">Admin</option>
                 </select>
 
-                <h3>Permissions</h3>
+                <h3>Media Permissions</h3>
 
-                {PERMISSIONS.map((permission) => (
-                  <label key={permission.key}>
-                    <input
-                      type="checkbox"
-                      checked={(
-                        selectedUser.permissions || []
-                      ).includes(permission.key)}
-                      disabled={
-                        saving ===
-                        `${selectedUser.id}:${permission.key}`
-                      }
-                      onChange={() =>
-                        togglePermission(
-                          selectedUser.id,
-                          permission.key
-                        )
-                      }
-                    />
-                    {permission.label}
-                  </label>
-                ))}
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={
+                      selectedUser.can_upload_media || false
+                    }
+                    disabled={saving === selectedUser.user_id}
+                    onChange={() =>
+                      toggleUploadPermission(selectedUser)
+                    }
+                  />
+                  Upload Media
+                </label>
+
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={
+                      selectedUser.can_delete_media || false
+                    }
+                    disabled={saving === selectedUser.user_id}
+                    onChange={() =>
+                      toggleDeletePermission(selectedUser)
+                    }
+                  />
+                  Delete Media
+                </label>
+
+                <h3>Account</h3>
+
+                <button
+                  type="button"
+                  disabled={saving === selectedUser.user_id}
+                  onClick={() =>
+                    toggleAccount(selectedUser)
+                  }
+                >
+                  {selectedUser.account_enabled
+                    ? "Disable Account"
+                    : "Enable Account"}
+                </button>
               </section>
             )}
           </>

@@ -7,30 +7,32 @@ export default function UserDashboard({ session, onBack }) {
   const [profile, setProfile] = useState(null);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [age, setAge] = useState("");
+  const [address, setAddress] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [saving, setSaving] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
-
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
     loadProfile();
-  }, [session.user.id]);
+  }, [session?.user?.id]);
 
   async function loadProfile() {
+    if (!session?.user?.id) return;
+
     setError("");
 
     const { data, error: loadError } = await supabase
       .from("UserInformation")
       .select(
-        "id, name, profile_photo_url, phone, age, date_of_birth, created_at, address, email"
+        "id, user_id, name, email, phone, address, date_of_birth, profile_photo_url, created_at"
       )
-      .eq("id", session.user.id)
+      .eq("user_id", session.user.id)
+      .eq("record_type", "user")
       .maybeSingle();
 
     if (loadError) {
@@ -41,7 +43,7 @@ export default function UserDashboard({ session, onBack }) {
     setProfile(data);
     setName(data?.name || "");
     setPhone(data?.phone || "");
-    setAge(data?.age ?? "");
+    setAddress(data?.address || "");
     setDateOfBirth(data?.date_of_birth || "");
     setAvatarUrl(data?.profile_photo_url || "");
   }
@@ -53,31 +55,24 @@ export default function UserDashboard({ session, onBack }) {
     setMessage("");
     setError("");
 
-    const parsedAge =
-      age === "" ? null : Number(age);
-
-    if (
-      parsedAge !== null &&
-      (!Number.isInteger(parsedAge) ||
-        parsedAge < 0 ||
-        parsedAge > 150)
-    ) {
-      setError("Please enter a valid age.");
+    if (!name.trim()) {
+      setError("Name is required.");
       setSaving(false);
       return;
     }
 
     const { error: saveError } = await supabase
       .from("UserInformation")
-      .upsert({
-        id: session.user.id,
-        name: name.trim() || null,
+      .update({
+        name: name.trim(),
         phone: phone.trim() || null,
-        age: parsedAge,
+        address: address.trim() || null,
         date_of_birth: dateOfBirth || null,
         profile_photo_url: avatarUrl || null,
         updated_at: new Date().toISOString()
-      });
+      })
+      .eq("user_id", session.user.id)
+      .eq("record_type", "user");
 
     if (saveError) {
       setError(saveError.message);
@@ -140,7 +135,8 @@ export default function UserDashboard({ session, onBack }) {
           <h2>Profile</h2>
 
           {avatarUrl && (
-            <img className="user-dashboard-avatar"
+            <img
+              className="user-dashboard-avatar"
               src={avatarUrl}
               alt="Profile"
               style={{
@@ -152,9 +148,8 @@ export default function UserDashboard({ session, onBack }) {
             />
           )}
 
-          <label>
-            Profile Photo
-          </label>
+          <label>Profile Photo</label>
+
           <MediaInput
             value={avatarUrl}
             onChange={setAvatarUrl}
@@ -162,7 +157,10 @@ export default function UserDashboard({ session, onBack }) {
             accept="image/*"
           />
 
-          <form className="user-dashboard-form" onSubmit={saveProfile}>
+          <form
+            className="user-dashboard-form"
+            onSubmit={saveProfile}
+          >
             <label>
               Name
               <input
@@ -175,7 +173,28 @@ export default function UserDashboard({ session, onBack }) {
             </label>
 
             <label>
-              Phone
+              Date of Birth
+              <input
+                type="date"
+                value={dateOfBirth}
+                onChange={(event) =>
+                  setDateOfBirth(event.target.value)
+                }
+              />
+            </label>
+
+            <label>
+              Address
+              <input
+                value={address}
+                onChange={(event) =>
+                  setAddress(event.target.value)
+                }
+              />
+            </label>
+
+            <label>
+              Mobile Number
               <input
                 value={phone}
                 onChange={(event) =>
@@ -193,30 +212,6 @@ export default function UserDashboard({ session, onBack }) {
               />
             </label>
 
-            <label>
-              Age
-              <input
-                type="number"
-                min="0"
-                max="150"
-                value={age}
-                onChange={(event) =>
-                  setAge(event.target.value)
-                }
-              />
-            </label>
-
-            <label>
-              Date of Birth
-              <input
-                type="date"
-                value={dateOfBirth}
-                onChange={(event) =>
-                  setDateOfBirth(event.target.value)
-                }
-              />
-            </label>
-
             <button
               type="submit"
               disabled={saving}
@@ -229,7 +224,10 @@ export default function UserDashboard({ session, onBack }) {
         <section className="user-dashboard-card">
           <h2>Change Password</h2>
 
-          <form className="user-dashboard-form" onSubmit={changePassword}>
+          <form
+            className="user-dashboard-form"
+            onSubmit={changePassword}
+          >
             <label>
               New Password
               <input
@@ -281,7 +279,7 @@ export default function UserDashboard({ session, onBack }) {
           </p>
         )}
 
-        {profile && (
+        {profile?.created_at && (
           <p>
             Account created:{" "}
             {new Date(

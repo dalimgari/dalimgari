@@ -6,7 +6,6 @@ import Homepage from "./public/Homepage";
 import PageRenderer from "./components/PageRenderer";
 
 function App() {
-
   const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
   const pathname = window.location.pathname;
 
@@ -22,10 +21,7 @@ function App() {
     return <AdminManager />;
   }
 
-  const parts = relativePath
-    .split("/")
-    .filter(Boolean);
-
+  const parts = relativePath.split("/").filter(Boolean);
   const slug = parts[0] || "";
 
   if (!slug) {
@@ -37,8 +33,10 @@ function App() {
 
 function DynamicPage({ slug }) {
   const [page, setPage] = useState(null);
-  const [settings, setSettings] = useState({});
+  const [website, setWebsite] = useState(null);
   const [links, setLinks] = useState([]);
+  const [photos, setPhotos] = useState([]);
+  const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -48,50 +46,62 @@ function DynamicPage({ slug }) {
   async function loadPage() {
     setLoading(true);
 
-    const [pageResult, settingsResult, linksResult] =
-      await Promise.all([
-        supabase
-          .from("PageManagement")
-          .select(`
-            id,
-            slug,
-            title,
-            title,
-            content,
-            content_type,
-            cover_image,
-            published
-          `)
-          .eq("slug", slug)
-          .eq("published", true)
-          .maybeSingle(),
+    const [
+      pageResult,
+      websiteResult,
+      linksResult,
+      photosResult,
+      videosResult
+    ] = await Promise.all([
+      supabase
+        .from("PageManagement")
+        .select(
+          "id, slug, title, content, content_type, cover_media, published"
+        )
+        .eq("slug", slug)
+        .eq("published", true)
+        .maybeSingle(),
 
-        supabase
-          .from("WebsiteInformation")
-          .select("*")
-          .order("created_at", { ascending: true }),
+      supabase
+        .from("WebsiteInformation")
+        .select(
+          "id, website_name, logo_url, slogan, banner_url, banner_style"
+        )
+        .limit(1)
+        .maybeSingle(),
 
-        supabase
-          .from("LinkManagement")
-          .select("*")
-          .eq("enabled", true)
-          .order("sort_order", { ascending: true })
-      ]);
+      supabase
+        .from("LinkManagement")
+        .select(
+          "id, label, url, root_domain, icon, enabled, footer_enabled, sort_order"
+        )
+        .eq("enabled", true)
+        .eq("footer_enabled", true)
+        .order("sort_order", { ascending: true }),
 
-    const settingsMap = {};
+      supabase
+        .from("PhotoManagement")
+        .select(
+          "id, title, description, category, media_url, published"
+        )
+        .eq("published", true)
+        .order("created_at", { ascending: false }),
 
-    (settingsResult.data || []).forEach((item) => {
-      const value =
-        typeof item.value === "string"
-          ? item.value
-          : item.value?.value || "";
-
-      settingsMap[item.key] = value;
-    });
+      supabase
+        .from("VideoManagement")
+        .select(
+          "id, title, description, category, media_url, published"
+        )
+        .eq("published", true)
+        .order("created_at", { ascending: false })
+    ]);
 
     setPage(pageResult.data || null);
-    setSettings(settingsMap);
+    setWebsite(websiteResult.data || null);
     setLinks(linksResult.data || []);
+    setPhotos(photosResult.data || []);
+    setVideos(videosResult.data || []);
+
     setLoading(false);
   }
 
@@ -126,16 +136,8 @@ function DynamicPage({ slug }) {
     );
   }
 
-  const siteName =
-    settings.website_name || "";
-
-  const logo =
-    settings.logo_url || "";
-
-  const copyright =
-    settings.copyright || "";
-
-  const pageUrl = `${base}${page.slug}`;
+  const siteName = website?.website_name || "";
+  const logo = website?.logo_url || "";
 
   return (
     <div className="village-site">
@@ -154,10 +156,7 @@ function DynamicPage({ slug }) {
           </a>
 
           <div className="village-global-search">
-            <a
-              className="login-button"
-              href={base}
-            >
+            <a className="login-button" href={base}>
               Home
             </a>
           </div>
@@ -177,21 +176,16 @@ function DynamicPage({ slug }) {
         <section className="village-main-content">
           <div className="village-content-card">
             <div className="village-page-content">
-              <h1>{page.title || ""}</h1>
-
-              <PageRenderer page={page} />
+              <PageRenderer
+                page={page}
+                photos={photos}
+                videos={videos}
+              />
 
               <div style={{ marginTop: "24px" }}>
-                <a
-                  className="login-button"
-                  href={base}
-                >
+                <a className="login-button" href={base}>
                   Back to Home
                 </a>
-              </div>
-
-              <div style={{ marginTop: "16px" }}>
-                <small>{pageUrl}</small>
               </div>
             </div>
           </div>
@@ -206,8 +200,8 @@ function DynamicPage({ slug }) {
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              title={link.label || link.root_domain}
-              aria-label={link.label || link.root_domain}
+              title={link.label}
+              aria-label={link.label}
             >
               {link.icon ? (
                 <img
@@ -217,17 +211,11 @@ function DynamicPage({ slug }) {
                   height="28"
                 />
               ) : (
-                <span>{link.root_domain}</span>
+                <span>{link.label}</span>
               )}
             </a>
           ))}
         </div>
-
-        {copyright && (
-          <div className="village-footer-copyright">
-            {copyright}
-          </div>
-        )}
       </footer>
     </div>
   );

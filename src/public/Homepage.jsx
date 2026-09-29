@@ -6,33 +6,18 @@ import AuthPanel from "../components/AuthPanel";
 import { trackVisit } from "../lib/visitorAnalytics";
 
 function Homepage() {
-  useEffect(() => {
-    let active = true;
-
-    async function recordVisit() {
-      const { data } = await supabase.auth.getSession();
-
-      if (active) {
-        await trackVisit(data.session?.user?.id || null);
-      }
-    }
-
-    recordVisit();
-
-    return () => {
-      active = false;
-    };
-  }, []);
-  const [settings, setSettings] = useState({});
+  const [website, setWebsite] = useState(null);
   const [tabs, setTabs] = useState([]);
   const [links, setLinks] = useState([]);
   const [pages, setPages] = useState([]);
+  const [photos, setPhotos] = useState([]);
+  const [videos, setVideos] = useState([]);
   const [activeTab, setActiveTab] = useState("");
-
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    trackVisit(window.location.pathname);
     loadHomepage();
   }, []);
 
@@ -40,105 +25,97 @@ function Homepage() {
     setLoading(true);
 
     const [
-      settingsResult,
+      websiteResult,
       tabsResult,
       linksResult,
-      pagesResult
+      pagesResult,
+      photosResult,
+      videosResult
     ] = await Promise.all([
       supabase
         .from("WebsiteInformation")
-        .select("*")
-        .order("created_at", { ascending: true }),
+        .select(
+          "id, website_name, logo_url, slogan, banner_url, banner_style"
+        )
+        .limit(1)
+        .maybeSingle(),
 
       supabase
         .from("TabManagement")
-        .select(`
-          id,
-          tab_key,
-          title,
-          page_id,
-          sort_order,
-          enabled,
-          pages (
-            id,
-            slug,
-            title,
-            title,
-            content,
-            content_type,
-            cover_image,
-            published
-          )
-        `)
+        .select(
+          "id, tab_key, page_id, sort_order, enabled"
+        )
         .eq("enabled", true)
         .not("page_id", "is", null)
         .order("sort_order", { ascending: true }),
 
       supabase
         .from("LinkManagement")
-        .select("*")
+        .select(
+          "id, label, url, root_domain, icon, enabled, footer_enabled, sort_order"
+        )
         .eq("enabled", true)
+        .eq("footer_enabled", true)
         .order("sort_order", { ascending: true }),
 
       supabase
         .from("PageManagement")
-        .select("id, slug, title, content, content_type, published")
+        .select(
+          "id, slug, title, content, content_type, cover_media, published"
+        )
         .eq("published", true)
-        .order("title", { ascending: true })
+        .order("title", { ascending: true }),
+
+      supabase
+        .from("PhotoManagement")
+        .select(
+          "id, title, description, category, media_url, published"
+        )
+        .eq("published", true)
+        .order("created_at", { ascending: false }),
+
+      supabase
+        .from("VideoManagement")
+        .select(
+          "id, title, description, category, media_url, published"
+        )
+        .eq("published", true)
+        .order("created_at", { ascending: false })
     ]);
 
-    const settingsMap = {};
-
-    (settingsResult.data || []).forEach((item) => {
-      settingsMap[item.key] = readSetting(item.value);
-    });
-
-    const validTabs = (tabsResult.data || []).filter(
-      (tab) => tab.pages && tab.pages.published !== false
+    const pageList = pagesResult.data || [];
+    const pageMap = new Map(
+      pageList.map((page) => [page.id, page])
     );
 
-    setSettings(settingsMap);
+    const validTabs = (tabsResult.data || []).filter(
+      (tab) => pageMap.has(tab.page_id)
+    );
+
+    setWebsite(websiteResult.data || null);
     setTabs(validTabs);
     setLinks(linksResult.data || []);
-    setPages(pagesResult.data || []);
+    setPages(pageList);
+    setPhotos(photosResult.data || []);
+    setVideos(videosResult.data || []);
 
     setActiveTab(
-      validTabs.length > 0 ? validTabs[0].tab_key : ""
+      validTabs.length > 0
+        ? validTabs[0].tab_key
+        : ""
     );
 
     setLoading(false);
   }
 
-  const siteName =
-    settings.website_name ||
-    settings.site_title ||
-    "";
-
-  const tagline =
-    settings.site_tagline ||
-    "";
-
-  const logo =
-    settings.logo_url || "";
-
-  const wallpaper =
-    settings.hero_wallpaper ||
-    settings.village_wallpaper ||
-    "";
-
-  const wallpaperStyle =
-    settings.wallpaper_style || "classic";
-
-  const copyright =
-    settings.copyright ||
-    settings.site_copyright ||
-    "";
-
   const currentTab = tabs.find(
     (tab) => tab.tab_key === activeTab
   );
 
-  const currentPage = currentTab?.pages || null;
+  const currentPage =
+    pages.find(
+      (page) => page.id === currentTab?.page_id
+    ) || null;
 
   const searchResults = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -174,18 +151,6 @@ function Homepage() {
     });
   }
 
-  function renderPageContent() {
-    if (!currentPage) {
-      return (
-        <div className="village-empty">
-          <p>No page is currently available.</p>
-        </div>
-      );
-    }
-
-    return <PageRenderer page={currentPage} />;
-  }
-
   if (loading) {
     return (
       <div className="village-loading">
@@ -193,6 +158,11 @@ function Homepage() {
       </div>
     );
   }
+
+  const siteName = website?.website_name || "";
+  const slogan = website?.slogan || "";
+  const logo = website?.logo_url || "";
+  const bannerUrl = website?.banner_url || "";
 
   return (
     <div className="village-site">
@@ -202,13 +172,13 @@ function Homepage() {
             className="village-brand"
             href={import.meta.env.BASE_URL}
           >
-            {logo ? (
+            {logo && (
               <img
                 className="village-brand-logo"
                 src={logo}
                 alt=""
               />
-            ) : null}
+            )}
 
             <span>{siteName}</span>
           </a>
@@ -244,28 +214,28 @@ function Homepage() {
           </div>
 
           <div className="village-top-actions">
-                        <AuthPanel />
+            <AuthPanel />
           </div>
         </div>
       </header>
 
+      <section
+        className="village-hero"
+        style={{
+          "--village-wallpaper": bannerUrl
+            ? `url("${bannerUrl}")`
+            : "none"
+        }}
+      >
+        <div className="village-hero-overlay" />
+
+        <div className="village-hero-content">
+          <h1>{siteName}</h1>
+          <p>{slogan}</p>
+        </div>
+      </section>
+
       <main>
-        <section
-          className={`village-hero wallpaper-${wallpaperStyle}`}
-          style={{
-            "--village-wallpaper": wallpaper
-              ? `url("${wallpaper}")`
-              : "none"
-          }}
-        >
-          <div className="village-hero-overlay" />
-
-          <div className="village-hero-content">
-            <h1>{siteName}</h1>
-            <p>{tagline}</p>
-          </div>
-        </section>
-
         <section
           id="village-content"
           className="village-main-content"
@@ -276,32 +246,47 @@ function Homepage() {
                 className="village-tabs"
                 aria-label="Homepage tabs"
               >
-                {tabs.map((tab) => (
-                  <button
-                    type="button"
-                    key={tab.id}
-                    className={
-                      activeTab === tab.tab_key
-                        ? "active"
-                        : ""
-                    }
-                    onClick={() =>
-                      selectTab(tab.tab_key)
-                    }
-                  >
-                    {tab.title || tab.pages?.title || ""}
-                  </button>
-                ))}
+                {tabs.map((tab) => {
+                  const page = pages.find(
+                    (item) => item.id === tab.page_id
+                  );
+
+                  return (
+                    <button
+                      type="button"
+                      key={tab.id}
+                      className={
+                        activeTab === tab.tab_key
+                          ? "active"
+                          : ""
+                      }
+                      onClick={() =>
+                        selectTab(tab.tab_key)
+                      }
+                    >
+                      {page?.title || tab.tab_key}
+                    </button>
+                  );
+                })}
               </nav>
             )}
 
             <div className="village-page-content">
-              {renderPageContent()}
+              {currentPage ? (
+                <PageRenderer
+                  page={currentPage}
+                  photos={photos}
+                  videos={videos}
+                />
+              ) : (
+                <div className="village-empty">
+                  <p>No page is currently available.</p>
+                </div>
+              )}
             </div>
           </div>
         </section>
       </main>
-
 
       <footer className="village-footer">
         <div className="village-footer-links">
@@ -311,8 +296,8 @@ function Homepage() {
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              title={link.label || link.root_domain}
-              aria-label={link.label || link.root_domain}
+              title={link.label}
+              aria-label={link.label}
             >
               {link.icon ? (
                 <img
@@ -322,17 +307,13 @@ function Homepage() {
                   height="28"
                 />
               ) : (
-                <span>{link.root_domain}</span>
+                <span>
+                  {link.label || link.root_domain}
+                </span>
               )}
             </a>
           ))}
         </div>
-
-        {copyright && (
-          <div className="village-footer-copyright">
-            {copyright}
-          </div>
-        )}
       </footer>
     </div>
   );

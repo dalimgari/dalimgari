@@ -5,6 +5,7 @@ import MediaInput from "../components/MediaInput";
 function PostManager({ onBack }) {
   const [items, setItems] = useState([]);
   const [editingId, setEditingId] = useState(null);
+  const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [mediaUrl, setMediaUrl] = useState("");
   const [mediaType, setMediaType] = useState("image");
@@ -20,6 +21,7 @@ function PostManager({ onBack }) {
 
   async function loadPosts() {
     setLoading(true);
+
     const { data, error } = await supabase
       .from("PostManagement")
       .select("*")
@@ -36,6 +38,7 @@ function PostManager({ onBack }) {
 
   function resetForm() {
     setEditingId(null);
+    setTitle("");
     setContent("");
     setMediaUrl("");
     setMediaType("image");
@@ -46,8 +49,9 @@ function PostManager({ onBack }) {
 
   function editPost(item) {
     setEditingId(item.id);
+    setTitle(item.title || "");
     setContent(item.content || "");
-    setMediaUrl(item.image_url || "");
+    setMediaUrl(item.media_url || "");
     setMediaType(item.media_type || "image");
     setPublished(Boolean(item.published));
     setMessage("");
@@ -56,6 +60,11 @@ function PostManager({ onBack }) {
 
   async function savePost(event) {
     event.preventDefault();
+
+    if (!title.trim()) {
+      setError("Post title is required.");
+      return;
+    }
 
     if (!content.trim()) {
       setError("Post content is required.");
@@ -66,18 +75,21 @@ function PostManager({ onBack }) {
     setMessage("");
     setError("");
 
+    const payload = {
+      title: title.trim(),
+      content: content.trim(),
+      media_url: mediaUrl.trim() || null,
+      media_type: mediaUrl.trim() ? mediaType : null,
+      published,
+      updated_at: new Date().toISOString()
+    };
+
     let saveError;
 
     if (editingId) {
       const result = await supabase
         .from("PostManagement")
-        .update({
-          content: content.trim(),
-          image_url: mediaUrl.trim() || null,
-          media_type: mediaType,
-          published,
-          updated_at: new Date().toISOString()
-        })
+        .update(payload)
         .eq("id", editingId);
 
       saveError = result.error;
@@ -93,11 +105,8 @@ function PostManager({ onBack }) {
       const result = await supabase
         .from("PostManagement")
         .insert({
-          author_id: userData.user.id,
-          content: content.trim(),
-          image_url: mediaUrl.trim() || null,
-          media_type: mediaType,
-          published
+          ...payload,
+          author_id: userData.user.id
         });
 
       saveError = result.error;
@@ -120,7 +129,7 @@ function PostManager({ onBack }) {
   }
 
   async function deletePost(item) {
-    const url = item.image_url || "";
+    const url = item.media_url || "";
     const marker = "/storage/v1/object/public/media/";
 
     if (url.includes(marker)) {
@@ -151,7 +160,7 @@ function PostManager({ onBack }) {
       <div className="manager-header">
         <div>
           <p className="admin-eyebrow">Community</p>
-          <h2>Posts Management</h2>
+          <h2>Post Management</h2>
         </div>
 
         {onBack && (
@@ -162,6 +171,13 @@ function PostManager({ onBack }) {
       </div>
 
       <form className="manager-form" onSubmit={savePost}>
+        <input
+          value={title}
+          onChange={(event) => setTitle(event.target.value)}
+          placeholder="Post title"
+          required
+        />
+
         <textarea
           value={content}
           onChange={(event) => setContent(event.target.value)}
@@ -216,16 +232,17 @@ function PostManager({ onBack }) {
         {loading ? (
           <p>Loading...</p>
         ) : items.length === 0 ? (
-          <p>No PostManagement available.</p>
+          <p>No posts available.</p>
         ) : (
           items.map((item) => (
             <article className="manager-item" key={item.id}>
               <div>
+                <h3>{item.title}</h3>
                 <p>{item.content}</p>
 
-                {item.image_url && item.media_type === "video" && (
+                {item.media_url && item.media_type === "video" && (
                   <video
-                    src={item.image_url}
+                    src={item.media_url}
                     controls
                     preload="metadata"
                     style={{
@@ -236,10 +253,10 @@ function PostManager({ onBack }) {
                   />
                 )}
 
-                {item.image_url && item.media_type !== "video" && (
+                {item.media_url && item.media_type === "image" && (
                   <img
-                    src={item.image_url}
-                    alt="Post"
+                    src={item.media_url}
+                    alt={item.title}
                     style={{
                       maxWidth: "240px",
                       display: "block",
@@ -249,8 +266,8 @@ function PostManager({ onBack }) {
                 )}
 
                 <small>
-                  {item.published ? "Published" : "Draft"} ·{" "}
-                  {item.media_type || "image"}
+                  {item.published ? "Published" : "Draft"}
+                  {item.media_type ? ` · ${item.media_type}` : ""}
                 </small>
               </div>
 

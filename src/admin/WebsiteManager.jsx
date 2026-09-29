@@ -2,138 +2,168 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import MediaInput from "../components/MediaInput";
 
-const STYLES = [
-  "classic",
-  "soft",
-  "dark",
-  "warm",
-  "nature",
-  "black-fade"
-];
-
 function WebsiteManager({ onBack }) {
-  const [wallpaper, setWallpaper] = useState("");
-  const [style, setStyle] = useState("classic");
+  const [website, setWebsite] = useState(null);
+  const [websiteName, setWebsiteName] = useState("");
+  const [logoUrl, setLogoUrl] = useState("");
+  const [slogan, setSlogan] = useState("");
+  const [bannerUrl, setBannerUrl] = useState("");
+  const [bannerStyle, setBannerStyle] = useState("classic");
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
 
+  async function loadWebsite() {
+    setLoading(true);
+
+    const { data, error } = await supabase
+      .from("WebsiteInformation")
+      .select(
+        "id, website_name, logo_url, slogan, banner_url, banner_style, created_at, updated_at"
+      )
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      setMessage(error.message);
+    } else if (data) {
+      setWebsite(data);
+      setWebsiteName(data.website_name || "");
+      setLogoUrl(data.logo_url || "");
+      setSlogan(data.slogan || "");
+      setBannerUrl(data.banner_url || "");
+      setBannerStyle(data.banner_style || "classic");
+      setMessage("");
+    }
+
+    setLoading(false);
+  }
+
   useEffect(() => {
-    loadSettings();
+    loadWebsite();
   }, []);
 
-  async function loadSettings() {
-    const { data } = await supabase
-      .from("WebsiteInformation")
-      .select("key,value")
-      .in("key", ["hero_wallpaper", "wallpaper_style"]);
+  async function saveWebsite(event) {
+    event.preventDefault();
 
-    (data || []).forEach((item) => {
-      const value =
-        typeof item.value === "string"
-          ? item.value
-          : item.value?.value || "";
+    if (!websiteName.trim()) {
+      setMessage("Website name is required.");
+      return;
+    }
 
-      if (item.key === "hero_wallpaper") setWallpaper(value);
-      if (item.key === "wallpaper_style") setStyle(value || "classic");
-    });
-  }
-
-  async function saveSetting(key, value) {
-    return supabase.from("WebsiteInformation").upsert(
-      {
-        key,
-        value: { value },
-        updated_at: new Date().toISOString()
-      },
-      { onConflict: "key" }
-    );
-  }
-
-  async function save() {
     setSaving(true);
     setMessage("");
 
-    const [wallpaperResult, styleResult] = await Promise.all([
-      saveSetting("hero_wallpaper", wallpaper),
-      saveSetting("wallpaper_style", style)
-    ]);
+    const payload = {
+      website_name: websiteName.trim(),
+      logo_url: logoUrl.trim() || null,
+      slogan: slogan.trim() || null,
+      banner_url: bannerUrl.trim() || null,
+      banner_style: bannerStyle.trim() || "classic",
+      updated_at: new Date().toISOString()
+    };
 
-    if (wallpaperResult.error || styleResult.error) {
-      setMessage(
-        wallpaperResult.error?.message ||
-          styleResult.error?.message ||
-          "Unable to save customization."
-      );
+    let result;
+
+    if (website?.id) {
+      result = await supabase
+        .from("WebsiteInformation")
+        .update(payload)
+        .eq("id", website.id)
+        .select()
+        .single();
     } else {
-      setMessage("Customization saved successfully.");
+      result = await supabase
+        .from("WebsiteInformation")
+        .insert(payload)
+        .select()
+        .single();
+    }
+
+    if (result.error) {
+      setMessage(result.error.message);
+    } else {
+      setWebsite(result.data);
+      setMessage("Website information saved successfully.");
     }
 
     setSaving(false);
   }
 
   return (
-    <main className="admin-page">
-      <header className="admin-header">
-        <div>
-          <p className="admin-eyebrow">Administration</p>
-          <h1>Customization</h1>
-        </div>
+    <section>
+      <div>
+        <button type="button" onClick={onBack}>
+          Back
+        </button>
 
-        <div className="admin-header-actions">
-          <button onClick={onBack}>Dashboard</button>
-        </div>
-      </header>
+        <h2>Website Information</h2>
+      </div>
 
-      <section className="admin-content">
-        <div className="admin-welcome">
-          <h2>Hero Wallpaper</h2>
-          <p>Choose the homepage wallpaper and visual style.</p>
-        </div>
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <form onSubmit={saveWebsite}>
+          <input
+            type="text"
+            value={websiteName}
+            onChange={(event) => setWebsiteName(event.target.value)}
+            placeholder="Website Name"
+            required
+          />
 
-        <div className="admin-form">
-          <label>
-            Wallpaper
-            <MediaInput
-              value={wallpaper}
-              onChange={setWallpaper}
-              folder="hero"
-              accept="image/*"
-            />
-          </label>
+          <MediaInput
+            value={logoUrl}
+            onChange={setLogoUrl}
+            accept="image/*"
+          />
 
-          <label>
-            Wallpaper Style
-            <select
-              value={style}
-              onChange={(event) => setStyle(event.target.value)}
-            >
-              {STYLES.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
-          </label>
+          <input
+            type="text"
+            value={slogan}
+            onChange={(event) => setSlogan(event.target.value)}
+            placeholder="Slogan"
+          />
 
-          {wallpaper && (
-            <div className={`customization-preview wallpaper-${style}`}>
-              <img src={wallpaper} alt="Wallpaper preview" />
-            </div>
-          )}
+          <MediaInput
+            value={bannerUrl}
+            onChange={setBannerUrl}
+            accept="image/*"
+          />
 
-          <button
-            type="button"
-            className="admin-primary-button"
-            onClick={save}
-            disabled={saving}
+          <select
+            value={bannerStyle}
+            onChange={(event) => setBannerStyle(event.target.value)}
           >
-            {saving ? "Saving..." : "Save Customization"}
-          </button>
+            <option value="classic">Classic</option>
+            <option value="dark">Dark</option>
+            <option value="light">Light</option>
+            <option value="minimal">Minimal</option>
+          </select>
 
-          {message && <p>{message}</p>}
+          <button type="submit" disabled={saving}>
+            {saving ? "Saving..." : "Save Website Information"}
+          </button>
+        </form>
+      )}
+
+      {message && <p>{message}</p>}
+
+      {bannerUrl && (
+        <div>
+          <h3>Banner Preview</h3>
+          <img
+            src={bannerUrl}
+            alt="Website banner"
+            style={{
+              width: "100%",
+              maxWidth: "900px",
+              display: "block"
+            }}
+          />
         </div>
-      </section>
-    </main>
+      )}
+    </section>
   );
 }
 

@@ -2,41 +2,41 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import MediaInput from "../components/MediaInput";
 
-function VideoManager() {
+function VideoManager({ onBack }) {
   const [items, setItems] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [mediaUrl, setMediaUrl] = useState("");
-  const [mediaType, setMediaType] = useState("image");
+  const [published, setPublished] = useState(true);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    loadVideos();
-  }, []);
 
   async function loadVideos() {
     setLoading(true);
-    setError("");
 
     const { data, error } = await supabase
       .from("VideoManagement")
-      .select("*")
-      .eq("media_type", "video")
+      .select(
+        "id, title, description, category, media_url, published, uploaded_by, created_at, updated_at"
+      )
       .order("created_at", { ascending: false });
 
     if (error) {
-      setError(error.message);
+      setMessage(error.message);
     } else {
       setItems(data || []);
+      setMessage("");
     }
 
     setLoading(false);
   }
+
+  useEffect(() => {
+    loadVideos();
+  }, []);
 
   function resetForm() {
     setEditingId(null);
@@ -44,96 +44,76 @@ function VideoManager() {
     setDescription("");
     setCategory("");
     setMediaUrl("");
-    setMediaType("video");
-    setMessage("");
-    setError("");
+    setPublished(true);
   }
 
-  function editGallery(item) {
+  function editVideo(item) {
     setEditingId(item.id);
     setTitle(item.title || "");
     setDescription(item.description || "");
     setCategory(item.category || "");
     setMediaUrl(item.media_url || "");
-    setMediaType(item.media_type || "image");
+    setPublished(item.published ?? true);
     setMessage("");
-    setError("");
   }
 
-  async function saveGallery(event) {
+  async function saveVideo(event) {
     event.preventDefault();
 
+    if (!title.trim()) {
+      setMessage("Title is required.");
+      return;
+    }
+
     if (!mediaUrl.trim()) {
-      setError("Media is required.");
+      setMessage("Video URL is required.");
       return;
     }
 
     setSaving(true);
     setMessage("");
-    setError("");
 
-    const { data: userData } = await supabase.auth.getUser();
+    const payload = {
+      title: title.trim(),
+      description: description.trim() || null,
+      category: category.trim() || null,
+      media_url: mediaUrl.trim(),
+      published,
+      updated_at: new Date().toISOString()
+    };
 
-    let saveError;
+    let error;
 
     if (editingId) {
-      const result = await supabase
+      ({ error } = await supabase
         .from("VideoManagement")
-        .update({
-          title: title.trim() || null,
-          description: description.trim() || null,
-          media_url: mediaUrl.trim(),
-          media_type: mediaType,
-          category: category.trim() || null
-        })
-        .eq("id", editingId);
-
-      saveError = result.error;
+        .update(payload)
+        .eq("id", editingId));
     } else {
-      const result = await supabase
-        .from("VideoManagement")
-        .insert({
-          title: title.trim() || null,
-          description: description.trim() || null,
-          media_url: mediaUrl.trim(),
-          media_type: mediaType,
-          category: category.trim() || null,
-          uploaded_by: userData?.user?.id || null,
-          published: true
-        });
+      const {
+        data: { user }
+      } = await supabase.auth.getUser();
 
-      saveError = result.error;
+      ({ error } = await supabase.from("VideoManagement").insert({
+        ...payload,
+        uploaded_by: user?.id || null
+      }));
     }
 
-    if (saveError) {
-      setError(saveError.message);
+    if (error) {
+      setMessage(error.message);
     } else {
-      const wasEditing = Boolean(editingId);
       resetForm();
-      setMessage(
-        wasEditing
-          ? "Video updated successfully."
-          : "Video added successfully."
-      );
       await loadVideos();
+      setMessage("Video saved successfully.");
     }
 
     setSaving(false);
   }
 
   async function deleteVideo(item) {
-    const url = item.media_url || "";
-    const marker = "/storage/v1/object/public/media/";
-
-    if (url.includes(marker)) {
-      const index = url.indexOf(marker);
-      const filePath = decodeURIComponent(
-        url.substring(index + marker.length)
-      );
-
-      await supabase.storage
-        .from("media")
-        .remove([filePath]);
+    if (!window.confirm(`Delete "${item.title || "this video"}"?`)) {
+      return;
     }
 
     const { error } = await supabase
@@ -142,62 +122,67 @@ function VideoManager() {
       .eq("id", item.id);
 
     if (error) {
-      setError(error.message);
+      setMessage(error.message);
       return;
     }
 
-    setMessage("Video deleted.");
+    if (editingId === item.id) {
+      resetForm();
+    }
+
     await loadVideos();
+    setMessage("Video deleted successfully.");
   }
 
   return (
     <section>
-      <div className="manager-header">
-        <div>
-          <p className="admin-eyebrow">Media</p>
-          <h2>Video Management</h2>
-        </div>
+      <div>
+        <button type="button" onClick={onBack}>
+          Back
+        </button>
+
+        <h2>Video Management</h2>
       </div>
 
-      <form className="manager-form" onSubmit={saveGallery}>
+      <form onSubmit={saveVideo}>
         <input
+          type="text"
           value={title}
           onChange={(event) => setTitle(event.target.value)}
-          placeholder="Media title"
+          placeholder="Title"
+          required
         />
 
         <textarea
           value={description}
           onChange={(event) => setDescription(event.target.value)}
           placeholder="Description"
-          rows="3"
         />
 
         <input
+          type="text"
           value={category}
           onChange={(event) => setCategory(event.target.value)}
           placeholder="Category"
         />
 
-        <label>
-          Media type
-          <select
-            value={mediaType}
-            onChange={(event) => setMediaType(event.target.value)}
-          >
-            <option value="video">Video</option>
-          </select>
-        </label>
-
         <MediaInput
           value={mediaUrl}
           onChange={setMediaUrl}
-          folder="videos"
           accept="video/*"
         />
 
+        <label>
+          <input
+            type="checkbox"
+            checked={published}
+            onChange={(event) => setPublished(event.target.checked)}
+          />
+          Published
+        </label>
+
         <button type="submit" disabled={saving}>
-          {saving ? "Saving..." : editingId ? "Update Media" : "Add Media"}
+          {saving ? "Saving..." : editingId ? "Update Video" : "Add Video"}
         </button>
 
         {editingId && (
@@ -205,56 +190,44 @@ function VideoManager() {
             Cancel
           </button>
         )}
-
-        {message && <p className="manager-message">{message}</p>}
-        {error && <p className="manager-error">{error}</p>}
       </form>
 
-      <div className="manager-list">
+      {message && <p>{message}</p>}
+
+      <div>
         {loading ? (
           <p>Loading...</p>
         ) : items.length === 0 ? (
-          <p>No videos available.</p>
+          <p>No videos found.</p>
         ) : (
           items.map((item) => (
-            <article className="manager-item" key={item.id}>
+            <article key={item.id}>
               <div>
-                {item.media_type === "video" ? (
+                {item.media_url && (
                   <video
                     src={item.media_url}
                     controls
                     style={{
-                      width: "120px",
-                      height: "80px",
-                      objectFit: "cover",
-                      borderRadius: "8px"
-                    }}
-                  />
-                ) : (
-                  <img
-                    src={item.media_url}
-                    alt={item.title || "Gallery image"}
-                    style={{
-                      width: "120px",
-                      height: "80px",
-                      objectFit: "cover",
-                      borderRadius: "8px"
+                      maxWidth: "360px",
+                      display: "block",
+                      marginTop: "10px"
                     }}
                   />
                 )}
 
-                <h3>{item.title || "Untitled media"}</h3>
+                <h3>{item.title}</h3>
 
-                {item.description && (
-                  <p>{item.description}</p>
-                )}
+                {item.description && <p>{item.description}</p>}
+
+                {item.category && <small>{item.category}</small>}
+
+                <small>
+                  {item.published ? "Published" : "Draft"}
+                </small>
               </div>
 
               <div>
-                <button
-                  type="button"
-                  onClick={() => editGallery(item)}
-                >
+                <button type="button" onClick={() => editVideo(item)}>
                   Edit
                 </button>
 
@@ -274,4 +247,4 @@ function VideoManager() {
   );
 }
 
-export default VideoManager
+export default VideoManager;

@@ -1,97 +1,91 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 
-function getRootDomain(value) {
-  try {
-    const url = new URL(value);
-    return url.hostname.replace(/^www\./, "");
-  } catch {
-    return "";
-  }
-}
-
-function getDomainIcon(domain) {
-  if (!domain) return "";
-  return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=64`;
-}
-
-export default function LinkManager() {
-  const [links, setLinks] = useState([]);
+function LinkManager({ onBack }) {
+  const [items, setItems] = useState([]);
+  const [editingId, setEditingId] = useState(null);
+  const [label, setLabel] = useState("");
   const [url, setUrl] = useState("");
-  const [labelBn, setLabelBn] = useState("");
-  const [labelEn, setLabelEn] = useState("");
+  const [rootDomain, setRootDomain] = useState("");
+  const [icon, setIcon] = useState("");
   const [enabled, setEnabled] = useState(true);
-  const [editingId, setEditingId] = useState("");
+  const [footerEnabled, setFooterEnabled] = useState(true);
+  const [sortOrder, setSortOrder] = useState(0);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
-
-  useEffect(() => {
-    loadLinks();
-  }, []);
 
   async function loadLinks() {
     setLoading(true);
 
     const { data, error } = await supabase
       .from("LinkManagement")
-      .select("*")
-      .order("sort_order", { ascending: true })
-      .order("created_at", { ascending: true });
+      .select(
+        "id, label, url, root_domain, icon, enabled, footer_enabled, sort_order, created_at, updated_at"
+      )
+      .order("sort_order", { ascending: true });
 
     if (error) {
       setMessage(error.message);
     } else {
-      setLinks(data || []);
+      setItems(data || []);
+      setMessage("");
     }
 
     setLoading(false);
   }
 
+  useEffect(() => {
+    loadLinks();
+  }, []);
+
   function resetForm() {
+    setEditingId(null);
+    setLabel("");
     setUrl("");
-    setLabelBn("");
-    setLabelEn("");
+    setRootDomain("");
+    setIcon("");
     setEnabled(true);
-    setEditingId("");
-    setMessage("");
+    setFooterEnabled(true);
+    setSortOrder(0);
   }
 
-  function editLink(link) {
-    setEditingId(link.id);
-    setUrl(link.url || "");
-    setLabelBn(link.label_bn || link.label || "");
-    setLabelEn(link.label_en || "");
-    setEnabled(link.enabled);
+  function editLink(item) {
+    setEditingId(item.id);
+    setLabel(item.label || "");
+    setUrl(item.url || "");
+    setRootDomain(item.root_domain || "");
+    setIcon(item.icon || "");
+    setEnabled(item.enabled ?? true);
+    setFooterEnabled(item.footer_enabled ?? true);
+    setSortOrder(item.sort_order ?? 0);
     setMessage("");
   }
 
   async function saveLink(event) {
     event.preventDefault();
 
-    const cleanUrl = url.trim();
-    const rootDomain = getRootDomain(cleanUrl);
+    if (!label.trim()) {
+      setMessage("Label is required.");
+      return;
+    }
 
-    if (!rootDomain) {
-      setMessage("Enter a valid URL.");
+    if (!url.trim()) {
+      setMessage("URL is required.");
       return;
     }
 
     setSaving(true);
     setMessage("");
 
-    const existingIcon = links.find(
-      (link) => link.root_domain === rootDomain && link.icon
-    )?.icon;
-
     const payload = {
-      label: labelBn.trim() || labelEn.trim() || null,
-      label_bn: labelBn.trim() || null,
-      label_en: labelEn.trim() || null,
-      url: cleanUrl,
-      root_domain: rootDomain,
-      icon: existingIcon || getDomainIcon(rootDomain),
+      label: label.trim(),
+      url: url.trim(),
+      root_domain: rootDomain.trim() || null,
+      icon: icon.trim() || null,
       enabled,
+      footer_enabled: footerEnabled,
+      sort_order: Number(sortOrder) || 0,
       updated_at: new Date().toISOString()
     };
 
@@ -103,17 +97,9 @@ export default function LinkManager() {
         .update(payload)
         .eq("id", editingId));
     } else {
-      const maxOrder = links.reduce(
-        (max, item) => Math.max(max, Number(item.sort_order) || 0),
-        -1
-      );
-
       ({ error } = await supabase
         .from("LinkManagement")
-        .insert({
-          ...payload,
-          sort_order: maxOrder + 1
-        }));
+        .insert(payload));
     }
 
     if (error) {
@@ -121,204 +107,157 @@ export default function LinkManager() {
     } else {
       resetForm();
       await loadLinks();
-      setMessage("Saved successfully.");
+      setMessage("Link saved successfully.");
     }
 
     setSaving(false);
   }
 
-  async function toggleLink(link) {
-    const { error } = await supabase
-      .from("LinkManagement")
-      .update({
-        enabled: !link.enabled,
-        updated_at: new Date().toISOString()
-      })
-      .eq("id", link.id);
-
-    if (error) {
-      setMessage(error.message);
+  async function deleteLink(item) {
+    if (!window.confirm(`Delete "${item.label}"?`)) {
       return;
     }
-
-    await loadLinks();
-  }
-
-  async function deleteLink(id) {
-    if (!window.confirm("Delete this link?")) return;
 
     const { error } = await supabase
       .from("LinkManagement")
       .delete()
-      .eq("id", id);
+      .eq("id", item.id);
 
     if (error) {
       setMessage(error.message);
       return;
     }
 
-    await loadLinks();
-  }
-
-  async function moveLink(index, direction) {
-    const targetIndex = index + direction;
-
-    if (targetIndex < 0 || targetIndex >= links.length) return;
-
-    const current = links[index];
-    const target = links[targetIndex];
-
-    const firstOrder = Number(current.sort_order) || index;
-    const secondOrder = Number(target.sort_order) || targetIndex;
-
-    const { error } = await Promise.all([
-      supabase
-        .from("LinkManagement")
-        .update({ sort_order: secondOrder })
-        .eq("id", current.id),
-      supabase
-        .from("LinkManagement")
-        .update({ sort_order: firstOrder })
-        .eq("id", target.id)
-    ]).then((results) => ({
-      error: results.find((result) => result.error)?.error || null
-    }));
-
-    if (error) {
-      setMessage(error.message);
-      return;
+    if (editingId === item.id) {
+      resetForm();
     }
 
     await loadLinks();
+    setMessage("Link deleted successfully.");
   }
 
   return (
-    <main className="admin-page">
-      <section className="admin-section">
+    <section>
+      <div>
+        <button type="button" onClick={onBack}>
+          Back
+        </button>
+
         <h2>Link Management</h2>
+      </div>
 
-        <form onSubmit={saveLink}>
-          <label>
-            Label (Bangla)
-            <input
-              type="text"
-              value={labelBn}
-              onChange={(event) => setLabelBn(event.target.value)}
-            />
-          </label>
+      <form onSubmit={saveLink}>
+        <input
+          type="text"
+          value={label}
+          onChange={(event) => setLabel(event.target.value)}
+          placeholder="Label"
+          required
+        />
 
-          <label>
-            Label (English)
-            <input
-              type="text"
-              value={labelEn}
-              onChange={(event) => setLabelEn(event.target.value)}
-            />
-          </label>
+        <input
+          type="url"
+          value={url}
+          onChange={(event) => setUrl(event.target.value)}
+          placeholder="URL"
+          required
+        />
 
-          <label>
-            URL
-            <input
-              type="url"
-              value={url}
-              onChange={(event) => setUrl(event.target.value)}
-              required
-            />
-          </label>
+        <input
+          type="text"
+          value={rootDomain}
+          onChange={(event) => setRootDomain(event.target.value)}
+          placeholder="Root Domain"
+        />
 
-          <label>
-            <input
-              type="checkbox"
-              checked={enabled}
-              onChange={(event) => setEnabled(event.target.checked)}
-            />
-            Enabled
-          </label>
+        <input
+          type="text"
+          value={icon}
+          onChange={(event) => setIcon(event.target.value)}
+          placeholder="Icon"
+        />
 
-          <div className="admin-header-actions">
-            <button type="submit" disabled={saving}>
-              {saving ? "Saving..." : editingId ? "Update Link" : "Add Link"}
-            </button>
+        <input
+          type="number"
+          value={sortOrder}
+          onChange={(event) => setSortOrder(event.target.value)}
+          placeholder="Sort Order"
+        />
 
-            {editingId && (
-              <button type="button" onClick={resetForm}>
-                Cancel
-              </button>
-            )}
-          </div>
-        </form>
+        <label>
+          <input
+            type="checkbox"
+            checked={enabled}
+            onChange={(event) => setEnabled(event.target.checked)}
+          />
+          Enabled
+        </label>
 
-        {message && <p>{message}</p>}
+        <label>
+          <input
+            type="checkbox"
+            checked={footerEnabled}
+            onChange={(event) => setFooterEnabled(event.target.checked)}
+          />
+          Show in Footer
+        </label>
 
-        <div className="admin-module-grid">
-          {loading ? (
-            <p>Loading...</p>
-          ) : links.length === 0 ? (
-            <p>No global links found.</p>
-          ) : (
-            links.map((link, index) => (
-              <div className="admin-module" key={link.id}>
-                {link.icon && (
-                  <img
-                    src={link.icon}
-                    alt=""
-                    width="32"
-                    height="32"
-                  />
-                )}
+        <button type="submit" disabled={saving}>
+          {saving ? "Saving..." : editingId ? "Update Link" : "Add Link"}
+        </button>
 
-                <strong>
-                  {link.label_bn || link.label_en || link.label || link.root_domain}
-                </strong>
+        {editingId && (
+          <button type="button" onClick={resetForm}>
+            Cancel
+          </button>
+        )}
+      </form>
 
-                <span>
-                  {link.root_domain} ·{" "}
-                  {link.enabled ? "Enabled" : "Disabled"}
-                </span>
+      {message && <p>{message}</p>}
 
-                <div className="admin-header-actions">
-                  <button
-                    type="button"
-                    disabled={index === 0}
-                    onClick={() => moveLink(index, -1)}
-                  >
-                    Up
-                  </button>
+      <div>
+        {loading ? (
+          <p>Loading...</p>
+        ) : items.length === 0 ? (
+          <p>No links found.</p>
+        ) : (
+          items.map((item) => (
+            <article key={item.id}>
+              <h3>{item.label}</h3>
 
-                  <button
-                    type="button"
-                    disabled={index === links.length - 1}
-                    onClick={() => moveLink(index, 1)}
-                  >
-                    Down
-                  </button>
+              <p>
+                {item.url}
+                <br />
+                {item.root_domain || "No domain"}
+                <br />
+                {item.enabled ? "Enabled" : "Disabled"}
+                {" · "}
+                {item.footer_enabled ? "Footer" : "Hidden from Footer"}
+                {" · Order: "}
+                {item.sort_order}
+              </p>
 
-                  <button
-                    type="button"
-                    onClick={() => toggleLink(link)}
-                  >
-                    {link.enabled ? "Disable" : "Enable"}
-                  </button>
+              {item.icon && <small>Icon: {item.icon}</small>}
 
-                  <button
-                    type="button"
-                    onClick={() => editLink(link)}
-                  >
-                    Edit
-                  </button>
+              <div>
+                <button type="button" onClick={() => editLink(item)}>
+                  Edit
+                </button>
 
-                  <button
-                    type="button"
-                    onClick={() => deleteLink(link.id)}
-                  >
-                    Delete
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  className="delete-button"
+                  onClick={() => deleteLink(item)}
+                >
+                  Delete
+                </button>
               </div>
-            ))
-          )}
-        </div>
-      </section>
-    </main>
+            </article>
+          ))
+        )}
+      </div>
+    </section>
   );
 }
+
+export default LinkManager;

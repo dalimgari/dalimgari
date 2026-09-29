@@ -1,147 +1,99 @@
-function isVideoUrl(url) {
-  if (!url) return false;
+import { useMemo } from "react";
+
+function PageRenderer({ page, photos = [], videos = [] }) {
+  const contentType = page?.content_type || "information";
+
+  const pagePhotos = useMemo(() => {
+    if (!page?.id) return [];
+    return photos.filter((item) => item.published !== false);
+  }, [page?.id, photos]);
+
+  const pageVideos = useMemo(() => {
+    if (!page?.id) return [];
+    return videos.filter((item) => item.published !== false);
+  }, [page?.id, videos]);
+
+  if (!page) {
+    return <p>Page not found.</p>;
+  }
 
   return (
-    /youtube\.com|youtu\.be|vimeo\.com/i.test(url) ||
-    /\.(mp4|webm|ogg)(\?.*)?$/i.test(url)
-  );
-}
-
-function PageRenderer({ page }) {
-  if (!page) return null;
-
-  const title = page.title || "";
-  const content = page.content || "";
-  const media = page.cover_image || "";
-
-  function renderMedia() {
-    if (!media) return null;
-
-    if (page.content_type === "video" || isVideoUrl(media)) {
-      if (/youtube\.com|youtu\.be|vimeo\.com/i.test(media)) {
-        return (
-          <div className="page-video-embed">
-            <iframe
-              src={media}
-              title={title}
-              loading="lazy"
-              allowFullScreen
-            />
-          </div>
-        );
-      }
-
-      return (
-        <video
-          src={media}
-          controls
-          preload="metadata"
-          className="card-image"
+    <article className="page-renderer">
+      {page.cover_media && (
+        <img
+          src={page.cover_media}
+          alt={page.title || "Page cover"}
+          className="page-cover"
         />
-      );
-    }
+      )}
 
-    return (
-      <img
-        src={media}
-        alt={title}
-        className="card-image"
-      />
-    );
-  }
+      <header>
+        <h2>{page.title}</h2>
+      </header>
 
-  function renderText() {
-    return (
-      <div className="page-content">
-        {content.split(/\n\s*\n/).map(
-          (paragraph, index) => (
-            <p key={index}>
-              {paragraph.split("\n").map(
-                (line, lineIndex) => (
-                  <span key={lineIndex}>
-                    {line}
-                    {lineIndex <
-                      paragraph.split("\n").length - 1 && (
-                      <br />
-                    )}
-                  </span>
-                )
-              )}
-            </p>
-          )
-        )}
-      </div>
-    );
-  }
+      {contentType === "information" && (
+        <div className="page-content">
+          {page.content && <p>{page.content}</p>}
+        </div>
+      )}
 
-  if (page.content_type === "article") {
-    return (
-      <article className="page-type-article">
-        {renderMedia()}
-        {renderText()}
-      </article>
-    );
-  }
+      {contentType === "article" && (
+        <div className="page-content">
+          {page.content && <p>{page.content}</p>}
+        </div>
+      )}
 
-  if (page.content_type === "info") {
-    return (
-      <section className="page-type-info">
-        {renderMedia()}
-        {renderText()}
-      </section>
-    );
-  }
+      {contentType === "contact" && (
+        <div className="page-content">
+          {page.content && <p>{page.content}</p>}
+        </div>
+      )}
 
-  if (page.content_type === "gallery") {
-    return (
-      <section className="page-type-gallery">
-        {renderMedia()}
-        {renderText()}
-      </section>
-    );
-  }
+      {contentType === "custom" && (
+        <div className="page-content">
+          {page.content && <p>{page.content}</p>}
+        </div>
+      )}
 
-  if (page.content_type === "people") {
-    return (
-      <section className="page-type-people">
-        {renderMedia()}
-        {renderText()}
-      </section>
-    );
-  }
+      {(contentType === "photo-gallery" ||
+        contentType === "photo-video-gallery") && (
+        <div className="page-gallery">
+          {pagePhotos.length === 0 ? (
+            <p>No photos available.</p>
+          ) : (
+            pagePhotos.map((photo) => (
+              <figure key={photo.id}>
+                <img
+                  src={photo.media_url}
+                  alt={photo.title || "Photo"}
+                />
+                {photo.title && <figcaption>{photo.title}</figcaption>}
+              </figure>
+            ))
+          )}
+        </div>
+      )}
 
-  if (page.content_type === "video") {
-    return (
-      <section className="page-type-video">
-        {renderMedia()}
-        {renderText()}
-      </section>
-    );
-  }
-
-  if (page.content_type === "news") {
-    return (
-      <article className="page-type-news">
-        {renderMedia()}
-        {renderText()}
-      </article>
-    );
-  }
-
-  if (page.content_type === "events") {
-    return (
-      <article className="page-type-events">
-        {renderMedia()}
-        {renderText()}
-      </article>
-    );
-  }
-
-  return (
-    <section className="page-type-custom">
-      {renderMedia()}
-      {renderText()}
-    </section>
+      {(contentType === "video-gallery" ||
+        contentType === "photo-video-gallery") && (
+        <div className="page-video-gallery">
+          {pageVideos.length === 0 ? (
+            <p>No videos available.</p>
+          ) : (
+            pageVideos.map((video) => (
+              <figure key={video.id}>
+                <video
+                  src={video.media_url}
+                  controls
+                  preload="metadata"
+                />
+                {video.title && <figcaption>{video.title}</figcaption>}
+              </figure>
+            ))
+          )}
+        </div>
+      )}
+    </article>
   );
 }
 

@@ -9,6 +9,8 @@ export default function AuthPanel({ onClose }) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [address, setAddress] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -46,11 +48,25 @@ export default function AuthPanel({ onClose }) {
   async function loadRole(currentSession) {
     const { data } = await supabase
       .from("UserInformation")
-      .select("role, account_enabled").eq("user_id", currentSession.user.id).eq("record_type", "user")
+      .select("role, account_enabled")
       .eq("user_id", currentSession.user.id)
+      .eq("record_type", "user")
       .maybeSingle();
 
-    setRole(data?.role || "user");
+    if (!data) {
+      setRole("user");
+      return;
+    }
+
+    if (data.account_enabled === false) {
+      await supabase.auth.signOut();
+      setSession(null);
+      setRole(null);
+      setError("This account is disabled.");
+      return;
+    }
+
+    setRole(data.role || "user");
   }
 
   async function handleSubmit(event) {
@@ -61,9 +77,16 @@ export default function AuthPanel({ onClose }) {
     setError("");
 
     if (recovery) {
-      const { error: recoveryError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${window.location.origin}${import.meta.env.BASE_URL}`
-      });
+      if (!email.trim()) {
+        setError("Email is required for password recovery.");
+        setSaving(false);
+        return;
+      }
+
+      const { error: recoveryError } =
+        await supabase.auth.resetPasswordForEmail(email.trim(), {
+          redirectTo: `${window.location.origin}${import.meta.env.BASE_URL}`
+        });
 
       if (recoveryError) {
         setError(recoveryError.message);
@@ -76,6 +99,26 @@ export default function AuthPanel({ onClose }) {
     }
 
     if (mode === "signup") {
+      if (!name.trim()) {
+        setError("Name is required.");
+        setSaving(false);
+        return;
+      }
+
+      if (!email.trim() && !phone.trim()) {
+        setError("Mobile number or email is required.");
+        setSaving(false);
+        return;
+      }
+
+      if (!email.trim()) {
+        setError(
+          "Email is required for this signup method. Phone-only signup requires phone authentication to be enabled."
+        );
+        setSaving(false);
+        return;
+      }
+
       const { data, error: signupError } = await supabase.auth.signUp({
         email: email.trim(),
         password
@@ -90,10 +133,16 @@ export default function AuthPanel({ onClose }) {
       if (data.user) {
         const { error: profileError } = await supabase
           .from("UserInformation")
-          .upsert({
-            id: data.user.id,
-            full_name: name.trim() || null,
-            phone: phone.trim() || null
+          .insert({
+            user_id: data.user.id,
+            record_type: "user",
+            name: name.trim(),
+            email: email.trim() || null,
+            phone: phone.trim() || null,
+            address: address.trim() || null,
+            date_of_birth: dateOfBirth || null,
+            role: "user",
+            account_enabled: true
           });
 
         if (profileError) {
@@ -106,6 +155,13 @@ export default function AuthPanel({ onClose }) {
       setMessage(
         "Account created. Check your email if email confirmation is enabled."
       );
+
+      setName("");
+      setPhone("");
+      setEmail("");
+      setDateOfBirth("");
+      setAddress("");
+      setPassword("");
     } else {
       const { error: signinError } =
         await supabase.auth.signInWithPassword({
@@ -155,7 +211,10 @@ export default function AuthPanel({ onClose }) {
           setSession(null);
           setRole(null);
           setOpen(false);
-          if (onClose) onClose();
+
+          if (onClose) {
+            onClose();
+          }
         }}
       />
     );
@@ -164,10 +223,7 @@ export default function AuthPanel({ onClose }) {
   return (
     <>
       {!open && (
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-        >
+        <button type="button" onClick={() => setOpen(true)}>
           Login
         </button>
       )}
@@ -184,7 +240,11 @@ export default function AuthPanel({ onClose }) {
             </button>
 
             <h2>
-              {recovery ? "Reset Password" : mode === "signin" ? "Sign In" : "Create Account"}
+              {recovery
+                ? "Reset Password"
+                : mode === "signin"
+                  ? "Sign In"
+                  : "Create Account"}
             </h2>
 
             <form onSubmit={handleSubmit}>
@@ -194,14 +254,31 @@ export default function AuthPanel({ onClose }) {
                     type="text"
                     value={name}
                     onChange={(event) => setName(event.target.value)}
-                    placeholder="Full name"
+                    placeholder="Name"
+                    required
+                  />
+
+                  <input
+                    type="date"
+                    value={dateOfBirth}
+                    onChange={(event) =>
+                      setDateOfBirth(event.target.value)
+                    }
+                    placeholder="Date of Birth"
+                  />
+
+                  <input
+                    type="text"
+                    value={address}
+                    onChange={(event) => setAddress(event.target.value)}
+                    placeholder="Address"
                   />
 
                   <input
                     type="tel"
                     value={phone}
                     onChange={(event) => setPhone(event.target.value)}
-                    placeholder="Phone"
+                    placeholder="Mobile Number"
                   />
                 </>
               )}
@@ -263,6 +340,12 @@ export default function AuthPanel({ onClose }) {
                 ? "Create a new account"
                 : "Already have an account? Sign in"}
             </button>
+
+            {session && (
+              <button type="button" onClick={logout}>
+                Logout
+              </button>
+            )}
           </div>
         </div>
       )}
