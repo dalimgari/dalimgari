@@ -43,11 +43,12 @@ CORE REQUIREMENTS
 30. A Global Unique Field / ID System must be used throughout the entire website. Every field/data entity must have a clear, understandable, unique identifier. Internal identifiers do not need to be exposed to the project owner in the user interface.
 31. The Global Unique Field / ID System must support dynamic collections of multiple records. Do not design repeated records using one generic value assignment such as page = 'a', page = 'b', page = 'c'. Each record must have its own unique identity, such as page1, page2, page3 conceptually, while the actual implementation should use a scalable unique identifier system.
 32. The Admin Dashboard must also have an analitica module for analytics-related functionality.
-33. A Global Media Upload System must be used throughout the entire website. All media fields should use the same media management architecture unless a specific location explicitly requires a separate method.
-34. The Global Media Upload System must provide exactly three selectable methods:
+33. The analitica module must show website visitor analytics and all types of visitor information that the system can legitimately and technically collect. Visitor analytics must be stored and structured so the information can be analyzed and displayed through the Admin Dashboard.
+34. A Global Media Upload System must be used throughout the entire website. All media fields should use the same media management architecture unless a specific location explicitly requires a separate method.
+35. The Global Media Upload System must provide exactly three selectable methods:
    1. upload - upload media directly to the project's storage system and automatically obtain its URL/reference.
    2. select file - select a previously uploaded file and use only its existing link/reference.
    3. url - provide an external media URL hosted on another server/service, such as YouTube.
-35. A single media field must use only one media method at a time. Upload, select file, and URL methods must not be active simultaneously for the same media field.
+36. A single media field must use only one media method at a time. Upload, select file, and URL methods must not be active simultaneously for the same media field.
 
 These requirements are the core constraints for the project and must be followed during development.
