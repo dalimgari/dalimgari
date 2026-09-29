@@ -1,9 +1,0 @@
-# Dalimgari Website — Final Requirements
-
-## 10. navigation.md
-
-- Website navigation সহজ, পরিষ্কার এবং consistent হবে।
-- Navigation items Admin Dashboard থেকে প্রয়োজন অনুযায়ী নিয়ন্ত্রণ করা যাবে।
-- Mobile screen-এ navigation সহজে ব্যবহারযোগ্য হবে।
-- Disabled বা unavailable navigation item সাধারণ user-এর কাছে প্রদর্শিত হবে না, যদি সেটি public navigation-এর অংশ না হয়।
-- Navigation naming website-এর requirements-এর সাথে সামঞ্জস্যপূর্ণ হবে।

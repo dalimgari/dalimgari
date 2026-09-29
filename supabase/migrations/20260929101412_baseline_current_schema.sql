@@ -1,2 +1,0 @@
--- Production Supabase schema is the source of truth.
--- This migration exists only to keep repository migration history aligned with production.

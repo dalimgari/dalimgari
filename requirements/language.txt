@@ -1,7 +1,0 @@
-# Dalimgari Website — Final Requirements
-
-## 5. language.md
-
-- বর্তমানে website-এ language switching system থাকবে না।
-- একই information-এর জন্য আলাদা ভাষায় duplicate input system থাকবে না।
-- ভবিষ্যতে language system প্রয়োজন হলে আলাদা requirement অনুযায়ী যুক্ত করা যাবে।
