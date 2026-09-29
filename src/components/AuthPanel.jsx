@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import UserDashboard from "../user/UserDashboard";
 
-export default function AuthPanel({ language = "bn", onLanguageChange }) {
+export default function AuthPanel({ onClose }) {
   const [session, setSession] = useState(null);
   const [role, setRole] = useState(null);
   const [mode, setMode] = useState("signin");
@@ -60,11 +60,10 @@ export default function AuthPanel({ language = "bn", onLanguageChange }) {
     setError("");
 
     if (mode === "signup") {
-      const { data, error: signupError } =
-        await supabase.auth.signUp({
-          email: email.trim(),
-          password
-        });
+      const { data, error: signupError } = await supabase.auth.signUp({
+        email: email.trim(),
+        password
+      });
 
       if (signupError) {
         setError(signupError.message);
@@ -99,11 +98,7 @@ export default function AuthPanel({ language = "bn", onLanguageChange }) {
         });
 
       if (signinError) {
-        setError("");
-        setMode("signup");
-        setMessage(
-          "No matching account was found. You can create an account using this email and password."
-        );
+        setError(signinError.message);
         setSaving(false);
         return;
       }
@@ -117,6 +112,18 @@ export default function AuthPanel({ language = "bn", onLanguageChange }) {
     setSession(null);
     setRole(null);
     setOpen(false);
+
+    if (onClose) {
+      onClose();
+    }
+  }
+
+  function closePanel() {
+    setOpen(false);
+
+    if (onClose) {
+      onClose();
+    }
   }
 
   if (session) {
@@ -125,79 +132,59 @@ export default function AuthPanel({ language = "bn", onLanguageChange }) {
       return null;
     }
 
-    if (open) {
-      return (
-        <div className="auth-overlay">
-          <div className="auth-modal">
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-            >
-              {language === "bn" ? "বন্ধ করুন" : "Close"}
-            </button>
-
-            <UserDashboard
-              session={session}
-              language={language}
-              onLanguageChange={onLanguageChange}
-              onBack={() => setOpen(false)}
-            />
-          </div>
-        </div>
-      );
-    }
-
     return (
-      <button
-        type="button"
-        className="login-button"
-        onClick={() => setOpen(true)}
-      >
-        {language === "bn" ? "আমার অ্যাকাউন্ট" : "My Account"}
-      </button>
+      <UserDashboard
+        session={session}
+        onLogout={logout}
+      />
     );
   }
 
   return (
     <>
-      <button
-        type="button"
-        className="login-button"
-        onClick={() => setOpen(true)}
-      >
-        {language === "bn" ? "লগইন" : "Login"}
-      </button>
+      {!open && (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+        >
+          Login
+        </button>
+      )}
 
       {open && (
-        <div className="auth-overlay">
-          <div className="auth-modal">
+        <div className="auth-panel">
+          <div className="auth-panel-inner">
             <button
               type="button"
-              onClick={() => setOpen(false)}
+              onClick={closePanel}
+              aria-label="Close"
             >
-              {language === "bn" ? "বন্ধ করুন" : "Close"}
+              ×
             </button>
 
             <h2>
-              {mode === "signin" ? (language === "bn" ? "লগইন" : "Login") : (language === "bn" ? "অ্যাকাউন্ট তৈরি করুন" : "Create Account")}
-
-            {mode === "signup" && (
-              <>
-                <input
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                  placeholder="Name (optional)"
-                />
-
-                <input
-                  value={phone}
-                  onChange={(event) => setPhone(event.target.value)}
-                  placeholder="Phone number (optional)"
-                />
-              </>
-            )}
+              {mode === "signin" ? "Sign In" : "Create Account"}
+            </h2>
 
             <form onSubmit={handleSubmit}>
+              {mode === "signup" && (
+                <>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(event) => setName(event.target.value)}
+                    placeholder="Full name"
+                  />
+
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(event) => setPhone(event.target.value)}
+                    placeholder="Phone"
+                  />
+                </>
+              )}
+
               <input
                 type="email"
                 value={email}
@@ -215,27 +202,32 @@ export default function AuthPanel({ language = "bn", onLanguageChange }) {
                 required
               />
 
+              {error && <p>{error}</p>}
+              {message && <p>{message}</p>}
+
               <button type="submit" disabled={saving}>
                 {saving
                   ? "Please wait..."
-              <button type="submit" disabled={saving}>
-                {saving ? (language === "bn" ? "অপেক্ষা করুন..." : "Please wait...") : mode === "signin" ? (language === "bn" ? "লগইন" : "Login") : (language === "bn" ? "অ্যাকাউন্ট তৈরি করুন" : "Create Account")}
+                  : mode === "signin"
+                    ? "Sign In"
+                    : "Create Account"}
               </button>
-                  mode === "signin"
-                    ? "signup"
-                    : "signin"
-                );
+            </form>
+
+            <button
+              type="button"
+              onClick={() => {
+                setMode(mode === "signin" ? "signup" : "signin");
                 setError("");
                 setMessage("");
               }}
             >
               {mode === "signin"
-                ? "Create an account"
-                : "Already have an account? Login"}
+                ? "Create a new account"
+                : "Already have an account? Sign in"}
             </button>
-
-            {message && <p>{message}</p>}
-              {mode === "signin" ? (language === "bn" ? "অ্যাকাউন্ট তৈরি করুন" : "Create an account") : (language === "bn" ? "আগেই অ্যাকাউন্ট আছে? লগইন করুন" : "Already have an account? Login")}
+          </div>
+        </div>
       )}
     </>
   );

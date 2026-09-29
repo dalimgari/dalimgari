@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import MediaInput from "../components/MediaInput";
 
-export default function UserDashboard({ session, language = "bn", onLanguageChange, onBack }) {
+export default function UserDashboard({ session, onLanguageChange, onBack }) {
   const [profile, setProfile] = useState(null);
   const [language, setLanguage] = useState("bn");
   const [name, setName] = useState("");
