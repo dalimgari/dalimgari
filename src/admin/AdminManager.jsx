@@ -298,7 +298,7 @@ export default function AdminManager() {
 
           <a
             className="admin-back-link"
-            href="/"
+            href={import.meta.env.BASE_URL}
           >
             Back to website
           </a>
@@ -383,7 +383,7 @@ export default function AdminManager() {
         </div>
 
         <div className="admin-header-actions">
-          <a href="/">
+          <a href={import.meta.env.BASE_URL}>
             View Website
           </a>
 
