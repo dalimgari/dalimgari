@@ -24,7 +24,7 @@ function VideoManager() {
     setError("");
 
     const { data, error } = await supabase
-      .from("gallery")
+      .from("VideoManagement")
       .select("*")
       .eq("media_type", "video")
       .order("created_at", { ascending: false });
@@ -78,7 +78,7 @@ function VideoManager() {
 
     if (editingId) {
       const result = await supabase
-        .from("gallery")
+        .from("VideoManagement")
         .update({
           title: title.trim() || null,
           description: description.trim() || null,
@@ -91,7 +91,7 @@ function VideoManager() {
       saveError = result.error;
     } else {
       const result = await supabase
-        .from("gallery")
+        .from("VideoManagement")
         .insert({
           title: title.trim() || null,
           description: description.trim() || null,
@@ -137,7 +137,7 @@ function VideoManager() {
     }
 
     const { error } = await supabase
-      .from("gallery")
+      .from("VideoManagement")
       .delete()
       .eq("id", item.id);
 

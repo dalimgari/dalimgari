@@ -52,9 +52,9 @@ export default function UserManager({ onBack }) {
     setMessage("");
 
     const [usersResult, visitsResult] = await Promise.all([
-      supabase.rpc("admin_user_directory"),
+      supabase.from("UserInformation").select("*").eq("record_type", "user"),
       supabase
-        .from("site_visits")
+        .from("UserInformation")
         .select(
           "id, visitor_id, user_id, visited_at, page_path, referrer, device_type, browser, operating_system, language, timezone, screen_width, screen_height, is_returning"
         )
@@ -85,7 +85,7 @@ export default function UserManager({ onBack }) {
     setMessage("");
 
     const { error: updateError } = await supabase
-      .from("user_roles")
+      .from("UserInformation")
       .update({ role })
       .eq("user_id", userId);
 
@@ -124,12 +124,12 @@ export default function UserManager({ onBack }) {
 
     const result = enabled
       ? await supabase
-          .from("user_permissions")
+          .from("UserInformation")
           .delete()
           .eq("user_id", userId)
           .eq("permission", permission)
       : await supabase
-          .from("user_permissions")
+          .from("UserInformation")
           .insert({
             user_id: userId,
             permission

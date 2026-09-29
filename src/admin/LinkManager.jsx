@@ -34,7 +34,7 @@ export default function LinkManager() {
     setLoading(true);
 
     const { data, error } = await supabase
-      .from("global_links")
+      .from("LinkManagement")
       .select("*")
       .order("sort_order", { ascending: true })
       .order("created_at", { ascending: true });
@@ -99,7 +99,7 @@ export default function LinkManager() {
 
     if (editingId) {
       ({ error } = await supabase
-        .from("global_links")
+        .from("LinkManagement")
         .update(payload)
         .eq("id", editingId));
     } else {
@@ -109,7 +109,7 @@ export default function LinkManager() {
       );
 
       ({ error } = await supabase
-        .from("global_links")
+        .from("LinkManagement")
         .insert({
           ...payload,
           sort_order: maxOrder + 1
@@ -129,7 +129,7 @@ export default function LinkManager() {
 
   async function toggleLink(link) {
     const { error } = await supabase
-      .from("global_links")
+      .from("LinkManagement")
       .update({
         enabled: !link.enabled,
         updated_at: new Date().toISOString()
@@ -148,7 +148,7 @@ export default function LinkManager() {
     if (!window.confirm("Delete this link?")) return;
 
     const { error } = await supabase
-      .from("global_links")
+      .from("LinkManagement")
       .delete()
       .eq("id", id);
 
@@ -173,11 +173,11 @@ export default function LinkManager() {
 
     const { error } = await Promise.all([
       supabase
-        .from("global_links")
+        .from("LinkManagement")
         .update({ sort_order: secondOrder })
         .eq("id", current.id),
       supabase
-        .from("global_links")
+        .from("LinkManagement")
         .update({ sort_order: firstOrder })
         .eq("id", target.id)
     ]).then((results) => ({

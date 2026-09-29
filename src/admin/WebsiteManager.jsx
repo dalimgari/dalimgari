@@ -23,7 +23,7 @@ function WebsiteManager({ onBack }) {
 
   async function loadSettings() {
     const { data } = await supabase
-      .from("site_settings")
+      .from("WebsiteInformation")
       .select("key,value")
       .in("key", ["hero_wallpaper", "wallpaper_style"]);
 
@@ -39,7 +39,7 @@ function WebsiteManager({ onBack }) {
   }
 
   async function saveSetting(key, value) {
-    return supabase.from("site_settings").upsert(
+    return supabase.from("WebsiteInformation").upsert(
       {
         key,
         value: { value },

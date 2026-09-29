@@ -66,12 +66,12 @@ function Homepage({ language, onLanguageChange }) {
       pagesResult
     ] = await Promise.all([
       supabase
-        .from("site_settings")
+        .from("WebsiteInformation")
         .select("*")
         .order("created_at", { ascending: true }),
 
       supabase
-        .from("site_tabs")
+        .from("TabManagement")
         .select(`
           id,
           tab_key,
@@ -99,13 +99,13 @@ function Homepage({ language, onLanguageChange }) {
         .order("sort_order", { ascending: true }),
 
       supabase
-        .from("global_links")
+        .from("LinkManagement")
         .select("*")
         .eq("enabled", true)
         .order("sort_order", { ascending: true }),
 
       supabase
-        .from("pages")
+        .from("PageManagement")
         .select("id, slug, title, content, content_type, published")
         .eq("published", true)
         .order("title", { ascending: true })

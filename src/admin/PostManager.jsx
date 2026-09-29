@@ -21,7 +21,7 @@ function PostManager({ onBack }) {
   async function loadPosts() {
     setLoading(true);
     const { data, error } = await supabase
-      .from("posts")
+      .from("PostManagement")
       .select("*")
       .order("created_at", { ascending: false });
 
@@ -70,7 +70,7 @@ function PostManager({ onBack }) {
 
     if (editingId) {
       const result = await supabase
-        .from("posts")
+        .from("PostManagement")
         .update({
           content: content.trim(),
           image_url: mediaUrl.trim() || null,
@@ -91,7 +91,7 @@ function PostManager({ onBack }) {
       }
 
       const result = await supabase
-        .from("posts")
+        .from("PostManagement")
         .insert({
           author_id: userData.user.id,
           content: content.trim(),
@@ -133,7 +133,7 @@ function PostManager({ onBack }) {
     }
 
     const { error } = await supabase
-      .from("posts")
+      .from("PostManagement")
       .delete()
       .eq("id", item.id);
 

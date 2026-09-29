@@ -20,7 +20,7 @@ export default function TabManager({ onBack }) {
 
     const [tabsResult, pagesResult] = await Promise.all([
       supabase
-        .from("site_tabs")
+        .from("TabManagement")
         .select(`
           id,
           tab_key,
@@ -40,7 +40,7 @@ export default function TabManager({ onBack }) {
         .order("sort_order", { ascending: true }),
 
       supabase
-        .from("pages")
+        .from("PageManagement")
         .select("id, slug, title, title_bn, title_en, content_type, published")
         .eq("published", true)
         .order("created_at", { ascending: true })
@@ -120,7 +120,7 @@ export default function TabManager({ onBack }) {
 
     if (editingId) {
       const result = await supabase
-        .from("site_tabs")
+        .from("TabManagement")
         .update({
           page_id: pageId,
           enabled,
@@ -133,7 +133,7 @@ export default function TabManager({ onBack }) {
       const nextNumber = getNextTabNumber();
 
       const result = await supabase
-        .from("site_tabs")
+        .from("TabManagement")
         .insert({
           tab_key: `tab${nextNumber}`,
           page_id: pageId,
@@ -163,7 +163,7 @@ export default function TabManager({ onBack }) {
     }
 
     const { error } = await supabase
-      .from("site_tabs")
+      .from("TabManagement")
       .delete()
       .eq("id", id);
 
@@ -178,7 +178,7 @@ export default function TabManager({ onBack }) {
 
   async function toggleTab(tab) {
     const { error } = await supabase
-      .from("site_tabs")
+      .from("TabManagement")
       .update({
         enabled: !tab.enabled,
         updated_at: new Date().toISOString()
@@ -207,7 +207,7 @@ export default function TabManager({ onBack }) {
     const target = tabs[targetIndex];
 
     const first = await supabase
-      .from("site_tabs")
+      .from("TabManagement")
       .update({
         sort_order: target.sort_order,
         updated_at: new Date().toISOString()
@@ -220,7 +220,7 @@ export default function TabManager({ onBack }) {
     }
 
     const second = await supabase
-      .from("site_tabs")
+      .from("TabManagement")
       .update({
         sort_order: current.sort_order,
         updated_at: new Date().toISOString()

@@ -36,7 +36,7 @@ function AdminAccountPanel({ onBack }) {
         return;
       }
       setUser(currentUser);
-      const { data } = await supabase.from("user_roles").select("role").eq("user_id", currentUser.id).maybeSingle();
+      const { data } = await supabase.from("UserInformation").select("role").eq("user_id", currentUser.id).maybeSingle();
       setRole(data?.role || "user");
     })();
   }, []);
@@ -92,7 +92,7 @@ export default function AdminManager() {
 
   async function loadUserRole(currentSession) {
     const { data } = await supabase
-      .from("user_roles")
+      .from("UserInformation")
       .select("role")
       .eq("user_id", currentSession.user.id)
       .maybeSingle();
@@ -107,7 +107,7 @@ export default function AdminManager() {
 
     if (data.session) {
       const { data: roleData } = await supabase
-        .from("user_roles")
+        .from("UserInformation")
         .select("role")
         .eq("user_id", data.session.user.id)
         .maybeSingle();
@@ -140,7 +140,7 @@ export default function AdminManager() {
 
     const { data: roleData, error: roleError } =
       await supabase
-        .from("user_roles")
+        .from("UserInformation")
         .select("role")
         .eq("user_id", data.session.user.id)
         .maybeSingle();

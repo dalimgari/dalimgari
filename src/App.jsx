@@ -54,7 +54,7 @@ function DynamicPage({ slug, language }) {
     const [pageResult, settingsResult, linksResult] =
       await Promise.all([
         supabase
-          .from("pages")
+          .from("PageManagement")
           .select(`
             id,
             slug,
@@ -73,12 +73,12 @@ function DynamicPage({ slug, language }) {
           .maybeSingle(),
 
         supabase
-          .from("site_settings")
+          .from("WebsiteInformation")
           .select("*")
           .order("created_at", { ascending: true }),
 
         supabase
-          .from("global_links")
+          .from("LinkManagement")
           .select("*")
           .eq("enabled", true)
           .order("sort_order", { ascending: true })

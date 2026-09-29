@@ -45,8 +45,8 @@ export default function AuthPanel({ onClose }) {
 
   async function loadRole(currentSession) {
     const { data } = await supabase
-      .from("user_roles")
-      .select("role")
+      .from("UserInformation")
+      .select("role, account_enabled").eq("user_id", currentSession.user.id).eq("record_type", "user")
       .eq("user_id", currentSession.user.id)
       .maybeSingle();
 
@@ -89,7 +89,7 @@ export default function AuthPanel({ onClose }) {
 
       if (data.user) {
         const { error: profileError } = await supabase
-          .from("profiles")
+          .from("UserInformation")
           .upsert({
             id: data.user.id,
             full_name: name.trim() || null,

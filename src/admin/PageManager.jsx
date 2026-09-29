@@ -42,7 +42,7 @@ export default function PageManager({ onBack }) {
     setLoading(true);
 
     const { data, error } = await supabase
-      .from("pages")
+      .from("PageManagement")
       .select(
         "id, slug, title, title_bn, title_en, content, content_bn, content_en, content_type, cover_image, published, created_at, updated_at"
       )
@@ -126,11 +126,11 @@ export default function PageManager({ onBack }) {
 
     const query = editingId
       ? supabase
-          .from("pages")
+          .from("PageManagement")
           .update(payload)
           .eq("id", editingId)
       : supabase
-          .from("pages")
+          .from("PageManagement")
           .insert(payload);
 
     const { error } = await query;
@@ -154,7 +154,7 @@ export default function PageManager({ onBack }) {
     }
 
     const { error } = await supabase
-      .from("pages")
+      .from("PageManagement")
       .delete()
       .eq("id", id);
 
@@ -169,7 +169,7 @@ export default function PageManager({ onBack }) {
 
   async function togglePublished(page) {
     const { error } = await supabase
-      .from("pages")
+      .from("PageManagement")
       .update({
         published: !page.published,
         updated_at: new Date().toISOString()

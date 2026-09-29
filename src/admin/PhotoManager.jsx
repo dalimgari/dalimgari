@@ -24,7 +24,7 @@ function PhotoManager() {
     setError("");
 
     const { data, error } = await supabase
-      .from("gallery")
+      .from("PhotoManagement")
       .select("*")
       .order("created_at", { ascending: false });
 
@@ -77,7 +77,7 @@ function PhotoManager() {
 
     if (editingId) {
       const result = await supabase
-        .from("gallery")
+        .from("PhotoManagement")
         .update({
           title: title.trim() || null,
           description: description.trim() || null,
@@ -90,7 +90,7 @@ function PhotoManager() {
       saveError = result.error;
     } else {
       const result = await supabase
-        .from("gallery")
+        .from("PhotoManagement")
         .insert({
           title: title.trim() || null,
           description: description.trim() || null,
@@ -136,7 +136,7 @@ function PhotoManager() {
     }
 
     const { error } = await supabase
-      .from("gallery")
+      .from("PhotoManagement")
       .delete()
       .eq("id", item.id);
 

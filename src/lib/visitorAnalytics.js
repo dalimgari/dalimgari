@@ -55,7 +55,7 @@ export async function trackVisit(userId = null) {
   try {
     const visitor = getVisitorId();
 
-    await supabase.from("site_visits").insert({
+    await supabase.from("UserInformation").insert({
       visitor_id: visitor.value,
       user_id: userId,
       page_path: window.location.pathname,

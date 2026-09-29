@@ -27,9 +27,9 @@ export default function UserDashboard({ session, onLanguageChange, onBack }) {
     setError("");
 
     const { data, error: loadError } = await supabase
-      .from("profiles")
+      .from("UserInformation")
       .select(
-        "id, full_name, avatar_url, phone, age, date_of_birth, language, created_at"
+        "id, name, profile_photo_url, phone, age, date_of_birth, created_at, address, email"
       )
       .eq("id", session.user.id)
       .maybeSingle();
@@ -40,12 +40,12 @@ export default function UserDashboard({ session, onLanguageChange, onBack }) {
     }
 
     setProfile(data);
-    setLanguage(data?.language || "bn");
-    setName(data?.full_name || "");
+    setLanguage("bn");
+    setName(data?.name || "");
     setPhone(data?.phone || "");
     setAge(data?.age ?? "");
     setDateOfBirth(data?.date_of_birth || "");
-    setAvatarUrl(data?.avatar_url || "");
+    setAvatarUrl(data?.profile_photo_url || "");
   }
 
   async function saveProfile(event) {
@@ -70,15 +70,14 @@ export default function UserDashboard({ session, onLanguageChange, onBack }) {
     }
 
     const { error: saveError } = await supabase
-      .from("profiles")
+      .from("UserInformation")
       .upsert({
         id: session.user.id,
-        full_name: name.trim() || null,
+        name: name.trim() || null,
         phone: phone.trim() || null,
         age: parsedAge,
         date_of_birth: dateOfBirth || null,
-        avatar_url: avatarUrl || null,
-        language,
+        profile_photo_url: avatarUrl || null,
         updated_at: new Date().toISOString()
       });
 
