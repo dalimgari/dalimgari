@@ -1,9 +1,11 @@
+import "./UserDashboard.css";
 import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabase";
+import { supabase } from "../lib/supabaseClient";
 import MediaInput from "../components/MediaInput";
 
-export default function UserDashboard({ session, onBack }) {
+export default function UserDashboard({ session, language = "bn", onLanguageChange, onBack }) {
   const [profile, setProfile] = useState(null);
+  const [language, setLanguage] = useState("bn");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [age, setAge] = useState("");
@@ -27,7 +29,7 @@ export default function UserDashboard({ session, onBack }) {
     const { data, error: loadError } = await supabase
       .from("profiles")
       .select(
-        "id, full_name, avatar_url, phone, age, date_of_birth, created_at"
+        "id, full_name, avatar_url, phone, age, date_of_birth, language, created_at"
       )
       .eq("id", session.user.id)
       .maybeSingle();
@@ -38,6 +40,7 @@ export default function UserDashboard({ session, onBack }) {
     }
 
     setProfile(data);
+    setLanguage(data?.language || "bn");
     setName(data?.full_name || "");
     setPhone(data?.phone || "");
     setAge(data?.age ?? "");
@@ -75,6 +78,7 @@ export default function UserDashboard({ session, onBack }) {
         age: parsedAge,
         date_of_birth: dateOfBirth || null,
         avatar_url: avatarUrl || null,
+        language,
         updated_at: new Date().toISOString()
       });
 
@@ -128,18 +132,18 @@ export default function UserDashboard({ session, onBack }) {
   }
 
   return (
-    <main className="section">
-      <div className="container">
-        <div className="section-heading">
-          <p className="eyebrow">My Account</p>
+    <main className="user-dashboard">
+      <div className="container user-dashboard-container">
+        <div className="user-dashboard-header">
+          <p className="user-dashboard-eyebrow">My Account</p>
           <h1>User Dashboard</h1>
         </div>
 
-        <section className="manager-form">
+        <section className="user-dashboard-card">
           <h2>Profile</h2>
 
           {avatarUrl && (
-            <img
+            <img className="user-dashboard-avatar"
               src={avatarUrl}
               alt="Profile"
               style={{
@@ -161,7 +165,7 @@ export default function UserDashboard({ session, onBack }) {
             accept="image/*"
           />
 
-          <form onSubmit={saveProfile}>
+          <form className="user-dashboard-form" onSubmit={saveProfile}>
             <label>
               Name
               <input
@@ -225,10 +229,10 @@ export default function UserDashboard({ session, onBack }) {
           </form>
         </section>
 
-        <section className="manager-form">
+        <section className="user-dashboard-card">
           <h2>Change Password</h2>
 
-          <form onSubmit={changePassword}>
+          <form className="user-dashboard-form" onSubmit={changePassword}>
             <label>
               New Password
               <input
@@ -269,13 +273,13 @@ export default function UserDashboard({ session, onBack }) {
         </section>
 
         {message && (
-          <p className="manager-message">
+          <p className="user-dashboard-message">
             {message}
           </p>
         )}
 
         {error && (
-          <p className="manager-error">
+          <p className="user-dashboard-error">
             {error}
           </p>
         )}
@@ -289,10 +293,10 @@ export default function UserDashboard({ session, onBack }) {
           </p>
         )}
 
-        <div className="hero-actions">
+        <div className="user-dashboard-actions">
           <button
             type="button"
-            className="button secondary"
+            className="user-dashboard-button"
             onClick={onBack}
           >
             Back to Website
@@ -300,7 +304,7 @@ export default function UserDashboard({ session, onBack }) {
 
           <button
             type="button"
-            className="button secondary"
+            className="user-dashboard-button"
             onClick={logout}
           >
             Sign Out

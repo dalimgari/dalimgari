@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabase";
+import { supabase } from "../lib/supabaseClient";
 import MediaInput from "../components/MediaInput";
 
 const STYLES = [
@@ -11,7 +11,7 @@ const STYLES = [
   "black-fade"
 ];
 
-function CustomizationManager({ onBack }) {
+function WebsiteManager({ onBack }) {
   const [wallpaper, setWallpaper] = useState("");
   const [style, setStyle] = useState("classic");
   const [saving, setSaving] = useState(false);
@@ -137,4 +137,4 @@ function CustomizationManager({ onBack }) {
   );
 }
 
-export default CustomizationManager;
+export default WebsiteManager;

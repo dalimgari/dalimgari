@@ -1,4 +1,4 @@
-import { supabase } from "../lib/supabase";
+import { supabase } from "../lib/supabaseClient";
 
 function getVisitorId() {
   const key = "dalimgari_visitor_id";

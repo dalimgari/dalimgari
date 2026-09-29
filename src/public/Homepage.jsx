@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { supabase } from "../lib/supabase";
-import "./VillageHome.css";
-import PageRenderer from "./PageRenderer";
-import AuthPanel from "./AuthPanel";
-import { trackVisit } from "./visitorAnalytics";
+import { supabase } from "../lib/supabaseClient";
+import "./Homepage.css";
+import PageRenderer from "../components/PageRenderer";
+import AuthPanel from "../components/AuthPanel";
+import { trackVisit } from "../lib/visitorAnalytics";
 
 function readSetting(value) {
   if (typeof value === "string") return value;
@@ -21,7 +21,7 @@ function getLocalized(settings, base, language) {
   return readSetting(localized);
 }
 
-function VillageHome() {
+function Homepage({ language, onLanguageChange }) {
   useEffect(() => {
     let active = true;
 
@@ -44,10 +44,13 @@ function VillageHome() {
   const [links, setLinks] = useState([]);
   const [pages, setPages] = useState([]);
   const [activeTab, setActiveTab] = useState("");
-  const [language, setLanguage] = useState("bn");
+  const [localLanguage, setLocalLanguage] = useState(language || "bn");
+
+  useEffect(() => {
+    setLocalLanguage(language || "bn");
+  }, [language]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [authOpen, setAuthOpen] = useState(false);
 
   useEffect(() => {
     loadHomepage();
@@ -72,6 +75,8 @@ function VillageHome() {
         .select(`
           id,
           tab_key,
+          title_bn,
+          title_en,
           page_id,
           sort_order,
           enabled,
@@ -79,7 +84,11 @@ function VillageHome() {
             id,
             slug,
             title,
+            title_bn,
+            title_en,
             content,
+            content_bn,
+            content_en,
             content_type,
             cover_image,
             published
@@ -125,11 +134,11 @@ function VillageHome() {
   }
 
   const siteName =
-    getLocalized(settings, "site_name", language) ||
-    getLocalized(settings, "site_title", language);
+    getLocalized(settings, "site_name", localLanguage) ||
+    getLocalized(settings, "site_title", localLanguage);
 
   const tagline =
-    getLocalized(settings, "site_tagline", language);
+    getLocalized(settings, "site_tagline", localLanguage);
 
   const logo =
     settings.site_logo ||
@@ -198,7 +207,7 @@ function VillageHome() {
       );
     }
 
-    return <PageRenderer page={currentPage} />;
+    return <PageRenderer page={currentPage} language={localLanguage} />;
   }
 
   if (loading) {
@@ -263,21 +272,17 @@ function VillageHome() {
               type="button"
               className="language-switch"
               onClick={() =>
-                setLanguage((current) =>
-                  current === "bn" ? "en" : "bn"
-                )
+                setLocalLanguage((current) => {
+                  const next = current === "bn" ? "en" : "bn";
+                  onLanguageChange?.(next);
+                  return next;
+                })
               }
             >
-              {language === "bn" ? "English" : "বাংলা"}
+              {localLanguage === "bn" ? "English" : "বাংলা"}
             </button>
 
-            <button
-              type="button"
-              className="login-button"
-              onClick={() => setAuthOpen(true)}
-            >
-              Login
-            </button>
+            <AuthPanel language={localLanguage} onLanguageChange={onLanguageChange} />
           </div>
         </div>
       </header>
@@ -322,7 +327,7 @@ function VillageHome() {
                       selectTab(tab.tab_key)
                     }
                   >
-                    {tab.pages?.title || ""}
+                    {localLanguage === "en" ? (tab.title_en || tab.pages?.title_en || tab.title_bn || tab.pages?.title || "") : (tab.title_bn || tab.pages?.title_bn || tab.title_en || tab.pages?.title || "")}
                   </button>
                 ))}
               </nav>
@@ -335,11 +340,6 @@ function VillageHome() {
         </section>
       </main>
 
-      {authOpen && (
-        <AuthPanel
-          onClose={() => setAuthOpen(false)}
-        />
-      )}
 
       <footer className="village-footer">
         <div className="village-footer-links">
@@ -349,8 +349,8 @@ function VillageHome() {
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              title={link.label || link.root_domain}
-              aria-label={link.label || link.root_domain}
+              title={localLanguage === "en" ? (link.label_en || link.label_bn || link.label || link.root_domain) : (link.label_bn || link.label_en || link.label || link.root_domain)}
+              aria-label={localLanguage === "en" ? (link.label_en || link.label_bn || link.label || link.root_domain) : (link.label_bn || link.label_en || link.label || link.root_domain)}
             >
               {link.icon ? (
                 <img
@@ -376,4 +376,4 @@ function VillageHome() {
   );
 }
 
-export default VillageHome;
+export default Homepage;

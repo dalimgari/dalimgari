@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabase";
-import UserDashboard from "./UserDashboard";
+import { supabase } from "../lib/supabaseClient";
+import UserDashboard from "../user/UserDashboard";
 
-export default function AuthPanel() {
+export default function AuthPanel({ language = "bn", onLanguageChange }) {
   const [session, setSession] = useState(null);
   const [role, setRole] = useState(null);
   const [mode, setMode] = useState("signin");
@@ -121,7 +121,7 @@ export default function AuthPanel() {
 
   if (session) {
     if (role === "admin") {
-      window.location.href = "/admin";
+      window.location.href = `${import.meta.env.BASE_URL}admin`;
       return null;
     }
 
@@ -133,11 +133,13 @@ export default function AuthPanel() {
               type="button"
               onClick={() => setOpen(false)}
             >
-              Close
+              {language === "bn" ? "বন্ধ করুন" : "Close"}
             </button>
 
             <UserDashboard
               session={session}
+              language={language}
+              onLanguageChange={onLanguageChange}
               onBack={() => setOpen(false)}
             />
           </div>
@@ -151,7 +153,7 @@ export default function AuthPanel() {
         className="login-button"
         onClick={() => setOpen(true)}
       >
-        My Account
+        {language === "bn" ? "আমার অ্যাকাউন্ট" : "My Account"}
       </button>
     );
   }
@@ -163,7 +165,7 @@ export default function AuthPanel() {
         className="login-button"
         onClick={() => setOpen(true)}
       >
-        Login
+        {language === "bn" ? "লগইন" : "Login"}
       </button>
 
       {open && (
@@ -173,14 +175,11 @@ export default function AuthPanel() {
               type="button"
               onClick={() => setOpen(false)}
             >
-              Close
+              {language === "bn" ? "বন্ধ করুন" : "Close"}
             </button>
 
             <h2>
-              {mode === "signin"
-                ? "Login"
-                : "Create Account"}
-            </h2>
+              {mode === "signin" ? (language === "bn" ? "লগইন" : "Login") : (language === "bn" ? "অ্যাকাউন্ট তৈরি করুন" : "Create Account")}
 
             {mode === "signup" && (
               <>
@@ -219,16 +218,9 @@ export default function AuthPanel() {
               <button type="submit" disabled={saving}>
                 {saving
                   ? "Please wait..."
-                  : mode === "signin"
-                    ? "Login"
-                    : "Create Account"}
+              <button type="submit" disabled={saving}>
+                {saving ? (language === "bn" ? "অপেক্ষা করুন..." : "Please wait...") : mode === "signin" ? (language === "bn" ? "লগইন" : "Login") : (language === "bn" ? "অ্যাকাউন্ট তৈরি করুন" : "Create Account")}
               </button>
-            </form>
-
-            <button
-              type="button"
-              onClick={() => {
-                setMode(
                   mode === "signin"
                     ? "signup"
                     : "signin"
@@ -243,9 +235,7 @@ export default function AuthPanel() {
             </button>
 
             {message && <p>{message}</p>}
-            {error && <p className="manager-error">{error}</p>}
-          </div>
-        </div>
+              {mode === "signin" ? (language === "bn" ? "অ্যাকাউন্ট তৈরি করুন" : "Create an account") : (language === "bn" ? "আগেই অ্যাকাউন্ট আছে? লগইন করুন" : "Already have an account? Login")}
       )}
     </>
   );

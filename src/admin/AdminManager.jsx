@@ -1,16 +1,14 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabase";
-import "./Admin.css";
-import PostsManager from "./PostsManager";
-import PagesManager from "./PagesManager";
-import UsersManager from "./UsersManager";
-import HomeTabsManager from "./HomeTabsManager";
-import LinksManager from "./LinksManager";
-import CustomizationManager from "./CustomizationManager";
-import GalleryManager from "./GalleryManager";
-import AdminInformation from "./AdminInformation";
-import VideosManager from "./VideosManager";
-import UserInformation from "./UserInformation";
+import { supabase } from "../lib/supabaseClient";
+import "./AdminDashboard.css";
+import PostManager from "./PostManager";
+import PageManager from "./PageManager";
+import UserManager from "./UserManager";
+import TabManager from "./TabManager";
+import LinkManager from "./LinkManager";
+import WebsiteManager from "./WebsiteManager";
+import PhotoManager from "./PhotoManager";
+import VideoManager from "./VideoManager";
 
 const MODULES = [
   ["website-information", "Website Information"],
@@ -24,7 +22,46 @@ const MODULES = [
   ["admin-information", "Admin Information"]
 ];
 
-function Admin() {
+function AdminAccountPanel({ onBack }) {
+  const [user, setUser] = useState(null);
+  const [role, setRole] = useState("user");
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      const { data: { user: currentUser }, error } = await supabase.auth.getUser();
+      if (error || !currentUser) {
+        setMessage(error?.message || "Admin account not found.");
+        return;
+      }
+      setUser(currentUser);
+      const { data } = await supabase.from("user_roles").select("role").eq("user_id", currentUser.id).maybeSingle();
+      setRole(data?.role || "user");
+    })();
+  }, []);
+
+  return (
+    <main className="admin-page">
+      <header className="admin-header">
+        <div><p className="admin-eyebrow">Administration</p><h1>Admin Information</h1></div>
+        <button type="button" onClick={onBack}>Dashboard</button>
+      </header>
+      <section className="admin-content">
+        {message && <div className="admin-error">{message}</div>}
+        {user && <div className="admin-module-grid">
+          <div className="admin-module"><strong>Account Email</strong><span>{user.email || "Not available"}</span></div>
+          <div className="admin-module"><strong>Account ID</strong><span>{user.id}</span></div>
+          <div className="admin-module"><strong>Role</strong><span>{role}</span></div>
+          <div className="admin-module"><strong>Authentication Provider</strong><span>{user.app_metadata?.provider || "email"}</span></div>
+          <div className="admin-module"><strong>Account Created</strong><span>{user.created_at ? new Date(user.created_at).toLocaleString() : "Not available"}</span></div>
+          <div className="admin-module"><strong>Last Sign In</strong><span>{user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString() : "Not available"}</span></div>
+        </div>}
+      </section>
+    </main>
+  );
+}
+
+export default function AdminManager() {
   const [session, setSession] = useState(null);
   const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -271,40 +308,40 @@ function Admin() {
   }
 
   if (page === "website-information") {
-    return <CustomizationManager />;
+    return <WebsiteManager />;
   }
 
   if (page === "photos") {
-    return <GalleryManager />;
+    return <PhotoManager />;
   }
 
   if (page === "posts") {
     return (
-      <PostsManager
+      <PostManager
         onBack={() => setPage("dashboard")}
       />
     );
   }
 
   if (page === "videos") {
-    return <VideosManager />;
+    return <VideoManager />;
   }
 
   if (page === "pages") {
     return (
-      <PagesManager
+      <PageManager
         onBack={() => setPage("dashboard")}
       />
     );
   }
 
   if (page === "links") {
-    return <LinksManager />;
+    return <LinkManager />;
   }
 
   if (page === "tabs") {
     return (
-      <HomeTabsManager
+      <TabManager
         onBack={() => setPage("dashboard")}
       />
     );
@@ -312,7 +349,7 @@ function Admin() {
 
   if (page === "users") {
     return (
-      <UserInformation
+      <UserManager
         onBack={() => setPage("dashboard")}
       />
     );
@@ -320,7 +357,7 @@ function Admin() {
 
   if (page === "admin-information") {
     return (
-      <AdminInformation
+      <AdminAccountPanel
         onBack={() => setPage("dashboard")}
       />
     );
@@ -384,4 +421,4 @@ function Admin() {
   );
 }
 
-export default Admin;
+

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabase";
+import { supabase } from "../lib/supabaseClient";
 
 function getRootDomain(value) {
   try {
@@ -15,10 +15,11 @@ function getDomainIcon(domain) {
   return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=64`;
 }
 
-export default function LinksManager() {
+export default function LinkManager() {
   const [links, setLinks] = useState([]);
   const [url, setUrl] = useState("");
-  const [label, setLabel] = useState("");
+  const [labelBn, setLabelBn] = useState("");
+  const [labelEn, setLabelEn] = useState("");
   const [enabled, setEnabled] = useState(true);
   const [editingId, setEditingId] = useState("");
   const [loading, setLoading] = useState(true);
@@ -49,7 +50,8 @@ export default function LinksManager() {
 
   function resetForm() {
     setUrl("");
-    setLabel("");
+    setLabelBn("");
+    setLabelEn("");
     setEnabled(true);
     setEditingId("");
     setMessage("");
@@ -58,7 +60,8 @@ export default function LinksManager() {
   function editLink(link) {
     setEditingId(link.id);
     setUrl(link.url || "");
-    setLabel(link.label || "");
+    setLabelBn(link.label_bn || link.label || "");
+    setLabelEn(link.label_en || "");
     setEnabled(link.enabled);
     setMessage("");
   }
@@ -82,7 +85,9 @@ export default function LinksManager() {
     )?.icon;
 
     const payload = {
-      label: label.trim() || null,
+      label: labelBn.trim() || labelEn.trim() || null,
+      label_bn: labelBn.trim() || null,
+      label_en: labelEn.trim() || null,
       url: cleanUrl,
       root_domain: rootDomain,
       icon: existingIcon || getDomainIcon(rootDomain),
@@ -194,11 +199,20 @@ export default function LinksManager() {
 
         <form onSubmit={saveLink}>
           <label>
-            Label
+            Label (Bangla)
             <input
               type="text"
-              value={label}
-              onChange={(event) => setLabel(event.target.value)}
+              value={labelBn}
+              onChange={(event) => setLabelBn(event.target.value)}
+            />
+          </label>
+
+          <label>
+            Label (English)
+            <input
+              type="text"
+              value={labelEn}
+              onChange={(event) => setLabelEn(event.target.value)}
             />
           </label>
 
@@ -253,7 +267,9 @@ export default function LinksManager() {
                   />
                 )}
 
-                <strong>{link.label || link.root_domain}</strong>
+                <strong>
+                  {link.label_bn || link.label_en || link.label || link.root_domain}
+                </strong>
 
                 <span>
                   {link.root_domain} ·{" "}

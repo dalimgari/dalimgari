@@ -1,30 +1,27 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabase";
+import { supabase } from "../lib/supabaseClient";
 import MediaInput from "../components/MediaInput";
 
-function GalleryManager() {
+function PostManager({ onBack }) {
   const [items, setItems] = useState([]);
   const [editingId, setEditingId] = useState(null);
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("");
+  const [content, setContent] = useState("");
   const [mediaUrl, setMediaUrl] = useState("");
   const [mediaType, setMediaType] = useState("image");
+  const [published, setPublished] = useState(true);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
-    loadGallery();
+    loadPosts();
   }, []);
 
-  async function loadGallery() {
+  async function loadPosts() {
     setLoading(true);
-    setError("");
-
     const { data, error } = await supabase
-      .from("gallery")
+      .from("posts")
       .select("*")
       .order("created_at", { ascending: false });
 
@@ -39,31 +36,29 @@ function GalleryManager() {
 
   function resetForm() {
     setEditingId(null);
-    setTitle("");
-    setDescription("");
-    setCategory("");
+    setContent("");
     setMediaUrl("");
     setMediaType("image");
+    setPublished(true);
     setMessage("");
     setError("");
   }
 
-  function editGallery(item) {
+  function editPost(item) {
     setEditingId(item.id);
-    setTitle(item.title || "");
-    setDescription(item.description || "");
-    setCategory(item.category || "");
-    setMediaUrl(item.media_url || "");
+    setContent(item.content || "");
+    setMediaUrl(item.image_url || "");
     setMediaType(item.media_type || "image");
+    setPublished(Boolean(item.published));
     setMessage("");
     setError("");
   }
 
-  async function saveGallery(event) {
+  async function savePost(event) {
     event.preventDefault();
 
-    if (!mediaUrl.trim()) {
-      setError("Media is required.");
+    if (!content.trim()) {
+      setError("Post content is required.");
       return;
     }
 
@@ -71,34 +66,38 @@ function GalleryManager() {
     setMessage("");
     setError("");
 
-    const { data: userData } = await supabase.auth.getUser();
-
     let saveError;
 
     if (editingId) {
       const result = await supabase
-        .from("gallery")
+        .from("posts")
         .update({
-          title: title.trim() || null,
-          description: description.trim() || null,
-          media_url: mediaUrl.trim(),
+          content: content.trim(),
+          image_url: mediaUrl.trim() || null,
           media_type: mediaType,
-          category: category.trim() || null
+          published,
+          updated_at: new Date().toISOString()
         })
         .eq("id", editingId);
 
       saveError = result.error;
     } else {
+      const { data: userData } = await supabase.auth.getUser();
+
+      if (!userData?.user?.id) {
+        setError("Authentication required.");
+        setSaving(false);
+        return;
+      }
+
       const result = await supabase
-        .from("gallery")
+        .from("posts")
         .insert({
-          title: title.trim() || null,
-          description: description.trim() || null,
-          media_url: mediaUrl.trim(),
+          author_id: userData.user.id,
+          content: content.trim(),
+          image_url: mediaUrl.trim() || null,
           media_type: mediaType,
-          category: category.trim() || null,
-          uploaded_by: userData?.user?.id || null,
-          published: true
+          published
         });
 
       saveError = result.error;
@@ -111,17 +110,17 @@ function GalleryManager() {
       resetForm();
       setMessage(
         wasEditing
-          ? "Gallery item updated successfully."
-          : "Gallery item added successfully."
+          ? "Post updated successfully."
+          : "Post published successfully."
       );
-      await loadGallery();
+      await loadPosts();
     }
 
     setSaving(false);
   }
 
-  async function deleteGallery(item) {
-    const url = item.media_url || "";
+  async function deletePost(item) {
+    const url = item.image_url || "";
     const marker = "/storage/v1/object/public/media/";
 
     if (url.includes(marker)) {
@@ -130,13 +129,11 @@ function GalleryManager() {
         url.substring(index + marker.length)
       );
 
-      await supabase.storage
-        .from("media")
-        .remove([filePath]);
+      await supabase.storage.from("media").remove([filePath]);
     }
 
     const { error } = await supabase
-      .from("gallery")
+      .from("posts")
       .delete()
       .eq("id", item.id);
 
@@ -145,59 +142,64 @@ function GalleryManager() {
       return;
     }
 
-    setMessage("Gallery item deleted.");
-    await loadGallery();
+    setMessage("Post deleted.");
+    await loadPosts();
   }
 
   return (
     <section>
       <div className="manager-header">
         <div>
-          <p className="admin-eyebrow">Media</p>
-          <h2>Gallery Management</h2>
+          <p className="admin-eyebrow">Community</p>
+          <h2>Posts Management</h2>
         </div>
+
+        {onBack && (
+          <button type="button" onClick={onBack}>
+            Back
+          </button>
+        )}
       </div>
 
-      <form className="manager-form" onSubmit={saveGallery}>
-        <input
-          value={title}
-          onChange={(event) => setTitle(event.target.value)}
-          placeholder="Media title"
-        />
-
+      <form className="manager-form" onSubmit={savePost}>
         <textarea
-          value={description}
-          onChange={(event) => setDescription(event.target.value)}
-          placeholder="Description"
-          rows="3"
+          value={content}
+          onChange={(event) => setContent(event.target.value)}
+          placeholder="Post content"
+          rows="7"
+          required
         />
 
-        <input
-          value={category}
-          onChange={(event) => setCategory(event.target.value)}
-          placeholder="Category"
-        />
-
-        <label>
-          Media type
-          <select
-            value={mediaType}
-            onChange={(event) => setMediaType(event.target.value)}
-          >
-            <option value="image">Image</option>
-            <option value="video">Video</option>
-          </select>
-        </label>
+        <select
+          value={mediaType}
+          onChange={(event) => setMediaType(event.target.value)}
+        >
+          <option value="image">Image</option>
+          <option value="video">Video</option>
+        </select>
 
         <MediaInput
           value={mediaUrl}
           onChange={setMediaUrl}
-          folder="gallery"
+          folder="posts"
           accept={mediaType === "video" ? "video/*" : "image/*"}
         />
 
+        <label>
+          <input
+            type="checkbox"
+            checked={published}
+            onChange={(event) => setPublished(event.target.checked)}
+          />
+          Published
+        </label>
+
         <button type="submit" disabled={saving}>
-          {saving ? "Saving..." : editingId ? "Update Media" : "Add Media"}
+          {saving
+            ? "Saving..."
+            : editingId
+              ? "Update Post"
+              : "Publish Post"}
         </button>
 
         {editingId && (
@@ -214,54 +216,53 @@ function GalleryManager() {
         {loading ? (
           <p>Loading...</p>
         ) : items.length === 0 ? (
-          <p>No gallery items available.</p>
+          <p>No posts available.</p>
         ) : (
           items.map((item) => (
             <article className="manager-item" key={item.id}>
               <div>
-                {item.media_type === "video" ? (
+                <p>{item.content}</p>
+
+                {item.image_url && item.media_type === "video" && (
                   <video
-                    src={item.media_url}
+                    src={item.image_url}
                     controls
+                    preload="metadata"
                     style={{
-                      width: "120px",
-                      height: "80px",
-                      objectFit: "cover",
-                      borderRadius: "8px"
+                      maxWidth: "320px",
+                      display: "block",
+                      marginTop: "10px"
                     }}
                   />
-                ) : (
+                )}
+
+                {item.image_url && item.media_type !== "video" && (
                   <img
-                    src={item.media_url}
-                    alt={item.title || "Gallery image"}
+                    src={item.image_url}
+                    alt="Post"
                     style={{
-                      width: "120px",
-                      height: "80px",
-                      objectFit: "cover",
-                      borderRadius: "8px"
+                      maxWidth: "240px",
+                      display: "block",
+                      marginTop: "10px"
                     }}
                   />
                 )}
 
-                <h3>{item.title || "Untitled media"}</h3>
-
-                {item.description && (
-                  <p>{item.description}</p>
-                )}
+                <small>
+                  {item.published ? "Published" : "Draft"} ·{" "}
+                  {item.media_type || "image"}
+                </small>
               </div>
 
               <div>
-                <button
-                  type="button"
-                  onClick={() => editGallery(item)}
-                >
+                <button type="button" onClick={() => editPost(item)}>
                   Edit
                 </button>
 
                 <button
                   type="button"
                   className="delete-button"
-                  onClick={() => deleteGallery(item)}
+                  onClick={() => deletePost(item)}
                 >
                   Delete
                 </button>
@@ -274,4 +275,4 @@ function GalleryManager() {
   );
 }
 
-export default GalleryManager
+export default PostManager;

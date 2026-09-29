@@ -7,10 +7,18 @@ function isVideoUrl(url) {
   );
 }
 
-function PageRenderer({ page }) {
+function PageRenderer({ page, language = "bn" }) {
   if (!page) return null;
 
-  const content = page.content || "";
+  const title =
+    language === "en"
+      ? page.title_en || page.title_bn || page.title || ""
+      : page.title_bn || page.title_en || page.title || "";
+
+  const content =
+    language === "en"
+      ? page.content_en || page.content_bn || page.content || ""
+      : page.content_bn || page.content_en || page.content || "";
   const media = page.cover_image || "";
 
   function renderMedia() {
@@ -22,7 +30,7 @@ function PageRenderer({ page }) {
           <div className="page-video-embed">
             <iframe
               src={media}
-              title={page.title}
+              title={title}
               loading="lazy"
               allowFullScreen
             />
@@ -43,7 +51,7 @@ function PageRenderer({ page }) {
     return (
       <img
         src={media}
-        alt={page.title}
+        alt={title}
         className="card-image"
       />
     );

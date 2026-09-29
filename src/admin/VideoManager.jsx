@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabase";
+import { supabase } from "../lib/supabaseClient";
 import MediaInput from "../components/MediaInput";
 
-function VideosManager() {
+function VideoManager() {
   const [items, setItems] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [title, setTitle] = useState("");
@@ -274,4 +274,4 @@ function VideosManager() {
   );
 }
 
-export default VideosManager
+export default VideoManager

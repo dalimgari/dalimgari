@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabase";
+import { supabase } from "../lib/supabaseClient";
 import MediaInput from "../components/MediaInput";
 
 const CONTENT_TYPES = [
@@ -13,13 +13,15 @@ const CONTENT_TYPES = [
   "custom"
 ];
 
-export default function PagesManager({ onBack }) {
+export default function PageManager({ onBack }) {
   const [pages, setPages] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState({
     slug: "",
-    title: "",
-    content: "",
+    title_bn: "",
+    title_en: "",
+    content_bn: "",
+    content_en: "",
     content_type: "custom",
     cover_image: "",
     published: true
@@ -42,7 +44,7 @@ export default function PagesManager({ onBack }) {
     const { data, error } = await supabase
       .from("pages")
       .select(
-        "id, slug, title, content, content_type, cover_image, published, created_at, updated_at"
+        "id, slug, title, title_bn, title_en, content, content_bn, content_en, content_type, cover_image, published, created_at, updated_at"
       )
       .order("created_at", { ascending: false });
 
@@ -59,8 +61,10 @@ export default function PagesManager({ onBack }) {
     setEditingId(null);
     setForm({
       slug: "",
-      title: "",
-      content: "",
+      title_bn: "",
+      title_en: "",
+      content_bn: "",
+      content_en: "",
       content_type: "custom",
       cover_image: "",
       published: true
@@ -81,8 +85,10 @@ export default function PagesManager({ onBack }) {
 
     setForm({
       slug: page.slug || "",
-      title: page.title || "",
-      content: page.content || "",
+      title_bn: page.title_bn || page.title || "",
+      title_en: page.title_en || "",
+      content_bn: page.content_bn || page.content || "",
+      content_en: page.content_en || "",
       content_type: page.content_type || "custom",
       cover_image: page.cover_image || "",
       published: page.published !== false
@@ -96,7 +102,7 @@ export default function PagesManager({ onBack }) {
 
     const slug = normalizeSlug(form.slug);
 
-    if (!slug || !form.title.trim()) {
+    if (!slug || !form.title_bn.trim() || !form.title_en.trim()) {
       setMessage("Slug and title are required.");
       return;
     }
@@ -106,8 +112,12 @@ export default function PagesManager({ onBack }) {
 
     const payload = {
       slug,
-      title: form.title.trim(),
-      content: form.content.trim(),
+      title: form.title_bn.trim(),
+      title_bn: form.title_bn.trim(),
+      title_en: form.title_en.trim(),
+      content: form.content_bn.trim(),
+      content_bn: form.content_bn.trim(),
+      content_en: form.content_en.trim(),
       content_type: form.content_type,
       cover_image: form.cover_image.trim() || null,
       published: form.published,
@@ -219,18 +229,39 @@ export default function PagesManager({ onBack }) {
         >
           <input
             type="text"
-            placeholder="Page title"
-            value={form.title}
+            placeholder="Page title (Bangla)"
+            value={form.title_bn}
             onChange={(event) => {
-              const title = event.target.value;
+              const title_bn = event.target.value;
 
               setForm((current) => ({
                 ...current,
-                title,
+                title_bn,
                 slug:
                   !editingId &&
                   !current.slug.trim()
-                    ? normalizeSlug(title)
+                    ? current.title_en
+                      ? normalizeSlug(current.title_en)
+                      : current.slug
+                    : current.slug
+              }));
+            }}
+          />
+
+          <input
+            type="text"
+            placeholder="Page title (English)"
+            value={form.title_en}
+            onChange={(event) => {
+              const title_en = event.target.value;
+
+              setForm((current) => ({
+                ...current,
+                title_en,
+                slug:
+                  !editingId &&
+                  !current.slug.trim()
+                    ? normalizeSlug(title_en)
                     : current.slug
               }));
             }}
@@ -271,13 +302,24 @@ export default function PagesManager({ onBack }) {
           </select>
 
           <textarea
-            placeholder="Page content"
-            value={form.content}
+            placeholder="Page content (Bangla)"
+            value={form.content_bn}
             onChange={(event) =>
               setForm((current) => ({
                 ...current,
-                content:
-                  event.target.value
+                content_bn: event.target.value
+              }))
+            }
+            rows={12}
+          />
+
+          <textarea
+            placeholder="Page content (English)"
+            value={form.content_en}
+            onChange={(event) =>
+              setForm((current) => ({
+                ...current,
+                content_en: event.target.value
               }))
             }
             rows={12}
@@ -348,7 +390,7 @@ export default function PagesManager({ onBack }) {
               >
                 <div>
                   <strong>
-                    {page.title}
+                    {page.title_bn || page.title_en || page.title}
                   </strong>
 
                   <div>

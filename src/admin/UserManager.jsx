@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { supabase } from "../lib/supabase";
+import { supabase } from "../lib/supabaseClient";
 
 const PERMISSIONS = [
   { key: "media_upload", label: "Upload Media" },
@@ -33,7 +33,7 @@ function getLastMonths(count) {
   return result;
 }
 
-export default function UserInformation({ onBack }) {
+export default function UserManager({ onBack }) {
   const [users, setUsers] = useState([]);
   const [visits, setVisits] = useState([]);
   const [loading, setLoading] = useState(true);

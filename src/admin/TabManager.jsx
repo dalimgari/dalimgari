@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabase";
+import { supabase } from "../lib/supabaseClient";
 
-export default function HomeTabsManager({ onBack }) {
+export default function TabManager({ onBack }) {
   const [tabs, setTabs] = useState([]);
   const [pages, setPages] = useState([]);
   const [pageId, setPageId] = useState("");
@@ -31,6 +31,8 @@ export default function HomeTabsManager({ onBack }) {
             id,
             slug,
             title,
+            title_bn,
+            title_en,
             content_type,
             published
           )
@@ -39,7 +41,7 @@ export default function HomeTabsManager({ onBack }) {
 
       supabase
         .from("pages")
-        .select("id, slug, title, content_type, published")
+        .select("id, slug, title, title_bn, title_en, content_type, published")
         .eq("published", true)
         .order("created_at", { ascending: true })
     ]);
@@ -287,7 +289,7 @@ export default function HomeTabsManager({ onBack }) {
                   key={page.id}
                   value={page.id}
                 >
-                  {page.title} /{page.slug}
+                  {page.title_bn || page.title_en || page.title} /{page.slug}
                 </option>
               ))}
             </select>
@@ -345,7 +347,7 @@ export default function HomeTabsManager({ onBack }) {
                 </strong>
 
                 <span>
-                  {tab.pages?.title || ""}
+                  {tab.pages?.title_bn || tab.pages?.title_en || tab.pages?.title || ""}
                   {" · "}
                   /{tab.pages?.slug || ""}
                   {" · "}

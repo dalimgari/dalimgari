@@ -1,13 +1,15 @@
-import { trackVisit } from "./public/visitorAnalytics";
 import { useEffect, useState } from "react";
-import { supabase } from "./lib/supabase";
+import { supabase } from "./lib/supabaseClient";
 import "./App.css";
-import Admin from "./admin/Admin";
-import VillageHome from "./public/VillageHome";
-import PageRenderer from "./public/PageRenderer";
+import AdminManager from "./admin/AdminManager";
+import Homepage from "./public/Homepage";
+import PageRenderer from "./components/PageRenderer";
 
 function App() {
-  useEffect(() => { trackVisit(); }, []);
+  const [language, setLanguage] = useState(() => {
+    return localStorage.getItem("dalimgari_language") || "bn";
+  });
+
   const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
   const pathname = window.location.pathname;
 
@@ -20,7 +22,7 @@ function App() {
     relativePath.startsWith("/admin/");
 
   if (isAdmin) {
-    return <Admin />;
+    return <AdminManager />;
   }
 
   const parts = relativePath
@@ -30,13 +32,13 @@ function App() {
   const slug = parts[0] || "";
 
   if (!slug) {
-    return <VillageHome />;
+    return <Homepage language={language} onLanguageChange={(next) => { localStorage.setItem("dalimgari_language", next); setLanguage(next); }} />;
   }
 
-  return <DynamicPage slug={slug} />;
+  return <DynamicPage slug={slug} language={language} />;
 }
 
-function DynamicPage({ slug }) {
+function DynamicPage({ slug, language }) {
   const [page, setPage] = useState(null);
   const [settings, setSettings] = useState({});
   const [links, setLinks] = useState([]);
@@ -57,7 +59,11 @@ function DynamicPage({ slug }) {
             id,
             slug,
             title,
+            title_bn,
+            title_en,
             content,
+            content_bn,
+            content_en,
             content_type,
             cover_image,
             published
@@ -183,9 +189,9 @@ function DynamicPage({ slug }) {
         <section className="village-main-content">
           <div className="village-content-card">
             <div className="village-page-content">
-              <h1>{page.title}</h1>
+              <h1>{language === "en" ? (page.title_en || page.title_bn || page.title) : (page.title_bn || page.title_en || page.title)}</h1>
 
-              <PageRenderer page={page} />
+              <PageRenderer page={page} language={language} />
 
               <div style={{ marginTop: "24px" }}>
                 <a
