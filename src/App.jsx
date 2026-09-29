@@ -3,6 +3,7 @@ import { supabase } from "./lib/supabaseClient";
 import "./App.css";
 import AdminManager from "./admin/AdminManager";
 import Homepage from "./public/Homepage";
+import LoginPage from "./public/LoginPage";
 import PageRenderer from "./components/PageRenderer";
 
 function App() {
@@ -19,6 +20,10 @@ function App() {
 
   if (isAdmin) {
     return <AdminManager />;
+  }
+
+  if (relativePath === "/login") {
+    return <LoginPage />;
   }
 
   const parts = relativePath.split("/").filter(Boolean);
