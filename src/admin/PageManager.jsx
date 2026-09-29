@@ -21,7 +21,7 @@ export default function PageManager({ onBack }) {
     title: "",
     content: "",
     content_type: "custom",
-    cover_media: "",
+    cover_image: "",
     published: true
   });
   const [loading, setLoading] = useState(true);
@@ -42,7 +42,7 @@ export default function PageManager({ onBack }) {
     const { data, error } = await supabase
       .from("PageManagement")
       .select(
-        "id, slug, title, content, content_type, cover_media, published, created_at, updated_at"
+        "id, slug, title, content, content_type, cover_image, published, created_at, updated_at"
       )
       .order("created_at", { ascending: false });
 
@@ -60,11 +60,9 @@ export default function PageManager({ onBack }) {
     setForm({
       slug: "",
       title: "",
-      title: "",
-      content: "",
       content: "",
       content_type: "custom",
-      cover_media: "",
+      cover_image: "",
       published: true
     });
     setMessage("");
@@ -86,7 +84,7 @@ export default function PageManager({ onBack }) {
       title: page.title || "",
       content: page.content || "",
       content_type: page.content_type || "custom",
-      cover_media: page.cover_media || "",
+      cover_image: page.cover_image || "",
       published: page.published !== false
     });
 
@@ -99,7 +97,7 @@ export default function PageManager({ onBack }) {
     const slug = normalizeSlug(form.slug);
 
     if (!slug || !form.title.trim()) {
-      setMessage("Slug and title are required.");
+      setMessage("Slug and at least one title are required.");
       return;
     }
 
@@ -109,9 +107,9 @@ export default function PageManager({ onBack }) {
     const payload = {
       slug,
       title: form.title.trim(),
-      content: form.content.trim(),
+      content: form.content.trim() || null,
       content_type: form.content_type,
-      cover_media: form.cover_media.trim() || null,
+      cover_image: form.cover_image.trim() || null,
       published: form.published,
       updated_at: new Date().toISOString()
     };
@@ -221,7 +219,7 @@ export default function PageManager({ onBack }) {
         >
           <input
             type="text"
-            placeholder="Page title (Bangla)"
+            placeholder="Page title"
             value={form.title}
             onChange={(event) => {
               const title = event.target.value;
@@ -230,11 +228,8 @@ export default function PageManager({ onBack }) {
                 ...current,
                 title,
                 slug:
-                  !editingId &&
-                  !current.slug.trim()
-                    ? current.title
-                      ? normalizeSlug(current.title)
-                      : current.slug
+                  !editingId && !current.slug.trim()
+                    ? normalizeSlug(title)
                     : current.slug
               }));
             }}
@@ -275,7 +270,7 @@ export default function PageManager({ onBack }) {
           </select>
 
           <textarea
-            placeholder="Page content (Bangla)"
+            placeholder="Page content"
             value={form.content}
             onChange={(event) =>
               setForm((current) => ({
@@ -287,11 +282,11 @@ export default function PageManager({ onBack }) {
           />
 
           <MediaInput
-            value={form.cover_media}
+            value={form.cover_image}
             onChange={(value) =>
               setForm((current) => ({
                 ...current,
-                cover_media: value
+                cover_image: value
               }))
             }
             folder="pages"

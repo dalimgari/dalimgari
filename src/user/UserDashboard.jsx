@@ -3,9 +3,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import MediaInput from "../components/MediaInput";
 
-export default function UserDashboard({ session, onLanguageChange, onBack }) {
+export default function UserDashboard({ session, onBack }) {
   const [profile, setProfile] = useState(null);
-  const [language, setLanguage] = useState("bn");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [age, setAge] = useState("");
@@ -40,7 +39,6 @@ export default function UserDashboard({ session, onLanguageChange, onBack }) {
     }
 
     setProfile(data);
-    setLanguage("bn");
     setName(data?.name || "");
     setPhone(data?.phone || "");
     setAge(data?.age ?? "");

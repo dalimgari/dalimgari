@@ -5,23 +5,7 @@ import PageRenderer from "../components/PageRenderer";
 import AuthPanel from "../components/AuthPanel";
 import { trackVisit } from "../lib/visitorAnalytics";
 
-function readSetting(value) {
-  if (typeof value === "string") return value;
-  if (value && typeof value === "object") {
-    return value.value || "";
-  }
-  return "";
-}
-
-function getLocalized(settings, base, language) {
-  const localized =
-    settings[`${base}_${language}`] ||
-    settings[base] ||
-    "";
-  return readSetting(localized);
-}
-
-function Homepage({ language, onLanguageChange }) {
+function Homepage() {
   useEffect(() => {
     let active = true;
 
@@ -44,11 +28,7 @@ function Homepage({ language, onLanguageChange }) {
   const [links, setLinks] = useState([]);
   const [pages, setPages] = useState([]);
   const [activeTab, setActiveTab] = useState("");
-  const [localLanguage, setLocalLanguage] = useState(language || "bn");
 
-  useEffect(() => {
-    setLocalLanguage(language || "bn");
-  }, [language]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -75,8 +55,7 @@ function Homepage({ language, onLanguageChange }) {
         .select(`
           id,
           tab_key,
-          title_bn,
-          title_en,
+          title,
           page_id,
           sort_order,
           enabled,
@@ -84,11 +63,8 @@ function Homepage({ language, onLanguageChange }) {
             id,
             slug,
             title,
-            title_bn,
-            title_en,
+            title,
             content,
-            content_bn,
-            content_en,
             content_type,
             cover_image,
             published
@@ -134,11 +110,13 @@ function Homepage({ language, onLanguageChange }) {
   }
 
   const siteName =
-    getLocalized(settings, "website_name", localLanguage) ||
-    getLocalized(settings, "site_title", localLanguage);
+    settings.website_name ||
+    settings.site_title ||
+    "";
 
   const tagline =
-    getLocalized(settings, "site_tagline", localLanguage);
+    settings.site_tagline ||
+    "";
 
   const logo =
     settings.logo_url || "";
@@ -205,7 +183,7 @@ function Homepage({ language, onLanguageChange }) {
       );
     }
 
-    return <PageRenderer page={currentPage} language={localLanguage} />;
+    return <PageRenderer page={currentPage} />;
   }
 
   if (loading) {
@@ -266,21 +244,7 @@ function Homepage({ language, onLanguageChange }) {
           </div>
 
           <div className="village-top-actions">
-            <button
-              type="button"
-              className="language-switch"
-              onClick={() =>
-                setLocalLanguage((current) => {
-                  const next = current === "bn" ? "en" : "bn";
-                  onLanguageChange?.(next);
-                  return next;
-                })
-              }
-            >
-              {localLanguage === "bn" ? "English" : "বাংলা"}
-            </button>
-
-            <AuthPanel language={localLanguage} onLanguageChange={onLanguageChange} />
+                        <AuthPanel />
           </div>
         </div>
       </header>
@@ -325,7 +289,7 @@ function Homepage({ language, onLanguageChange }) {
                       selectTab(tab.tab_key)
                     }
                   >
-                    {localLanguage === "en" ? (tab.title_en || tab.pages?.title_en || tab.title_bn || tab.pages?.title || "") : (tab.title_bn || tab.pages?.title_bn || tab.title_en || tab.pages?.title || "")}
+                    {tab.title || tab.pages?.title || ""}
                   </button>
                 ))}
               </nav>
@@ -347,8 +311,8 @@ function Homepage({ language, onLanguageChange }) {
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              title={localLanguage === "en" ? (link.label_en || link.label_bn || link.label || link.root_domain) : (link.label_bn || link.label_en || link.label || link.root_domain)}
-              aria-label={localLanguage === "en" ? (link.label_en || link.label_bn || link.label || link.root_domain) : (link.label_bn || link.label_en || link.label || link.root_domain)}
+              title={link.label || link.root_domain}
+              aria-label={link.label || link.root_domain}
             >
               {link.icon ? (
                 <img

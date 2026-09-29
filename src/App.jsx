@@ -6,9 +6,6 @@ import Homepage from "./public/Homepage";
 import PageRenderer from "./components/PageRenderer";
 
 function App() {
-  const [language, setLanguage] = useState(() => {
-    return localStorage.getItem("dalimgari_language") || "bn";
-  });
 
   const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
   const pathname = window.location.pathname;
@@ -32,13 +29,13 @@ function App() {
   const slug = parts[0] || "";
 
   if (!slug) {
-    return <Homepage language={language} onLanguageChange={(next) => { localStorage.setItem("dalimgari_language", next); setLanguage(next); }} />;
+    return <Homepage />;
   }
 
-  return <DynamicPage slug={slug} language={language} />;
+  return <DynamicPage slug={slug} />;
 }
 
-function DynamicPage({ slug, language }) {
+function DynamicPage({ slug }) {
   const [page, setPage] = useState(null);
   const [settings, setSettings] = useState({});
   const [links, setLinks] = useState([]);
@@ -59,11 +56,8 @@ function DynamicPage({ slug, language }) {
             id,
             slug,
             title,
-            title_bn,
-            title_en,
+            title,
             content,
-            content_bn,
-            content_en,
             content_type,
             cover_image,
             published
@@ -183,9 +177,9 @@ function DynamicPage({ slug, language }) {
         <section className="village-main-content">
           <div className="village-content-card">
             <div className="village-page-content">
-              <h1>{language === "en" ? (page.title_en || page.title_bn || page.title) : (page.title_bn || page.title_en || page.title)}</h1>
+              <h1>{page.title || ""}</h1>
 
-              <PageRenderer page={page} language={language} />
+              <PageRenderer page={page} />
 
               <div style={{ marginTop: "24px" }}>
                 <a

@@ -7,18 +7,11 @@ function isVideoUrl(url) {
   );
 }
 
-function PageRenderer({ page, language = "bn" }) {
+function PageRenderer({ page }) {
   if (!page) return null;
 
-  const title =
-    language === "en"
-      ? page.title_en || page.title_bn || page.title || ""
-      : page.title_bn || page.title_en || page.title || "";
-
-  const content =
-    language === "en"
-      ? page.content_en || page.content_bn || page.content || ""
-      : page.content_bn || page.content_en || page.content || "";
+  const title = page.title || "";
+  const content = page.content || "";
   const media = page.cover_image || "";
 
   function renderMedia() {
