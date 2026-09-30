@@ -183,7 +183,16 @@ export function public_search({ information = [], pages = [], posts = [], langua
     return () => window.removeEventListener('keydown', on_key)
   }, [open])
 
+  function prepare_open() {
+    document.querySelector('.website-header')?.classList.add('search-transitioning')
+  }
+
+  function prepare_close() {
+    document.querySelector('.website-header')?.classList.remove('search-transitioning')
+  }
+
   function close() {
+    prepare_close()
     set_open(false)
     set_query('')
   }
@@ -258,6 +267,7 @@ export function public_search({ information = [], pages = [], posts = [], langua
           {
             type: 'button',
             className: 'website-header-control public-search-trigger',
+            onPointerDown: prepare_open,
             onClick: () => set_open(true),
             'aria-label': language === 'bn' ? 'ওয়েবসাইটে খুঁজুন' : 'Search website',
             title: language === 'bn' ? 'ওয়েবসাইটে খুঁজুন' : 'Search website'
