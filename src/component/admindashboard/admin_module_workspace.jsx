@@ -1,6 +1,6 @@
 import { createElement, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../../service/supabase/supabase_client'
-import { delete_record, sync_input_fields } from '../../controller/admin/admin_record_controller'
+import { delete_record, sync_input_fields, generate_next_key } from '../../controller/admin/admin_record_controller'
 
 const footer_fields = [['footer_copyright', 'Footer Copyright']]
 
@@ -229,7 +229,7 @@ function admin_information_workspace() {
 }
 
 function pages_workspace() {
-  const blank = { page_key: '', title_bn: '', title_en: '', slug: '', content: '', seo_title: '', seo_description: '', canonical: '', robots: 'index,follow', order: 0, visible: true, status: 'draft' }
+  const blank = { title_bn: '', title_en: '', slug: '', content: '', seo_title: '', seo_description: '', canonical: '', robots: 'index,follow', order: 0, visible: true, status: 'draft' }
   const [rows, set_rows] = useState([])
   const [form, set_form] = useState(blank)
   const [editing, set_editing] = useState(null)
@@ -245,7 +245,7 @@ function pages_workspace() {
   function edit(row) {
     set_editing(row.page_id)
     set_form({
-      page_key: row.page_key, title_bn: localized(row.page_title, 'bn'), title_en: localized(row.page_title, 'en'),
+      title_bn: localized(row.page_title, 'bn'), title_en: localized(row.page_title, 'en'),
       slug: row.page_slug, content: row.html_content, seo_title: localized(row.seo_data?.title, 'bn'),
       seo_description: localized(row.seo_data?.description, 'bn'), canonical: row.seo_data?.canonical_url ?? '',
       robots: row.seo_data?.robots ?? 'index,follow', order: row.display_order ?? 0,
@@ -255,9 +255,9 @@ function pages_workspace() {
 
   async function save(event) {
     event.preventDefault()
-    if (!form.page_key || !form.title_bn || !form.slug) return set_message('Page key, Bengali title and slug are required')
+    if (!form.title_bn || !form.slug) return set_message('Bengali title and slug are required')
     const payload = {
-      page_key: form.page_key.trim(), page_title: { bn: form.title_bn, en: form.title_en || form.title_bn },
+      page_key: editing ? form.page_key : await generate_next_key('pages', 'page_key', 'page'), page_title: { bn: form.title_bn, en: form.title_en || form.title_bn },
       page_slug: form.slug.toLowerCase().replace(/^\/+|\/+$/g, ''), html_content: form.content,
       seo_data: { title: { bn: form.seo_title, en: form.seo_title }, description: { bn: form.seo_description, en: form.seo_description }, canonical_url: form.canonical, robots: form.robots },
       display_order: Number(form.order) || 0, is_visible: form.visible, status: form.status
@@ -279,7 +279,6 @@ function pages_workspace() {
     panel_header('Page Management', message),
     createElement('form', { onSubmit: save },
       createElement('div', { className: 'admin-form-grid' },
-        input({ label: 'Page Key', value: form.page_key, on_change: (value) => set_form({ ...form, page_key: value }) }),
         input({ label: 'Page Title (বাংলা)', value: form.title_bn, on_change: (value) => set_form({ ...form, title_bn: value }) }),
         input({ label: 'Page Title (English)', value: form.title_en, on_change: (value) => set_form({ ...form, title_en: value }) }),
         input({ label: 'Slug', value: form.slug, on_change: (value) => set_form({ ...form, slug: value }) }),
@@ -310,7 +309,7 @@ function pages_workspace() {
 }
 
 function albums_workspace() {
-  const blank = { key: '', title_bn: '', title_en: '', description: '', visible: true }
+  const blank = { title_bn: '', title_en: '', description: '', visible: true }
   const [rows, set_rows] = useState([])
   const [form, set_form] = useState(blank)
   const [editing, set_editing] = useState(null)
@@ -323,7 +322,7 @@ function albums_workspace() {
   useEffect(() => { load() }, [])
   async function save(event) {
     event.preventDefault()
-    const payload = { album_key: form.key, album_title: { bn: form.title_bn, en: form.title_en || form.title_bn }, description: { bn: form.description, en: form.description }, is_visible: form.visible }
+    const payload = { album_key: editing ? form.key : await generate_next_key('albums', 'album_key', 'album'), album_title: { bn: form.title_bn, en: form.title_en || form.title_bn }, description: { bn: form.description, en: form.description }, is_visible: form.visible }
     const query = editing ? supabase.from('albums').update(payload).eq('album_id', editing) : supabase.from('albums').insert(payload)
     const { error } = await query
     set_message(error ? error.message : 'Saved')
@@ -332,7 +331,6 @@ function albums_workspace() {
   return createElement('section', { className: 'admin-module-workspace' },
     panel_header('Albums', message),
     createElement('form', { onSubmit: save }, createElement('div', { className: 'admin-form-grid' },
-      input({ label: 'Album Key', value: form.key, on_change: (value) => set_form({ ...form, key: value }) }),
       input({ label: 'Album Title (বাংলা)', value: form.title_bn, on_change: (value) => set_form({ ...form, title_bn: value }) }),
       input({ label: 'Album Title (English)', value: form.title_en, on_change: (value) => set_form({ ...form, title_en: value }) }),
       textarea({ label: 'Description', value: form.description, on_change: (value) => set_form({ ...form, description: value }), rows: 4 }),
@@ -349,7 +347,7 @@ function albums_workspace() {
 function media_workspace() {
   const [rows, set_rows] = useState([])
   const [albums, set_albums] = useState([])
-  const [form, set_form] = useState({ key: '', method: 'url', url: '', album_id: '', visible: true })
+  const [form, set_form] = useState({ method: 'url', url: '', album_id: '', visible: true })
   const [file, set_file] = useState(null)
   const [message, set_message] = useState('')
 
@@ -378,10 +376,10 @@ function media_workspace() {
       if (upload_error) return set_message(upload_error.message)
       url = supabase.storage.from('global_media').getPublicUrl(storage_path).data.publicUrl
     }
-    const payload = { media_key: form.key, media_method: form.method, file_name, mime_type, file_size, storage_path, media_url: url, album_id: form.album_id || null, is_visible: form.visible }
+    const payload = { media_key: await generate_next_key('media', 'media_key', 'media'), media_method: form.method, file_name, mime_type, file_size, storage_path, media_url: url, album_id: form.album_id || null, is_visible: form.visible }
     const { error } = await supabase.from('media').insert(payload)
     set_message(error ? error.message : 'Media added')
-    if (!error) { set_form({ key: '', method: 'url', url: '', album_id: '', visible: true }); set_file(null); await load() }
+    if (!error) { set_form({ method: 'url', url: '', album_id: '', visible: true }); set_file(null); await load() }
   }
 
   async function remove(row) {
@@ -395,7 +393,6 @@ function media_workspace() {
   return createElement('section', { className: 'admin-module-workspace' },
     panel_header('Media Manager', message),
     createElement('form', { onSubmit: save }, createElement('div', { className: 'admin-form-grid' },
-      input({ label: 'Media Key', value: form.key, on_change: (value) => set_form({ ...form, key: value }) }),
       select({ label: 'Method', value: form.method, on_change: (value) => set_form({ ...form, method: value }), options: [{ value: 'url', label: 'URL' }, { value: 'upload', label: 'Upload' }, { value: 'select_file', label: 'Select File' }] }),
       form.method === 'url' ? input({ label: 'Media URL', value: form.url, on_change: (value) => set_form({ ...form, url: value }) }) : createElement('label', { className: 'admin-form-field' }, createElement('span', null, 'File'), createElement('input', { type: 'file', onChange: (event) => set_file(event.target.files?.[0] ?? null) })),
       select({ label: 'Album', value: form.album_id, on_change: (value) => set_form({ ...form, album_id: value }), options: [{ value: '', label: 'No album' }, ...albums.map((row) => ({ value: row.album_id, label: localized(row.album_title) }))] }),
@@ -409,7 +406,7 @@ function media_workspace() {
 }
 
 function posts_workspace() {
-  const blank = { key: '', caption_bn: '', caption_en: '', album_id: '', status: 'draft', visible: true, seo_title: '', seo_description: '' }
+  const blank = { caption_bn: '', caption_en: '', album_id: '', status: 'draft', visible: true, seo_title: '', seo_description: '' }
   const [rows, set_rows] = useState([])
   const [albums, set_albums] = useState([])
   const [media, set_media] = useState([])
@@ -432,7 +429,7 @@ function posts_workspace() {
 
   async function save(event) {
     event.preventDefault()
-    const payload = { post_key: form.key, caption: { bn: form.caption_bn, en: form.caption_en || form.caption_bn }, album_id: form.album_id || null, status: form.status, is_visible: form.visible, seo_data: { title: { bn: form.seo_title, en: form.seo_title }, description: { bn: form.seo_description, en: form.seo_description } }, published_at: form.status === 'published' ? new Date().toISOString() : null }
+    const payload = { post_key: editing ? form.key : await generate_next_key('posts', 'post_key', 'post'), caption: { bn: form.caption_bn, en: form.caption_en || form.caption_bn }, album_id: form.album_id || null, status: form.status, is_visible: form.visible, seo_data: { title: { bn: form.seo_title, en: form.seo_title }, description: { bn: form.seo_description, en: form.seo_description } }, published_at: form.status === 'published' ? new Date().toISOString() : null }
     const query = editing ? supabase.from('posts').update(payload).eq('post_id', editing) : supabase.from('posts').insert(payload).select('post_id').single()
     const { data, error } = await query
     if (error) return set_message(error.message)
@@ -457,7 +454,6 @@ function posts_workspace() {
   return createElement('section', { className: 'admin-module-workspace' },
     panel_header('Post Management', message),
     createElement('form', { onSubmit: save }, createElement('div', { className: 'admin-form-grid' },
-      input({ label: 'Post Key', value: form.key, on_change: (value) => set_form({ ...form, key: value }) }),
       input({ label: 'Caption (বাংলা)', value: form.caption_bn, on_change: (value) => set_form({ ...form, caption_bn: value }) }),
       input({ label: 'Caption (English)', value: form.caption_en, on_change: (value) => set_form({ ...form, caption_en: value }) }),
       select({ label: 'Album', value: form.album_id, on_change: (value) => set_form({ ...form, album_id: value }), options: [{ value: '', label: 'No album' }, ...albums.map((row) => ({ value: row.album_id, label: localized(row.album_title) }))] }),
