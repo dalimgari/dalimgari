@@ -1,5 +1,6 @@
 import { createElement, useEffect, useState } from 'react'
 import { supabase } from '../../service/supabase/supabase_client'
+import { delete_record } from '../../controller/admin/admin_record_controller'
 
 const module_config = {
   websiteinformation: { table: 'website_information', id: 'website_information_id', label: 'Website Information', fields: ['information_key', 'information_value', 'is_active'] },
@@ -37,6 +38,10 @@ export function admin_module_workspace({ module_key }) {
     if (!error) { set_form({}); set_editing_id(null); load() }
   }
 
+  async function remove(id) {
+    try { await delete_record(config.table, config.id, id); set_message('Deleted'); load() } catch (error) { set_message(error.message) }
+  }
+
   if (!config) return createElement('section', null, 'Module unavailable')
 
   return createElement('section', { className: 'admin-module-workspace' },
@@ -48,7 +53,8 @@ export function admin_module_workspace({ module_key }) {
     ) : null,
     createElement('div', null, rows.map((row) => createElement('article', { key: row[config.id] },
       createElement('span', null, row.display_name ?? row.information_key ?? row.page_key ?? row.post_key ?? row.setting_key ?? row.visited_at ?? row[config.id]),
-      createElement('button', { type: 'button', onClick: () => { set_editing_id(row[config.id]); set_form(Object.fromEntries(config.fields.map((field) => [field, row[field] ?? '']))) } }, 'Edit')
+      createElement('button', { type: 'button', onClick: () => { set_editing_id(row[config.id]); set_form(Object.fromEntries(config.fields.map((field) => [field, row[field] ?? '']))) } }, 'Edit'),
+      config.fields.length ? createElement('button', { type: 'button', onClick: () => remove(row[config.id]) }, 'Delete') : null
     )))
   )
 }
