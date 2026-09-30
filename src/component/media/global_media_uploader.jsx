@@ -1,4 +1,4 @@
-import { createElement, useId, useState } from 'react'
+import { createElement, useEffect, useId, useState } from 'react'
 import { upload_media, get_media_library, save_external_media } from '../../controller/media/global_media_controller'
 
 export function global_media_uploader({
@@ -14,6 +14,8 @@ export function global_media_uploader({
   const [selected, set_selected] = useState(null)
   const [message, set_message] = useState('')
   const [loading, set_loading] = useState(false)
+
+  useEffect(() => { set_media_url(initial_url ?? '') }, [initial_url])
 
   function select_media(media) {
     set_selected(media)
