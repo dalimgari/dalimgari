@@ -1,18 +1,24 @@
 const THEME_SESSION_KEY = 'theme_mode'
 
+function get_session_mode() {
+  try {
+    const saved_mode = sessionStorage.getItem(THEME_SESSION_KEY)
+    return saved_mode === 'light' || saved_mode === 'dark' ? saved_mode : null
+  } catch {
+    return null
+  }
+}
+
 function get_system_theme_mode() {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
 export function has_manual_theme_mode() {
-  const saved_mode = sessionStorage.getItem(THEME_SESSION_KEY)
-  return saved_mode === 'light' || saved_mode === 'dark'
+  return Boolean(get_session_mode())
 }
 
 export function get_theme_mode() {
-  const saved_mode = sessionStorage.getItem(THEME_SESSION_KEY)
-  if (saved_mode === 'light' || saved_mode === 'dark') return saved_mode
-  return get_system_theme_mode()
+  return get_session_mode() ?? get_system_theme_mode()
 }
 
 export function apply_theme_mode(mode) {
@@ -25,7 +31,11 @@ export function apply_theme_mode(mode) {
 
 export function set_manual_theme_mode(mode) {
   const resolved_mode = apply_theme_mode(mode)
-  sessionStorage.setItem(THEME_SESSION_KEY, resolved_mode)
+  try {
+    sessionStorage.setItem(THEME_SESSION_KEY, resolved_mode)
+  } catch {
+    // If session storage is unavailable, keep the current mode for this page lifetime.
+  }
   return resolved_mode
 }
 
