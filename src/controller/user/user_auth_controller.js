@@ -1,7 +1,14 @@
 import { supabase } from '../../service/supabase/supabase_client'
 
 export async function sign_up_user({ email, password, display_name }) {
-  return supabase.auth.signUp({ email, password, options: { data: { full_name: display_name } } })
+  return supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { full_name: display_name },
+      emailRedirectTo: window.location.origin + import.meta.env.BASE_URL
+    }
+  })
 }
 
 export async function sign_in_user({ email, password }) {
