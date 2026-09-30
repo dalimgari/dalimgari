@@ -2,7 +2,7 @@ import { createElement, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { sign_in_user, get_user_session, reset_user_password } from '../../controller/user/user_auth_controller'
 import { get_user_role } from '../../controller/user/user_permission_controller'
-import { get_customization_settings } from '../../function/customization/customization'
+import { get_website_information } from '../../service/supabase/website_service.js'
 
 function read_setting(settings, keys, fallback = '') {
   for (const key of keys) {
@@ -39,10 +39,11 @@ export function login_page() {
 
         set_loading(false)
 
-        get_customization_settings().then((settings) => {
+        get_website_information().then((information) => {
           if (!active) return
-          set_site_name(read_setting(settings, ['village_name', 'site_name', 'website_name'], ''))
-          set_logo_url(read_setting(settings, ['logo_url', 'site_logo', 'website_logo'], ''))
+          const values = Object.fromEntries((information ?? []).map((item) => [item.information_key, item.information_value]))
+          set_site_name(read_setting(information, ['village_name', 'website_name'], ''))
+          set_logo_url(read_setting(information, ['logo_url'], ''))
         }).catch(() => {})
 
         if (session_data.session?.user) {
@@ -226,7 +227,7 @@ export function login_page() {
                   autoComplete: 'current-password',
                   placeholder: 'Enter your password',
                   required: true,
-                  minLength: 6
+                  minLength: 8
                 }),
                 createElement('button', {
                   type: 'button',
