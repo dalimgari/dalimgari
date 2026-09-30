@@ -2,6 +2,7 @@ import { createElement, useEffect, useState } from 'react'
 import { admin_dashboard_layout } from '../../layout/admindashboard/admin_dashboard_layout'
 import { module_navigation } from '../../component/admindashboard/module_navigation'
 import { admin_module_workspace } from '../../component/admindashboard/admin_module_workspace'
+import { backup_recovery_panel } from '../../component/admindashboard/backup_recovery_panel'
 import { dashboard_modules } from '../../module/admindashboard/dashboard_modules'
 import { get_current_admin, sign_out_admin } from '../../controller/admin/admin_dashboard_controller'
 import { get_admin_permissions } from '../../controller/admin/module_access_controller'
@@ -23,11 +24,14 @@ export function admin_dashboard_page() {
   if (loading) return createElement('main', null, 'Loading...')
   if (!admin) return createElement('main', null, 'Admin access required')
 
+  const content = createElement('section', null,
+    createElement('header', null, createElement('h1', null, 'Admin Dashboard'), createElement('span', null, admin.display_name ?? admin.email), createElement('button', { type: 'button', onClick: sign_out_admin }, 'Sign out')),
+    createElement(admin_module_workspace, { module_key: selected_module }),
+    selected_module === 'system' ? createElement(backup_recovery_panel) : null
+  )
+
   return createElement(admin_dashboard_layout, {
     navigation: createElement(module_navigation, { modules: dashboard_modules, permissions, on_select: set_selected_module }),
-    content: createElement('section', null,
-      createElement('header', null, createElement('h1', null, 'Admin Dashboard'), createElement('span', null, admin.display_name ?? admin.email), createElement('button', { type: 'button', onClick: sign_out_admin }, 'Sign out')),
-      createElement(admin_module_workspace, { module_key: selected_module })
-    )
+    content
   })
 }
