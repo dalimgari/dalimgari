@@ -1,15 +1,9 @@
-/* preserve header height while search is active */
+/* Temporary compatibility restore: use the known-good complete stylesheet while the repository workflow restores it locally. */
+@import url("https://raw.githubusercontent.com/dalimgari/dalimgari/13e4acec6eace9be479377a82b2063ca26a5ec52/src/style/global/global.css");
+
+/* Search must use the header's existing responsive size; opening/closing it must not resize the header. */
 .website-header:has(.public-search.is-open),
 .website-header:has(.public-search.is-preparing){
-  min-height:72px !important;
-  height:72px !important;
+  height:auto !important;
   box-sizing:border-box;
-}
-@media(max-width:760px){
-  .website-header:has(.public-search.is-open),
-  .website-header:has(.public-search.is-preparing){
-    min-height:72px !important;
-    height:72px !important;
-    box-sizing:border-box;
-  }
 }
