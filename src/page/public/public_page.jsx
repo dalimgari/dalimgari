@@ -80,11 +80,11 @@ function render_home_page(state, language) {
       village_slogan && createElement('p', { className: 'website-lead' }, village_slogan),
       village_description && createElement('p', null, village_description)
     ),
-    createElement(page_navigation, { pages: state.pages.filter((page) => page.page_slug), language }),
+    state.pages.some((page) => page.page_slug) && createElement(page_navigation, { pages: state.pages.filter((page) => page.page_slug), language }),
     createElement(post_list, { posts: state.posts, language }),
     address_parts.length > 0 && createElement('section', { className: 'home-contact website-section' },
       createElement('div', { className: 'website-section-heading' },
-        createElement('div', null, createElement('div', { className: 'website-eyebrow' }, language === 'bn' ? 'যোগাযোগ' : 'Contact'), createElement('h2', null, village_name || website_name))
+        createElement('div', null, createElement('div', { className: 'website-eyebrow' }, language === 'bn' ? 'যোগাযোগ' : 'Contact'), createElement('h2', null, language === 'bn' ? 'যোগাযোগের তথ্য' : 'Contact information'))
       ),
       createElement('p', null, address_parts.join(' • ')),
       contact_phone && createElement('a', { className: 'website-contact-action', href: `tel:${contact_phone}` }, contact_phone),
@@ -123,7 +123,7 @@ function render_website(state, language, pathname, language_control, theme_contr
     profile: admin_profile,
     navigation_items: state.pages.filter((page) => page.page_slug),
     language,
-    header: createElement(header, { site_title: website_name || village_name, logo_url: get_information_value(information, 'website_logo', language), language_control, theme_control }),
+    header: createElement(header, { site_title: website_name || village_name, site_tagline: village_slogan, logo_url: get_information_value(information, 'website_logo', language), language_control, theme_control }),
     banner: is_home ? createElement(banner, banner_data) : null,
     body,
     footer: createElement(footer, { content: website_name || village_name })
@@ -149,7 +149,7 @@ export function public_page() {
         const theme_value = typeof configured_theme === 'object' ? configured_theme.value : configured_theme
         if (theme_value) { const resolved_theme = resolve_theme_mode(theme_value); set_theme_mode(resolved_theme); apply_theme_mode(resolved_theme) }
         const page_slug = location.pathname.replace(/^\/+|\/+$/g, '')
-        const page = pages.find((item) => item.page_slug === page_slug && item.page_slug)
+        const page = pages.find((item) => item.page_slug === page_slug && page.page_slug)
         const global_seo = seo_settings.find((item) => item.entity_type === 'website' && !item.entity_id)
         const page_seo = page ? seo_settings.find((item) => item.entity_type === 'page' && item.entity_id === page.page_id) : null
         const seo = page_seo ?? global_seo ?? page?.seo_data ?? information.find((item) => item.information_key === 'seo')?.information_value ?? {}
