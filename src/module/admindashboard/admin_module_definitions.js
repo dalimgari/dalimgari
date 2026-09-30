@@ -1,5 +1,5 @@
 export const admin_module_definitions = {
-  websiteinformation: { title: 'Website Information', actions: ['create', 'edit', 'delete'] },
+  websiteinformation: { title: 'Village Information', actions: ['create', 'edit', 'delete'] },
   admininfo: { title: 'Admin Info', actions: ['create', 'edit', 'delete'] },
   pagemanagement: { title: 'Page Management', actions: ['create', 'edit', 'delete'] },
   postmanagement: { title: 'Post Management', actions: ['create', 'edit', 'delete'] },
