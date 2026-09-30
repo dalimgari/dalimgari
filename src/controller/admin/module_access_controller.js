@@ -1,7 +1,7 @@
 import { supabase } from '../../service/supabase/supabase_client'
 
 export async function has_admin_permission(permission_key) {
-  const { data, error } = await supabase.rpc('has_permission', { required_permission: permission_key })
+  const { data, error } = await supabase.rpc('current_user_has_permission', { required_permission: permission_key })
   if (error) return false
   return Boolean(data)
 }
