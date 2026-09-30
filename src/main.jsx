@@ -5,6 +5,7 @@ import { app_provider } from './app/provider/app_provider'
 import { app_router } from './app/router/app_router'
 import './style/global/global.css'
 import './style/global/login.css'
+import './style/global/design-polish.css'
 
 createRoot(document.getElementById('root')).render(
   React.createElement(
