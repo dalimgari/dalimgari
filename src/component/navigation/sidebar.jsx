@@ -32,7 +32,6 @@ export function sidebar({ id = 'website-sidebar', is_open = false, on_toggle = (
   const visible_pages = navigation_items.filter((item) => item.page_slug && item.is_visible)
   const admin = profile?.information_value && typeof profile.information_value === 'object' ? profile.information_value : (profile ?? {})
   const admin_name = first_value(admin.admin_name, language)
-  const admin_image = first_value(admin.admin_profile_image || admin.profile_image || admin.avatar_url, language)
   const admin_links = normalize_links(managed_links)
 
   return createElement('div', { className: 'website-sidebar-layer' },
@@ -47,8 +46,7 @@ export function sidebar({ id = 'website-sidebar', is_open = false, on_toggle = (
           language_control && createElement('div', { className: 'sidebar-preference-control sidebar-language-control' }, language_control),
           theme_control && createElement('div', { className: 'sidebar-preference-control sidebar-theme-control' }, theme_control)
         ),
-        (admin_name || admin_image || admin_links.length > 0) && createElement('section', { className: 'sidebar-admin-profile', 'aria-label': language === 'bn' ? 'অ্যাডমিন তথ্য' : 'Admin information' },
-          admin_image && createElement('img', { className: 'sidebar-admin-avatar', src: admin_image, alt: admin_name || 'Admin', loading: 'lazy' }),
+        (admin_name || admin_links.length > 0) && createElement('section', { className: 'sidebar-admin-profile', 'aria-label': language === 'bn' ? 'অ্যাডমিন তথ্য' : 'Admin information' },
           admin_name && createElement('strong', { className: 'sidebar-admin-name' }, admin_name),
           admin_links.length > 0 && createElement('div', { className: 'sidebar-admin-links' },
             admin_links.map((link, index) => createElement('a', {
