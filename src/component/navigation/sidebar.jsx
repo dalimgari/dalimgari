@@ -1,18 +1,11 @@
-import { createElement, useState } from 'react'
+import { createElement } from 'react'
 import { Link } from 'react-router-dom'
 import { get_localized_value } from '../../function/translation/language'
 
-export function sidebar({ profile = null, navigation_items = [], language = 'bn' }) {
-  const [is_open, set_is_open] = useState(false)
-
+export function sidebar({ id = 'website-sidebar', is_open = false, profile = null, navigation_items = [], language = 'bn' }) {
   return createElement(
     'aside',
-    { className: `website-sidebar${is_open ? ' is-open' : ''}` },
-    createElement(
-      'button',
-      { type: 'button', onClick: () => set_is_open((value) => !value), 'aria-expanded': is_open },
-      is_open ? '×' : '☰'
-    ),
+    { id, className: `website-sidebar${is_open ? ' is-open' : ''}`, 'aria-hidden': !is_open },
     is_open && createElement(
       'div',
       { className: 'website-sidebar-content' },
@@ -21,7 +14,8 @@ export function sidebar({ profile = null, navigation_items = [], language = 'bn'
         { className: 'sidebar-profile' },
         profile.profile_image_url && createElement('img', { src: profile.profile_image_url, alt: profile.display_name ?? '' }),
         createElement('strong', null, profile.display_name ?? ''),
-        createElement('span', null, profile.email ?? ''),
+        profile.email && createElement('span', null, profile.email),
+        profile.phone && createElement('span', null, profile.phone),
         createElement(
           'div',
           { className: 'sidebar-links' },
@@ -32,14 +26,16 @@ export function sidebar({ profile = null, navigation_items = [], language = 'bn'
       ),
       createElement(
         'nav',
-        null,
-        navigation_items.map((item) =>
-          createElement(
-            Link,
-            { key: item.page_key, to: `/${item.page_slug}` },
-            get_localized_value(item.page_title, language)
+        { 'aria-label': language === 'bn' ? 'প্রধান নেভিগেশন' : 'Main navigation' },
+        navigation_items
+          .filter((item) => item.page_slug && item.is_visible)
+          .map((item) =>
+            createElement(
+              Link,
+              { key: item.page_key, to: `/${item.page_slug}`, onClick: undefined },
+              get_localized_value(item.page_title, language)
+            )
           )
-        )
       )
     )
   )
