@@ -504,6 +504,67 @@ function settings_workspace({ table, title, permission_hint }) {
   )
 }
 
+
+function translation_workspace() {
+  const [rows, set_rows] = useState([])
+  const [form, set_form] = useState({ key: 'default', source: 'bn', languages: 'bn,en', active: true })
+  const [editing, set_editing] = useState(null)
+  const [message, set_message] = useState('')
+
+  async function load() {
+    const { data, error } = await supabase.from('translation_settings').select('*').order('created_at', { ascending: false })
+    if (error) set_message(error.message)
+    set_rows(data ?? [])
+  }
+  useEffect(() => { load() }, [])
+
+  async function save(event) {
+    event.preventDefault()
+    const payload = {
+      setting_key: form.key,
+      source_language: form.source,
+      supported_languages: form.languages.split(',').map((item) => item.trim()).filter(Boolean),
+      is_active: form.active
+    }
+    const query = editing
+      ? supabase.from('translation_settings').update(payload).eq('translation_setting_id', editing)
+      : supabase.from('translation_settings').insert(payload)
+    const { error } = await query
+    set_message(error ? error.message : 'Translation settings saved')
+    if (!error) { set_form({ key: 'default', source: 'bn', languages: 'bn,en', active: true }); set_editing(null); await load() }
+  }
+
+  return createElement('section', { className: 'admin-module-workspace' },
+    panel_header('Translation Settings', message),
+    createElement('form', { onSubmit: save },
+      createElement('div', { className: 'admin-form-grid' },
+        input({ label: 'Setting Key', value: form.key, on_change: (value) => set_form({ ...form, key: value }) }),
+        input({ label: 'Source Language', value: form.source, on_change: (value) => set_form({ ...form, source: value }) }),
+        input({ label: 'Supported Languages (comma separated)', value: form.languages, on_change: (value) => set_form({ ...form, languages: value }) }),
+        checkbox({ label: 'Active', checked: form.active, on_change: (value) => set_form({ ...form, active: value }) })
+      ),
+      createElement('button', { type: 'submit' }, editing ? 'Update Translation Settings' : 'Create Translation Settings')
+    ),
+    createElement('div', { className: 'admin-record-list' },
+      rows.map((row) => createElement('article', { key: row.translation_setting_id, className: 'admin-record-row' },
+        createElement('strong', null, row.setting_key),
+        createElement('span', null, row.source_language),
+        createElement('span', null, (row.supported_languages ?? []).join(', ')),
+        createElement('button', { type: 'button', onClick: () => {
+          set_editing(row.translation_setting_id)
+          set_form({ key: row.setting_key, source: row.source_language, languages: (row.supported_languages ?? []).join(','), active: row.is_active })
+        } }, 'Edit'),
+        createElement('button', { type: 'button', onClick: async () => {
+          if (!window.confirm('Delete translation setting?')) return
+          const { error } = await delete_record('translation_settings', 'translation_setting_id', row.translation_setting_id)
+          set_message(error ? error.message : 'Deleted')
+          if (!error) load()
+        } }, 'Delete')
+      ))
+    )
+  )
+}
+
 function seo_workspace() {
   const [rows, set_rows] = useState([])
   const [form, set_form] = useState({ entity_type: 'website', entity_id: '', title_bn: '', title_en: '', description_bn: '', description_en: '', slug: '', canonical: '', robots: 'index,follow', active: true })
@@ -666,7 +727,7 @@ export function admin_module_workspace({ module_key }) {
   if (module_key === 'analysisinfo') return createElement(analytics_workspace)
   if (module_key === 'audit') return createElement(audit_workspace)
   if (module_key === 'customization') return createElement(settings_workspace, { table: 'customization_settings', title: 'Customization', permission_hint: 'Theme, appearance and public UI settings.' })
-  if (module_key === 'translation') return createElement(settings_workspace, { table: 'translation_settings', title: 'Translation Settings', permission_hint: 'Language configuration is stored in translation_settings.' })
+  if (module_key === 'translation') return createElement(translation_workspace)
   if (module_key === 'system') return createElement(settings_workspace, { table: 'system_settings', title: 'System Settings', permission_hint: 'System-level settings. Backup and recovery is shown beside this module.' })
   return createElement('section', null, 'Module unavailable')
 }
