@@ -25,14 +25,9 @@ export async function get_public_links() {
 
 export async function get_admin_information() {
   try {
-    const [{ data, error }, { data: managed_links, error: links_error }] = await Promise.all([
-      supabase.from('admin_information').select('*').limit(1).maybeSingle(),
-      supabase.from('managed_links').select('*').eq('is_active', true).order('display_order', { ascending: true })
-    ])
-
+    const { data, error } = await supabase.from('admin_information').select('*').limit(1).maybeSingle()
     if (error) throw error
-    if (links_error) throw links_error
-    return data ? { ...data, managed_links: managed_links ?? [] } : null
+    return data ?? null
   } catch (error) {
     console.error('Failed to load admin information', error)
     return null
