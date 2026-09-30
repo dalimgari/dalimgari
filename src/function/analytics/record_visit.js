@@ -5,7 +5,7 @@ export async function record_visit() {
     const visitor_key = sessionStorage.getItem('visitor_key') || crypto.randomUUID()
     sessionStorage.setItem('visitor_key', visitor_key)
 
-    await supabase.from('analytics_visits').insert({
+    const { error } = await supabase.from('analytics_visits').insert({
       visitor_key,
       page_path: window.location.pathname,
       referrer: document.referrer || null,
@@ -17,8 +17,9 @@ export async function record_visit() {
       screen_height: window.screen.height,
       user_agent: navigator.userAgent
     })
+
+    return !error
   } catch {
     return false
   }
-  return true
 }
