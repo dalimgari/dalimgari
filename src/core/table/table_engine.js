@@ -1,0 +1,1 @@
+export function table_state(options = {}) { return { page: options.page || 1, page_size: options.page_size || 20, sort_by: options.sort_by || null, ascending: options.ascending !== false, filters: options.filters || {} } }
