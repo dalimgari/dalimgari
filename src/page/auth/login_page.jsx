@@ -33,18 +33,17 @@ export function login_page() {
 
     async function initialize() {
       try {
-        const [{ data: session_data }, settings] = await Promise.all([
-          get_user_session(),
-          get_customization_settings().catch(() => [])
-        ])
+        const { data: session_data } = await get_user_session()
 
         if (!active) return
 
-        const name = read_setting(settings, ['village_name', 'site_name', 'website_name'], '')
-        const logo = read_setting(settings, ['logo_url', 'site_logo', 'website_logo'], '')
+        set_loading(false)
 
-        set_site_name(name)
-        set_logo_url(logo)
+        get_customization_settings().then((settings) => {
+          if (!active) return
+          set_site_name(read_setting(settings, ['village_name', 'site_name', 'website_name'], ''))
+          set_logo_url(read_setting(settings, ['logo_url', 'site_logo', 'website_logo'], ''))
+        }).catch(() => {})
 
         if (session_data.session?.user) {
           const role = await get_user_role(session_data.session.user.id)
@@ -149,11 +148,16 @@ export function login_page() {
       'main',
       { className: 'login-page' },
       createElement('section', { className: 'login-shell login-loading', 'aria-label': 'Loading login' },
-        createElement('div', { className: 'login-skeleton login-skeleton-logo' }),
-        createElement('div', { className: 'login-skeleton login-skeleton-title' }),
-        createElement('div', { className: 'login-skeleton login-skeleton-input' }),
-        createElement('div', { className: 'login-skeleton login-skeleton-input' }),
-        createElement('div', { className: 'login-skeleton login-skeleton-button' })
+        createElement('div', { className: 'login-brand' },
+          createElement('div', { className: 'login-logo login-logo-placeholder', 'aria-hidden': 'true' }, 'D'),
+          createElement('div', { className: 'login-skeleton login-skeleton-title' }),
+          createElement('p', null, 'Loading...')
+        ),
+        createElement('div', { className: 'login-form' },
+          createElement('div', { className: 'login-skeleton login-skeleton-input' }),
+          createElement('div', { className: 'login-skeleton login-skeleton-input' }),
+          createElement('div', { className: 'login-skeleton login-skeleton-button' })
+        )
       )
     )
   }
