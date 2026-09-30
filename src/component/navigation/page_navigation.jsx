@@ -1,6 +1,7 @@
 import { createElement } from 'react'
 import { Link } from 'react-router-dom'
 import { get_localized_value } from '../../function/translation/language'
+import './page_navigation.css'
 
 export function page_navigation({ pages = [], language = 'bn' }) {
   const visible_pages = [...pages]
