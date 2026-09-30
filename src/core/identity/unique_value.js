@@ -1,0 +1,1 @@
+export function unique_value(value, existing = [], fallback = 'item') { const base = String(value || fallback).trim(); if (!existing.includes(base)) return base; let index = 2; while (existing.includes(base + '-' + index)) index += 1; return base + '-' + index }
