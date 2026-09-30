@@ -122,6 +122,7 @@ export function admin_module_workspace({ module_key }) {
   }
 
   async function remove(id) {
+    if (!window.confirm('Delete this record? This action cannot be undone.')) return
     try {
       await delete_record(config.table, config.id, id)
       set_message('Deleted')
@@ -133,17 +134,50 @@ export function admin_module_workspace({ module_key }) {
 
   if (!config) return createElement('section', null, 'Module unavailable')
 
+  const field_labels = {
+    information_key: 'Information key',
+    information_value: 'Information value',
+    profile_id: 'Profile ID',
+    social_links: 'Social links',
+    other_links: 'Other links',
+    page_key: 'Page key',
+    page_title: 'Page title',
+    page_slug: 'Page slug',
+    html_content: 'Page content',
+    seo_data: 'SEO data',
+    display_order: 'Display order',
+    is_visible: 'Visible',
+    status: 'Status',
+    post_key: 'Post key',
+    caption: 'Caption',
+    album_id: 'Album',
+    setting_key: 'Setting key',
+    setting_value: 'Setting value',
+    is_active: 'Active'
+  }
+
+  const json_fields = ['information_value', 'social_links', 'other_links', 'page_title', 'seo_data', 'caption', 'setting_value']
+  const boolean_fields = ['is_active', 'is_visible']
+
   const form_element = config.fields.length
     ? createElement('form', { onSubmit: save },
-        config.fields.map((field) =>
-          createElement('label', { key: field },
-            field,
-            createElement('input', {
-              value: form[field] ?? '',
-              onChange: (event) => set_form({ ...form, [field]: event.target.value })
-            })
-          )
-        ),
+        config.fields.map((field) => {
+          const label = field_labels[field] ?? field.replaceAll('_', ' ')
+          const type = boolean_fields.includes(field) ? 'checkbox' : 'text'
+          const control = type === 'checkbox'
+            ? createElement('input', {
+                type,
+                checked: form[field] === true || form[field] === 'true',
+                onChange: (event) => set_form({ ...form, [field]: event.target.checked })
+              })
+            : createElement('input', {
+                type,
+                value: form[field] ?? '',
+                placeholder: json_fields.includes(field) ? '{"bn":"","en":""}' : '',
+                onChange: (event) => set_form({ ...form, [field]: event.target.value })
+              })
+          return createElement('label', { key: field }, label, control)
+        }),
         createElement('button', { type: 'submit' }, editing_id ? 'Update' : 'Create'),
         createElement('button', {
           type: 'button',
