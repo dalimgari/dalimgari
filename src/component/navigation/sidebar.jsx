@@ -1,7 +1,8 @@
 import { createElement, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { get_localized_value } from '../../function/translation/language'
 
-export function sidebar({ profile = null, navigation_items = [] }) {
+export function sidebar({ profile = null, navigation_items = [], language = 'bn' }) {
   const [is_open, set_is_open] = useState(false)
 
   return createElement(
@@ -36,7 +37,7 @@ export function sidebar({ profile = null, navigation_items = [] }) {
           createElement(
             Link,
             { key: item.page_key, to: `/${item.page_slug}` },
-            item.page_title?.bn ?? item.page_title?.en ?? item.page_key
+            get_localized_value(item.page_title, language)
           )
         )
       )
