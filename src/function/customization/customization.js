@@ -16,14 +16,30 @@ export function apply_theme_settings(settings = []) {
   const values = Object.fromEntries(settings.map((item) => [item.setting_key, item.setting_value?.value ?? item.setting_value]))
 
   // Theme mode is controlled locally by the device preference/session switch.
-  // Keep the database customization layer responsible only for visual tokens.
-  if (values.font_family) root.style.setProperty('--font-family', values.font_family)
-  if (values.primary_color) root.style.setProperty('--color-primary', values.primary_color)
-  if (values.secondary_color) root.style.setProperty('--color-secondary', values.secondary_color)
-  if (values.background_color) root.style.setProperty('--color-background', values.background_color)
-  if (values.text_color) root.style.setProperty('--color-text', values.text_color)
-  if (values.surface_color) root.style.setProperty('--color-surface', values.surface_color)
-  if (values.border_color) root.style.setProperty('--color-border', values.border_color)
+  // Keep the database customization layer responsible for visual tokens.
+  const token_map = {
+    font_family: '--font-family',
+    primary_color: '--color-primary',
+    secondary_color: '--color-secondary',
+    accent_color: '--color-accent',
+    background_color: '--color-background',
+    surface_color: '--color-surface',
+    surface_strong_color: '--color-surface-strong',
+    text_color: '--color-text',
+    text_muted_color: '--color-text-muted',
+    border_color: '--color-border',
+    success_color: '--color-success',
+    danger_color: '--color-danger',
+    warning_color: '--color-warning'
+  }
+
+  Object.entries(token_map).forEach(([key, token]) => {
+    if (values[key]) root.style.setProperty(token, values[key])
+  })
+
+  root.style.setProperty('--color-primary-strong', values.primary_strong_color || 'color-mix(in srgb,var(--color-primary) 78%,#000)')
+  root.style.setProperty('--color-primary-soft', values.primary_soft_color || 'color-mix(in srgb,var(--color-primary) 12%,var(--color-surface-strong))')
+  root.style.setProperty('--color-text-on-primary', values.text_on_primary_color || '#fff')
 }
 
 export function resolve_theme_mode(mode, prefers_dark = window.matchMedia('(prefers-color-scheme: dark)').matches) {
