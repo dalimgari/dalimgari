@@ -85,11 +85,11 @@ export function global_media_uploader({
         createElement('input', {
           id: `${id}-url`, type: 'url', value: media_url, disabled: loading,
           onChange: (event) => set_media_url(event.target.value),
-          onBlur: handle_external,
           placeholder: 'https://...'
         })
       )
     ),
+    createElement('button', { type: 'button', onClick: handle_external, disabled: loading || !media_url.trim() }, loading ? 'সংরক্ষণ হচ্ছে…' : 'এই URL ব্যবহার করুন'),
     createElement('button', { type: 'button', onClick: load_library, disabled: loading }, loading ? 'লোড হচ্ছে…' : 'মিডিয়া লাইব্রেরি থেকে নির্বাচন'),
     selected && !Array.isArray(selected) && createElement('div', { className: 'media-selection-summary' },
       createElement('span', null, selected.file_name || 'Media'),
