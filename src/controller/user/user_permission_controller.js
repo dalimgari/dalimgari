@@ -18,7 +18,7 @@ export async function get_user_permissions() {
 }
 
 export async function user_has_permission(permission_key) {
-  const { data, error } = await supabase.rpc('has_permission', { required_permission: permission_key })
+  const { data, error } = await supabase.rpc('current_user_has_permission', { required_permission: permission_key })
   if (error) return false
   return Boolean(data)
 }
