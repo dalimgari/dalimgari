@@ -1,31 +1,49 @@
 import { supabase } from './supabase_client'
 
+async function read_public_table(table_name, build_query) {
+  try {
+    let query = supabase.from(table_name).select('*')
+    if (build_query) query = build_query(query)
+    const { data, error } = await query
+    if (error) throw error
+    return data ?? []
+  } catch (error) {
+    console.error(`Failed to load ${table_name}`, error)
+    return []
+  }
+}
+
 export async function get_website_information() {
-  const { data, error } = await supabase.from('website_information').select('*').eq('is_active', true)
-  if (error) throw error
-  return data ?? []
+  return read_public_table('website_information', (query) => query.eq('is_active', true))
 }
 
 export async function get_admin_information() {
-  const { data, error } = await supabase.from('admin_information').select('*, profiles(*)').limit(1).maybeSingle()
-  if (error) throw error
-  return data
+  try {
+    const { data, error } = await supabase
+      .from('admin_information')
+      .select('*')
+      .limit(1)
+      .maybeSingle()
+    if (error) throw error
+    return data ?? null
+  } catch (error) {
+    console.error('Failed to load admin information', error)
+    return null
+  }
 }
 
 export async function get_public_pages() {
-  const { data, error } = await supabase.from('pages').select('*').eq('is_visible', true).eq('status', 'published').order('display_order', { ascending: true })
-  if (error) throw error
-  return data ?? []
+  return read_public_table('pages', (query) =>
+    query.eq('is_visible', true).eq('status', 'published').order('display_order', { ascending: true })
+  )
 }
 
 export async function get_public_posts() {
-  const { data, error } = await supabase.from('posts').select('*, albums(*), post_media(*, media(*))').eq('is_visible', true).eq('status', 'published').order('published_at', { ascending: false })
-  if (error) throw error
-  return data ?? []
+  return read_public_table('posts', (query) =>
+    query.eq('is_visible', true).eq('status', 'published').order('published_at', { ascending: false })
+  )
 }
 
 export async function get_public_customization() {
-  const { data, error } = await supabase.from('customization_settings').select('*').eq('is_active', true)
-  if (error) throw error
-  return data ?? []
+  return read_public_table('customization_settings', (query) => query.eq('is_active', true))
 }
