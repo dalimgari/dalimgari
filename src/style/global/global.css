@@ -4,19 +4,3 @@
 .website-header:has(.public-search.is-open) .website-header-leading,.website-header:has(.public-search.is-open) .website-brand,.website-header:has(.public-search.is-open) .website-header-controls>:not(.public-search),.website-header:has(.public-search.is-preparing) .website-header-leading,.website-header:has(.public-search.is-preparing) .website-brand,.website-header:has(.public-search.is-preparing) .website-header-controls>:not(.public-search){visibility:hidden;pointer-events:none}
 
 
-/* Global website area: invisible boundary with one continuous background. */
-html,body{min-height:100%;margin:0;background:var(--color-background)}
-#root{min-height:100vh;width:100%;background:var(--color-background)}
-.global-website-area{
-  position:relative;
-  width:min(100%,1440px);
-  min-height:100vh;
-  margin:0 auto;
-  box-sizing:border-box;
-  overflow:clip;
-  isolation:isolate;
-  background:var(--color-background);
-  color:var(--color-text);
-}
-.global-website-area>*{min-width:0;max-width:100%}
-.global-website-area img,.global-website-area video,.global-website-area iframe{max-width:100%}
