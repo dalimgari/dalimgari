@@ -126,13 +126,7 @@ function village_information_workspace() {
     createElement('div', { className: 'admin-actions' },
       createElement('button', { type: 'button', onClick: save }, 'Save Village Information')
     ),
-    createElement('details', null,
-      createElement('summary', null, 'Existing records'),
-      (rows ?? []).map((row) => createElement('div', { key: row.website_information_id, className: 'admin-record-row' },
-        createElement('span', null, row.information_key),
-        createElement('button', { type: 'button', onClick: () => remove(row.information_key) }, 'Delete')
-      ))
-    )
+
   )
 }
 
