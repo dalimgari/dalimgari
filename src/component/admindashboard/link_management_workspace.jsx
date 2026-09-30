@@ -43,12 +43,10 @@ export function link_management_workspace() {
     set_saving(true)
     const icon_result = await supabase.from('domain_icons').upsert({ domain, icon_url: icon_url(domain), updated_at: new Date().toISOString() }, { onConflict: 'domain' })
     if (icon_result.error) { set_saving(false); return set_message(icon_result.error.message) }
-    let link_key = editing ? rows.find((row) => row.link_id === editing)?.link_key : null
-    if (!link_key) {
-      const next_order = rows.reduce((max, row) => Math.max(max, Number(row.display_order) || 0), 0) + 1
-      link_key = `link_${next_order}`
-    }
-    const payload = { link_key, title, domain, url, icon_domain: domain, display_order: editing ? rows.find((row) => row.link_id === editing)?.display_order : rows.length + 1, updated_at: new Date().toISOString() }
+    const existing_row = editing ? rows.find((row) => row.link_id === editing) : null
+    const next_order = rows.reduce((max, row) => Math.max(max, Number(row.display_order) || 0), 0) + 1
+    const link_key = existing_row?.link_key ?? `link_${next_order}`
+    const payload = { link_key, title, domain, url, icon_domain: domain, display_order: existing_row?.display_order ?? next_order, updated_at: new Date().toISOString() }
     const result = editing ? await supabase.from('managed_links').update(payload).eq('link_id', editing) : await supabase.from('managed_links').insert(payload)
     set_saving(false)
     if (result.error) return set_message(result.error.message)
