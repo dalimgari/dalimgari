@@ -1,6 +1,7 @@
 DALIMGARI VILLAGE WEBSITE - PROJECT REQUIREMENTS
 
 PRIMARY TOP-LEVEL RULE
+
 Before deciding or performing any project work, always read and follow this PROJECT_REQUIREMENTS.txt file. If the project owner adds a new permanent requirement, it must be added to this file. If an existing requirement is changed, this file must be updated. This file is the primary and authoritative reference for project decisions and development.
 
 CORE REQUIREMENTS
@@ -43,12 +44,34 @@ CORE REQUIREMENTS
 30. A Global Unique Field / ID System must be used throughout the entire website. Every field/data entity must have a clear, understandable, unique identifier. Internal identifiers do not need to be exposed to the project owner in the user interface.
 31. The Global Unique Field / ID System must support dynamic collections of multiple records. Do not design repeated records using one generic value assignment such as page = 'a', page = 'b', page = 'c'. Each record must have its own unique identity, such as page1, page2, page3 conceptually, while the actual implementation should use a scalable unique identifier system.
 32. The Admin Dashboard must also have an analysisinfo module for analytics-related functionality.
-33. The analysisinfo module must show website visitor analytics and all types of visitor information that the system can legitimately and technically collect. Visitor analytics must be stored and structured so the information can be analyzed and displayed through the Admin Dashboard.
+33. The analysisinfo module must show website visitor analytics and all types of visitor information that the system can legitimately and technically collect. Visitor analytics must be stored and structured so the information can be analyzed and displayed through the Admin Dashboard. Visitor information must be retained for 30 days.
 34. A Global Media Upload System must be used throughout the entire website. All media fields should use the same media management architecture unless a specific location explicitly requires a separate method.
 35. The Global Media Upload System must provide exactly three selectable methods:
    1. upload - upload media directly to the project's storage system and automatically obtain its URL/reference.
    2. select file - select a previously uploaded file and use only its existing link/reference.
    3. url - provide an external media URL hosted on another server/service, such as YouTube.
 36. A single media field must use only one media method at a time. Upload, select file, and URL methods must not be active simultaneously for the same media field.
+37. The project must recognize exactly three account/user types:
+   1. admin
+   2. user
+   3. visitor
+38. Admin accounts must be managed through Supabase. The public website must not provide a way to create an Admin account. Any account created through the website registration system must always be a User account.
+39. The Admin Dashboard must have a postmanagement module for creating, editing, and deleting posts. Post creation must include:
+   1. caption
+   2. global media upload method
+   3. album (optional)
+   Posts must be displayed as database/table records below the management interface.
+40. The Admin Dashboard must have a usermanagement module for viewing information about users who created accounts. Admins must be able to reset a user's password and grant special permissions.
+41. A Global Permission System must be used throughout the entire website. Permissions must control who can view or change data and functions according to the assigned permission.
+42. Media selected for an album must be groupable and displayable by album. Media must also be capable of being displayed as individual items or kept undisplayed, according to the stored configuration.
+43. User authentication must support Google and Email/Phone with password.
+44. The Admin Dashboard must have a customization module for managing website theme, fonts, colors, and related visual settings.
+45. Database security must use Row Level Security (RLS) and appropriate access policies. Who can view or change data must be controlled by the permission and security architecture.
+46. The Admin Dashboard must have a system module responsible for system-level functions.
+47. The system module must maintain the latest 3 database backups and provide an easy mechanism to reset/restore the database from any one of those backups.
+48. The system module must allow the Admin to configure what the website displays for database loading, error, and empty-data states.
+49. SEO information such as page title, description, URL/slug, and related metadata must be generated/handled automatically where appropriate and must also be visible/manageable through the relevant Admin Dashboard interface.
+50. The development workflow is: project owner -> ChatGPT -> GitHub and Supabase. The project must be designed so the owner can operate the development workflow from an Android phone without coding knowledge.
+51. Database schema and security architecture must be designed according to these requirements and explained in simple terms when necessary. Page HTML stored in the database must be rendered through a security-conscious architecture with appropriate sanitization and protection against unsafe content.
 
 These requirements are the core constraints for the project and must be followed during development.
