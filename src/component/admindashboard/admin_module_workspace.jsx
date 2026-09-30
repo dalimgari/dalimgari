@@ -16,9 +16,6 @@ const website_fields = [
   ['postal_code', 'পোস্টাল কোড'],
   ['contact_phone', 'যোগাযোগের ফোন'],
   ['contact_email', 'যোগাযোগের ইমেইল'],
-  ['facebook_link', 'Facebook'],
-  ['youtube_link', 'YouTube'],
-  ['other_social_links', 'অন্যান্য Social Link'],
   ['home_banner_media_url', 'হোম ব্যানার মিডিয়া URL'],
   ['logo_url', 'লোগো URL'],
   ['favicon_url', 'Favicon URL']
