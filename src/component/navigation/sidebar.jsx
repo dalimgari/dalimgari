@@ -14,8 +14,7 @@ export function sidebar({ id = 'website-sidebar', is_open = false, on_toggle = (
         ),
         createElement('nav', { 'aria-label': language === 'bn' ? 'প্রধান নেভিগেশন' : 'Main navigation' },
           createElement(Link, { to: '/', onClick: on_toggle }, language === 'bn' ? 'হোম' : 'Home'),
-          visible_pages.map((item) => createElement(Link, { key: item.page_key, to: `/${String(item.page_slug).replace(/^\/+|\/+$/g, '')}`, onClick: on_toggle }, get_localized_value(item.page_title, language))),
-          createElement(Link, { to: '/login', onClick: on_toggle }, language === 'bn' ? 'লগইন' : 'Login')
+          visible_pages.map((item) => createElement(Link, { key: item.page_key, to: `/${String(item.page_slug).replace(/^\/+|\/+$/g, '')}`, onClick: on_toggle }, get_localized_value(item.page_title, language)))
         )
       )
     )
