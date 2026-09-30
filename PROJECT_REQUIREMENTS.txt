@@ -1,7 +1,6 @@
 DALIMGARI VILLAGE WEBSITE - PROJECT REQUIREMENTS
 
 PRIMARY TOP-LEVEL RULE
-
 Before deciding or performing any project work, always read and follow this PROJECT_REQUIREMENTS.txt file. If the project owner adds a new permanent requirement, it must be added to this file. If an existing requirement is changed, this file must be updated. This file is the primary and authoritative reference for project decisions and development.
 
 CORE REQUIREMENTS
@@ -73,5 +72,26 @@ CORE REQUIREMENTS
 49. SEO information such as page title, description, URL/slug, and related metadata must be generated/handled automatically where appropriate and must also be visible/manageable through the relevant Admin Dashboard interface.
 50. The development workflow is: project owner -> ChatGPT -> GitHub and Supabase. The project must be designed so the owner can operate the development workflow from an Android phone without coding knowledge.
 51. Database schema and security architecture must be designed according to these requirements and explained in simple terms when necessary. Page HTML stored in the database must be rendered through a security-conscious architecture with appropriate sanitization and protection against unsafe content.
+52. User profiles must store the necessary non-sensitive profile information in the database. Sensitive authentication credentials must remain managed by Supabase Auth.
+53. The permission architecture must support multiple admin roles in the future, while the initial project can operate with the primary Admin model. Permissions must be assignable, changeable, and revocable.
+54. Account recovery must be supported for Users. Admins must have a controlled mechanism to reset a User's password.
+55. Post records must support publication status and visibility controls so posts can be created and managed without necessarily being publicly visible immediately.
+56. Page records must support automatic slug generation, unique page identity, visibility control, and ordering for page navigation.
+57. Media records must support file metadata, ownership/reference, optional album grouping, display visibility, and the three Global Media Upload methods.
+58. Visitor analytics must collect only data that is technically available, necessary for the stated analytics purpose, and legally appropriate. Sensitive or unnecessary personal information must not be collected merely for analytics.
+59. Visitor analytics must automatically expire after 30 days according to the system's retention policy.
+60. The system module must provide configurable loading, error, and empty states and other system-level configuration without requiring source-code changes for ordinary content changes.
+61. Audit logs must record important administrative actions, including the actor, action, affected data/entity, and relevant time information, so important changes can be reviewed.
+62. Data deletion must account for related records and media dependencies. Important destructive actions should require confirmation and should avoid unintended cascading data loss.
+63. The translation architecture must keep Bengali as the default language and support English without using duplicated field names such as title.bn and title.eng.
+64. Website navigation must provide clear, responsive navigation for the header, sidebar, body, footer, posts, and dynamic pages.
+65. Visitor, User, and Admin access must be separated through authentication, RLS, and the Global Permission System. Visitor access must be limited to public functionality.
+66. Security and privacy architecture must minimize collection of sensitive User/Visitor information and must restrict access to protected information according to role, permission, and RLS policies.
+67. The shared database and data model must remain suitable for future Android apps, web apps, APIs, and other software without requiring the data model to be redesigned around one specific user interface.
+68. The customization module must manage approved visual settings such as theme, fonts, colors, and related appearance configuration from the Admin Dashboard.
+69. The project must use responsibility-based architecture and naming consistently across modules, components, controllers, functions, logic, layouts, files, and folders. All code, file names, and folder names must remain lowercase.
+70. Responsive UI must adapt to mobile and web/desktop viewports while preserving the same core data and functionality.
+71. The development workflow must remain Android-phone-friendly and follow the project owner's stated workflow: project owner -> ChatGPT -> GitHub and Supabase.
+72. The project must target free-tier services and avoid mandatory paid dependencies or billing requirements.
 
-These requirements are the core constraints for the project and must be followed during development.
+These requirements are the core constraints for the project and must be followed during development. No Database Schema or Supabase implementation work should begin until the project owner explicitly authorizes it after the requirements are finalized.
