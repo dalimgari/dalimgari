@@ -1,4 +1,5 @@
 import { createElement, useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { website_layout } from '../../layout/website/website_layout'
 import { header } from '../../component/navigation/header'
 import { banner } from '../../component/common/banner'
@@ -13,25 +14,40 @@ import { apply_seo } from '../../function/seo/apply_seo'
 
 const empty_state = { loading: true, error: null, information: [], admin: null, pages: [], posts: [], customization: [] }
 
-function render_website(state, language) {
-  const site_title = state.information.find((item) => item.information_key === 'site_title')?.information_value?.[language] ?? 'ডালিমগাড়ী'
+function render_website(state, language, pathname) {
+  const site_title = state.information.find((item) => item.information_key === 'site_title')?.information_value?.[language] ?? ''
   const banner_data = state.information.find((item) => item.information_key === 'home_banner')?.information_value ?? {}
+  const page_slug = pathname.replace(/^\/+|\/+$/g, '')
+  const page = page_slug ? state.pages.find((item) => item.page_slug === page_slug) : null
+  const page_title = page ? page.page_title?.[language] ?? page.page_title?.bn ?? page.page_title?.en ?? '' : ''
+  const is_home = !page_slug
+
+  const body = is_home
+    ? createElement('main', { className: 'website-body' },
+        createElement(page_navigation, { pages: state.pages, language }),
+        createElement(post_list, { posts: state.posts, language })
+      )
+    : createElement('main', { className: 'website-body' },
+        page
+          ? createElement('article', {
+              className: 'website-page',
+              dangerouslySetInnerHTML: { __html: page.html_content ?? '' }
+            })
+          : null
+      )
 
   return createElement(website_layout, {
     profile: state.admin?.information_value ?? state.admin?.profiles ?? null,
     navigation_items: state.pages,
     header: createElement(header, { site_title }),
-    banner: createElement(banner, banner_data),
-    body: createElement('main', { className: 'website-body' },
-      createElement(page_navigation, { pages: state.pages, language }),
-      createElement(post_list, { posts: state.posts, language })
-    ),
-    footer: createElement(footer)
-  })
+    banner: is_home ? createElement(banner, banner_data) : null,
+    body
+  , footer: createElement(footer) })
 }
 
 export function public_page() {
   const [state, set_state] = useState(empty_state)
+  const location = useLocation()
   const language = localStorage.getItem('language') || 'bn'
 
   useEffect(() => {
@@ -48,9 +64,11 @@ export function public_page() {
       .then(([information, admin, pages, posts, customization]) => {
         if (!active) return
         apply_customization(customization)
-        const seo = information.find((item) => item.information_key === 'seo')?.information_value ?? {}
+        const page_slug = location.pathname.replace(/^\/+|\/+$/g, '')
+        const page = pages.find((item) => item.page_slug === page_slug)
+        const seo = page?.seo_data ?? information.find((item) => item.information_key === 'seo')?.information_value ?? {}
         apply_seo({
-          title: seo.title?.[language] ?? seo.title?.bn ?? 'ডালিমগাড়ী',
+          title: seo.title?.[language] ?? seo.title?.bn ?? page?.page_title?.[language] ?? page?.page_title?.bn ?? '',
           description: seo.description?.[language] ?? seo.description?.bn ?? '',
           canonical_url: seo.canonical_url ?? window.location.href
         })
@@ -64,8 +82,8 @@ export function public_page() {
     return () => {
       active = false
     }
-  }, [language])
+  }, [language, location.pathname])
 
   if (state.loading) return createElement(website_skeleton)
-  return render_website(state, language)
+  return render_website(state, language, location.pathname)
 }
