@@ -1,0 +1,15 @@
+:root{color-scheme:light}
+
+@media (prefers-color-scheme: dark){
+  :root{
+    color-scheme:dark;
+    --color-background:#0b1410;
+    --color-surface:#122019;
+    --color-surface-strong:#17271f;
+    --color-text:#f4f8f5;
+    --color-border:#2a4035;
+    --color-secondary:#a4b5aa;
+    --color-primary:#55b58e;
+    --color-primary-strong:#7ad2ad;
+  }
+}
