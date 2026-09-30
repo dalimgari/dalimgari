@@ -13,6 +13,21 @@ const module_config = {
   usermanagement: { table: 'profiles', id: 'profile_id', label: 'User Management', fields: ['display_name', 'email', 'phone', 'profile_image_url', 'bio', 'social_links', 'other_links', 'is_active'], allow_delete: false }
 }
 
+function field_value(value) {
+  if (value === null || value === undefined) return ''
+  if (typeof value === 'object') return JSON.stringify(value)
+  return String(value)
+}
+
+function parse_value(field, value) {
+  if (['information_value', 'social_links', 'other_links', 'page_title', 'seo_data', 'caption', 'setting_value', 'bio'].includes(field)) {
+    try { return JSON.parse(value || '{}') } catch { return {} }
+  }
+  if (field === 'display_order') return Number(value || 0)
+  if (field === 'is_active' || field === 'is_visible') return value === true || value === 'true'
+  return value || null
+}
+
 export function admin_module_workspace({ module_key }) {
   const config = module_config[module_key]
   const [rows, set_rows] = useState([])
@@ -31,7 +46,7 @@ export function admin_module_workspace({ module_key }) {
 
   async function save(event) {
     event.preventDefault()
-    const payload = { ...form }
+    const payload = Object.fromEntries(config.fields.map((field) => [field, parse_value(field, form[field])]))
     const query = editing_id ? supabase.from(config.table).update(payload).eq(config.id, editing_id) : supabase.from(config.table).insert(payload)
     const { error } = await query
     set_message(error ? error.message : 'Saved')
@@ -53,7 +68,7 @@ export function admin_module_workspace({ module_key }) {
     ) : null,
     createElement('div', null, rows.map((row) => createElement('article', { key: row[config.id] },
       createElement('span', null, row.display_name ?? row.information_key ?? row.page_key ?? row.post_key ?? row.setting_key ?? row.visited_at ?? row[config.id]),
-      config.fields.length ? createElement('button', { type: 'button', onClick: () => { set_editing_id(row[config.id]); set_form(Object.fromEntries(config.fields.map((field) => [field, row[field] ?? '']))) } }, 'Edit') : null,
+      config.fields.length ? createElement('button', { type: 'button', onClick: () => { set_editing_id(row[config.id]); set_form(Object.fromEntries(config.fields.map((field) => [field, field_value(row[field])])))} }, 'Edit') : null,
       config.allow_delete ? createElement('button', { type: 'button', onClick: () => remove(row[config.id]) }, 'Delete') : null
     )))
   )
