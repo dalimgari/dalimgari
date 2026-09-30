@@ -186,8 +186,7 @@ function admin_information_workspace() {
     set_form({
       name: info.admin_name ?? '', email: info.admin_email ?? '', phone: info.admin_phone ?? '',
       image: info.admin_profile_image ?? '', bio: info.admin_bio ?? '',
-      facebook: row.social_links?.facebook ?? '', youtube: row.social_links?.youtube ?? '',
-      other: row.other_links?.website ?? ''
+      admin_links: Array.isArray(row.other_links?.admin_sidebar_links) ? row.other_links.admin_sidebar_links : []
     })
   }
 
