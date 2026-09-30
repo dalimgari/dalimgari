@@ -1,4 +1,4 @@
-import { cloneElement, createElement, useState } from 'react'
+import { cloneElement, createElement, useEffect, useRef, useState } from 'react'
 import { sidebar } from '../../component/navigation/sidebar'
 
 export function website_layout({
@@ -12,7 +12,25 @@ export function website_layout({
   language = 'bn'
 }) {
   const [sidebar_open, set_sidebar_open] = useState(false)
+  const header_ref = useRef(null)
   const toggle_sidebar = () => set_sidebar_open((value) => !value)
+
+  useEffect(() => {
+    const update_header_height = () => {
+      const height = header_ref.current?.getBoundingClientRect().height
+      if (height) document.documentElement.style.setProperty('--website-header-height', `${height}px`)
+    }
+
+    update_header_height()
+    const observer = header_ref.current ? new ResizeObserver(update_header_height) : null
+    if (observer && header_ref.current) observer.observe(header_ref.current)
+    window.addEventListener('resize', update_header_height)
+
+    return () => {
+      observer?.disconnect()
+      window.removeEventListener('resize', update_header_height)
+    }
+  }, [])
 
   const website_header = header
     ? cloneElement(header, {
@@ -46,7 +64,7 @@ export function website_layout({
     createElement(
       'div',
       { className: 'website-content' },
-      website_header,
+      website_header && createElement('div', { ref: header_ref }, website_header),
       banner,
       body,
       footer
