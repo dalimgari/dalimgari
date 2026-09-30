@@ -152,3 +152,4 @@ export function public_search({ information = [], pages = [], posts = [], links 
       )
     )
   )
+}
