@@ -1,21 +1,23 @@
-import { supabase } from '../../service/supabase/supabase_client.js'
+import { supabase_client } from '../../service/supabase/supabase_client.js'
 
 export async function upload_media(file, path) {
-  const { data, error } = await supabase.storage
+  if (!file) throw new Error('media_file_required')
+
+  const { data, error } = await supabase_client.storage
     .from('global_media')
     .upload(path, file, { contentType: file.type, upsert: false })
 
   if (error) throw error
 
-  const { data: public_url } = supabase.storage
+  const { data: public_data } = supabase_client.storage
     .from('global_media')
     .getPublicUrl(data.path)
 
-  return { path: data.path, url: public_url.publicUrl }
+  return { path: data.path, url: public_data.publicUrl }
 }
 
 export async function select_media() {
-  const { data, error } = await supabase
+  const { data, error } = await supabase_client
     .from('media')
     .select('media_id, media_key, media_url, media_method, album_id, file_name, mime_type')
     .eq('is_visible', true)
