@@ -1,10 +1,15 @@
 import { createElement, useId, useState } from 'react'
 import { upload_media, get_media_library, save_external_media } from '../../controller/media/global_media_controller'
 
-export function global_media_uploader({ on_select = () => {}, accept = 'image/*', label = 'মিডিয়া নির্বাচন' }) {
+export function global_media_uploader({
+  on_select = () => {},
+  accept = '*/*',
+  label = 'মিডিয়া',
+  multiple = false,
+  initial_url = ''
+}) {
   const id = useId()
-  const [method, set_method] = useState('upload')
-  const [media_url, set_media_url] = useState('')
+  const [media_url, set_media_url] = useState(initial_url ?? '')
   const [library, set_library] = useState([])
   const [selected, set_selected] = useState(null)
   const [message, set_message] = useState('')
@@ -12,7 +17,48 @@ export function global_media_uploader({ on_select = () => {}, accept = 'image/*'
 
   function select_media(media) {
     set_selected(media)
+    set_media_url(media?.media_url ?? '')
     on_select(media)
+  }
+
+  async function handle_upload(event) {
+    const files = Array.from(event.target.files ?? [])
+    if (!files.length) return
+    set_loading(true)
+    set_message('')
+    try {
+      const uploaded = []
+      for (const file of files) uploaded.push(await upload_media(file))
+      if (multiple) {
+        set_selected(uploaded)
+        set_media_url(uploaded.map((item) => item.media_url).join('\n'))
+        uploaded.forEach((item) => on_select(item))
+      } else {
+        select_media(uploaded[0])
+      }
+      set_message(uploaded.length > 1 ? `${uploaded.length}টি ফাইল আপলোড সম্পন্ন হয়েছে` : 'আপলোড সম্পন্ন হয়েছে')
+    } catch (error) {
+      set_message(error?.message || 'আপলোড করা যায়নি')
+    } finally {
+      set_loading(false)
+      event.target.value = ''
+    }
+  }
+
+  async function handle_external() {
+    const value = media_url.trim()
+    if (!value) return
+    set_loading(true)
+    set_message('')
+    try {
+      const media = await save_external_media(value)
+      select_media(media)
+      set_message('URL সংরক্ষণ করা হয়েছে')
+    } catch (error) {
+      set_message(error?.message || 'URL সংরক্ষণ করা যায়নি')
+    } finally {
+      set_loading(false)
+    }
   }
 
   async function load_library() {
@@ -27,62 +73,36 @@ export function global_media_uploader({ on_select = () => {}, accept = 'image/*'
     }
   }
 
-  async function handle_upload(event) {
-    const file = event.target.files?.[0]
-    if (!file) return
-    set_loading(true)
-    set_message('')
-    try {
-      const media = await upload_media(file)
-      select_media(media)
-      set_message('আপলোড সম্পন্ন হয়েছে')
-    } catch {
-      set_message('আপলোড করা যায়নি')
-    } finally {
-      set_loading(false)
-      event.target.value = ''
-    }
-  }
-
-  async function handle_external() {
-    if (!media_url.trim()) return
-    set_loading(true)
-    set_message('')
-    try {
-      const media = await save_external_media(media_url.trim())
-      select_media(media)
-      set_message('মিডিয়া সংরক্ষণ করা হয়েছে')
-      set_media_url('')
-    } catch {
-      set_message('URL সংরক্ষণ করা যায়নি')
-    } finally {
-      set_loading(false)
-    }
-  }
-
   return createElement('section', { className: 'global-media-uploader', 'aria-label': label },
-    createElement('div', { className: 'form-field' },
-      createElement('label', { htmlFor: `${id}-method` }, 'মিডিয়া নির্বাচন পদ্ধতি'),
-      createElement('select', { id: `${id}-method`, value: method, disabled: loading, onChange: (event) => set_method(event.target.value) },
-        createElement('option', { value: 'upload' }, 'ডিভাইস থেকে আপলোড'),
-        createElement('option', { value: 'select' }, 'মিডিয়া লাইব্রেরি থেকে নির্বাচন'),
-        createElement('option', { value: 'url' }, 'বাহ্যিক URL ব্যবহার')
+    createElement('strong', null, label),
+    createElement('div', { className: 'admin-form-grid' },
+      createElement('label', { className: 'admin-form-field' },
+        createElement('span', null, 'ফাইল নির্বাচন করুন'),
+        createElement('input', { id: `${id}-file`, type: 'file', accept, multiple, disabled: loading, onChange: handle_upload })
+      ),
+      createElement('label', { className: 'admin-form-field' },
+        createElement('span', null, 'File URL'),
+        createElement('input', {
+          id: `${id}-url`, type: 'url', value: media_url, disabled: loading,
+          onChange: (event) => set_media_url(event.target.value),
+          onBlur: handle_external,
+          placeholder: 'https://...'
+        })
       )
     ),
-    method === 'upload' && createElement('div', { className: 'form-field' },
-      createElement('label', { htmlFor: `${id}-file` }, 'ফাইল নির্বাচন করুন'),
-      createElement('input', { id: `${id}-file`, type: 'file', accept, disabled: loading, onChange: handle_upload })
+    createElement('button', { type: 'button', onClick: load_library, disabled: loading }, loading ? 'লোড হচ্ছে…' : 'মিডিয়া লাইব্রেরি থেকে নির্বাচন'),
+    selected && !Array.isArray(selected) && createElement('div', { className: 'media-selection-summary' },
+      createElement('span', null, selected.file_name || 'Media'),
+      createElement('a', { href: selected.media_url, target: '_blank', rel: 'noreferrer' }, selected.media_url)
     ),
-    method === 'select' && createElement('div', { className: 'media-library-actions' },
-      createElement('button', { type: 'button', onClick: load_library, disabled: loading }, loading ? 'লোড হচ্ছে…' : 'মিডিয়া লোড করুন'),
-      library.map((media) => createElement('button', { type: 'button', key: media.media_id, onClick: () => select_media(media), 'aria-pressed': selected?.media_id === media.media_id }, media.original_name ?? 'মিডিয়া'))
+    Array.isArray(selected) && createElement('p', { className: 'media-selection-summary' }, `${selected.length}টি ফাইল নির্বাচিত`),
+    library.length > 0 && createElement('div', { className: 'media-library-actions' },
+      library.map((media) => createElement('button', {
+        type: 'button',
+        key: media.media_id,
+        onClick: () => select_media(media)
+      }, media.file_name || media.media_url || 'মিডিয়া'))
     ),
-    method === 'url' && createElement('div', { className: 'media-url-row' },
-      createElement('label', { htmlFor: `${id}-url` }, 'বাহ্যিক মিডিয়া URL'),
-      createElement('input', { id: `${id}-url`, type: 'url', value: media_url, disabled: loading, onChange: (event) => set_media_url(event.target.value), placeholder: 'https://...', autoComplete: 'url' }),
-      createElement('button', { type: 'button', onClick: handle_external, disabled: loading || !media_url.trim() }, loading ? 'সংরক্ষণ হচ্ছে…' : 'URL ব্যবহার করুন')
-    ),
-    selected && createElement('p', { className: 'media-selection-summary', role: 'status' }, `নির্বাচিত: ${selected.original_name ?? selected.media_url ?? 'মিডিয়া'}`),
     createElement('div', { className: 'media-status', 'aria-live': 'polite' }, message)
   )
 }
