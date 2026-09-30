@@ -2,6 +2,8 @@ import { createElement, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../../service/supabase/supabase_client'
 import { delete_record } from '../../controller/admin/admin_record_controller'
 
+const footer_fields = [['footer_copyright', 'Footer Copyright']]
+
 const website_fields = [
   ['website_name', 'ওয়েবসাইটের নাম'],
   ['website_description', 'ওয়েবসাইটের বর্ণনা'],
