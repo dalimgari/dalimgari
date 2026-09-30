@@ -14,10 +14,10 @@ const style = `
 @media(prefers-reduced-motion:reduce){.website-skeleton-block{animation:none}}
 `
 
-export function website_skeleton() {
+export function website_skeleton({ language = 'bn' } = {}) {
   return createElement(
     'main',
-    { className: 'website-skeleton', 'aria-label': 'Loading website' },
+    { className: 'website-skeleton', 'aria-label': language === 'bn' ? 'ওয়েবসাইট লোড হচ্ছে' : 'Loading website' },
     createElement('style', null, style),
     createElement('div', { className: 'website-skeleton-header' },
       block('website-skeleton-logo'),
@@ -47,6 +47,6 @@ export function website_skeleton() {
       block('website-skeleton-wide')
     ),
     createElement('footer', { className: 'website-skeleton-footer' }, block('website-skeleton-footer-line')),
-    createElement('div', { className: 'website-skeleton-status', role: 'status', 'aria-live': 'polite' }, 'লোড হচ্ছে…')
+    createElement('div', { className: 'website-skeleton-status', role: 'status', 'aria-live': 'polite' }, language === 'bn' ? 'লোড হচ্ছে…' : 'Loading…')
   )
 }
