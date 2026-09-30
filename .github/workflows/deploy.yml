@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -24,6 +24,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: restore global stylesheet and preserve responsive header sizing
+        run: |
+          git checkout 13e4acec6eace9be479377a82b2063ca26a5ec52 -- src/style/global/global.css
+          cat >> src/style/global/global.css <<'EOF'
+
+/* Search fits inside the responsive header without changing its natural height. */
+.website-header:has(.public-search.is-open),
+.website-header:has(.public-search.is-preparing){
+  min-height:inherit !important;
+  height:auto !important;
+  box-sizing:border-box;
+}
+EOF
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/style/global/global.css
+          if ! git diff --cached --quiet; then
+            git commit -m "Restore global stylesheet and responsive header sizing [skip ci]"
+            git push
+          fi
       - uses: actions/setup-node@v4
         with:
           node-version: 22
