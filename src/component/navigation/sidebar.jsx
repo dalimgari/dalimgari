@@ -65,7 +65,7 @@ export function sidebar({ id = 'website-sidebar', is_open = false, on_toggle = (
           visible_pages.map((item) =>
             createElement(
               Link,
-              { key: item.page_key, to: `/${String(item.page_slug).replace(/^\\/+|\\/+$/g, '')}`, onClick: on_toggle },
+              { key: item.page_key, to: `/${String(item.page_slug).replace(/^\/+|\/+$/g, '')}`, onClick: on_toggle },
               get_localized_value(item.page_title, language)
             )
           ),
