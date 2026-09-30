@@ -94,7 +94,7 @@ function render_home_page(state, language) {
 }
 
 function render_dynamic_page(state, language, pathname) {
-  const page_slug = pathname.replace(/^\\/+|\\/+$/g, '')
+  const page_slug = pathname.replace(/^\/+|\/+$/g, '')
   const page = state.pages.find((item) => item.page_slug === page_slug && item.page_slug)
 
   return createElement(
@@ -169,7 +169,7 @@ export function public_page() {
 
         apply_customization(customization)
 
-        const page_slug = location.pathname.replace(/^\\/+|\\/+$/g, '')
+        const page_slug = location.pathname.replace(/^\/+|\/+$/g, '')
         const page = pages.find((item) => item.page_slug === page_slug && item.page_slug)
         const seo = page?.seo_data ?? information.find((item) => item.information_key === 'seo')?.information_value ?? {}
 
