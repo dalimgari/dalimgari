@@ -3,8 +3,6 @@ import { Link } from 'react-router-dom'
 import { get_localized_value } from '../../function/translation/language'
 import './sidebar.css'
 
-const DEMO_ADMIN_AVATAR = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22%3E%3Crect width=%22128%22 height=%22128%22 rx=%2264%22 fill=%22%23dfe8e1%22/%3E%3Ccircle cx=%2264%22 cy=%2247%22 r=%2222%22 fill=%22%23778b7d%22/%3E%3Cpath d=%22M27 111c4-24 18-36 37-36s33 12 37 36%22 fill=%22%23778b7d%22/%3E%3C/svg%3E'
-
 function first_value(value, language = 'bn') {
   if (!value) return ''
   if (typeof value === 'object') return value[language] ?? value.bn ?? value.en ?? ''
@@ -30,7 +28,7 @@ function link_icon(link) {
   })
 }
 
-export function sidebar({ id = 'website-sidebar', is_open = false, on_toggle = () => {}, navigation_items = [], language = 'bn', profile = null, managed_links = [] }) {
+export function sidebar({ id = 'website-sidebar', is_open = false, on_toggle = () => {}, navigation_items = [], language = 'bn', profile = null, managed_links = [], language_control = null, theme_control = null }) {
   const visible_pages = navigation_items.filter((item) => item.page_slug && item.is_visible)
   const admin = profile?.information_value && typeof profile.information_value === 'object' ? profile.information_value : (profile ?? {})
   const admin_name = first_value(admin.admin_name, language)
@@ -45,8 +43,12 @@ export function sidebar({ id = 'website-sidebar', is_open = false, on_toggle = (
           createElement(Link, { to: '/', onClick: on_toggle }, language === 'bn' ? 'হোম' : 'Home'),
           visible_pages.map((item) => createElement(Link, { key: item.page_key, to: `/${String(item.page_slug).replace(/^\/+|\/+$/g, '')}`, onClick: on_toggle }, get_localized_value(item.page_title, language)))
         ),
+        (language_control || theme_control) && createElement('div', { className: 'sidebar-preference-controls', 'aria-label': language === 'bn' ? 'ভাষা ও থিম' : 'Language and theme' },
+          language_control && createElement('div', { className: 'sidebar-preference-control sidebar-language-control' }, language_control),
+          theme_control && createElement('div', { className: 'sidebar-preference-control sidebar-theme-control' }, theme_control)
+        ),
         (admin_name || admin_image || admin_links.length > 0) && createElement('section', { className: 'sidebar-admin-profile', 'aria-label': language === 'bn' ? 'অ্যাডমিন তথ্য' : 'Admin information' },
-          createElement('img', { className: 'sidebar-admin-avatar', src: admin_image || DEMO_ADMIN_AVATAR, alt: admin_name || 'Admin', loading: 'lazy' }),
+          admin_image && createElement('img', { className: 'sidebar-admin-avatar', src: admin_image, alt: admin_name || 'Admin', loading: 'lazy' }),
           admin_name && createElement('strong', { className: 'sidebar-admin-name' }, admin_name),
           admin_links.length > 0 && createElement('div', { className: 'sidebar-admin-links' },
             admin_links.map((link, index) => createElement('a', {
