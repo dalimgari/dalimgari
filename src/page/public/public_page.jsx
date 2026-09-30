@@ -50,6 +50,7 @@ function render_website(state, language, pathname) {
   return createElement(website_layout, {
     profile: state.admin?.information_value ?? state.admin?.profiles ?? null,
     navigation_items: state.pages,
+    language,
     header: createElement(header, { site_title }),
     banner: is_home ? createElement(banner, banner_data) : null,
     body,
