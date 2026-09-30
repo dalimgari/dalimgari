@@ -9,7 +9,7 @@ import './style/global/login.css'
 createRoot(document.getElementById('root')).render(
   React.createElement(
     BrowserRouter,
-    null,
+    { basename: '/dalimgari' },
     React.createElement(
       app_provider,
       null,
