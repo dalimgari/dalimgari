@@ -1,6 +1,7 @@
 import { createElement, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../../service/supabase/supabase_client'
 import { delete_record, sync_input_fields } from '../../controller/admin/admin_record_controller'
+import { global_media_uploader } from '../media/global_media_uploader'
 
 const footer_fields = [['footer_copyright', 'Footer Copyright']]
 
@@ -15,6 +16,7 @@ const village_fields = [
   ['postal_code', 'পোস্টাল কোড'],
   ['contact_phone', 'যোগাযোগের ফোন'],
   ['contact_email', 'যোগাযোগের ইমেইল'],
+  ['village_avatar', 'গ্রামের লোগো / অ্যাভাটার'],
 ]
 
 const roles = [
@@ -117,11 +119,18 @@ function village_information_workspace() {
   return createElement('section', { className: 'admin-module-workspace' },
     panel_header('Village Information', message),
     createElement('div', { className: 'admin-form-grid' },
-      village_fields.map(([key, label]) => input({
-        key, label, value: values[key],
-        on_change: (value) => set_values({ ...values, [key]: value }),
-        type: key.includes('email') ? 'email' : 'text'
-      }))
+      village_fields.map(([key, label]) => key === 'village_avatar'
+        ? createElement(global_media_uploader, {
+            key,
+            label,
+            accept: 'image/*',
+            on_select: (media) => set_values({ ...values, village_avatar: media?.media_url ?? '' })
+          })
+        : input({
+            key, label, value: values[key],
+            on_change: (value) => set_values({ ...values, [key]: value }),
+            type: key.includes('email') ? 'email' : 'text'
+          }))
     ),
     createElement('div', { className: 'admin-actions' },
       createElement('button', { type: 'button', onClick: save }, 'Save Village Information')
@@ -209,7 +218,11 @@ function admin_information_workspace() {
       input({ label: 'Admin Name', value: form.name, on_change: (value) => set_form({ ...form, name: value }) }),
       input({ label: 'Admin Email', value: form.email, on_change: (value) => set_form({ ...form, email: value }), type: 'email' }),
       input({ label: 'Admin Phone', value: form.phone, on_change: (value) => set_form({ ...form, phone: value }) }),
-      input({ label: 'Profile Image URL', value: form.image, on_change: (value) => set_form({ ...form, image: value }) }),
+      createElement(global_media_uploader, {
+        label: 'Admin Avatar',
+        accept: 'image/*',
+        on_select: (media) => set_form({ ...form, image: media?.media_url ?? '' })
+      }),
       textarea({ label: 'Admin Bio', value: form.bio, on_change: (value) => set_form({ ...form, bio: value }), rows: 4 }),
       createElement('div', { className: 'admin-links-editor' },
         createElement('div', { className: 'admin-links-editor-header' },
