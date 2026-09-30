@@ -19,7 +19,6 @@ import { get_theme_mode, apply_theme_mode } from '../../function/theme/theme_mod
 const empty_state = { loading: true, error: null, information: [], admin: null, pages: [], posts: [], customization: [], seo_settings: [] }
 function get_information_map(information) { return information.reduce((result, item) => { result[item.information_key] = item.information_value ?? ''; return result }, {}) }
 function get_information_value(map, key, language = 'bn') { const value = map[key]; if (value && typeof value === 'object') return value[language] ?? value.bn ?? value.en ?? ''; return value ?? '' }
-function normalize_external_url(value) { if (!value) return ''; return /^https?:\/\//i.test(value) ? value : `https://${value}` }
 function sanitize_html(value) { if (!value) return ''; const template = document.createElement('template'); template.innerHTML = String(value); template.content.querySelectorAll('script, iframe, object, embed, style, link, meta').forEach((node) => node.remove()); template.content.querySelectorAll('*').forEach((node) => Array.from(node.attributes).forEach((attribute) => { if (/^on/i.test(attribute.name)) node.removeAttribute(attribute.name); if (['href', 'src', 'action'].includes(attribute.name) && /^javascript:/i.test(attribute.value)) node.removeAttribute(attribute.name) })); return template.innerHTML }
 
 function render_home_page(state, language) {
@@ -36,14 +35,47 @@ function render_home_page(state, language) {
   const contact_email = get_information_value(information, 'contact_email', language)
   const address_parts = [village_name, union, upazila, district, post_office, postal_code].filter(Boolean)
   return createElement('main', { className: 'website-body' },
-    village_description && createElement('section', { className: 'home-welcome website-section' }, createElement('div', { className: 'website-eyebrow' }, language === 'bn' ? 'স্বাগতম' : 'Welcome'), createElement('h2', null, language === 'bn' ? `${village_name || website_name}-এর কথা` : `About ${village_name || website_name}`), createElement('p', { className: 'website-lead-text' }, village_description)),
-    state.pages.some((page) => page.page_slug) && createElement('section', { className: 'home-navigation website-section' }, createElement('div', { className: 'website-section-heading' }, createElement('div', null, createElement('div', { className: 'website-eyebrow' }, language === 'bn' ? 'জানুন' : 'Explore'), createElement('h2', null, language === 'bn' ? 'ডালিমগাড়ী সম্পর্কে' : `About ${village_name || website_name}`))), createElement(page_navigation, { pages: state.pages.filter((page) => page.page_slug), language })),
-    state.posts.length > 0 && createElement('section', { className: 'home-posts website-section' }, createElement('div', { className: 'website-section-heading' }, createElement('div', null, createElement('div', { className: 'website-eyebrow' }, language === 'bn' ? 'সর্বশেষ' : 'Latest'), createElement('h2', null, language === 'bn' ? 'সর্বশেষ খবর ও পোস্ট' : 'Latest news and posts'))), createElement(post_list, { posts: state.posts, language })),
-    address_parts.length > 0 && createElement('section', { className: 'home-contact website-section' }, createElement('div', { className: 'website-section-heading' }, createElement('div', null, createElement('div', { className: 'website-eyebrow' }, language === 'bn' ? 'যোগাযোগ' : 'Contact'), createElement('h2', null, language === 'bn' ? 'আমাদের ঠিকানা' : 'Our address'))), createElement('p', { className: 'contact-address' }, address_parts.join(' • ')), createElement('div', { className: 'contact-actions' }, contact_phone && createElement('a', { className: 'website-contact-action primary', href: `tel:${contact_phone}` }, language === 'bn' ? `ফোন করুন: ${contact_phone}` : `Call: ${contact_phone}`), contact_email && createElement('a', { className: 'website-contact-action', href: `mailto:${contact_email}` }, language === 'bn' ? `ইমেইল: ${contact_email}` : `Email: ${contact_email}`)))
+    village_description && createElement('section', { className: 'home-welcome website-section' },
+      createElement('div', { className: 'website-eyebrow' }, language === 'bn' ? 'পরিচিতি' : 'Introduction'),
+      createElement('h2', null, language === 'bn' ? 'আমাদের গ্রাম' : 'Our village'),
+      createElement('p', { className: 'website-lead-text' }, village_description)
+    ),
+    state.pages.some((page) => page.page_slug) && createElement('section', { className: 'home-navigation website-section' },
+      createElement('div', { className: 'website-section-heading' },
+        createElement('div', null,
+          createElement('div', { className: 'website-eyebrow' }, language === 'bn' ? 'জানুন' : 'Explore'),
+          createElement('h2', null, language === 'bn' ? 'গ্রাম সম্পর্কে আরও জানুন' : 'Explore more')
+        )
+      ),
+      createElement(page_navigation, { pages: state.pages.filter((page) => page.page_slug), language })
+    ),
+    state.posts.length > 0 && createElement('section', { className: 'home-posts website-section' },
+      createElement('div', { className: 'website-section-heading' },
+        createElement('div', null,
+          createElement('div', { className: 'website-eyebrow' }, language === 'bn' ? 'সর্বশেষ' : 'Latest'),
+          createElement('h2', null, language === 'bn' ? 'সর্বশেষ খবর ও পোস্ট' : 'Latest news and posts')
+        )
+      ),
+      createElement(post_list, { posts: state.posts, language })
+    ),
+    address_parts.length > 0 && createElement('section', { className: 'home-contact website-section' },
+      createElement('div', { className: 'website-section-heading' },
+        createElement('div', null,
+          createElement('div', { className: 'website-eyebrow' }, language === 'bn' ? 'যোগাযোগ' : 'Contact'),
+          createElement('h2', null, language === 'bn' ? 'যোগাযোগের তথ্য' : 'Contact information')
+        )
+      ),
+      createElement('p', { className: 'contact-address' }, address_parts.join(' • ')),
+      createElement('div', { className: 'contact-actions' },
+        contact_phone && createElement('a', { className: 'website-contact-action primary', href: `tel:${contact_phone}` }, language === 'bn' ? `ফোন: ${contact_phone}` : `Call: ${contact_phone}`),
+        contact_email && createElement('a', { className: 'website-contact-action', href: `mailto:${contact_email}` }, language === 'bn' ? `ইমেইল: ${contact_email}` : `Email: ${contact_email}`)
+      )
+    )
   )
 }
+
 function render_dynamic_page(state, language, pathname) { const slug = pathname.replace(/^\/+|\/+$/g, ''); const page = state.pages.find((item) => item.page_slug === slug && item.page_slug); return createElement('main', { className: 'website-body' }, page ? createElement('article', { className: 'website-page website-section' }, createElement('div', { className: 'website-eyebrow' }, language === 'bn' ? 'তথ্য' : 'Information'), createElement('h1', null, get_localized_value(page.page_title, language)), createElement('div', { className: 'website-rich-content', dangerouslySetInnerHTML: { __html: sanitize_html(page.html_content ?? '') } })) : createElement('section', { className: 'website-page-not-found website-section' }, createElement('h1', null, get_localized_value({ bn: 'পেজ পাওয়া যায়নি', en: 'Page not found' }, language)), createElement('p', null, language === 'bn' ? 'ঠিকানাটি পরীক্ষা করে আবার চেষ্টা করুন।' : 'Please check the address and try again.'))) }
-function render_website(state, language, pathname, language_control, theme_control) { const information = get_information_map(state.information); const website_name = get_information_value(information, 'website_name', language); const village_name = get_information_value(information, 'village_name', language); const village_slogan = get_information_value(information, 'village_slogan', language); const admin = state.admin; const is_home = pathname === '/' || pathname === ''; const body = is_home ? render_home_page(state, language) : render_dynamic_page(state, language, pathname); return createElement(website_layout, { profile: null, navigation_items: state.pages.filter((page) => page.page_slug), language, header: createElement(header, { site_title: website_name || village_name, site_tagline: village_slogan, logo_url: get_information_value(information, 'website_logo', language), language_control, theme_control }), banner: is_home ? createElement(banner, { title: village_name || website_name, description: village_slogan, media_url: get_information_value(information, 'home_banner_media_url', language) }) : null, body, footer: createElement(footer, { content: website_name || village_name }) }) }
+function render_website(state, language, pathname, language_control, theme_control) { const information = get_information_map(state.information); const website_name = get_information_value(information, 'website_name', language); const village_name = get_information_value(information, 'village_name', language); const village_slogan = get_information_value(information, 'village_slogan', language); const is_home = pathname === '/' || pathname === ''; const body = is_home ? render_home_page(state, language) : render_dynamic_page(state, language, pathname); return createElement(website_layout, { profile: null, navigation_items: state.pages.filter((page) => page.page_slug), language, header: createElement(header, { site_title: website_name || village_name, site_tagline: village_slogan, logo_url: get_information_value(information, 'website_logo', language), language_control, theme_control }), banner: is_home ? createElement(banner, { title: village_name || website_name, description: village_slogan, media_url: get_information_value(information, 'home_banner_media_url', language) }) : null, body, footer: createElement(footer, { content: website_name || village_name }) }) }
 
 export function public_page() {
   const [state, set_state] = useState(empty_state); const [language, set_language] = useState(get_saved_language()); const [theme_mode, set_theme_mode] = useState(get_theme_mode()); const location = useLocation()
