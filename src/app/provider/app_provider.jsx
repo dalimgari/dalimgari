@@ -1,13 +1,13 @@
-import { createContext, useContext, useMemo } from 'react'
+import { createContext, createElement, useContext, useMemo } from 'react'
 
-const AppContext = createContext(null)
+const app_context = createContext(null)
 
-export function AppProvider({ children }) {
+export function app_provider({ children }) {
   const value = useMemo(() => ({}), [])
 
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>
+  return createElement(app_context.Provider, { value }, children)
 }
 
-export function useAppContext() {
-  return useContext(AppContext)
+export function use_app_context() {
+  return useContext(app_context)
 }
