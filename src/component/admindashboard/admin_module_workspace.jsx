@@ -1,6 +1,6 @@
 import { createElement, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../../service/supabase/supabase_client'
-import { delete_record, sync_input_fields, generate_next_key } from '../../controller/admin/admin_record_controller'
+import { delete_record, sync_input_fields } from '../../controller/admin/admin_record_controller'
 
 const footer_fields = [['footer_copyright', 'Footer Copyright']]
 
@@ -257,7 +257,7 @@ function pages_workspace() {
     event.preventDefault()
     if (!form.title_bn || !form.slug) return set_message('Bengali title and slug are required')
     const payload = {
-      page_key: editing ? form.page_key : await generate_next_key('pages', 'page_key', 'page'), page_title: { bn: form.title_bn, en: form.title_en || form.title_bn },
+      page_key: editing ? form.page_key : undefined, page_title: { bn: form.title_bn, en: form.title_en || form.title_bn },
       page_slug: form.slug.toLowerCase().replace(/^\/+|\/+$/g, ''), html_content: form.content,
       seo_data: { title: { bn: form.seo_title, en: form.seo_title }, description: { bn: form.seo_description, en: form.seo_description }, canonical_url: form.canonical, robots: form.robots },
       display_order: Number(form.order) || 0, is_visible: form.visible, status: form.status
@@ -322,7 +322,7 @@ function albums_workspace() {
   useEffect(() => { load() }, [])
   async function save(event) {
     event.preventDefault()
-    const payload = { album_key: editing ? form.key : await generate_next_key('albums', 'album_key', 'album'), album_title: { bn: form.title_bn, en: form.title_en || form.title_bn }, description: { bn: form.description, en: form.description }, is_visible: form.visible }
+    const payload = { album_key: editing ? form.key : undefined, album_title: { bn: form.title_bn, en: form.title_en || form.title_bn }, description: { bn: form.description, en: form.description }, is_visible: form.visible }
     const query = editing ? supabase.from('albums').update(payload).eq('album_id', editing) : supabase.from('albums').insert(payload)
     const { error } = await query
     set_message(error ? error.message : 'Saved')
@@ -376,7 +376,7 @@ function media_workspace() {
       if (upload_error) return set_message(upload_error.message)
       url = supabase.storage.from('global_media').getPublicUrl(storage_path).data.publicUrl
     }
-    const payload = { media_key: await generate_next_key('media', 'media_key', 'media'), media_method: form.method, file_name, mime_type, file_size, storage_path, media_url: url, album_id: form.album_id || null, is_visible: form.visible }
+    const payload = { media_key: undefined, media_method: form.method, file_name, mime_type, file_size, storage_path, media_url: url, album_id: form.album_id || null, is_visible: form.visible }
     const { error } = await supabase.from('media').insert(payload)
     set_message(error ? error.message : 'Media added')
     if (!error) { set_form({ method: 'url', url: '', album_id: '', visible: true }); set_file(null); await load() }
@@ -429,7 +429,7 @@ function posts_workspace() {
 
   async function save(event) {
     event.preventDefault()
-    const payload = { post_key: editing ? form.key : await generate_next_key('posts', 'post_key', 'post'), caption: { bn: form.caption_bn, en: form.caption_en || form.caption_bn }, album_id: form.album_id || null, status: form.status, is_visible: form.visible, seo_data: { title: { bn: form.seo_title, en: form.seo_title }, description: { bn: form.seo_description, en: form.seo_description } }, published_at: form.status === 'published' ? new Date().toISOString() : null }
+    const payload = { post_key: editing ? form.key : undefined, caption: { bn: form.caption_bn, en: form.caption_en || form.caption_bn }, album_id: form.album_id || null, status: form.status, is_visible: form.visible, seo_data: { title: { bn: form.seo_title, en: form.seo_title }, description: { bn: form.seo_description, en: form.seo_description } }, published_at: form.status === 'published' ? new Date().toISOString() : null }
     const query = editing ? supabase.from('posts').update(payload).eq('post_id', editing) : supabase.from('posts').insert(payload).select('post_id').single()
     const { data, error } = await query
     if (error) return set_message(error.message)
@@ -486,7 +486,7 @@ function settings_workspace({ table, title, permission_hint }) {
 
   async function save(event) {
     event.preventDefault()
-    const payload = { setting_key: editing ? form.key : await generate_next_key(table, 'setting_key', table === 'system_settings' ? 'system_setting' : 'customization_setting'), setting_value: json_value(form.value, { value: form.value }), is_active: form.active }
+    const payload = { setting_key: editing ? form.key : undefined, setting_value: json_value(form.value, { value: form.value }), is_active: form.active }
     const query = editing ? supabase.from(table).update(payload).eq(table === 'system_settings' ? 'system_setting_id' : 'customization_setting_id', editing) : supabase.from(table).insert(payload)
     const { error } = await query
     set_message(error ? error.message : 'Saved')
@@ -525,7 +525,7 @@ function translation_workspace() {
   async function save(event) {
     event.preventDefault()
     const payload = {
-      setting_key: editing ? form.key : await generate_next_key('translation_settings', 'setting_key', 'translation_setting'),
+      setting_key: editing ? form.key : undefined,
       source_language: form.source,
       supported_languages: form.languages.split(',').map((item) => item.trim()).filter(Boolean),
       is_active: form.active
