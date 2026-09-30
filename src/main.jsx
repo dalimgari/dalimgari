@@ -16,9 +16,13 @@ createRoot(document.getElementById('root')).render(
     BrowserRouter,
     { basename: '/dalimgari' },
     React.createElement(
-      app_provider,
-      null,
-      React.createElement(app_router)
+      'div',
+      { className: 'global-website-area' },
+      React.createElement(
+        app_provider,
+        null,
+        React.createElement(app_router)
+      )
     )
   )
 )
