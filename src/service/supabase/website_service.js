@@ -17,6 +17,13 @@ export async function get_website_information() {
   return read_public_table('website_information', (query) => query.eq('is_active', true))
 }
 
+export async function get_public_links() {
+  return read_public_table('managed_links', (query) =>
+    query.eq('is_active', true).order('display_order', { ascending: true })
+  )
+}
+
+
 export async function get_admin_information() {
   try {
     const { data, error } = await supabase
