@@ -23,3 +23,14 @@ as $$
       and p.permission_key = required_permission
   );
 $$;
+
+drop policy if exists user_roles_select_self_or_admin on public.user_roles;
+create policy user_roles_select_self_or_manager
+on public.user_roles
+for select
+to authenticated
+using (
+  profile_id = (select auth.uid())
+  or private.has_permission('permission_manage')
+  or private.has_permission('user_manage')
+);
