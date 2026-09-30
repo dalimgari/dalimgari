@@ -4,8 +4,8 @@ import { module_navigation } from '../../component/admindashboard/module_navigat
 import { admin_module_workspace } from '../../component/admindashboard/admin_module_workspace'
 import { backup_recovery_panel } from '../../component/admindashboard/backup_recovery_panel'
 import { dashboard_modules } from '../../module/admindashboard/dashboard_modules'
-import { get_current_admin, sign_out_admin } from '../../controller/admin/admin_dashboard_controller'
-import { get_admin_permissions } from '../../controller/admin/module_access_controller'
+import { get_current_admin, sign_out_admin } from '../../controller/admin/admin_dashboard_controller.js'
+import { get_admin_permissions } from '../../controller/admin/module_access_controller.js'
 
 export function admin_dashboard_page() {
   const [admin, set_admin] = useState(null)
