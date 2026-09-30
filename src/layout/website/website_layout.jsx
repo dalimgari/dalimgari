@@ -7,6 +7,7 @@ export function website_layout({
   body = null,
   footer = null,
   profile = null,
+  managed_links = [],
   navigation_items = [],
   language = 'bn'
 }) {
@@ -38,6 +39,7 @@ export function website_layout({
       is_open: sidebar_open,
       on_toggle: toggle_sidebar,
       profile,
+      managed_links,
       navigation_items,
       language
     }),
