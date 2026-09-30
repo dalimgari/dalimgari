@@ -1,4 +1,7 @@
 .admin-module-navigation-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 100;
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
