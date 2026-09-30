@@ -61,6 +61,8 @@ export function website_layout({
       managed_links,
       navigation_items,
       language,
+      language_control: header_props.language_control,
+      theme_control: header_props.theme_control,
       site_title: header_props.site_title,
       site_tagline: header_props.site_tagline,
       logo_url: header_props.logo_url
