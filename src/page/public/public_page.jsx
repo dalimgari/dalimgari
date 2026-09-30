@@ -44,6 +44,23 @@ function normalize_external_url(value) {
   return /^https?:\/\//i.test(value) ? value : `https://${value}`
 }
 
+function sanitize_html(value) {
+  if (!value) return ''
+  const template = document.createElement('template')
+  template.innerHTML = String(value)
+  template.content.querySelectorAll('script, iframe, object, embed, style, link, meta').forEach((node) => node.remove())
+  template.content.querySelectorAll('*').forEach((node) => {
+    Array.from(node.attributes).forEach((attribute) => {
+      if (/^on/i.test(attribute.name)) node.removeAttribute(attribute.name)
+      if ((attribute.name === 'href' || attribute.name === 'src' || attribute.name === 'action') && /^javascript:/i.test(attribute.value)) {
+        node.removeAttribute(attribute.name)
+      }
+    })
+  })
+  return template.innerHTML
+}
+
+
 function render_home_page(state, language) {
   const information = get_information_map(state.information)
   const website_name = get_information_value(information, 'website_name', language)
@@ -109,7 +126,7 @@ function render_dynamic_page(state, language, pathname) {
     page
       ? createElement('article', { className: 'website-page website-section' },
           createElement('h1', null, get_localized_value(page.page_title, language)),
-          createElement('div', { dangerouslySetInnerHTML: { __html: page.html_content ?? '' } })
+          createElement('div', { dangerouslySetInnerHTML: { __html: sanitize_html(page.html_content ?? '') } })
         )
       : createElement(
           'section',
