@@ -3,6 +3,7 @@ export const dashboard_modules = [
   { key: 'admininfo', label: 'Admin Information', permission: 'admin_information_manage' },
   { key: 'pagemanagement', label: 'Pages', permission: 'page_manage' },
   { key: 'postmanagement', label: 'Posts', permission: 'post_manage' },
+  { key: 'linkmanagement', label: 'Link Management', permission: 'link_manage' },
   { key: 'albums', label: 'Albums', permission: 'media_manage' },
   { key: 'media', label: 'Media Manager', permission: 'media_manage' },
   { key: 'usermanagement', label: 'Users & Staff', permission: 'user_manage' },
