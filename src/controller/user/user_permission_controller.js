@@ -22,3 +22,21 @@ export async function user_has_permission(permission_key) {
   if (error) return false
   return Boolean(data)
 }
+
+export async function get_user_role(profile_id) {
+  const { data, error } = await supabase
+    .from('user_roles')
+    .select('role_id, roles(role_key, role_name, description)')
+    .eq('profile_id', profile_id)
+    .limit(1)
+    .maybeSingle()
+  if (error) throw error
+  return data?.roles ?? null
+}
+
+export async function get_current_user_role() {
+  const { data: session_data, error: session_error } = await supabase.auth.getSession()
+  if (session_error) throw session_error
+  if (!session_data.session?.user) return null
+  return get_user_role(session_data.session.user.id)
+}
