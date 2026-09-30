@@ -1,6 +1,6 @@
 import { createElement, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../../service/supabase/supabase_client'
-import { delete_record } from '../../controller/admin/admin_record_controller'
+import { delete_record, sync_input_fields } from '../../controller/admin/admin_record_controller'
 
 const footer_fields = [['footer_copyright', 'Footer Copyright']]
 
@@ -84,7 +84,6 @@ function panel_header(title, message) {
 
 function village_information_workspace() {
   const [values, set_values] = useState({})
-  const [rows, set_rows] = useState([])
   const [message, set_message] = useState('')
 
   async function load() {
@@ -92,28 +91,27 @@ function village_information_workspace() {
     if (error) return set_message(error.message)
     const next = {}
     for (const row of data ?? []) next[row.information_key] = localized(row.information_value)
-    set_rows(data ?? [])
     set_values(next)
   }
 
   useEffect(() => { load() }, [])
 
   async function save() {
-    const payload = village_fields.map(([key]) => ({
-      information_key: key,
-      information_value: { bn: values[key] ?? '', en: values[key] ?? '' },
-      is_active: true
-    }))
-    const { error } = await supabase.from('website_information').upsert(payload, { onConflict: 'information_key' })
-    set_message(error ? error.message : 'Website information saved')
-    if (!error) await load()
-  }
-
-  async function remove(key) {
-    if (!window.confirm('এই তথ্যটি মুছে ফেলবেন?')) return
-    const { error } = await supabase.from('website_information').delete().eq('information_key', key)
-    set_message(error ? error.message : 'Deleted')
-    if (!error) await load()
+    try {
+      await sync_input_fields({
+        table_name: 'website_information',
+        key_field: 'information_key',
+        value_field: 'information_value',
+        fields: village_fields,
+        values,
+        build_value: (value) => ({ bn: value, en: value }),
+        extra: { is_active: true }
+      })
+      set_message('Village information saved')
+      await load()
+    } catch (error) {
+      set_message(error.message)
+    }
   }
 
   return createElement('section', { className: 'admin-module-workspace' },
