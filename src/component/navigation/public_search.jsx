@@ -159,11 +159,19 @@ function make_results({ information, pages, posts, dom_entries = [] }, language,
 export function public_search({ information = [], pages = [], posts = [], language = 'bn' }) {
   const [open, set_open] = useState(false)
   const [query, set_query] = useState('')
-  const dom_entries = typeof document === 'undefined' ? [] : get_visible_public_dom_entries()
+  const [dom_entries, set_dom_entries] = useState([])
+
+  useEffect(() => {
+    if (!open) return
+    const refresh = () => set_dom_entries(get_visible_public_dom_entries())
+    refresh()
+    const frame = window.requestAnimationFrame(refresh)
+    return () => window.cancelAnimationFrame(frame)
+  }, [open, information, pages, posts, language])
 
   const results = useMemo(
     () => make_results({ information, pages, posts, dom_entries }, language, query),
-    [information, pages, posts, language, query, dom_entries.length]
+    [information, pages, posts, language, query, dom_entries]
   )
 
   useEffect(() => {
@@ -193,7 +201,7 @@ export function public_search({ information = [], pages = [], posts = [], langua
       createElement('section', { className: 'public-search-panel' },
         createElement('div', { className: 'public-search-header' },
           createElement('strong', null, language === 'bn' ? 'ওয়েবসাইটে খুঁজুন' : 'Search the website'),
-          createElement('button', { type: 'button', onClick: close, 'aria-label': language === 'bn' ? 'বন্ধ করুন' : 'Close' }, '×')
+          createElement('button', { type: 'button', className: 'public-search-close', onClick: close, 'aria-label': language === 'bn' ? 'সার্চ বন্ধ করুন' : 'Close search' }, '×')
         ),
         createElement('div', { className: 'public-search-input-wrap' },
           createElement('span', { 'aria-hidden': 'true' }, '⌕'),
@@ -201,6 +209,7 @@ export function public_search({ information = [], pages = [], posts = [], langua
             autoFocus: true,
             value: query,
             onChange: (event) => set_query(event.target.value),
+            onInput: (event) => set_query(event.currentTarget.value),
             placeholder: language === 'bn' ? 'যে তথ্য খুঁজছেন লিখুন…' : 'Type what you are looking for…',
             'aria-label': language === 'bn' ? 'সার্চ' : 'Search'
           })
@@ -215,7 +224,7 @@ export function public_search({ information = [], pages = [], posts = [], langua
                     ? { href: result.to, target: '_blank', rel: 'noreferrer' }
                     : { to: result.to, onClick: close }
                   return createElement(external ? 'a' : Link, { key: result.key, className: 'public-search-result', ...props },
-                    createElement('span', { className: 'public-search-result-type' }, result.type === 'page' ? (language === 'bn' ? 'পেজ' : 'Page') : result.type === 'post' ? (language === 'bn' ? 'পোস্ট' : 'Post') : result.type === 'link' ? (language === 'bn' ? 'লিংক' : 'Link') : (language === 'bn' ? 'তথ্য' : 'Info')),
+                    createElement('span', { className: 'public-search-result-type' }, result.type === 'page' ? (language === 'bn' ? 'পেজ' : 'Page') : result.type === 'post' ? (language === 'bn' ? 'পোস্ট' : 'Post') : result.type === 'information' ? (language === 'bn' ? 'তথ্য' : 'Info') : (language === 'bn' ? 'ওয়েবসাইট' : 'Website')),
                     createElement('strong', null, result.title),
                     result.description && createElement('span', null, result.description)
                   )
