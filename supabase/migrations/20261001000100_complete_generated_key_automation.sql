@@ -64,3 +64,5 @@ create trigger translation_settings_assign_generated_key before insert on public
 create index if not exists managed_links_created_by_idx on public.managed_links(created_by);
 create index if not exists managed_links_updated_by_idx on public.managed_links(updated_by);
 create index if not exists managed_links_icon_domain_idx on public.managed_links(icon_domain);
+
+create index if not exists managed_links_domain_idx on public.managed_links(domain);
