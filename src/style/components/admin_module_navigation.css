@@ -1,7 +1,12 @@
-.admin-module-navigation-tabs {
+.admin-module-navigation {
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 1000;
+  width: 100%;
+  background: inherit;
+}
+
+.admin-module-navigation-tabs {
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
@@ -15,6 +20,7 @@
   scrollbar-width: thin;
   padding: 4px;
   box-sizing: border-box;
+  background: inherit;
 }
 
 .admin-module-navigation-tabs > button {
