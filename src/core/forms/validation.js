@@ -1,0 +1,2 @@
+export function validate_required(value) { return value !== null && value !== undefined && String(value).trim() !== '' }
+export function validate_form(values, rules = {}) { const errors = {}; for (const [field, rule] of Object.entries(rules)) { if (rule.required && !validate_required(values[field])) errors[field] = 'required'; else if (rule.validate && validate_required(values[field]) && rule.validate(values[field]) !== true) errors[field] = rule.message || 'invalid' } return errors }
