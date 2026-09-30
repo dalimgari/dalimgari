@@ -1,0 +1,27 @@
+.admin-module-navigation-tabs {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  padding: 4px;
+  box-sizing: border-box;
+}
+
+.admin-module-navigation-tabs > button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .admin-module-navigation-tabs {
+    gap: 6px;
+    padding: 3px;
+  }
+}
