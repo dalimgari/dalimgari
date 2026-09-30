@@ -139,6 +139,34 @@ function make_results({ information, pages, posts, dom_entries = [] }, language,
   return results.sort((a,b) => b.score - a.score || a.title.localeCompare(b.title)).slice(0, 30)
 }
 
+function hide_header_controls_immediately() {
+  const header = document.querySelector('.website-header')
+  if (!header) return
+  header.classList.add('search-opening')
+  const hidden = header.querySelectorAll('.website-header-leading, .website-brand, .website-header-controls > :not(.public-search)')
+  hidden.forEach((element) => {
+    element.style.setProperty('opacity', '0', 'important')
+    element.style.setProperty('visibility', 'hidden', 'important')
+    element.style.setProperty('pointer-events', 'none', 'important')
+    element.style.setProperty('transform', 'translateX(-140%)', 'important')
+    element.style.setProperty('transition', 'none', 'important')
+  })
+}
+
+function restore_header_controls() {
+  const header = document.querySelector('.website-header')
+  if (!header) return
+  header.classList.remove('search-opening')
+  const hidden = header.querySelectorAll('.website-header-leading, .website-brand, .website-header-controls > :not(.public-search)')
+  hidden.forEach((element) => {
+    element.style.removeProperty('opacity')
+    element.style.removeProperty('visibility')
+    element.style.removeProperty('pointer-events')
+    element.style.removeProperty('transform')
+    element.style.removeProperty('transition')
+  })
+}
+
 export function public_search({ information = [], pages = [], posts = [], language = 'bn' }) {
   const [open, set_open] = useState(false)
   const [query, set_query] = useState('')
@@ -162,14 +190,12 @@ export function public_search({ information = [], pages = [], posts = [], langua
   }, [open])
 
   function open_search() {
-    // The click has already fired, so it is now safe to hide the old header
-    // controls without replacing the button while the browser is dispatching it.
-    document.querySelector('.website-header')?.classList.add('search-opening')
+    hide_header_controls_immediately()
     set_open(true)
   }
 
   function close() {
-    document.querySelector('.website-header')?.classList.remove('search-opening')
+    restore_header_controls()
     set_open(false)
     set_query('')
   }
