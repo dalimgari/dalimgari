@@ -1,4 +1,5 @@
 import { createElement, useState } from 'react'
+import { Link } from 'react-router-dom'
 
 export function sidebar({ profile = null, navigation_items = [] }) {
   const [is_open, set_is_open] = useState(false)
@@ -20,12 +21,24 @@ export function sidebar({ profile = null, navigation_items = [] }) {
         profile.profile_image_url && createElement('img', { src: profile.profile_image_url, alt: profile.display_name ?? '' }),
         createElement('strong', null, profile.display_name ?? ''),
         createElement('span', null, profile.email ?? ''),
-        createElement('div', { className: 'sidebar-links' }, (profile.social_links?.links ?? []).map((link) => createElement('a', { key: link.url, href: link.url, target: '_blank', rel: 'noreferrer' }, link.label ?? link.url)))
+        createElement(
+          'div',
+          { className: 'sidebar-links' },
+          (profile.social_links?.links ?? []).map((link) =>
+            createElement('a', { key: link.url, href: link.url, target: '_blank', rel: 'noreferrer' }, link.label ?? link.url)
+          )
+        )
       ),
       createElement(
         'nav',
         null,
-        navigation_items.map((item) => createElement('a', { key: item.page_key, href: item.href ?? `/${item.page_slug}` }, item.page_title?.bn ?? item.page_title?.en ?? item.page_key))
+        navigation_items.map((item) =>
+          createElement(
+            Link,
+            { key: item.page_key, to: `/${item.page_slug}` },
+            item.page_title?.bn ?? item.page_title?.en ?? item.page_key
+          )
+        )
       )
     )
   )
