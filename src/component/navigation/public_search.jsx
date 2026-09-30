@@ -8,6 +8,12 @@ function text_value(value, language = 'bn') {
   return String(value)
 }
 
+function localized_values(value) {
+  if (!value) return []
+  if (typeof value === 'object') return [value.bn, value.en].filter(Boolean).map(String)
+  return [String(value)]
+}
+
 function plain_text(value) {
   return String(value ?? '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&').replace(/\s+/g, ' ').trim()
 }
@@ -64,19 +70,29 @@ function make_results({ information, pages, posts }, language, query) {
     if (!public_keys.has(item.information_key)) continue
     const title = labels[item.information_key] || (language === 'bn' ? 'ওয়েবসাইটের তথ্য' : 'Website information')
     const value = text_value(item.information_value, language)
-    if (!value.trim()) continue
-    add('information', title, snippet(value || title, q), '/#public-' + item.information_key, 'information-' + item.information_key, title + ' ' + value)
+    const searchable_values = localized_values(item.information_value)
+    if (!searchable_values.length) continue
+    const searchable_text = searchable_values.join(' ')
+    const targets = {
+      website_name: '/#public-home', village_name: '/#public-home', village_slogan: '/#public-home', village_description: '/#public-village_description',
+      district: '/#public-contact', upazila: '/#public-contact', union: '/#public-contact', post_office: '/#public-contact', postal_code: '/#public-contact',
+      contact_phone: '/#public-contact', contact_whatsapp: '/#public-contact', contact_email: '/#public-contact', footer_copyright: '/#public-footer'
+    }
+    add('information', title, snippet(searchable_text, q) || value, targets[item.information_key] || '/#public-home', 'information-' + item.information_key, searchable_text)
   }
   for (const page of pages ?? []) {
     if (!page.is_visible || page.status !== 'published' || !page.page_slug) continue
     const title = text_value(page.page_title, language)
     const content = plain_text(page.html_content)
-    add('page', title || (language === 'bn' ? 'তথ্য পেজ' : 'Information page'), snippet(content || title, q), '/' + String(page.page_slug).replace(/^\/+|\/+$/g, ''), 'page-' + (page.page_id ?? page.page_slug), title + ' ' + content)
+    const title_values = localized_values(page.page_title)
+    const searchable_text = title_values.concat(content).filter(Boolean).join(' ')
+    add('page', title || (language === 'bn' ? 'তথ্য পেজ' : 'Information page'), snippet(searchable_text, q), '/' + String(page.page_slug).replace(/^\/+|\/+$/g, ''), 'page-' + (page.page_id ?? page.page_slug), searchable_text)
   }
   for (const post of posts ?? []) {
     if (!post.is_visible || post.status !== 'published') continue
     const title = text_value(post.caption, language)
-    add('post', title || (language === 'bn' ? 'পোস্ট' : 'Post'), snippet(title, q), '/#post-' + post.post_id, 'post-' + post.post_id, title)
+    const searchable_text = localized_values(post.caption).join(' ')
+    add('post', title || (language === 'bn' ? 'পোস্ট' : 'Post'), snippet(searchable_text, q), '/#post-' + post.post_id, 'post-' + post.post_id, searchable_text)
   }
   return results.sort((a,b) => b.score - a.score || a.title.localeCompare(b.title)).slice(0, 30)
 }
