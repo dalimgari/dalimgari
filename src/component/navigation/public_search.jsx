@@ -110,14 +110,12 @@ function make_results({ information, pages, posts, dom_entries = [] }, language,
     const score = match_score(searchable_text, q)
     if (score > 0) results.push({ type, title, description, to, key, score })
   }
-  for (const [index, entry] of dom_entries.entries()) {
-    add('public', entry.value.slice(0, 90), snippet(entry.value, q), entry.target, 'dom-' + index + '-' + entry.target, entry.value)
-  }
+  for (const [index, entry] of dom_entries.entries()) add('public', entry.value.slice(0, 90), snippet(entry.value, q), entry.target, 'dom-' + index + '-' + entry.target, entry.value)
   const labels = { website_name: language === 'bn' ? 'ওয়েবসাইট' : 'Website', village_name: language === 'bn' ? 'গ্রামের নাম' : 'Village', village_slogan: language === 'bn' ? 'স্লোগান' : 'Slogan', village_description: language === 'bn' ? 'গ্রামের বর্ণনা' : 'Village description', district: language === 'bn' ? 'জেলা' : 'District', upazila: language === 'bn' ? 'উপজেলা' : 'Upazila', union: language === 'bn' ? 'ইউনিয়ন' : 'Union', post_office: language === 'bn' ? 'পোস্ট অফিস' : 'Post office', postal_code: language === 'bn' ? 'পোস্টাল কোড' : 'Postal code', contact_phone: language === 'bn' ? 'যোগাযোগের ফোন' : 'Phone', contact_whatsapp: 'WhatsApp', contact_email: language === 'bn' ? 'যোগাযোগের ইমেইল' : 'Email', footer_copyright: language === 'bn' ? 'কপিরাইট' : 'Copyright' }
-  const public_keys = new Set(['website_name','village_name','village_slogan','village_description','district','upazila','union','post_office','postal_code','contact_phone','contact_whatsapp','contact_email','footer_copyright'])
+  const public_keys = new Set(Object.keys(labels))
   for (const item of (information ?? []).filter((item) => item?.is_active !== false)) {
     if (!public_keys.has(item.information_key)) continue
-    const title = labels[item.information_key] || (language === 'bn' ? 'ওয়েবসাইটের তথ্য' : 'Website information')
+    const title = labels[item.information_key]
     const value = text_value(item.information_value, language)
     const searchable_values = localized_values(item.information_value)
     if (!searchable_values.length) continue
@@ -163,29 +161,23 @@ export function public_search({ information = [], pages = [], posts = [], langua
     return () => window.removeEventListener('keydown', on_key)
   }, [open])
 
-  function prepare_open() {
-    // Do not update React state here: a state update during pointerdown can
-    // replace the trigger before the browser dispatches its click event.
-    document.querySelector('.public-search')?.classList.add('is-preparing')
-  }
-
   function open_search() {
+    // The click has already fired, so it is now safe to hide the old header
+    // controls without replacing the button while the browser is dispatching it.
+    document.querySelector('.website-header')?.classList.add('search-opening')
     set_open(true)
-    document.querySelector('.public-search')?.classList.remove('is-preparing')
   }
 
   function close() {
-    document.querySelector('.public-search')?.classList.remove('is-preparing')
+    document.querySelector('.website-header')?.classList.remove('search-opening')
     set_open(false)
     set_query('')
   }
 
   const has_suggestions = open && query.trim().length > 0 && results.length > 0
 
-  return createElement(
-    'div',
-    { className: `public-search${open ? ' is-open' : ''}` },
-    createElement('button', { type: 'button', className: 'website-header-control public-search-trigger', onPointerDown: prepare_open, onClick: open_search, 'aria-label': language === 'bn' ? 'ওয়েবসাইটে খুঁজুন' : 'Search website', title: language === 'bn' ? 'ওয়েবসাইটে খুঁজুন' : 'Search website' }, '⌕'),
+  return createElement('div', { className: `public-search${open ? ' is-open' : ''}` },
+    createElement('button', { type: 'button', className: 'website-header-control public-search-trigger', onClick: open_search, 'aria-label': language === 'bn' ? 'ওয়েবসাইটে খুঁজুন' : 'Search website', title: language === 'bn' ? 'ওয়েবসাইটে খুঁজুন' : 'Search website' }, '⌕'),
     createElement('div', { className: 'public-search-bar', role: 'search' },
       createElement('span', { className: 'public-search-icon', 'aria-hidden': 'true' }, '⌕'),
       createElement('input', { autoFocus: open, value: query, onChange: (event) => set_query(event.target.value), placeholder: language === 'bn' ? 'যে তথ্য খুঁজছেন লিখুন…' : 'Search the website…', 'aria-label': language === 'bn' ? 'ওয়েবসাইটে খুঁজুন' : 'Search website', 'aria-controls': has_suggestions ? 'public-search-suggestions' : undefined, 'aria-expanded': has_suggestions }),
@@ -193,9 +185,7 @@ export function public_search({ information = [], pages = [], posts = [], langua
       has_suggestions ? createElement('div', { id: 'public-search-suggestions', className: 'public-search-results', role: 'listbox', 'aria-label': language === 'bn' ? 'সার্চ সাজেশন' : 'Search suggestions' }, results.map((result) => {
         const external = /^https?:\/\//i.test(result.to)
         const props = external ? { href: result.to, target: '_blank', rel: 'noreferrer' } : { to: result.to, onClick: close }
-        return createElement(external ? 'a' : Link, { key: result.key, className: 'public-search-result', ...props, role: 'option' },
-          createElement('span', { className: 'public-search-result-type' }, result.type === 'page' ? (language === 'bn' ? 'পেজ' : 'Page') : result.type === 'post' ? (language === 'bn' ? 'পোস্ট' : 'Post') : result.type === 'information' ? (language === 'bn' ? 'তথ্য' : 'Info') : (language === 'bn' ? 'ওয়েবসাইট' : 'Website')),
-          createElement('strong', null, result.title), result.description && createElement('span', null, result.description))
+        return createElement(external ? 'a' : Link, { key: result.key, className: 'public-search-result', ...props, role: 'option' }, createElement('span', { className: 'public-search-result-type' }, result.type === 'page' ? (language === 'bn' ? 'পেজ' : 'Page') : result.type === 'post' ? (language === 'bn' ? 'পোস্ট' : 'Post') : result.type === 'information' ? (language === 'bn' ? 'তথ্য' : 'Info') : (language === 'bn' ? 'ওয়েবসাইট' : 'Website')), createElement('strong', null, result.title), result.description && createElement('span', null, result.description))
       })) : null
     )
   )
