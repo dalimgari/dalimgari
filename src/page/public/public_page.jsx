@@ -16,22 +16,10 @@ import { get_localized_value } from '../../function/translation/language'
 import { get_saved_language, save_language } from '../../function/translation/language_storage'
 import { get_theme_mode, apply_theme_mode } from '../../function/theme/theme_mode'
 
-const empty_state = {
-  loading: true,
-  error: null,
-  information: [],
-  admin: null,
-  pages: [],
-  posts: [],
-  customization: [],
-  seo_settings: []
-}
+const empty_state = { loading: true, error: null, information: [], admin: null, pages: [], posts: [], customization: [], seo_settings: [] }
 
 function get_information_map(information) {
-  return information.reduce((result, item) => {
-    result[item.information_key] = item.information_value ?? ''
-    return result
-  }, {})
+  return information.reduce((result, item) => { result[item.information_key] = item.information_value ?? ''; return result }, {})
 }
 
 function get_information_value(information_map, key, language = 'bn') {
@@ -50,17 +38,12 @@ function sanitize_html(value) {
   const template = document.createElement('template')
   template.innerHTML = String(value)
   template.content.querySelectorAll('script, iframe, object, embed, style, link, meta').forEach((node) => node.remove())
-  template.content.querySelectorAll('*').forEach((node) => {
-    Array.from(node.attributes).forEach((attribute) => {
-      if (/^on/i.test(attribute.name)) node.removeAttribute(attribute.name)
-      if ((attribute.name === 'href' || attribute.name === 'src' || attribute.name === 'action') && /^javascript:/i.test(attribute.value)) {
-        node.removeAttribute(attribute.name)
-      }
-    })
-  })
+  template.content.querySelectorAll('*').forEach((node) => Array.from(node.attributes).forEach((attribute) => {
+    if (/^on/i.test(attribute.name)) node.removeAttribute(attribute.name)
+    if (['href', 'src', 'action'].includes(attribute.name) && /^javascript:/i.test(attribute.value)) node.removeAttribute(attribute.name)
+  }))
   return template.innerHTML
 }
-
 
 function get_admin_value(admin, key, language = 'bn') {
   if (!admin) return ''
@@ -72,9 +55,7 @@ function get_admin_value(admin, key, language = 'bn') {
 function get_admin_social_links(admin) {
   const links = admin?.social_links
   if (!links || typeof links !== 'object') return []
-  return Object.entries(links)
-    .map(([label, url]) => ({ label, url: normalize_external_url(url) }))
-    .filter((item) => item.url)
+  return Object.entries(links).map(([label, url]) => ({ label, url: normalize_external_url(url) })).filter((item) => item.url)
 }
 
 function render_home_page(state, language) {
@@ -90,49 +71,41 @@ function render_home_page(state, language) {
   const postal_code = get_information_value(information, 'postal_code', language)
   const contact_phone = get_information_value(information, 'contact_phone', language)
   const contact_email = get_information_value(information, 'contact_email', language)
-
   const address_parts = [village_name, union, upazila, district, post_office, postal_code].filter(Boolean)
 
-  return createElement(
-    'main',
-    { className: 'website-body' },
-    createElement(
-      'section',
-      { className: 'home-introduction website-section' },
-      createElement('h2', null, village_name || website_name),
-      village_slogan && createElement('p', null, village_slogan),
+  return createElement('main', { className: 'website-body' },
+    createElement('section', { className: 'home-introduction website-section website-hero-card' },
+      createElement('div', { className: 'website-eyebrow' }, language === 'bn' ? 'আমাদের গ্রাম' : 'Our Village'),
+      createElement('h1', null, village_name || website_name),
+      village_slogan && createElement('p', { className: 'website-lead' }, village_slogan),
       village_description && createElement('p', null, village_description)
     ),
     createElement(page_navigation, { pages: state.pages.filter((page) => page.page_slug), language }),
-    address_parts.length > 0 && createElement(
-      'section',
-      { className: 'home-contact website-section' },
-      createElement('h2', null, website_name || village_name),
-      createElement('p', null, address_parts.join(', ')),
-      contact_phone && createElement('p', null, contact_phone),
-      contact_email && createElement('p', null, contact_email)
-    ),
-    createElement(post_list, { posts: state.posts, language })
+    createElement(post_list, { posts: state.posts, language }),
+    address_parts.length > 0 && createElement('section', { className: 'home-contact website-section' },
+      createElement('div', { className: 'website-section-heading' },
+        createElement('div', null, createElement('div', { className: 'website-eyebrow' }, language === 'bn' ? 'যোগাযোগ' : 'Contact'), createElement('h2', null, village_name || website_name))
+      ),
+      createElement('p', null, address_parts.join(' • ')),
+      contact_phone && createElement('a', { className: 'website-contact-action', href: `tel:${contact_phone}` }, contact_phone),
+      contact_email && createElement('a', { className: 'website-contact-action', href: `mailto:${contact_email}` }, contact_email)
+    )
   )
 }
 
 function render_dynamic_page(state, language, pathname) {
   const page_slug = pathname.replace(/^\/+|\/+$/g, '')
   const page = state.pages.find((item) => item.page_slug === page_slug && item.page_slug)
-
-  return createElement(
-    'main',
-    { className: 'website-body' },
-    page
-      ? createElement('article', { className: 'website-page website-section' },
-          createElement('h1', null, get_localized_value(page.page_title, language)),
-          createElement('div', { dangerouslySetInnerHTML: { __html: sanitize_html(page.html_content ?? '') } })
-        )
-      : createElement(
-          'section',
-          { className: 'website-page-not-found website-section' },
-          createElement('h1', null, get_localized_value({ bn: 'পেজ পাওয়া যায়নি', en: 'Page not found' }, language))
-        )
+  return createElement('main', { className: 'website-body' }, page
+    ? createElement('article', { className: 'website-page website-section' },
+        createElement('div', { className: 'website-eyebrow' }, language === 'bn' ? 'তথ্য' : 'Information'),
+        createElement('h1', null, get_localized_value(page.page_title, language)),
+        createElement('div', { className: 'website-rich-content', dangerouslySetInnerHTML: { __html: sanitize_html(page.html_content ?? '') } })
+      )
+    : createElement('section', { className: 'website-page-not-found website-section' },
+        createElement('h1', null, get_localized_value({ bn: 'পেজ পাওয়া যায়নি', en: 'Page not found' }, language)),
+        createElement('p', null, language === 'bn' ? 'ঠিকানাটি পরীক্ষা করে আবার চেষ্টা করুন।' : 'Please check the address and try again.')
+      )
   )
 }
 
@@ -141,34 +114,16 @@ function render_website(state, language, pathname, language_control, theme_contr
   const website_name = get_information_value(information, 'website_name', language)
   const village_name = get_information_value(information, 'village_name', language)
   const village_slogan = get_information_value(information, 'village_slogan', language)
-  const banner_data = {
-    title: village_name || website_name,
-    description: village_slogan,
-    media_url: get_information_value(information, 'home_banner_media_url', language)
-  }
-
+  const banner_data = { title: village_name || website_name, description: village_slogan, media_url: get_information_value(information, 'home_banner_media_url', language) }
   const admin = state.admin
-  const admin_profile = {
-    display_name: get_admin_value(admin, 'admin_name', language),
-    email: get_admin_value(admin, 'admin_email', language),
-    phone: get_admin_value(admin, 'admin_phone', language),
-    profile_image_url: get_admin_value(admin, 'admin_profile_image', language),
-    bio: get_admin_value(admin, 'admin_bio', language),
-    social_links: { links: get_admin_social_links(admin) }
-  }
-
+  const admin_profile = { display_name: get_admin_value(admin, 'admin_name', language), email: get_admin_value(admin, 'admin_email', language), phone: get_admin_value(admin, 'admin_phone', language), profile_image_url: get_admin_value(admin, 'admin_profile_image', language), bio: get_admin_value(admin, 'admin_bio', language), social_links: { links: get_admin_social_links(admin) } }
   const is_home = pathname === '/' || pathname === ''
   const body = is_home ? render_home_page(state, language) : render_dynamic_page(state, language, pathname)
-
   return createElement(website_layout, {
     profile: admin_profile,
     navigation_items: state.pages.filter((page) => page.page_slug),
     language,
-    header: createElement(header, {
-      site_title: website_name || village_name,
-      language_control,
-      theme_control
-    }),
+    header: createElement(header, { site_title: website_name || village_name, logo_url: get_information_value(information, 'website_logo', language), language_control, theme_control }),
     banner: is_home ? createElement(banner, banner_data) : null,
     body,
     footer: createElement(footer, { content: website_name || village_name })
@@ -180,103 +135,39 @@ export function public_page() {
   const [language, set_language] = useState(get_saved_language())
   const [theme_mode, set_theme_mode] = useState(get_theme_mode())
   const location = useLocation()
-
-  useEffect(() => {
-    document.documentElement.lang = language
-  }, [language])
-
-  useEffect(() => {
-    apply_theme_mode(theme_mode)
-  }, [theme_mode])
-
+  useEffect(() => { document.documentElement.lang = language }, [language])
+  useEffect(() => { apply_theme_mode(theme_mode) }, [theme_mode])
   useEffect(() => {
     let active = true
     record_visit()
-
-    Promise.all([
-      get_website_information(),
-      get_admin_information(),
-      get_public_pages(),
-      get_public_posts(),
-      get_public_customization(),
-      get_public_seo_settings()
-    ])
+    Promise.all([get_website_information(), get_admin_information(), get_public_pages(), get_public_posts(), get_public_customization(), get_public_seo_settings()])
       .then(([information, admin, pages, posts, customization, seo_settings]) => {
         if (!active) return
-
         apply_customization(customization)
         apply_theme_settings(customization)
-
         const configured_theme = customization.find((item) => item.setting_key === 'theme_mode')?.setting_value
         const theme_value = typeof configured_theme === 'object' ? configured_theme.value : configured_theme
-        if (theme_value) {
-          const resolved_theme = resolve_theme_mode(theme_value)
-          set_theme_mode(resolved_theme)
-          apply_theme_mode(resolved_theme)
-        }
-
+        if (theme_value) { const resolved_theme = resolve_theme_mode(theme_value); set_theme_mode(resolved_theme); apply_theme_mode(resolved_theme) }
         const page_slug = location.pathname.replace(/^\/+|\/+$/g, '')
         const page = pages.find((item) => item.page_slug === page_slug && item.page_slug)
         const global_seo = seo_settings.find((item) => item.entity_type === 'website' && !item.entity_id)
         const page_seo = page ? seo_settings.find((item) => item.entity_type === 'page' && item.entity_id === page.page_id) : null
         const seo = page_seo ?? global_seo ?? page?.seo_data ?? information.find((item) => item.information_key === 'seo')?.information_value ?? {}
-
         const information_map = get_information_map(information)
         const website_name = get_information_value(information_map, 'website_name', language)
         const village_name = get_information_value(information_map, 'village_name', language)
         const village_slogan = get_information_value(information_map, 'village_slogan', language)
-        const seo_title = seo.title?.[language] ?? seo.title?.bn ?? page?.page_title?.[language] ?? page?.page_title?.bn ?? website_name ?? village_name
-        const seo_description = seo.description?.[language] ?? seo.description?.bn ?? village_slogan
-
-        apply_seo({
-          title: seo_title,
-          description: seo_description,
-          canonical_url: seo.canonical_url ?? window.location.href
-        })
-
+        apply_seo({ title: seo.title?.[language] ?? seo.title?.bn ?? page?.page_title?.[language] ?? page?.page_title?.bn ?? website_name ?? village_name, description: seo.description?.[language] ?? seo.description?.bn ?? village_slogan, canonical_url: seo.canonical_url ?? window.location.href })
         set_state({ loading: false, error: null, information, admin, pages, posts, customization, seo_settings })
       })
-      .catch((error) => {
-        if (!active) return
-        set_state({ ...empty_state, loading: false, error })
-      })
-
+      .catch((error) => { if (active) set_state({ ...empty_state, loading: false, error }) })
     return () => { active = false }
   }, [language, location.pathname])
-
-  function change_language(next_language) {
-    const selected = save_language(next_language)
-    set_language(selected)
-  }
-
-  function toggle_theme() {
-    const next = theme_mode === 'dark' ? 'light' : 'dark'
-    apply_theme_mode(next)
-    set_theme_mode(next)
-  }
-
-  const language_control = createElement(
-    'button',
-    {
-      type: 'button',
-      className: 'website-header-control',
-      onClick: () => change_language(language === 'bn' ? 'en' : 'bn'),
-      'aria-label': language === 'bn' ? 'Switch to English' : 'বাংলায় পরিবর্তন করুন'
-    },
-    language === 'bn' ? 'EN' : 'বাংলা'
-  )
-
-  const theme_control = createElement(
-    'button',
-    {
-      type: 'button',
-      className: 'website-header-control',
-      onClick: toggle_theme,
-      'aria-label': theme_mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
-    },
-    theme_mode === 'dark' ? '☀' : '☾'
-  )
-
+  function change_language(next_language) { set_language(save_language(next_language)) }
+  function toggle_theme() { const next = theme_mode === 'dark' ? 'light' : 'dark'; apply_theme_mode(next); set_theme_mode(next) }
+  const language_control = createElement('button', { type: 'button', className: 'website-header-control', onClick: () => change_language(language === 'bn' ? 'en' : 'bn'), 'aria-label': language === 'bn' ? 'Switch to English' : 'বাংলায় পরিবর্তন করুন' }, language === 'bn' ? 'EN' : 'বাংলা')
+  const theme_control = createElement('button', { type: 'button', className: 'website-header-control', onClick: toggle_theme, 'aria-label': theme_mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode' }, theme_mode === 'dark' ? '☀' : '☾')
   if (state.loading) return createElement(website_skeleton)
+  if (state.error) return createElement('main', { className: 'website-error-page' }, createElement('section', { className: 'website-section' }, createElement('h1', null, language === 'bn' ? 'তথ্য লোড করা যায়নি' : 'Could not load the website'), createElement('p', null, language === 'bn' ? 'কিছুক্ষণ পর আবার চেষ্টা করুন।' : 'Please try again shortly.')))
   return render_website(state, language, location.pathname, language_control, theme_control)
 }
