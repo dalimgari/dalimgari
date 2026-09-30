@@ -12,15 +12,6 @@ function plain_text(value) {
   return String(value ?? '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&').replace(/\s+/g, ' ').trim()
 }
 
-function snippet(value, query) {
-  const text = plain_text(value)
-  if (!text) return ''
-  const index = text.toLocaleLowerCase().indexOf(query.toLocaleLowerCase())
-  if (index < 0) return text.slice(0, 150)
-  const start = Math.max(0, index - 55)
-  const end = Math.min(text.length, index + query.length + 95)
-  return `${start > 0 ? '…' : ''}${text.slice(start, end)}${end < text.length ? '…' : ''}`
-}
 
 function normalize_text(value) {
   return plain_text(value).toLocaleLowerCase().normalize('NFC')
@@ -73,6 +64,7 @@ function make_results({ information, pages, posts }, language, query) {
     if (!public_keys.has(item.information_key)) continue
     const title = labels[item.information_key] || (language === 'bn' ? 'ওয়েবসাইটের তথ্য' : 'Website information')
     const value = text_value(item.information_value, language)
+    if (!value.trim()) continue
     add('information', title, snippet(value || title, q), '/#public-' + item.information_key, 'information-' + item.information_key, title + ' ' + value)
   }
   for (const page of pages ?? []) {
@@ -94,7 +86,7 @@ export function public_search({ information = [], pages = [], posts = [], langua
 
   const results = useMemo(
     () => make_results({ information, pages, posts }, language, query),
-    [information, pages, posts, links, language, query]
+    [information, pages, posts, language, query]
   )
 
   useEffect(() => {
