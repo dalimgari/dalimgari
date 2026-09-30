@@ -486,7 +486,7 @@ function settings_workspace({ table, title, permission_hint }) {
 
   async function save(event) {
     event.preventDefault()
-    const payload = { setting_key: form.key, setting_value: json_value(form.value, { value: form.value }), is_active: form.active }
+    const payload = { setting_key: editing ? form.key : await generate_next_key(table, 'setting_key', table === 'system_settings' ? 'system_setting' : 'customization_setting'), setting_value: json_value(form.value, { value: form.value }), is_active: form.active }
     const query = editing ? supabase.from(table).update(payload).eq(table === 'system_settings' ? 'system_setting_id' : 'customization_setting_id', editing) : supabase.from(table).insert(payload)
     const { error } = await query
     set_message(error ? error.message : 'Saved')
@@ -497,7 +497,6 @@ function settings_workspace({ table, title, permission_hint }) {
     panel_header(title, message),
     createElement('p', null, permission_hint),
     createElement('form', { onSubmit: save }, createElement('div', { className: 'admin-form-grid' },
-      input({ label: 'Setting Key', value: form.key, on_change: (value) => set_form({ ...form, key: value }) }),
       textarea({ label: 'Setting Value (JSON বা plain text)', value: form.value, on_change: (value) => set_form({ ...form, value: value }), placeholder: '{"value":"..."}', rows: 5 }),
       checkbox({ label: 'Active', checked: form.active, on_change: (value) => set_form({ ...form, active: value }) })
     ), createElement('button', { type: 'submit' }, editing ? 'Update Setting' : 'Create Setting')),
@@ -526,7 +525,7 @@ function translation_workspace() {
   async function save(event) {
     event.preventDefault()
     const payload = {
-      setting_key: form.key,
+      setting_key: editing ? form.key : await generate_next_key('translation_settings', 'setting_key', 'translation_setting'),
       source_language: form.source,
       supported_languages: form.languages.split(',').map((item) => item.trim()).filter(Boolean),
       is_active: form.active
@@ -543,7 +542,6 @@ function translation_workspace() {
     panel_header('Translation Settings', message),
     createElement('form', { onSubmit: save },
       createElement('div', { className: 'admin-form-grid' },
-        input({ label: 'Setting Key', value: form.key, on_change: (value) => set_form({ ...form, key: value }) }),
         input({ label: 'Source Language', value: form.source, on_change: (value) => set_form({ ...form, source: value }) }),
         input({ label: 'Supported Languages (comma separated)', value: form.languages, on_change: (value) => set_form({ ...form, languages: value }) }),
         checkbox({ label: 'Active', checked: form.active, on_change: (value) => set_form({ ...form, active: value }) })
