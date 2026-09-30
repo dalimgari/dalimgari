@@ -1,7 +1,7 @@
 import { createElement } from 'react'
 import { Link } from 'react-router-dom'
 
-export function header({ site_title = '', site_tagline = '', logo_url = '', language_control = null, theme_control = null, search_control = null, sidebar_toggle = null }) {
+export function header({ site_title = '', site_tagline = '', logo_url = '', search_control = null, sidebar_toggle = null }) {
   return createElement(
     'header',
     { className: 'website-header' },
@@ -20,8 +20,6 @@ export function header({ site_title = '', site_tagline = '', logo_url = '', lang
     createElement(
       'div',
       { className: 'website-header-controls' },
-      language_control,
-      theme_control,
       search_control,
       createElement(Link, { to: '/login', className: 'website-header-control website-login-link', 'aria-label': 'Login' }, 'লগইন')
     )
