@@ -61,6 +61,21 @@ function sanitize_html(value) {
 }
 
 
+function get_admin_value(admin, key, language = 'bn') {
+  if (!admin) return ''
+  const value = admin.information_value?.[key] ?? admin.information_value?.[language]?.[key] ?? admin[key]
+  if (value && typeof value === 'object') return value[language] ?? value.bn ?? value.en ?? ''
+  return value ?? ''
+}
+
+function get_admin_social_links(admin) {
+  const links = admin?.social_links
+  if (!links || typeof links !== 'object') return []
+  return Object.entries(links)
+    .map(([label, url]) => ({ label, url: normalize_external_url(url) }))
+    .filter((item) => item.url)
+}
+
 function render_home_page(state, language) {
   const information = get_information_map(state.information)
   const website_name = get_information_value(information, 'website_name', language)
@@ -74,24 +89,8 @@ function render_home_page(state, language) {
   const postal_code = get_information_value(information, 'postal_code', language)
   const contact_phone = get_information_value(information, 'contact_phone', language)
   const contact_email = get_information_value(information, 'contact_email', language)
-  const facebook_link = normalize_external_url(get_information_value(information, 'facebook_link', language))
-  const youtube_link = normalize_external_url(get_information_value(information, 'youtube_link', language))
-  const other_social_links = normalize_external_url(get_information_value(information, 'other_social_links', language))
 
   const address_parts = [village_name, union, upazila, district, post_office, postal_code].filter(Boolean)
-  const admin_profile = {
-    display_name: get_information_value(information, 'admin_name', language),
-    email: get_information_value(information, 'admin_email', language),
-    phone: get_information_value(information, 'admin_phone', language),
-    profile_image_url: get_information_value(information, 'admin_profile_image', language),
-    social_links: {
-      links: [
-        facebook_link && { label: 'Facebook', url: facebook_link },
-        youtube_link && { label: 'YouTube', url: youtube_link },
-        other_social_links && { label: 'Social', url: other_social_links }
-      ].filter(Boolean)
-    }
-  }
 
   return createElement(
     'main',
@@ -147,23 +146,21 @@ function render_website(state, language, pathname, language_control, theme_contr
     media_url: get_information_value(information, 'home_banner_media_url', language)
   }
 
+  const admin = state.admin
+  const admin_profile = {
+    display_name: get_admin_value(admin, 'admin_name', language),
+    email: get_admin_value(admin, 'admin_email', language),
+    phone: get_admin_value(admin, 'admin_phone', language),
+    profile_image_url: get_admin_value(admin, 'admin_profile_image', language),
+    bio: get_admin_value(admin, 'admin_bio', language),
+    social_links: { links: get_admin_social_links(admin) }
+  }
+
   const is_home = pathname === '/' || pathname === ''
   const body = is_home ? render_home_page(state, language) : render_dynamic_page(state, language, pathname)
 
   return createElement(website_layout, {
-    profile: {
-      display_name: get_information_value(information, 'admin_name', language),
-      email: get_information_value(information, 'admin_email', language),
-      phone: get_information_value(information, 'admin_phone', language),
-      profile_image_url: get_information_value(information, 'admin_profile_image', language),
-      social_links: {
-        links: [
-          get_information_value(information, 'facebook_link', language) && { label: 'Facebook', url: normalize_external_url(get_information_value(information, 'facebook_link', language)) },
-          get_information_value(information, 'youtube_link', language) && { label: 'YouTube', url: normalize_external_url(get_information_value(information, 'youtube_link', language)) },
-          get_information_value(information, 'other_social_links', language) && { label: 'Social', url: normalize_external_url(get_information_value(information, 'other_social_links', language)) }
-        ].filter(Boolean)
-      }
-    },
+    profile: admin_profile,
     navigation_items: state.pages.filter((page) => page.page_slug),
     language,
     header: createElement(header, {
