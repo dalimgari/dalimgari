@@ -24,38 +24,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: restore complete global stylesheet for build
-        run: |
-          git checkout 13e4acec6eace9be479377a82b2063ca26a5ec52 -- src/style/global/global.css
-          python - <<'PY'
-          from pathlib import Path
-          p = Path('src/style/global/global.css')
-          s = p.read_text()
-          old = '''.website-header:has(.public-search.is-open),
-          .website-header:has(.public-search.is-preparing){
-            position:sticky;
-            top:0;
-            min-height:72px;
-            height:72px;
-            display:grid;
-            grid-template-columns:minmax(0,1fr);
-            align-items:center;
-            padding:10px var(--page-padding);
-            overflow:visible;
-          }'''
-          s = s.replace(old, '')
-          old_mobile = '''  .website-header:has(.public-search.is-open),
-          .website-header:has(.public-search.is-preparing){
-            min-height:64px;
-            height:64px;
-            padding-inline:12px;
-          }
-'''
-          s = s.replace(old_mobile, '')
-          p.write_text(s)
-          PY
       - uses: actions/setup-node@v4
         with:
           node-version: 22
