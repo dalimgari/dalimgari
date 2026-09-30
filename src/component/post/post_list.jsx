@@ -7,7 +7,7 @@ export function post_list({ posts = [], language = 'bn' }) {
     { className: 'post-list' },
     posts.map((post) => createElement(
       'article',
-      { key: post.post_id, className: 'post-card' },
+      { key: post.post_id, id: `post-${post.post_id}`, className: 'post-card' },
       createElement('div', { className: 'post-caption' }, get_localized_value(post.caption, language)),
       (post.post_media ?? []).map((item) =>
         item.media?.media_url
