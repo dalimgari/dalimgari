@@ -9,7 +9,10 @@ export async function sign_in_user({ email, password }) {
 }
 
 export async function sign_in_with_google() {
-  return supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } })
+  return supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin + import.meta.env.BASE_URL }
+  })
 }
 
 export async function sign_in_with_phone(phone) {
@@ -25,7 +28,9 @@ export async function sign_out_user() {
 }
 
 export async function reset_user_password(email) {
-  return supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/user/reset-password` })
+  return supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + import.meta.env.BASE_URL + 'user/reset-password'
+  })
 }
 
 export async function get_user_session() {
