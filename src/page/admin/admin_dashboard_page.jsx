@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { admin_dashboard_layout } from '../../layout/admindashboard/admin_dashboard_layout'
 import { module_navigation } from '../../component/admindashboard/module_navigation'
 import { admin_module_workspace } from '../../component/admindashboard/admin_module_workspace'
+import { link_management_workspace } from '../../component/admindashboard/link_management_workspace'
 import { backup_recovery_panel } from '../../component/admindashboard/backup_recovery_panel'
 import { dashboard_modules } from '../../module/admindashboard/dashboard_modules'
 import { get_current_admin, sign_out_admin } from '../../controller/admin/admin_dashboard_controller.js'
@@ -33,6 +34,10 @@ export function admin_dashboard_page() {
   if (!admin) return createElement('main', { className: 'dashboard-state' }, createElement('div', { className: 'dashboard-state-card' }, createElement('h1', null, 'অনুমতি প্রয়োজন'), createElement('p', null, 'এই অংশটি ব্যবহার করতে প্রশাসনিক অনুমতি প্রয়োজন।')))
 
   const selected = dashboard_modules.find((module) => module.key === selected_module)
+  const workspace = selected_module === 'linkmanagement'
+    ? createElement(link_management_workspace)
+    : createElement(admin_module_workspace, { module_key: selected_module })
+
   const content = createElement('section', null,
     createElement('header', { className: 'admin-dashboard-header' },
       createElement('div', { className: 'admin-dashboard-heading' },
@@ -44,7 +49,7 @@ export function admin_dashboard_page() {
         createElement('button', { type: 'button', onClick: async () => { await sign_out_admin(); navigate('/login', { replace: true }) } }, 'লগআউট')
       )
     ),
-    createElement(admin_module_workspace, { module_key: selected_module }),
+    workspace,
     selected_module === 'system' ? createElement(backup_recovery_panel) : null
   )
 
