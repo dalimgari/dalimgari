@@ -3,7 +3,7 @@
   top: 0;
   z-index: 1000;
   width: 100%;
-  background: var(--theme-primary, #0f766e);
+  background: var(--color-primary);
 }
 
 .admin-module-navigation-tabs {
@@ -20,20 +20,20 @@
   scrollbar-width: thin;
   padding: 4px;
   box-sizing: border-box;
-  background: var(--theme-primary, #0f766e);
+  background: var(--color-primary);
 }
 
 .admin-module-navigation-tabs > button {
   flex: 0 0 auto;
   white-space: nowrap;
-  background: var(--theme-primary, #0f766e);
-  color: var(--theme-on-primary, #ffffff);
-  border: 1px solid var(--theme-primary-dark, #0b5f59);
+  background: var(--color-primary);
+  color: var(--color-surface-strong);
+  border: 1px solid var(--color-primary-strong);
 }
 
 .admin-module-navigation-tabs > button.is-active {
-  background: var(--theme-primary-light, #14958b);
-  color: var(--theme-on-primary, #ffffff);
+  background: var(--color-primary-strong);
+  color: var(--color-surface-strong);
 }
 
 @media (max-width: 640px) {
