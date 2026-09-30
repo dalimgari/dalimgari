@@ -4,10 +4,7 @@ import { delete_record } from '../../controller/admin/admin_record_controller'
 
 const footer_fields = [['footer_copyright', 'Footer Copyright']]
 
-const website_fields = [
-  ['website_name', 'ওয়েবসাইটের নাম'],
-  ['website_description', 'ওয়েবসাইটের বর্ণনা'],
-  ['website_address', 'ওয়েবসাইটের ঠিকানা'],
+const village_fields = [
   ['village_name', 'গ্রামের নাম'],
   ['village_slogan', 'গ্রামের স্লোগান'],
   ['village_description', 'গ্রামের বর্ণনা'],
@@ -18,9 +15,6 @@ const website_fields = [
   ['postal_code', 'পোস্টাল কোড'],
   ['contact_phone', 'যোগাযোগের ফোন'],
   ['contact_email', 'যোগাযোগের ইমেইল'],
-  ['home_banner_media_url', 'হোম ব্যানার মিডিয়া URL'],
-  ['logo_url', 'লোগো URL'],
-  ['favicon_url', 'Favicon URL']
 ]
 
 const roles = [
@@ -88,7 +82,7 @@ function panel_header(title, message) {
   )
 }
 
-function website_information_workspace() {
+function village_information_workspace() {
   const [values, set_values] = useState({})
   const [rows, set_rows] = useState([])
   const [message, set_message] = useState('')
@@ -105,7 +99,7 @@ function website_information_workspace() {
   useEffect(() => { load() }, [])
 
   async function save() {
-    const payload = website_fields.map(([key]) => ({
+    const payload = village_fields.map(([key]) => ({
       information_key: key,
       information_value: { bn: values[key] ?? '', en: values[key] ?? '' },
       is_active: true
@@ -123,16 +117,16 @@ function website_information_workspace() {
   }
 
   return createElement('section', { className: 'admin-module-workspace' },
-    panel_header('Website Information', message),
+    panel_header('Village Information', message),
     createElement('div', { className: 'admin-form-grid' },
-      website_fields.map(([key, label]) => input({
+      village_fields.map(([key, label]) => input({
         key, label, value: values[key],
         on_change: (value) => set_values({ ...values, [key]: value }),
         type: key.includes('email') ? 'email' : 'text'
       }))
     ),
     createElement('div', { className: 'admin-actions' },
-      createElement('button', { type: 'button', onClick: save }, 'Save Website Information')
+      createElement('button', { type: 'button', onClick: save }, 'Save Village Information')
     ),
     createElement('details', null,
       createElement('summary', null, 'Existing records'),
@@ -739,7 +733,7 @@ function audit_workspace() {
 }
 
 export function admin_module_workspace({ module_key }) {
-  if (module_key === 'websiteinformation') return createElement(website_information_workspace)
+  if (module_key === 'websiteinformation') return createElement(village_information_workspace)
   if (module_key === 'admininfo') return createElement(admin_information_workspace)
   if (module_key === 'pagemanagement') return createElement(pages_workspace)
   if (module_key === 'postmanagement') return createElement(posts_workspace)
