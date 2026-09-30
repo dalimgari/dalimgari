@@ -1,0 +1,1 @@
+export function build_breadcrumbs(pathname = '/') { const parts = pathname.split('/').filter(Boolean); return parts.map((label, index) => ({ label, path: '/' + parts.slice(0, index + 1).join('/') })) }
