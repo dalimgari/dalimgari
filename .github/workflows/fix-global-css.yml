@@ -1,0 +1,49 @@
+name: Repair global stylesheet
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Restore and repair stylesheet
+        run: |
+          git checkout 13e4acec6eace9be479377a82b2063ca26a5ec52 -- src/style/global/global.css
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('src/style/global/global.css')
+          s = p.read_text()
+          old = '''.website-header:has(.public-search.is-open),
+          .website-header:has(.public-search.is-preparing){
+            position:sticky;
+            top:0;
+            min-height:72px;
+            height:72px;
+            display:grid;
+            grid-template-columns:minmax(0,1fr);
+            align-items:center;
+            padding:10px var(--page-padding);
+            overflow:visible;
+          }'''
+          s = s.replace(old, '')
+          old_mobile = '''  .website-header:has(.public-search.is-open),
+          .website-header:has(.public-search.is-preparing){
+            min-height:64px;
+            height:64px;
+            padding-inline:12px;
+          }
+'''
+          s = s.replace(old_mobile, '')
+          p.write_text(s)
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/style/global/global.css
+          git commit -m "Restore complete global stylesheet and preserve natural header sizing [skip ci]"
+          git push
