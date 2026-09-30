@@ -1,4 +1,5 @@
 import { createElement } from 'react'
+import '../../style/components/footer.css'
 
 export function footer({ content = '', copyright = '' }) {
   const text = String(copyright || '').trim()
