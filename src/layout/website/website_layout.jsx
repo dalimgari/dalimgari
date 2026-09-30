@@ -14,6 +14,7 @@ export function website_layout({
   const [sidebar_open, set_sidebar_open] = useState(false)
   const header_ref = useRef(null)
   const toggle_sidebar = () => set_sidebar_open((value) => !value)
+  const header_props = header?.props ?? {}
 
   useEffect(() => {
     const update_header_height = () => {
@@ -59,7 +60,10 @@ export function website_layout({
       profile,
       managed_links,
       navigation_items,
-      language
+      language,
+      site_title: header_props.site_title,
+      site_tagline: header_props.site_tagline,
+      logo_url: header_props.logo_url
     }),
     createElement(
       'div',
