@@ -4,31 +4,19 @@
 .website-header:has(.public-search.is-open) .website-header-leading,.website-header:has(.public-search.is-open) .website-brand,.website-header:has(.public-search.is-open) .website-header-controls>:not(.public-search),.website-header:has(.public-search.is-preparing) .website-header-leading,.website-header:has(.public-search.is-preparing) .website-brand,.website-header:has(.public-search.is-preparing) .website-header-controls>:not(.public-search){visibility:hidden;pointer-events:none}
 
 
-/* Global website boundary: every application surface stays inside this area. */
-html,body{min-height:100%;margin:0}
-body{background:var(--color-background)}
-#root{min-height:100vh;width:100%}
+/* Global website area: invisible boundary with one continuous background. */
+html,body{min-height:100%;margin:0;background:var(--color-background)}
+#root{min-height:100vh;width:100%;background:var(--color-background)}
 .global-website-area{
   position:relative;
   width:min(100%,1440px);
-  min-height:calc(100vh - 32px);
-  margin:16px auto;
+  min-height:100vh;
+  margin:0 auto;
   box-sizing:border-box;
   overflow:clip;
   isolation:isolate;
-  background:var(--color-surface-strong);
+  background:var(--color-background);
   color:var(--color-text);
-  border:1px solid var(--color-border);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow-lg);
 }
 .global-website-area>*{min-width:0;max-width:100%}
 .global-website-area img,.global-website-area video,.global-website-area iframe{max-width:100%}
-@media(max-width:700px){
-  .global-website-area{
-    width:calc(100% - 16px);
-    min-height:calc(100vh - 16px);
-    margin:8px auto;
-    border-radius:var(--radius-sm);
-  }
-}
