@@ -7,7 +7,7 @@ import { footer } from '../../component/common/footer'
 import { page_navigation } from '../../component/navigation/page_navigation'
 import { post_list } from '../../component/post/post_list'
 import { website_skeleton } from '../../component/common/website_skeleton'
-import { get_website_information, get_admin_information, get_public_pages, get_public_posts, get_public_customization } from '../../service/supabase/website_service.js'
+import { get_website_information, get_admin_information, get_public_pages, get_public_posts, get_public_customization, get_public_seo_settings } from '../../service/supabase/website_service.js'
 import { apply_customization } from '../../function/customization/apply_customization'
 import { apply_theme_settings, resolve_theme_mode } from '../../function/customization/customization'
 import { record_visit } from '../../function/analytics/record_visit'
@@ -23,7 +23,8 @@ const empty_state = {
   admin: null,
   pages: [],
   posts: [],
-  customization: []
+  customization: [],
+  seo_settings: []
 }
 
 function get_information_map(information) {
@@ -197,7 +198,8 @@ export function public_page() {
       get_admin_information(),
       get_public_pages(),
       get_public_posts(),
-      get_public_customization()
+      get_public_customization(),
+      get_public_seo_settings()
     ])
       .then(([information, admin, pages, posts, customization]) => {
         if (!active) return
@@ -230,7 +232,7 @@ export function public_page() {
           canonical_url: seo.canonical_url ?? window.location.href
         })
 
-        set_state({ loading: false, error: null, information, admin, pages, posts, customization })
+        set_state({ loading: false, error: null, information, admin, pages, posts, customization, seo_settings })
       })
       .catch((error) => {
         if (!active) return
