@@ -31,21 +31,77 @@ function match_score(value, query) {
   const text = normalize_text(value)
   const q = normalize_text(query)
   const q_words = words(q)
-  const t_words = words(text)
   if (!text || !q || !q_words.length) return 0
-  const exact_phrase = text.includes(q)
-  const exact_words = q_words.filter((word) => t_words.includes(word)).length
-  const prefix_words = q_words.filter((word) => t_words.some((item) => item.startsWith(word))).length
-  const partial_words = q_words.filter((word) => text.includes(word)).length
+
+  const text_words = words(text)
+  const exact_phrase = text === q
+  const exact_words = q_words.filter((word) => text_words.includes(word)).length
+  const prefix_words = q_words.filter((word) => text_words.some((item) => item.startsWith(word) && item !== word)).length
+  const partial_words = q_words.filter((word) => word.length > 1 && text.includes(word)).length
+  const phrase_inside = text.includes(q)
+
   let score = 0
-  if (exact_phrase) score += 100000
-  score += exact_words * 10000
-  if (exact_words === q_words.length) score += 5000
-  score += prefix_words * 1000
-  score += partial_words * 100
+  if (exact_phrase) score += 1000000
+  if (exact_words === q_words.length) score += 100000
+  if (phrase_inside && exact_words < q_words.length) score += 10000
+  score += exact_words * 1000
+  score += prefix_words * 100
+  score += partial_words * 10
   return score
 }
 
+function is_visible_element(element) {
+  if (!element || element.nodeType !== 1) return false
+  if (element.closest('.public-search-layer')) return false
+  const style = window.getComputedStyle(element)
+  if (style.display === 'none' || style.visibility === 'hidden' || Number(style.opacity) === 0) return false
+  const rect = element.getBoundingClientRect()
+  return rect.width > 0 && rect.height > 0
+}
+
+function visible_element_text(element) {
+  const values = [
+    element.innerText,
+    element.getAttribute('aria-label'),
+    element.getAttribute('title'),
+    element.getAttribute('alt'),
+    element.getAttribute('value')
+  ]
+  return plain_text(values.filter(Boolean).join(' '))
+}
+
+function visible_element_target(element) {
+  const anchor = element.closest('a[href]')
+  if (anchor) {
+    const href = anchor.getAttribute('href')
+    if (href && !href.startsWith('#') && !/^javascript:/i.test(href)) return href
+  }
+  const identified = element.closest('[id]')
+  if (identified?.id) return window.location.pathname + '#' + identified.id
+  const section = element.closest('section, article, main, footer')
+  if (section?.id) return window.location.pathname + '#' + section.id
+  return window.location.pathname || '/'
+}
+
+function get_visible_public_dom_entries() {
+  if (typeof document === 'undefined') return []
+  const elements = Array.from(document.body.querySelectorAll('h1,h2,h3,h4,h5,h6,p,a,button,label,li,img,[title],[aria-label]'))
+  const entries = []
+  const seen = new Set()
+
+  for (const element of elements) {
+    if (!is_visible_element(element)) continue
+    const value = visible_element_text(element)
+    if (!value) continue
+    const target = visible_element_target(element)
+    const key = value + '|' + target
+    if (seen.has(key)) continue
+    seen.add(key)
+    entries.push({ value, target })
+  }
+
+  return entries
+}
 function snippet(value, query) {
   const text = plain_text(value)
   if (!text) return ''
@@ -56,7 +112,7 @@ function snippet(value, query) {
   return (start > 0 ? '…' : '') + text.slice(start, end) + (end < text.length ? '…' : '')
 }
 
-function make_results({ information, pages, posts }, language, query) {
+function make_results({ information, pages, posts, dom_entries = [] }, language, query) {
   const q = query.trim()
   if (!q) return []
   const results = []
@@ -64,6 +120,10 @@ function make_results({ information, pages, posts }, language, query) {
     const score = match_score(searchable_text, q)
     if (score > 0) results.push({ type, title, description, to, key, score })
   }
+  for (const [index, entry] of dom_entries.entries()) {
+    add('public', entry.value.slice(0, 90), snippet(entry.value, q), entry.target, 'dom-' + index + '-' + entry.target, entry.value)
+  }
+
   const labels = { website_name: language === 'bn' ? 'ওয়েবসাইট' : 'Website', village_name: language === 'bn' ? 'গ্রামের নাম' : 'Village', village_slogan: language === 'bn' ? 'স্লোগান' : 'Slogan', village_description: language === 'bn' ? 'গ্রামের বর্ণনা' : 'Village description', district: language === 'bn' ? 'জেলা' : 'District', upazila: language === 'bn' ? 'উপজেলা' : 'Upazila', union: language === 'bn' ? 'ইউনিয়ন' : 'Union', post_office: language === 'bn' ? 'পোস্ট অফিস' : 'Post office', postal_code: language === 'bn' ? 'পোস্টাল কোড' : 'Postal code', contact_phone: language === 'bn' ? 'যোগাযোগের ফোন' : 'Phone', contact_whatsapp: 'WhatsApp', contact_email: language === 'bn' ? 'যোগাযোগের ইমেইল' : 'Email', footer_copyright: language === 'bn' ? 'কপিরাইট' : 'Copyright' }
   const public_keys = new Set(['website_name','village_name','village_slogan','village_description','district','upazila','union','post_office','postal_code','contact_phone','contact_whatsapp','contact_email','footer_copyright'])
   for (const item of (information ?? []).filter((item) => item?.is_active !== false)) {
@@ -99,10 +159,11 @@ function make_results({ information, pages, posts }, language, query) {
 export function public_search({ information = [], pages = [], posts = [], language = 'bn' }) {
   const [open, set_open] = useState(false)
   const [query, set_query] = useState('')
+  const dom_entries = typeof document === 'undefined' ? [] : get_visible_public_dom_entries()
 
   const results = useMemo(
-    () => make_results({ information, pages, posts }, language, query),
-    [information, pages, posts, language, query]
+    () => make_results({ information, pages, posts, dom_entries }, language, query),
+    [information, pages, posts, language, query, dom_entries.length]
   )
 
   useEffect(() => {
@@ -161,7 +222,7 @@ export function public_search({ information = [], pages = [], posts = [], langua
                 })
               )
             : createElement('div', { className: 'public-search-empty' }, language === 'bn' ? 'কোনো মিল পাওয়া যায়নি।' : 'No matching public information found.')
-          : createElement('div', { className: 'public-search-hint' }, language === 'bn' ? 'পেজ, পোস্ট, ওয়েবসাইটের তথ্য ও পাবলিক লিংকের মধ্যে খুঁজে পাওয়া যাবে।' : 'Searches only information, pages and posts visible on the public website.')
+          : createElement('div', { className: 'public-search-hint' }, language === 'bn' ? 'পাবলিক ওয়েবসাইটে বর্তমানে দেখা যাচ্ছে এমন লেখা, শিরোনাম, বাটন, লিংক, কনটেন্ট ও তথ্যের মধ্যে খোঁজা হবে।' : 'Searches visible public website text, headings, buttons, links, content and information.')
       )
     )
   )
