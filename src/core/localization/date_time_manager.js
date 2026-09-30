@@ -1,0 +1,1 @@
+export function format_date_time(value, locale = 'bn-BD', options = { dateStyle: 'medium', timeStyle: 'short' }) { return value ? new Intl.DateTimeFormat(locale, options).format(new Date(value)) : '' }
