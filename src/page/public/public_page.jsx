@@ -201,7 +201,7 @@ export function public_page() {
       get_public_customization(),
       get_public_seo_settings()
     ])
-      .then(([information, admin, pages, posts, customization]) => {
+      .then(([information, admin, pages, posts, customization, seo_settings]) => {
         if (!active) return
 
         apply_customization(customization)
@@ -217,7 +217,9 @@ export function public_page() {
 
         const page_slug = location.pathname.replace(/^\/+|\/+$/g, '')
         const page = pages.find((item) => item.page_slug === page_slug && item.page_slug)
-        const seo = page?.seo_data ?? information.find((item) => item.information_key === 'seo')?.information_value ?? {}
+        const global_seo = seo_settings.find((item) => item.entity_type === 'website' && !item.entity_id)
+        const page_seo = page ? seo_settings.find((item) => item.entity_type === 'page' && item.entity_id === page.page_id) : null
+        const seo = page_seo ?? global_seo ?? page?.seo_data ?? information.find((item) => item.information_key === 'seo')?.information_value ?? {}
 
         const information_map = get_information_map(information)
         const website_name = get_information_value(information_map, 'website_name', language)
