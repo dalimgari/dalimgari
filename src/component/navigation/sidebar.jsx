@@ -47,7 +47,7 @@ function link_icon(link) {
   })
 }
 
-export function sidebar({ id = 'website-sidebar', is_open = false, on_toggle = () => {}, navigation_items = [], language = 'bn', profile = null, managed_links = [], site_title = '', site_tagline = '', logo_url = '' }) {
+export function sidebar({ id = 'website-sidebar', is_open = false, on_toggle = () => {}, navigation_items = [], language = 'bn', profile = null, managed_links = [] }) {
   const visible_pages = navigation_items.filter((item) => item.page_slug && item.is_visible)
   const admin = profile?.information_value && typeof profile.information_value === 'object' ? profile.information_value : (profile ?? {})
   const admin_name = first_value(admin.admin_name, language)
@@ -58,18 +58,7 @@ export function sidebar({ id = 'website-sidebar', is_open = false, on_toggle = (
     is_open && createElement('button', { type: 'button', className: 'website-sidebar-overlay', onClick: on_toggle, 'aria-label': language === 'bn' ? 'সাইডবার বন্ধ করুন' : 'Close navigation' }),
     createElement('aside', { id, className: `website-sidebar${is_open ? ' is-open' : ''}`, 'aria-hidden': !is_open },
       is_open && createElement('div', { className: 'website-sidebar-content' },
-        createElement('div', { className: 'website-sidebar-header' },
-          createElement(Link, { to: '/', className: 'website-sidebar-brand', onClick: on_toggle, 'aria-label': site_title || 'Home' },
-            logo_url
-              ? createElement('img', { className: 'website-sidebar-brand-logo', src: logo_url, alt: '' })
-              : createElement('span', { className: 'website-sidebar-brand-mark', 'aria-hidden': 'true' }, 'ড'),
-            createElement('span', { className: 'website-sidebar-brand-copy' },
-              createElement('strong', null, site_title || (language === 'bn' ? 'ডালিমগাড়ী' : 'Dalimgari')),
-              site_tagline && createElement('small', null, site_tagline)
-            )
-          ),
-          createElement('button', { type: 'button', className: 'website-sidebar-close', onClick: on_toggle, 'aria-label': language === 'bn' ? 'সাইডবার বন্ধ করুন' : 'Close navigation' }, '×')
-        ),
+        createElement('button', { type: 'button', className: 'website-sidebar-close', onClick: on_toggle, 'aria-label': language === 'bn' ? 'সাইডবার বন্ধ করুন' : 'Close navigation' }, '×'),
         createElement('nav', { className: 'sidebar-links', 'aria-label': language === 'bn' ? 'প্রধান নেভিগেশন' : 'Main navigation' },
           createElement(Link, { to: '/', onClick: on_toggle }, language === 'bn' ? 'হোম' : 'Home'),
           visible_pages.map((item) => createElement(Link, { key: item.page_key, to: `/${String(item.page_slug).replace(/^\/+|\/+$/g, '')}`, onClick: on_toggle }, get_localized_value(item.page_title, language)))
