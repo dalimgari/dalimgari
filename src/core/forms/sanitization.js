@@ -1,0 +1,2 @@
+export function sanitize_text(value) { return String(value || '').replace(/[<>]/g, '').trim() }
+export function sanitize_object(value) { if (Array.isArray(value)) return value.map(sanitize_object); if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, sanitize_object(item)])); return typeof value === 'string' ? sanitize_text(value) : value }
