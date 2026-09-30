@@ -41,7 +41,6 @@ export function login_page() {
 
         get_website_information().then((information) => {
           if (!active) return
-          const values = Object.fromEntries((information ?? []).map((item) => [item.information_key, item.information_value]))
           set_site_name(read_setting(information, ['village_name', 'website_name'], ''))
           set_logo_url(read_setting(information, ['logo_url'], ''))
         }).catch(() => {})
