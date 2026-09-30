@@ -245,7 +245,7 @@ function pages_workspace() {
   function edit(row) {
     set_editing(row.page_id)
     set_form({
-      title_bn: localized(row.page_title, 'bn'), title_en: localized(row.page_title, 'en'),
+      page_key: row.page_key, title_bn: localized(row.page_title, 'bn'), title_en: localized(row.page_title, 'en'),
       slug: row.page_slug, content: row.html_content, seo_title: localized(row.seo_data?.title, 'bn'),
       seo_description: localized(row.seo_data?.description, 'bn'), canonical: row.seo_data?.canonical_url ?? '',
       robots: row.seo_data?.robots ?? 'index,follow', order: row.display_order ?? 0,
