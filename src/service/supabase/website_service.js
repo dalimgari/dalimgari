@@ -25,7 +25,7 @@ export async function get_public_links() {
 
 export async function get_admin_information() {
   try {
-    const { data, error } = await supabase.from('admin_information').select('information_value,social_links,other_links,updated_at').limit(1).maybeSingle()
+    const { data, error } = await supabase.from('admin_information').select('information_value,updated_at').limit(1).maybeSingle()
     if (error) throw error
     return data ?? null
   } catch (error) {
