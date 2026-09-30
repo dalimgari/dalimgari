@@ -9,12 +9,16 @@ import { user_account_settings } from '../../component/userdashboard/user_accoun
 
 export function user_dashboard_page() {
   const [dashboard, set_dashboard] = useState(null)
+  const [error, set_error] = useState(null)
   const [selected_module, set_selected_module] = useState('profile')
 
-  useEffect(() => { load_user_dashboard().then(set_dashboard) }, [])
+  useEffect(() => {
+    load_user_dashboard().then(set_dashboard).catch(set_error)
+  }, [])
 
-  if (!dashboard) return createElement('main', null, 'Loading...')
-  if (!dashboard.profile) return createElement('main', null, 'User access required')
+  if (error) return createElement('main', { className: 'dashboard-state' }, createElement('section', { className: 'dashboard-state-card' }, createElement('h1', null, 'ড্যাশবোর্ড লোড করা যায়নি'), createElement('p', null, 'কিছুক্ষণ পর আবার চেষ্টা করুন।')))
+  if (!dashboard) return createElement('main', { className: 'dashboard-state' }, createElement('section', { className: 'dashboard-state-card' }, createElement('p', null, 'ড্যাশবোর্ড লোড হচ্ছে...')))
+  if (!dashboard.profile) return createElement('main', { className: 'dashboard-state' }, createElement('section', { className: 'dashboard-state-card' }, createElement('h1', null, 'অ্যাক্সেস পাওয়া যায়নি'), createElement('p', null, 'এই অংশ ব্যবহারের জন্য লগইন করুন।')))
 
   const content = selected_module === 'settings'
     ? createElement(user_account_settings)
@@ -22,9 +26,15 @@ export function user_dashboard_page() {
 
   return createElement(user_dashboard_layout, {
     profile: dashboard.profile,
-    content: createElement('section', null,
+    content: createElement('section', { className: 'user-dashboard-workspace' },
+      createElement('div', { className: 'user-dashboard-toolbar' },
+        createElement('div', null,
+          createElement('span', { className: 'dashboard-kicker' }, 'ব্যক্তিগত এলাকা'),
+          createElement('h1', null, selected_module === 'settings' ? 'অ্যাকাউন্ট সেটিংস' : 'আমার প্রোফাইল')
+        ),
+        createElement('button', { type: 'button', className: 'dashboard-signout', onClick: sign_out_user }, 'লগআউট')
+      ),
       createElement(user_dashboard_navigation, { modules: user_dashboard_modules, permissions: dashboard.permissions, on_select: set_selected_module }),
-      createElement('button', { type: 'button', onClick: sign_out_user }, 'Sign out'),
       content
     )
   })
