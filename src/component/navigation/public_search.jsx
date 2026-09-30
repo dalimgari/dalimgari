@@ -18,7 +18,6 @@ function plain_text(value) {
   return String(value ?? '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&').replace(/\s+/g, ' ').trim()
 }
 
-
 function normalize_text(value) {
   return plain_text(value).toLocaleLowerCase().normalize('NFC')
 }
@@ -32,14 +31,12 @@ function match_score(value, query) {
   const q = normalize_text(query)
   const q_words = words(q)
   if (!text || !q || !q_words.length) return 0
-
   const text_words = words(text)
   const exact_phrase = text === q
   const exact_words = q_words.filter((word) => text_words.includes(word)).length
   const prefix_words = q_words.filter((word) => text_words.some((item) => item.startsWith(word) && item !== word)).length
   const partial_words = q_words.filter((word) => word.length > 1 && text.includes(word)).length
   const phrase_inside = text.includes(q)
-
   let score = 0
   if (exact_phrase) score += 1000000
   if (exact_words === q_words.length) score += 100000
@@ -60,13 +57,7 @@ function is_visible_element(element) {
 }
 
 function visible_element_text(element) {
-  const values = [
-    element.innerText,
-    element.getAttribute('aria-label'),
-    element.getAttribute('title'),
-    element.getAttribute('alt'),
-    element.getAttribute('value')
-  ]
+  const values = [element.innerText, element.getAttribute('aria-label'), element.getAttribute('title'), element.getAttribute('alt'), element.getAttribute('value')]
   return plain_text(values.filter(Boolean).join(' '))
 }
 
@@ -88,7 +79,6 @@ function get_visible_public_dom_entries() {
   const elements = Array.from(document.body.querySelectorAll('h1,h2,h3,h4,h5,h6,p,a,button,label,li,img,[title],[aria-label]'))
   const entries = []
   const seen = new Set()
-
   for (const element of elements) {
     if (!is_visible_element(element)) continue
     const value = visible_element_text(element)
@@ -99,9 +89,9 @@ function get_visible_public_dom_entries() {
     seen.add(key)
     entries.push({ value, target })
   }
-
   return entries
 }
+
 function snippet(value, query) {
   const text = plain_text(value)
   if (!text) return ''
@@ -123,7 +113,6 @@ function make_results({ information, pages, posts, dom_entries = [] }, language,
   for (const [index, entry] of dom_entries.entries()) {
     add('public', entry.value.slice(0, 90), snippet(entry.value, q), entry.target, 'dom-' + index + '-' + entry.target, entry.value)
   }
-
   const labels = { website_name: language === 'bn' ? 'ওয়েবসাইট' : 'Website', village_name: language === 'bn' ? 'গ্রামের নাম' : 'Village', village_slogan: language === 'bn' ? 'স্লোগান' : 'Slogan', village_description: language === 'bn' ? 'গ্রামের বর্ণনা' : 'Village description', district: language === 'bn' ? 'জেলা' : 'District', upazila: language === 'bn' ? 'উপজেলা' : 'Upazila', union: language === 'bn' ? 'ইউনিয়ন' : 'Union', post_office: language === 'bn' ? 'পোস্ট অফিস' : 'Post office', postal_code: language === 'bn' ? 'পোস্টাল কোড' : 'Postal code', contact_phone: language === 'bn' ? 'যোগাযোগের ফোন' : 'Phone', contact_whatsapp: 'WhatsApp', contact_email: language === 'bn' ? 'যোগাযোগের ইমেইল' : 'Email', footer_copyright: language === 'bn' ? 'কপিরাইট' : 'Copyright' }
   const public_keys = new Set(['website_name','village_name','village_slogan','village_description','district','upazila','union','post_office','postal_code','contact_phone','contact_whatsapp','contact_email','footer_copyright'])
   for (const item of (information ?? []).filter((item) => item?.is_active !== false)) {
@@ -133,11 +122,7 @@ function make_results({ information, pages, posts, dom_entries = [] }, language,
     const searchable_values = localized_values(item.information_value)
     if (!searchable_values.length) continue
     const searchable_text = searchable_values.join(' ')
-    const targets = {
-      website_name: '/#public-home', village_name: '/#public-home', village_slogan: '/#public-home', village_description: '/#public-village_description',
-      district: '/#public-contact', upazila: '/#public-contact', union: '/#public-contact', post_office: '/#public-contact', postal_code: '/#public-contact',
-      contact_phone: '/#public-contact', contact_whatsapp: '/#public-contact', contact_email: '/#public-contact', footer_copyright: '/#public-footer'
-    }
+    const targets = { website_name: '/#public-home', village_name: '/#public-home', village_slogan: '/#public-home', village_description: '/#public-village_description', district: '/#public-contact', upazila: '/#public-contact', union: '/#public-contact', post_office: '/#public-contact', postal_code: '/#public-contact', contact_phone: '/#public-contact', contact_whatsapp: '/#public-contact', contact_email: '/#public-contact', footer_copyright: '/#public-footer' }
     add('information', title, snippet(searchable_text, q) || value, targets[item.information_key] || '/#public-home', 'information-' + item.information_key, searchable_text)
   }
   for (const page of pages ?? []) {
@@ -145,8 +130,7 @@ function make_results({ information, pages, posts, dom_entries = [] }, language,
     const title = text_value(page.page_title, language)
     const content = plain_text(page.html_content)
     const title_values = localized_values(page.page_title)
-    const searchable_text = title_values.concat(content).filter(Boolean).join(' ')
-    add('page', title || (language === 'bn' ? 'তথ্য পেজ' : 'Information page'), snippet(searchable_text, q), '/' + String(page.page_slug).replace(/^\/+|\/+$/g, ''), 'page-' + (page.page_id ?? page.page_slug), searchable_text)
+    add('page', title || (language === 'bn' ? 'তথ্য পেজ' : 'Information page'), snippet(title_values.concat(content).filter(Boolean).join(' '), q), '/' + String(page.page_slug).replace(/^\/+|\/+$/g, ''), 'page-' + (page.page_id ?? page.page_slug), title_values.concat(content).filter(Boolean).join(' '))
   }
   for (const post of posts ?? []) {
     if (!post.is_visible || post.status !== 'published') continue
@@ -156,9 +140,9 @@ function make_results({ information, pages, posts, dom_entries = [] }, language,
   }
   return results.sort((a,b) => b.score - a.score || a.title.localeCompare(b.title)).slice(0, 30)
 }
+
 export function public_search({ information = [], pages = [], posts = [], language = 'bn' }) {
   const [open, set_open] = useState(false)
-  const [preparing, set_preparing] = useState(false)
   const [query, set_query] = useState('')
   const [dom_entries, set_dom_entries] = useState([])
 
@@ -170,31 +154,28 @@ export function public_search({ information = [], pages = [], posts = [], langua
     return () => window.cancelAnimationFrame(frame)
   }, [open, information, pages, posts, language])
 
-  const results = useMemo(
-    () => make_results({ information, pages, posts, dom_entries }, language, query),
-    [information, pages, posts, language, query, dom_entries]
-  )
+  const results = useMemo(() => make_results({ information, pages, posts, dom_entries }, language, query), [information, pages, posts, language, query, dom_entries])
 
   useEffect(() => {
     if (!open) return
-    const on_key = (event) => {
-      if (event.key === 'Escape') close()
-    }
+    const on_key = (event) => { if (event.key === 'Escape') close() }
     window.addEventListener('keydown', on_key)
     return () => window.removeEventListener('keydown', on_key)
   }, [open])
 
   function prepare_open() {
-    set_preparing(true)
+    // Do not update React state here: a state update during pointerdown can
+    // replace the trigger before the browser dispatches its click event.
+    document.querySelector('.public-search')?.classList.add('is-preparing')
   }
 
   function open_search() {
-    set_preparing(false)
     set_open(true)
+    document.querySelector('.public-search')?.classList.remove('is-preparing')
   }
 
   function close() {
-    set_preparing(false)
+    document.querySelector('.public-search')?.classList.remove('is-preparing')
     set_open(false)
     set_query('')
   }
@@ -203,77 +184,19 @@ export function public_search({ information = [], pages = [], posts = [], langua
 
   return createElement(
     'div',
-    { className: `public-search${open ? ' is-open' : ''}${preparing ? ' is-preparing' : ''}` },
-    createElement(
-      'button',
-      {
-        type: 'button',
-        className: 'website-header-control public-search-trigger',
-        onPointerDown: prepare_open,
-        onClick: open_search,
-        'aria-label': language === 'bn' ? 'ওয়েবসাইটে খুঁজুন' : 'Search website',
-        title: language === 'bn' ? 'ওয়েবসাইটে খুঁজুন' : 'Search website'
-      },
-      '⌕'
-    ),
-    createElement(
-      'div',
-      { className: 'public-search-bar', role: 'search' },
+    { className: `public-search${open ? ' is-open' : ''}` },
+    createElement('button', { type: 'button', className: 'website-header-control public-search-trigger', onPointerDown: prepare_open, onClick: open_search, 'aria-label': language === 'bn' ? 'ওয়েবসাইটে খুঁজুন' : 'Search website', title: language === 'bn' ? 'ওয়েবসাইটে খুঁজুন' : 'Search website' }, '⌕'),
+    createElement('div', { className: 'public-search-bar', role: 'search' },
       createElement('span', { className: 'public-search-icon', 'aria-hidden': 'true' }, '⌕'),
-      createElement('input', {
-        autoFocus: open,
-        value: query,
-        onChange: (event) => set_query(event.target.value),
-        placeholder: language === 'bn' ? 'যে তথ্য খুঁজছেন লিখুন…' : 'Search the website…',
-        'aria-label': language === 'bn' ? 'ওয়েবসাইটে খুঁজুন' : 'Search website',
-        'aria-controls': has_suggestions ? 'public-search-suggestions' : undefined,
-        'aria-expanded': has_suggestions
-      }),
-      createElement(
-        'button',
-        {
-          type: 'button',
-          className: 'public-search-close',
-          onClick: close,
-          'aria-label': language === 'bn' ? 'সার্চ বন্ধ করুন' : 'Close search',
-          title: language === 'bn' ? 'সার্চ বন্ধ করুন' : 'Close search'
-        },
-        '×'
-      ),
-      has_suggestions
-        ? createElement(
-            'div',
-            {
-              id: 'public-search-suggestions',
-              className: 'public-search-results',
-              role: 'listbox',
-              'aria-label': language === 'bn' ? 'সার্চ সাজেশন' : 'Search suggestions'
-            },
-            results.map((result) => {
-              const external = /^https?:\/\//i.test(result.to)
-              const props = external
-                ? { href: result.to, target: '_blank', rel: 'noreferrer' }
-                : { to: result.to, onClick: close }
-              return createElement(
-                external ? 'a' : Link,
-                { key: result.key, className: 'public-search-result', ...props, role: 'option' },
-                createElement(
-                  'span',
-                  { className: 'public-search-result-type' },
-                  result.type === 'page'
-                    ? (language === 'bn' ? 'পেজ' : 'Page')
-                    : result.type === 'post'
-                      ? (language === 'bn' ? 'পোস্ট' : 'Post')
-                      : result.type === 'information'
-                        ? (language === 'bn' ? 'তথ্য' : 'Info')
-                        : (language === 'bn' ? 'ওয়েবসাইট' : 'Website')
-                ),
-                createElement('strong', null, result.title),
-                result.description && createElement('span', null, result.description)
-              )
-            })
-          )
-        : null
+      createElement('input', { autoFocus: open, value: query, onChange: (event) => set_query(event.target.value), placeholder: language === 'bn' ? 'যে তথ্য খুঁজছেন লিখুন…' : 'Search the website…', 'aria-label': language === 'bn' ? 'ওয়েবসাইটে খুঁজুন' : 'Search website', 'aria-controls': has_suggestions ? 'public-search-suggestions' : undefined, 'aria-expanded': has_suggestions }),
+      createElement('button', { type: 'button', className: 'public-search-close', onClick: close, 'aria-label': language === 'bn' ? 'সার্চ বন্ধ করুন' : 'Close search', title: language === 'bn' ? 'সার্চ বন্ধ করুন' : 'Close search' }, '×'),
+      has_suggestions ? createElement('div', { id: 'public-search-suggestions', className: 'public-search-results', role: 'listbox', 'aria-label': language === 'bn' ? 'সার্চ সাজেশন' : 'Search suggestions' }, results.map((result) => {
+        const external = /^https?:\/\//i.test(result.to)
+        const props = external ? { href: result.to, target: '_blank', rel: 'noreferrer' } : { to: result.to, onClick: close }
+        return createElement(external ? 'a' : Link, { key: result.key, className: 'public-search-result', ...props, role: 'option' },
+          createElement('span', { className: 'public-search-result-type' }, result.type === 'page' ? (language === 'bn' ? 'পেজ' : 'Page') : result.type === 'post' ? (language === 'bn' ? 'পোস্ট' : 'Post') : result.type === 'information' ? (language === 'bn' ? 'তথ্য' : 'Info') : (language === 'bn' ? 'ওয়েবসাইট' : 'Website')),
+          createElement('strong', null, result.title), result.description && createElement('span', null, result.description))
+      })) : null
     )
   )
 }
