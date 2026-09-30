@@ -1,4 +1,5 @@
 import { createElement } from 'react'
+import '../../style/components/admin_module_navigation.css'
 
 function normalize_admin_url(value) {
   const input = String(value ?? '').trim()
@@ -20,18 +21,23 @@ export function module_navigation({ modules = [], permissions = new Set(), on_se
   return createElement(
     'nav',
     { className: 'admin-module-navigation', 'aria-label': 'Admin dashboard navigation' },
-    visible_modules.map((module) => createElement(
-      'button',
-      {
-        key: module.key,
-        type: 'button',
-        className: selected_module === module.key ? 'is-active' : '',
-        onClick: () => on_select(module.key),
-        'aria-current': selected_module === module.key ? 'page' : undefined,
-        title: module.label
-      },
-      createElement('span', { className: 'admin-module-navigation-label' }, module.label)
-    )),
+    createElement(
+      'div',
+      { className: 'admin-module-navigation-tabs', role: 'tablist', 'aria-label': 'Admin modules' },
+      visible_modules.map((module) => createElement(
+        'button',
+        {
+          key: module.key,
+          type: 'button',
+          role: 'tab',
+          className: selected_module === module.key ? 'is-active' : '',
+          onClick: () => on_select(module.key),
+          'aria-selected': selected_module === module.key,
+          title: module.label
+        },
+        createElement('span', { className: 'admin-module-navigation-label' }, module.label)
+      ))
+    ),
     createElement('div', { className: 'admin-sidebar-profile' },
       createElement('div', { className: 'admin-sidebar-profile-image-wrap' },
         createElement('img', {
