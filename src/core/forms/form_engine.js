@@ -1,0 +1,2 @@
+export function create_form(initial = {}, fields = []) { const values = { ...initial }; for (const field of fields) if (!(field.name in values)) values[field.name] = field.default === undefined ? '' : field.default; return values }
+export function normalize_form(values) { return Object.fromEntries(Object.entries(values).map(([key, value]) => [key, typeof value === 'string' ? value.trim() : value])) }
