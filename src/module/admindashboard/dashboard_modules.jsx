@@ -1,5 +1,5 @@
 export const dashboard_modules = [
-  { key: 'websiteinformation', label: 'Website Information', permission: 'website_information_manage' },
+  { key: 'websiteinformation', label: 'Village Information', permission: 'website_information_manage' },
   { key: 'admininfo', label: 'Admin Information', permission: 'admin_information_manage' },
   { key: 'pagemanagement', label: 'Pages', permission: 'page_manage' },
   { key: 'postmanagement', label: 'Posts', permission: 'post_manage' },
