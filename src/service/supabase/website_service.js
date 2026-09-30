@@ -23,7 +23,6 @@ export async function get_public_links() {
   )
 }
 
-
 export async function get_admin_information() {
   try {
     const { data, error } = await supabase
@@ -71,7 +70,6 @@ export async function get_public_posts() {
 export async function get_public_customization() {
   return read_public_table('customization_settings', (query) => query.eq('is_active', true))
 }
-
 
 export async function get_public_seo_settings() {
   return read_public_table('seo_settings', (query) => query.eq('is_active', true))
