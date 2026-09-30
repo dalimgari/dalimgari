@@ -177,7 +177,7 @@ export function public_search({ information = [], pages = [], posts = [], langua
   useEffect(() => {
     if (!open) return
     const on_key = (event) => {
-      if (event.key === 'Escape') set_open(false)
+      if (event.key === 'Escape') close()
     }
     window.addEventListener('keydown', on_key)
     return () => window.removeEventListener('keydown', on_key)
@@ -188,51 +188,81 @@ export function public_search({ information = [], pages = [], posts = [], langua
     set_query('')
   }
 
-  return createElement('div', { className: 'public-search' },
-    createElement('button', {
-      type: 'button',
-      className: 'website-header-control public-search-trigger',
-      onClick: () => set_open(true),
-      'aria-label': language === 'bn' ? 'ওয়েবসাইটে খুঁজুন' : 'Search website',
-      title: language === 'bn' ? 'ওয়েবসাইটে খুঁজুন' : 'Search website'
-    }, '⌕'),
-    open && createElement('div', { className: 'public-search-layer', role: 'dialog', 'aria-modal': 'true', 'aria-label': language === 'bn' ? 'ওয়েবসাইট সার্চ' : 'Website search' },
-      createElement('button', { type: 'button', className: 'public-search-backdrop', onClick: close, 'aria-label': language === 'bn' ? 'সার্চ বন্ধ করুন' : 'Close search' }),
-      createElement('section', { className: 'public-search-panel' },
-        createElement('div', { className: 'public-search-header' },
-          createElement('strong', null, language === 'bn' ? 'ওয়েবসাইটে খুঁজুন' : 'Search the website'),
-          createElement('button', { type: 'button', className: 'public-search-close', onClick: close, 'aria-label': language === 'bn' ? 'সার্চ বন্ধ করুন' : 'Close search' }, '×')
-        ),
-        createElement('div', { className: 'public-search-input-wrap' },
-          createElement('span', { 'aria-hidden': 'true' }, '⌕'),
+  const has_suggestions = open && query.trim().length > 0 && results.length > 0
+
+  return createElement(
+    'div',
+    { className: `public-search${open ? ' is-open' : ''}` },
+    open
+      ? createElement(
+          'div',
+          { className: 'public-search-bar', role: 'search' },
+          createElement('span', { className: 'public-search-icon', 'aria-hidden': 'true' }, '⌕'),
           createElement('input', {
             autoFocus: true,
             value: query,
             onChange: (event) => set_query(event.target.value),
-            onInput: (event) => set_query(event.currentTarget.value),
-            placeholder: language === 'bn' ? 'যে তথ্য খুঁজছেন লিখুন…' : 'Type what you are looking for…',
-            'aria-label': language === 'bn' ? 'সার্চ' : 'Search'
-          })
-        ),
-        query.trim()
-          ? results.length
-            ? createElement('div', { className: 'public-search-results' },
-                createElement('div', { className: 'public-search-count' }, language === 'bn' ? `${results.length}টি ফলাফল` : `${results.length} results`),
+            placeholder: language === 'bn' ? 'যে তথ্য খুঁজছেন লিখুন…' : 'Search the website…',
+            'aria-label': language === 'bn' ? 'ওয়েবসাইটে খুঁজুন' : 'Search website',
+            'aria-controls': has_suggestions ? 'public-search-suggestions' : undefined,
+            'aria-expanded': has_suggestions
+          }),
+          createElement(
+            'button',
+            {
+              type: 'button',
+              className: 'public-search-close',
+              onClick: close,
+              'aria-label': language === 'bn' ? 'সার্চ বন্ধ করুন' : 'Close search',
+              title: language === 'bn' ? 'সার্চ বন্ধ করুন' : 'Close search'
+            },
+            '×'
+          ),
+          has_suggestions
+            ? createElement(
+                'div',
+                {
+                  id: 'public-search-suggestions',
+                  className: 'public-search-results',
+                  role: 'listbox',
+                  'aria-label': language === 'bn' ? 'সার্চ সাজেশন' : 'Search suggestions'
+                },
                 results.map((result) => {
                   const external = /^https?:\/\//i.test(result.to)
                   const props = external
                     ? { href: result.to, target: '_blank', rel: 'noreferrer' }
                     : { to: result.to, onClick: close }
-                  return createElement(external ? 'a' : Link, { key: result.key, className: 'public-search-result', ...props },
-                    createElement('span', { className: 'public-search-result-type' }, result.type === 'page' ? (language === 'bn' ? 'পেজ' : 'Page') : result.type === 'post' ? (language === 'bn' ? 'পোস্ট' : 'Post') : result.type === 'information' ? (language === 'bn' ? 'তথ্য' : 'Info') : (language === 'bn' ? 'ওয়েবসাইট' : 'Website')),
+                  return createElement(
+                    external ? 'a' : Link,
+                    { key: result.key, className: 'public-search-result', ...props, role: 'option' },
+                    createElement(
+                      'span',
+                      { className: 'public-search-result-type' },
+                      result.type === 'page'
+                        ? (language === 'bn' ? 'পেজ' : 'Page')
+                        : result.type === 'post'
+                          ? (language === 'bn' ? 'পোস্ট' : 'Post')
+                          : result.type === 'information'
+                            ? (language === 'bn' ? 'তথ্য' : 'Info')
+                            : (language === 'bn' ? 'ওয়েবসাইট' : 'Website')
+                    ),
                     createElement('strong', null, result.title),
                     result.description && createElement('span', null, result.description)
                   )
                 })
               )
-            : createElement('div', { className: 'public-search-empty' }, language === 'bn' ? 'কোনো মিল পাওয়া যায়নি।' : 'No matching public information found.')
-          : createElement('div', { className: 'public-search-hint' }, language === 'bn' ? 'পাবলিক ওয়েবসাইটে বর্তমানে দেখা যাচ্ছে এমন লেখা, শিরোনাম, বাটন, লিংক, কনটেন্ট ও তথ্যের মধ্যে খোঁজা হবে।' : 'Searches visible public website text, headings, buttons, links, content and information.')
-      )
-    )
+            : null
+        )
+      : createElement(
+          'button',
+          {
+            type: 'button',
+            className: 'website-header-control public-search-trigger',
+            onClick: () => set_open(true),
+            'aria-label': language === 'bn' ? 'ওয়েবসাইটে খুঁজুন' : 'Search website',
+            title: language === 'bn' ? 'ওয়েবসাইটে খুঁজুন' : 'Search website'
+          },
+          '⌕'
+        )
   )
 }
