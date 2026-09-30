@@ -28,7 +28,7 @@ export function build_visitor_payload({ page_path, referrer } = {}) {
   return {
     visitor_key: get_visitor_key(),
     page_path: page_path ?? window.location.pathname,
-    referrer: referrer ?? document.referrer || null,
+    referrer: referrer ?? (document.referrer || null),
     device_type: /Mobi|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
     browser_name: navigator.userAgent,
     operating_system: navigator.platform,
