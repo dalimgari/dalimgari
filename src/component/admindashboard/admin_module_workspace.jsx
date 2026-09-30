@@ -119,7 +119,7 @@ export function admin_module_workspace({ module_key }) {
     ) : null,
     createElement('div', null, rows.map((row) => createElement('article', { key: row[config.id] },
       createElement('span', null, row.display_name ?? row.information_key ?? row.page_key ?? row.post_key ?? row.setting_key ?? row.visited_at ?? row[config.id]),
-      config.fields.length ? createElement('button', { type: 'button', onClick: () => { set_editing_id(row[config.id]); set_form(Object.fromEntries(config.fields.map((field) => [field, field_value(row[field])])))} }, 'Edit') : null,
+      config.fields.length ? createElement('button', { type: 'button', onClick: () => { set_editing_id(row[config.id]); set_form(Object.fromEntries(config.fields.map((field) => [field, field_value(row[field])]))) } }, 'Edit') : null,
       config.allow_delete ? createElement('button', { type: 'button', onClick: () => remove(row[config.id]) }, 'Delete') : null
     )))
   )
