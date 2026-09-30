@@ -11,8 +11,9 @@ function first_value(value, language = 'bn') {
 
 function normalize_links(profile, managed_links = []) {
   const result = []
+  const source_links = managed_links.length > 0 ? managed_links : (profile?.managed_links ?? [])
 
-  managed_links
+  source_links
     .filter((item) => item?.is_active !== false && item?.url && /^https?:\/\//i.test(String(item.url)))
     .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
     .forEach((item) => result.push({ ...item, title: item.title ?? item.name ?? item.url }))
