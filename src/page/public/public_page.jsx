@@ -139,7 +139,13 @@ function render_website(state, language, pathname, language_control, theme_contr
       email: get_information_value(information, 'admin_email', language),
       phone: get_information_value(information, 'admin_phone', language),
       profile_image_url: get_information_value(information, 'admin_profile_image', language),
-      social_links: { links: [] }
+      social_links: {
+        links: [
+          get_information_value(information, 'facebook_link', language) && { label: 'Facebook', url: normalize_external_url(get_information_value(information, 'facebook_link', language)) },
+          get_information_value(information, 'youtube_link', language) && { label: 'YouTube', url: normalize_external_url(get_information_value(information, 'youtube_link', language)) },
+          get_information_value(information, 'other_social_links', language) && { label: 'Social', url: normalize_external_url(get_information_value(information, 'other_social_links', language)) }
+        ].filter(Boolean)
+      }
     },
     navigation_items: state.pages.filter((page) => page.page_slug),
     language,
