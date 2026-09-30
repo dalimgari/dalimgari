@@ -183,7 +183,7 @@ export function public_page() {
     'aria-label': 'Toggle theme'
   }, theme_mode === 'dark' ? '☀' : '☾')
 
-  if (state.loading) return createElement(website_skeleton)
+  if (state.loading) return createElement(website_skeleton, { language })
 
   if (state.error) {
     return createElement('main', { className: 'website-error-page' },
