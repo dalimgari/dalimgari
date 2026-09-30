@@ -16,21 +16,10 @@ import { get_localized_value } from '../../function/translation/language'
 import { get_saved_language, save_language } from '../../function/translation/language_storage'
 import { get_theme_mode, apply_theme_mode, set_manual_theme_mode, subscribe_to_system_theme } from '../../function/theme/theme_mode'
 import { public_search } from '../../component/navigation/public_search'
+import { get_information_map, get_information_value, get_information_contact_icon } from './public_information'
+import { sanitize_html } from '../../function/page/render_html'
 
 const empty_state = { loading: true, error: null, information: [], links: [], admin_information: null, pages: [], posts: [], customization: [], seo_settings: [] }
-
-function get_information_map(information) { return information.reduce((result, item) => { result[item.information_key] = item.information_value ?? ''; return result }, {}) }
-function get_information_value(map, key, language = 'bn') { const value = map[key]; if (value && typeof value === 'object') return value[language] ?? value.bn ?? value.en ?? ''; return value ?? '' }
-function sanitize_html(value) { if (!value) return ''; const template = document.createElement('template'); template.innerHTML = String(value); template.content.querySelectorAll('script,iframe,object,embed,style,link,meta').forEach((node) => node.remove()); template.content.querySelectorAll('*').forEach((node) => Array.from(node.attributes).forEach((attribute) => { if (/^on/i.test(attribute.name)) node.removeAttribute(attribute.name); if (['href','src','action'].includes(attribute.name) && /^javascript:/i.test(attribute.value)) node.removeAttribute(attribute.name) })); return template.innerHTML }
-
-function contact_icon(type) {
-  const paths = {
-    phone: 'M6.6 2.5 9.2 2l2.1 5.1-1.8 1.5c1 2.1 2.8 3.9 4.9 4.9l1.5-1.8 5.1 2.1-.5 2.6c-.2 1.1-1.2 1.9-2.3 1.8C11.8 17.6 6.4 12.2 5.8 5.8 5.7 4.7 6.5 3.7 7.6 3.5L6.6 2.5Z',
-    whatsapp: 'M20.5 3.5A11.2 11.2 0 0 0 12.6 1C6.5.7 1.4 5.5 1 11.6c-.1 2.2.5 4.3 1.7 6.1L1 23l5.5-1.7a11.4 11.4 0 0 0 5.8 1.6h.3c6.1-.4 10.9-5.5 10.4-11.6-.2-3-1.1-5.6-2.5-7.8Z',
-    email: 'M2.5 4.5h19v15h-19v-15Zm2 2v.3l7.5 5.7 7.5-5.7v-.3h-15Zm15 2.8-7.5 5.7-7.5-5.7v8.2h15V9.3Z'
-  }
-  return createElement('svg', { viewBox: '0 0 24 24', 'aria-hidden': 'true', focusable: 'false' }, createElement('path', { d: paths[type] || paths.email }))
-}
 
 function render_home_page(state, language) {
   const information = get_information_map(state.information)
@@ -74,9 +63,9 @@ function render_home_page(state, language) {
       ),
       createElement('p', { className: 'contact-address' }, [village_name, ...address_parts].filter(Boolean).join(' • ')),
       createElement('div', { className: 'contact-actions' },
-        contact_phone && createElement('a', { className: 'website-contact-action primary', href: `tel:${contact_phone}`, 'aria-label': 'Call', title: 'Call' }, contact_icon('phone')),
-        contact_whatsapp && createElement('a', { className: 'website-contact-action whatsapp', href: `https://wa.me/${String(contact_whatsapp).replace(/[^0-9+]/g, '').replace(/^\+/, '')}`, target: '_blank', rel: 'noreferrer', 'aria-label': 'WhatsApp', title: 'WhatsApp' }, contact_icon('whatsapp')),
-        contact_email && createElement('a', { className: 'website-contact-action email', href: `mailto:${contact_email}`, 'aria-label': 'Email', title: 'Email' }, contact_icon('email'))
+        contact_phone && createElement('a', { className: 'website-contact-action primary', href: `tel:${contact_phone}`, 'aria-label': 'Call', title: 'Call' }, get_information_contact_icon('phone', createElement)),
+        contact_whatsapp && createElement('a', { className: 'website-contact-action whatsapp', href: `https://wa.me/${String(contact_whatsapp).replace(/[^0-9+]/g, '').replace(/^\+/, '')}`, target: '_blank', rel: 'noreferrer', 'aria-label': 'WhatsApp', title: 'WhatsApp' }, get_information_contact_icon('whatsapp', createElement)),
+        contact_email && createElement('a', { className: 'website-contact-action email', href: `mailto:${contact_email}`, 'aria-label': 'Email', title: 'Email' }, get_information_contact_icon('email', createElement))
       )
     )
   )
