@@ -15,7 +15,7 @@ export function reset_password_page() {
     set_error('')
     set_message('')
 
-    if (password.length < 6) {
+    if (password.length < 8) {
       set_error('Password must contain at least 6 characters.')
       return
     }
@@ -64,7 +64,7 @@ export function reset_password_page() {
             onChange: (event) => set_password(event.target.value),
             autoComplete: 'new-password',
             required: true,
-            minLength: 6
+            minLength: 8
           })
         ),
         createElement('label', null,
