@@ -99,7 +99,10 @@ export function admin_module_workspace({ module_key }) {
 
   async function load() {
     if (!config) return
-    const { data, error } = await supabase.from(config.table).select('*').order('created_at', { ascending: false }).limit(100)
+    let query = supabase.from(config.table).select('*')
+    const order_field = config.table === 'analytics_visits' ? 'visited_at' : 'created_at'
+    query = query.order(order_field, { ascending: false }).limit(100)
+    const { data, error } = await query
     if (error) set_message(error.message)
     set_rows(data ?? [])
   }
