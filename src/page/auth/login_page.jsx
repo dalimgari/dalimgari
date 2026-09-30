@@ -99,6 +99,9 @@ export function login_page() {
       site_name ? createElement('h1', null, site_name) : null,
       createElement('p', null, forgot_mode ? 'পাসওয়ার্ড পরিবর্তন করুন' : 'আপনার অ্যাকাউন্টে প্রবেশ করুন')
     ),
+    createElement('nav', { className: 'login-navigation', 'aria-label': 'Authentication navigation' },
+      createElement('button', { type: 'button', className: 'login-back-button', onClick: () => navigate('/') }, '← মূল ওয়েবসাইটে ফিরে যান')
+    ),
     forgot_mode ? createElement('form', { className: 'login-form', onSubmit: forgot_password },
       createElement('label', null, 'ইমেইল ঠিকানা', createElement('input', { type: 'email', value: email, onChange: (event) => set_email(event.target.value), autoComplete: 'email', inputMode: 'email', placeholder: 'আপনার ইমেইল লিখুন', required: true })),
       error ? createElement('p', { className: 'login-error', role: 'alert' }, error) : null,
