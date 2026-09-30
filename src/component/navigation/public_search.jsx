@@ -158,6 +158,7 @@ function make_results({ information, pages, posts, dom_entries = [] }, language,
 }
 export function public_search({ information = [], pages = [], posts = [], language = 'bn' }) {
   const [open, set_open] = useState(false)
+  const [preparing, set_preparing] = useState(false)
   const [query, set_query] = useState('')
   const [dom_entries, set_dom_entries] = useState([])
 
@@ -183,12 +184,17 @@ export function public_search({ information = [], pages = [], posts = [], langua
     return () => window.removeEventListener('keydown', on_key)
   }, [open])
 
-  function prepare_open(event) {
-    event.currentTarget.parentElement?.classList.add('is-preparing')
+  function prepare_open() {
+    set_preparing(true)
+  }
+
+  function open_search() {
+    set_preparing(false)
+    set_open(true)
   }
 
   function close() {
-    document.querySelector('.public-search')?.classList.remove('is-preparing')
+    set_preparing(false)
     set_open(false)
     set_query('')
   }
@@ -197,14 +203,14 @@ export function public_search({ information = [], pages = [], posts = [], langua
 
   return createElement(
     'div',
-    { className: `public-search${open ? ' is-open' : ''}` },
+    { className: `public-search${open ? ' is-open' : ''}${preparing ? ' is-preparing' : ''}` },
     createElement(
       'button',
       {
         type: 'button',
         className: 'website-header-control public-search-trigger',
         onPointerDown: prepare_open,
-        onClick: () => set_open(true),
+        onClick: open_search,
         'aria-label': language === 'bn' ? 'ওয়েবসাইটে খুঁজুন' : 'Search website',
         title: language === 'bn' ? 'ওয়েবসাইটে খুঁজুন' : 'Search website'
       },
