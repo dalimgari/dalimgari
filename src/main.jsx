@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { app_provider } from './app/provider/app_provider'
 import { app_router } from './app/router/app_router'
 import './style/global/global.css'
+import './style/global/consistency.css'
 import './style/global/login.css'
 import './style/global/design-polish.css'
 
