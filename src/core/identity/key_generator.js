@@ -1,0 +1,1 @@
+export function next_local_key(prefix, values = []) { let max = 0; for (const value of values) { const match = String(value || '').match(new RegExp('^' + prefix + '(\\d+)$', 'i')); if (match) max = Math.max(max, Number(match[1])) } return prefix + (max + 1) }
