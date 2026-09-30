@@ -39,9 +39,26 @@ export async function get_public_pages() {
 }
 
 export async function get_public_posts() {
-  return read_public_table('posts', (query) =>
-    query.eq('is_visible', true).eq('status', 'published').order('published_at', { ascending: false })
-  )
+  try {
+    const { data, error } = await supabase
+      .from('posts')
+      .select('*, post_media(post_media_id, media_id, display_order, media(*))')
+      .eq('is_visible', true)
+      .eq('status', 'published')
+      .order('published_at', { ascending: false })
+
+    if (error) throw error
+
+    return (data ?? []).map((post) => ({
+      ...post,
+      post_media: (post.post_media ?? [])
+        .filter((item) => item.media?.is_visible !== false)
+        .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
+    }))
+  } catch (error) {
+    console.error('Failed to load posts', error)
+    return []
+  }
 }
 
 export async function get_public_customization() {
