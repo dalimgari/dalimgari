@@ -25,13 +25,14 @@ export async function get_public_links() {
 
 export async function get_admin_information() {
   try {
-    const { data, error } = await supabase
-      .from('admin_information')
-      .select('*')
-      .limit(1)
-      .maybeSingle()
+    const [{ data, error }, { data: managed_links, error: links_error }] = await Promise.all([
+      supabase.from('admin_information').select('*').limit(1).maybeSingle(),
+      supabase.from('managed_links').select('*').eq('is_active', true).order('display_order', { ascending: true })
+    ])
+
     if (error) throw error
-    return data ?? null
+    if (links_error) throw links_error
+    return data ? { ...data, managed_links: managed_links ?? [] } : null
   } catch (error) {
     console.error('Failed to load admin information', error)
     return null
@@ -72,5 +73,12 @@ export async function get_public_customization() {
 }
 
 export async function get_public_seo_settings() {
-  return read_public_table('seo_settings', (query) => query.eq('is_active', true))
+  const rows = await read_public_table('seo_settings', (query) => query.eq('is_active', true))
+  return rows.map((row) => ({
+    ...row,
+    title: row.seo_title ?? {},
+    description: row.seo_description ?? {},
+    canonical_url: row.canonical_url ?? null,
+    robots: row.robots_directive ?? null
+  }))
 }
