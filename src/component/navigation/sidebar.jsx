@@ -9,18 +9,28 @@ function first_value(value, language = 'bn') {
   return String(value)
 }
 
-function normalize_links(profile) {
-  if (!profile) return []
-  const sources = [profile.social_links, profile.other_links, profile.links]
+function normalize_links(profile, managed_links = []) {
   const result = []
+
+  managed_links
+    .filter((item) => item?.is_active !== false && item?.url && /^https?:\/\//i.test(String(item.url)))
+    .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
+    .forEach((item) => result.push({ ...item, title: item.title ?? item.name ?? item.url }))
+
+  if (result.length > 0) return result
+  if (!profile) return []
+
+  const sources = [profile.social_links, profile.other_links, profile.links]
   sources.forEach((source) => {
     if (!source) return
     if (Array.isArray(source)) source.forEach((item) => result.push(item))
     else if (typeof source === 'object') Object.entries(source).forEach(([key, value]) => {
+      if (key === 'admin_sidebar_links') return
       if (typeof value === 'string') result.push({ key, title: key, url: value })
       else if (value && typeof value === 'object') result.push({ key, ...value })
     })
   })
+
   return result.filter((item) => item?.url && /^https?:\/\//i.test(String(item.url)))
 }
 
@@ -36,12 +46,12 @@ function link_icon(link) {
   })
 }
 
-export function sidebar({ id = 'website-sidebar', is_open = false, on_toggle = () => {}, navigation_items = [], language = 'bn', profile = null }) {
+export function sidebar({ id = 'website-sidebar', is_open = false, on_toggle = () => {}, navigation_items = [], language = 'bn', profile = null, managed_links = [] }) {
   const visible_pages = navigation_items.filter((item) => item.page_slug && item.is_visible)
   const admin = profile?.information_value && typeof profile.information_value === 'object' ? profile.information_value : (profile ?? {})
   const admin_name = first_value(admin.admin_name, language)
   const admin_image = first_value(admin.admin_profile_image || admin.profile_image || admin.avatar_url, language)
-  const admin_links = normalize_links(profile)
+  const admin_links = normalize_links(profile, managed_links)
 
   return createElement('div', { className: 'website-sidebar-layer' },
     is_open && createElement('button', { type: 'button', className: 'website-sidebar-overlay', onClick: on_toggle, 'aria-label': language === 'bn' ? 'সাইডবার বন্ধ করুন' : 'Close navigation' }),
