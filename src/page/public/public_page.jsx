@@ -43,12 +43,12 @@ function render_home_page(state, language) {
   const contact_email = get_information_value(information, 'contact_email', language)
   const address_parts = [village_name, union, upazila, district, post_office, postal_code].filter(Boolean)
   return createElement('main', { className: 'website-body' },
-    village_description && createElement('section', { className: 'home-welcome website-section' },
+    village_description && createElement('section', { id: 'public-village_description', className: 'home-welcome website-section' },
       createElement('div', { className: 'website-eyebrow' }, language === 'bn' ? 'পরিচিতি' : 'Introduction'),
       createElement('h2', null, language === 'bn' ? 'আমাদের গ্রাম' : 'Our village'),
       createElement('p', { className: 'website-lead-text' }, village_description)
     ),
-    state.pages.some((page) => page.page_slug) && createElement('section', { className: 'home-navigation website-section' },
+    state.pages.some((page) => page.page_slug) && createElement('section', { id: 'public-pages', className: 'home-navigation website-section' },
       createElement('div', { className: 'website-section-heading' },
         createElement('div', null,
           createElement('div', { className: 'website-eyebrow' }, language === 'bn' ? 'জানুন' : 'Explore'),
@@ -57,7 +57,7 @@ function render_home_page(state, language) {
       ),
       createElement(page_navigation, { pages: state.pages.filter((page) => page.page_slug), language })
     ),
-    state.posts.length > 0 && createElement('section', { className: 'home-posts website-section' },
+    state.posts.length > 0 && createElement('section', { id: 'public-posts', className: 'home-posts website-section' },
       createElement('div', { className: 'website-section-heading' },
         createElement('div', null,
           createElement('div', { className: 'website-eyebrow' }, language === 'bn' ? 'সর্বশেষ' : 'Latest'),
@@ -66,7 +66,7 @@ function render_home_page(state, language) {
       ),
       createElement(post_list, { posts: state.posts, language })
     ),
-    address_parts.length > 0 && createElement('section', { className: 'home-contact website-section' },
+    address_parts.length > 0 && createElement('section', { id: 'public-contact', className: 'home-contact website-section' },
       createElement('div', { className: 'website-section-heading' },
         createElement('div', null,
           createElement('div', { className: 'website-eyebrow' }, language === 'bn' ? 'যোগাযোগ' : 'Contact'),
