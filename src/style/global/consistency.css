@@ -109,7 +109,15 @@ input[type=radio] { width: auto; min-height: auto; padding: 0; accent-color: var
 .admin-form-field { display: grid; gap: var(--ui-space-2); }
 .ui-field + .ui-field { margin-top: var(--ui-space-4); }
 .ui-field > label,
-.admin-form-field > span { font-size: var(--font-size-sm); font-weight: 750; }
+.admin-form-field > span {
+  display: block;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: 750;
+  line-height: 1.45;
+  visibility: visible;
+  opacity: 1;
+}
 .ui-help { color: var(--color-secondary); font-size: var(--font-size-xs); }
 .ui-form-grid,
 .admin-form-grid { display: grid; gap: var(--ui-content-gap); grid-template-columns: repeat(2, minmax(0, 1fr)); }
