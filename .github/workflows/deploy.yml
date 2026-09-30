@@ -10,7 +10,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: github-pages
+  group: dalimgari-pages-deploy
   cancel-in-progress: false
 
 env:
@@ -29,19 +29,11 @@ jobs:
       - run: npm install
       - name: verify supabase configuration
         run: |
-          if [ -z "$VITE_SUPABASE_URL" ]; then
-            echo "Missing VITE_SUPABASE_URL repository secret"
-            exit 1
-          fi
-          if [ -z "$VITE_SUPABASE_ANON_KEY" ] && [ -z "$VITE_SUPABASE_PUBLISHABLE_KEY" ]; then
-            echo "Missing Supabase publishable/anon key repository secret"
-            exit 1
-          fi
+          test -n "$VITE_SUPABASE_URL" || { echo "Missing VITE_SUPABASE_URL repository secret"; exit 1; }
+          test -n "$VITE_SUPABASE_PUBLISHABLE_KEY" || test -n "$VITE_SUPABASE_ANON_KEY" || { echo "Missing Supabase publishable/anon key repository secret"; exit 1; }
       - run: npm run build
-      - name: configure pages
-        uses: actions/configure-pages@v5
-      - name: upload pages artifact
-        uses: actions/upload-pages-artifact@v3
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist
 
