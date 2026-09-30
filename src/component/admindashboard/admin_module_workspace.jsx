@@ -359,8 +359,7 @@ function albums_workspace() {
 function media_workspace() {
   const [rows, set_rows] = useState([])
   const [albums, set_albums] = useState([])
-  const [form, set_form] = useState({ method: 'url', url: '', album_id: '', visible: true })
-  const [file, set_file] = useState(null)
+  const [form, set_form] = useState({ album_id: '', visible: true })
   const [message, set_message] = useState('')
 
   async function load() {
@@ -374,28 +373,21 @@ function media_workspace() {
   }
   useEffect(() => { load() }, [])
 
-  async function save(event) {
-    event.preventDefault()
-    let url = form.url
-    let storage_path = null
-    let file_name = file?.name ?? null
-    let mime_type = file?.type ?? null
-    let file_size = file?.size ?? null
-    if (form.method !== 'url') {
-      if (!file) return set_message('Select a file first')
-      storage_path = `admin/${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`
-      const { error: upload_error } = await supabase.storage.from('global_media').upload(storage_path, file, { upsert: false })
-      if (upload_error) return set_message(upload_error.message)
-      url = supabase.storage.from('global_media').getPublicUrl(storage_path).data.publicUrl
+  async function apply_media_settings(media) {
+    if (!media?.media_id) return
+    const { error } = await supabase.from('media').update({
+      album_id: form.album_id || null,
+      is_visible: form.visible
+    }).eq('media_id', media.media_id)
+    if (error) set_message(error.message)
+    else {
+      set_message('Media added')
+      await load()
     }
-    const payload = { media_method: form.method, file_name, mime_type, file_size, storage_path, media_url: url, album_id: form.album_id || null, is_visible: form.visible }
-    const { error } = await supabase.from('media').insert(payload)
-    set_message(error ? error.message : 'Media added')
-    if (!error) { set_form({ method: 'url', url: '', album_id: '', visible: true }); set_file(null); await load() }
   }
 
   async function remove(row) {
-    if (!window.confirm('Delete this media?')) return
+    if (!window.confirm('এই মিডিয়াটি মুছে ফেলবেন?')) return
     if (row.storage_path) await supabase.storage.from('global_media').remove([row.storage_path])
     const { error } = await delete_record('media', 'media_id', row.media_id)
     set_message(error ? error.message : 'Deleted')
@@ -404,56 +396,84 @@ function media_workspace() {
 
   return createElement('section', { className: 'admin-module-workspace' },
     panel_header('Media Manager', message),
-    createElement('form', { onSubmit: save }, createElement('div', { className: 'admin-form-grid' },
-      select({ label: 'Method', value: form.method, on_change: (value) => set_form({ ...form, method: value }), options: [{ value: 'url', label: 'URL' }, { value: 'upload', label: 'Upload' }, { value: 'select_file', label: 'Select File' }] }),
-      form.method === 'url' ? input({ label: 'Media URL', value: form.url, on_change: (value) => set_form({ ...form, url: value }) }) : createElement('label', { className: 'admin-form-field' }, createElement('span', null, 'File'), createElement('input', { type: 'file', onChange: (event) => set_file(event.target.files?.[0] ?? null) })),
-      select({ label: 'Album', value: form.album_id, on_change: (value) => set_form({ ...form, album_id: value }), options: [{ value: '', label: 'No album' }, ...albums.map((row) => ({ value: row.album_id, label: localized(row.album_title) }))] }),
+    createElement('div', { className: 'admin-form-grid' },
+      createElement(global_media_uploader, {
+        label: 'ছবি / ভিডিও / ফাইল',
+        accept: 'image/*,video/*,.pdf',
+        on_select: apply_media_settings
+      }),
+      select({
+        label: 'Album',
+        value: form.album_id,
+        on_change: (value) => set_form({ ...form, album_id: value }),
+        options: [{ value: '', label: 'No album' }, ...albums.map((row) => ({ value: row.album_id, label: localized(row.album_title) }))]
+      }),
       checkbox({ label: 'Visible', checked: form.visible, on_change: (value) => set_form({ ...form, visible: value }) })
-    ), createElement('button', { type: 'submit' }, 'Add Media')),
-    createElement('div', { className: 'admin-record-list' }, rows.map((row) => createElement('article', { key: row.media_id, className: 'admin-record-row' },
-      createElement('strong', null, row.file_name || 'Media'), createElement('span', null, row.media_url || ''),
-      createElement('button', { type: 'button', onClick: () => remove(row) }, 'Delete')
-    )))
+    ),
+    createElement('div', { className: 'admin-record-list' },
+      rows.map((row) => createElement('article', { key: row.media_id, className: 'admin-record-row' },
+        createElement('strong', null, row.file_name || 'Media'),
+        createElement('span', null, row.media_url || ''),
+        createElement('button', { type: 'button', onClick: () => remove(row) }, 'Delete')
+      ))
+    )
   )
 }
 
 function posts_workspace() {
-  const blank = { caption_bn: '', caption_en: '', album_id: '', status: 'draft', visible: true, seo_title: '', seo_description: '' }
+  const blank = { caption_bn: '', caption_en: '', album_id: '', status: 'draft', visible: true, seo_title: '', seo_description: '', media_ids: [] }
   const [rows, set_rows] = useState([])
   const [albums, set_albums] = useState([])
-  const [media, set_media] = useState([])
   const [form, set_form] = useState(blank)
   const [editing, set_editing] = useState(null)
   const [message, set_message] = useState('')
 
   async function load() {
-    const [{ data: posts, error }, { data: album_rows }, { data: media_rows }] = await Promise.all([
+    const [{ data: posts, error }, { data: album_rows }] = await Promise.all([
       supabase.from('posts').select('*,albums(album_title),post_media(media_id,display_order)').order('created_at', { ascending: false }),
-      supabase.from('albums').select('album_id,album_title').order('created_at'),
-      supabase.from('media').select('media_id,media_key,media_url').order('created_at', { ascending: false })
+      supabase.from('albums').select('album_id,album_title').order('created_at')
     ])
     if (error) set_message(error.message)
     set_rows(posts ?? [])
     set_albums(album_rows ?? [])
-    set_media(media_rows ?? [])
   }
   useEffect(() => { load() }, [])
 
+  function add_media(media) {
+    if (!media?.media_id) return
+    set_form((current) => current.media_ids.includes(media.media_id)
+      ? current
+      : { ...current, media_ids: [...current.media_ids, media.media_id] })
+  }
+
   async function save(event) {
     event.preventDefault()
-    const payload = { caption: { bn: form.caption_bn, en: form.caption_en || form.caption_bn }, album_id: form.album_id || null, status: form.status, is_visible: form.visible, seo_data: { title: { bn: form.seo_title, en: form.seo_title }, description: { bn: form.seo_description, en: form.seo_description } }, published_at: form.status === 'published' ? new Date().toISOString() : null }
-    const query = editing ? supabase.from('posts').update(payload).eq('post_id', editing) : supabase.from('posts').insert(payload).select('post_id').single()
+    const payload = {
+      caption: { bn: form.caption_bn, en: form.caption_en || form.caption_bn },
+      album_id: form.album_id || null,
+      status: form.status,
+      is_visible: form.visible,
+      seo_data: { title: { bn: form.seo_title, en: form.seo_title }, description: { bn: form.seo_description, en: form.seo_description } },
+      published_at: form.status === 'published' ? new Date().toISOString() : null
+    }
+    const query = editing
+      ? supabase.from('posts').update(payload).eq('post_id', editing)
+      : supabase.from('posts').insert(payload).select('post_id').single()
     const { data, error } = await query
     if (error) return set_message(error.message)
+
     const post_id = editing || data.post_id
-    const media_keys = window.prompt('Optional media IDs, comma separated', '') || ''
-    if (media_keys) {
-      await supabase.from('post_media').delete().eq('post_id', post_id)
-      const ids = media_keys.split(',').map((item) => item.trim()).filter(Boolean)
-      if (ids.length) await supabase.from('post_media').insert(ids.map((media_id, index) => ({ post_id, media_id, display_order: index })))
+    await supabase.from('post_media').delete().eq('post_id', post_id)
+    if (form.media_ids.length) {
+      const { error: media_error } = await supabase.from('post_media').insert(
+        form.media_ids.map((media_id, index) => ({ post_id, media_id, display_order: index }))
+      )
+      if (media_error) return set_message(media_error.message)
     }
     set_message(editing ? 'Post updated' : 'Post created')
-    set_form(blank); set_editing(null); await load()
+    set_form(blank)
+    set_editing(null)
+    await load()
   }
 
   async function remove(id) {
@@ -463,286 +483,50 @@ function posts_workspace() {
     if (!error) await load()
   }
 
+  function edit(row) {
+    set_editing(row.post_id)
+    set_form({
+      caption_bn: localized(row.caption, 'bn'),
+      caption_en: localized(row.caption, 'en'),
+      album_id: row.album_id ?? '',
+      status: row.status,
+      visible: row.is_visible,
+      seo_title: localized(row.seo_data?.title, 'bn'),
+      seo_description: localized(row.seo_data?.description, 'bn'),
+      media_ids: (row.post_media ?? []).sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0)).map((item) => item.media_id)
+    })
+  }
+
   return createElement('section', { className: 'admin-module-workspace' },
     panel_header('Post Management', message),
-    createElement('form', { onSubmit: save }, createElement('div', { className: 'admin-form-grid' },
-      input({ label: 'Caption (বাংলা)', value: form.caption_bn, on_change: (value) => set_form({ ...form, caption_bn: value }) }),
-      input({ label: 'Caption (English)', value: form.caption_en, on_change: (value) => set_form({ ...form, caption_en: value }) }),
-      select({ label: 'Album', value: form.album_id, on_change: (value) => set_form({ ...form, album_id: value }), options: [{ value: '', label: 'No album' }, ...albums.map((row) => ({ value: row.album_id, label: localized(row.album_title) }))] }),
-      select({ label: 'Status', value: form.status, on_change: (value) => set_form({ ...form, status: value }), options: [{ value: 'draft', label: 'Draft' }, { value: 'published', label: 'Published' }, { value: 'archived', label: 'Archived' }] }),
-      checkbox({ label: 'Visible', checked: form.visible, on_change: (value) => set_form({ ...form, visible: value }) }),
-      input({ label: 'SEO Title', value: form.seo_title, on_change: (value) => set_form({ ...form, seo_title: value }) }),
-      input({ label: 'SEO Description', value: form.seo_description, on_change: (value) => set_form({ ...form, seo_description: value }) })
-    ), createElement('button', { type: 'submit' }, editing ? 'Update Post' : 'Create Post')),
-    createElement('p', null, `Available media: ${media.map((item) => item.media_id).join(', ')}`),
-    createElement('div', { className: 'admin-record-list' }, rows.map((row) => createElement('article', { key: row.post_id, className: 'admin-record-row' },
-      createElement('strong', null, localized(row.caption)), createElement('span', null, row.status),
-      createElement('button', { type: 'button', onClick: () => { set_editing(row.post_id); set_form({ caption_bn: localized(row.caption, 'bn'), caption_en: localized(row.caption, 'en'), album_id: row.album_id ?? '', status: row.status, visible: row.is_visible, seo_title: localized(row.seo_data?.title, 'bn'), seo_description: localized(row.seo_data?.description, 'bn') }) } }, 'Edit'),
-      createElement('button', { type: 'button', onClick: () => remove(row.post_id) }, 'Delete')
-    )))
-  )
-}
-
-function settings_workspace({ table, title, permission_hint }) {
-  const [rows, set_rows] = useState([])
-  const [form, set_form] = useState({ key: '', value: '', active: true })
-  const [editing, set_editing] = useState(null)
-  const [message, set_message] = useState('')
-
-  async function load() {
-    const { data, error } = await supabase.from(table).select('*').order('created_at', { ascending: false })
-    if (error) set_message(error.message)
-    set_rows(data ?? [])
-  }
-  useEffect(() => { load() }, [table])
-
-  async function save(event) {
-    event.preventDefault()
-    const payload = { setting_key: editing ? form.key : undefined, setting_value: json_value(form.value, { value: form.value }), is_active: form.active }
-    const query = editing ? supabase.from(table).update(payload).eq(table === 'system_settings' ? 'system_setting_id' : 'customization_setting_id', editing) : supabase.from(table).insert(payload)
-    const { error } = await query
-    set_message(error ? error.message : 'Saved')
-    if (!error) { set_form({ key: '', value: '', active: true }); set_editing(null); await load() }
-  }
-
-  return createElement('section', { className: 'admin-module-workspace' },
-    panel_header(title, message),
-    createElement('p', null, permission_hint),
-    createElement('form', { onSubmit: save }, createElement('div', { className: 'admin-form-grid' },
-      textarea({ label: 'Setting Value (JSON বা plain text)', value: form.value, on_change: (value) => set_form({ ...form, value: value }), placeholder: '{"value":"..."}', rows: 5 }),
-      checkbox({ label: 'Active', checked: form.active, on_change: (value) => set_form({ ...form, active: value }) })
-    ), createElement('button', { type: 'submit' }, editing ? 'Update Setting' : 'Create Setting')),
-    createElement('div', { className: 'admin-record-list' }, rows.map((row) => createElement('article', { key: row[table === 'system_settings' ? 'system_setting_id' : 'customization_setting_id'], className: 'admin-record-row' },
-      createElement('strong', null, row.setting_key), createElement('span', null, JSON.stringify(row.setting_value)),
-      createElement('button', { type: 'button', onClick: () => { set_editing(row[table === 'system_settings' ? 'system_setting_id' : 'customization_setting_id']); set_form({ key: row.setting_key, value: JSON.stringify(row.setting_value), active: row.is_active }) } }, 'Edit'),
-      createElement('button', { type: 'button', onClick: async () => { if (!window.confirm('Delete setting?')) return; const { error } = await delete_record(table, table === 'system_settings' ? 'system_setting_id' : 'customization_setting_id', row[table === 'system_settings' ? 'system_setting_id' : 'customization_setting_id']); set_message(error ? error.message : 'Deleted'); if (!error) load() } }, 'Delete')
-    )))
-  )
-}
-
-
-function translation_workspace() {
-  const [rows, set_rows] = useState([])
-  const [form, set_form] = useState({ key: 'default', source: 'bn', languages: 'bn,en', active: true })
-  const [editing, set_editing] = useState(null)
-  const [message, set_message] = useState('')
-
-  async function load() {
-    const { data, error } = await supabase.from('translation_settings').select('*').order('created_at', { ascending: false })
-    if (error) set_message(error.message)
-    set_rows(data ?? [])
-  }
-  useEffect(() => { load() }, [])
-
-  async function save(event) {
-    event.preventDefault()
-    const payload = {
-      setting_key: editing ? form.key : undefined,
-      source_language: form.source,
-      supported_languages: form.languages.split(',').map((item) => item.trim()).filter(Boolean),
-      is_active: form.active
-    }
-    const query = editing
-      ? supabase.from('translation_settings').update(payload).eq('translation_setting_id', editing)
-      : supabase.from('translation_settings').insert(payload)
-    const { error } = await query
-    set_message(error ? error.message : 'Translation settings saved')
-    if (!error) { set_form({ key: 'default', source: 'bn', languages: 'bn,en', active: true }); set_editing(null); await load() }
-  }
-
-  return createElement('section', { className: 'admin-module-workspace' },
-    panel_header('Translation Settings', message),
     createElement('form', { onSubmit: save },
       createElement('div', { className: 'admin-form-grid' },
-        input({ label: 'Source Language', value: form.source, on_change: (value) => set_form({ ...form, source: value }) }),
-        input({ label: 'Supported Languages (comma separated)', value: form.languages, on_change: (value) => set_form({ ...form, languages: value }) }),
-        checkbox({ label: 'Active', checked: form.active, on_change: (value) => set_form({ ...form, active: value }) })
+        input({ label: 'Caption (বাংলা)', value: form.caption_bn, on_change: (value) => set_form({ ...form, caption_bn: value }) }),
+        input({ label: 'Caption (English)', value: form.caption_en, on_change: (value) => set_form({ ...form, caption_en: value }) }),
+        select({ label: 'Album', value: form.album_id, on_change: (value) => set_form({ ...form, album_id: value }), options: [{ value: '', label: 'No album' }, ...albums.map((row) => ({ value: row.album_id, label: localized(row.album_title) }))] }),
+        select({ label: 'Status', value: form.status, on_change: (value) => set_form({ ...form, status: value }), options: [{ value: 'draft', label: 'Draft' }, { value: 'published', label: 'Published' }, { value: 'archived', label: 'Archived' }] }),
+        checkbox({ label: 'Visible', checked: form.visible, on_change: (value) => set_form({ ...form, visible: value }) }),
+        input({ label: 'SEO Title', value: form.seo_title, on_change: (value) => set_form({ ...form, seo_title: value }) }),
+        input({ label: 'SEO Description', value: form.seo_description, on_change: (value) => set_form({ ...form, seo_description: value }) })
       ),
-      createElement('button', { type: 'submit' }, editing ? 'Update Translation Settings' : 'Create Translation Settings')
+      createElement(global_media_uploader, {
+        label: 'Post Media',
+        accept: 'image/*,video/*',
+        multiple: true,
+        on_select: add_media
+      }),
+      form.media_ids.length > 0 && createElement('p', null, `Selected media: ${form.media_ids.length}টি`),
+      createElement('button', { type: 'submit' }, editing ? 'Update Post' : 'Create Post')
     ),
     createElement('div', { className: 'admin-record-list' },
-      rows.map((row) => createElement('article', { key: row.translation_setting_id, className: 'admin-record-row' },
-        createElement('strong', null, row.setting_key),
-        createElement('span', null, row.source_language),
-        createElement('span', null, (row.supported_languages ?? []).join(', ')),
-        createElement('button', { type: 'button', onClick: () => {
-          set_editing(row.translation_setting_id)
-          set_form({ key: row.setting_key, source: row.source_language, languages: (row.supported_languages ?? []).join(','), active: row.is_active })
-        } }, 'Edit'),
-        createElement('button', { type: 'button', onClick: async () => {
-          if (!window.confirm('Delete translation setting?')) return
-          const { error } = await delete_record('translation_settings', 'translation_setting_id', row.translation_setting_id)
-          set_message(error ? error.message : 'Deleted')
-          if (!error) load()
-        } }, 'Delete')
+      rows.map((row) => createElement('article', { key: row.post_id, className: 'admin-record-row' },
+        createElement('strong', null, localized(row.caption)),
+        createElement('span', null, row.status),
+        createElement('button', { type: 'button', onClick: () => edit(row) }, 'Edit'),
+        createElement('button', { type: 'button', onClick: () => remove(row.post_id) }, 'Delete')
       ))
     )
   )
 }
 
-function seo_workspace() {
-  const [rows, set_rows] = useState([])
-  const [form, set_form] = useState({ entity_type: 'website', entity_id: '', title_bn: '', title_en: '', description_bn: '', description_en: '', slug: '', canonical: '', robots: 'index,follow', active: true })
-  const [editing, set_editing] = useState(null)
-  const [message, set_message] = useState('')
-  async function load() {
-    const { data, error } = await supabase.from('seo_settings').select('*').order('created_at', { ascending: false })
-    if (error) set_message(error.message)
-    set_rows(data ?? [])
-  }
-  useEffect(() => { load() }, [])
-  async function save(event) {
-    event.preventDefault()
-    const payload = {
-      entity_type: form.entity_type, entity_id: form.entity_id || null,
-      seo_title: { bn: form.title_bn, en: form.title_en || form.title_bn },
-      seo_description: { bn: form.description_bn, en: form.description_en || form.description_bn },
-      seo_slug: form.slug || null, canonical_url: form.canonical || null, robots_directive: form.robots, is_active: form.active
-    }
-    const query = editing ? supabase.from('seo_settings').update(payload).eq('seo_setting_id', editing) : supabase.from('seo_settings').insert(payload)
-    const { error } = await query
-    set_message(error ? error.message : 'SEO saved')
-    if (!error) { set_form({ entity_type: 'website', entity_id: '', title_bn: '', title_en: '', description_bn: '', description_en: '', slug: '', canonical: '', robots: 'index,follow', active: true }); set_editing(null); load() }
-  }
-  return createElement('section', { className: 'admin-module-workspace' },
-    panel_header('SEO Manager', message),
-    createElement('form', { onSubmit: save }, createElement('div', { className: 'admin-form-grid' },
-      input({ label: 'Entity Type', value: form.entity_type, on_change: (value) => set_form({ ...form, entity_type: value }) }),
-      input({ label: 'Entity ID (optional)', value: form.entity_id, on_change: (value) => set_form({ ...form, entity_id: value }) }),
-      input({ label: 'SEO Title (বাংলা)', value: form.title_bn, on_change: (value) => set_form({ ...form, title_bn: value }) }),
-      input({ label: 'SEO Title (English)', value: form.title_en, on_change: (value) => set_form({ ...form, title_en: value }) }),
-      input({ label: 'SEO Description (বাংলা)', value: form.description_bn, on_change: (value) => set_form({ ...form, description_bn: value }) }),
-      input({ label: 'SEO Description (English)', value: form.description_en, on_change: (value) => set_form({ ...form, description_en: value }) }),
-      input({ label: 'SEO Slug', value: form.slug, on_change: (value) => set_form({ ...form, slug: value }) }),
-      input({ label: 'Canonical URL', value: form.canonical, on_change: (value) => set_form({ ...form, canonical: value }) }),
-      input({ label: 'Robots Directive', value: form.robots, on_change: (value) => set_form({ ...form, robots: value }) }),
-      checkbox({ label: 'Active', checked: form.active, on_change: (value) => set_form({ ...form, active: value }) })
-    ), createElement('button', { type: 'submit' }, editing ? 'Update SEO' : 'Create SEO')),
-    createElement('div', { className: 'admin-record-list' }, rows.map((row) => createElement('article', { key: row.seo_setting_id, className: 'admin-record-row' },
-      createElement('strong', null, localized(row.seo_title)), createElement('span', null, row.entity_type),
-      createElement('button', { type: 'button', onClick: () => { set_editing(row.seo_setting_id); set_form({ entity_type: row.entity_type, entity_id: row.entity_id ?? '', title_bn: localized(row.seo_title, 'bn'), title_en: localized(row.seo_title, 'en'), description_bn: localized(row.seo_description, 'bn'), description_en: localized(row.seo_description, 'en'), slug: row.seo_slug ?? '', canonical: row.canonical_url ?? '', robots: row.robots_directive ?? 'index,follow', active: row.is_active }) } }, 'Edit'),
-      createElement('button', { type: 'button', onClick: async () => { if (!window.confirm('Delete SEO setting?')) return; const { error } = await delete_record('seo_settings', 'seo_setting_id', row.seo_setting_id); set_message(error ? error.message : 'Deleted'); if (!error) load() } }, 'Delete')
-    )))
-  )
-}
-
-function users_workspace() {
-  const blank = { display_name: '', email: '', phone: '', password: '', role_key: 'user', is_active: true }
-  const [rows, set_rows] = useState([])
-  const [form, set_form] = useState(blank)
-  const [editing, set_editing] = useState(null)
-  const [message, set_message] = useState('')
-
-  async function load() {
-    const { data, error } = await supabase.from('profiles').select('profile_id,email,display_name,phone,account_type,is_active,is_super_admin,user_roles(role_id,roles(role_key,role_name))').order('created_at', { ascending: false })
-    if (error) set_message(error.message)
-    set_rows(data ?? [])
-  }
-  useEffect(() => { load() }, [])
-
-  async function call(action, profile_id = null) {
-    const { data, error } = await supabase.functions.invoke('manage-account', { body: { action, profile_id, ...form } })
-    if (error) return set_message(error.message)
-    if (data?.error) return set_message(data.error)
-    set_message(action === 'create' ? 'Account created' : action === 'update' ? 'Account updated' : 'Account deleted')
-    set_form(blank); set_editing(null); await load()
-  }
-
-  function edit(row) {
-    set_editing(row.profile_id)
-    set_form({
-      display_name: row.display_name ?? '', email: row.email ?? '', phone: row.phone ?? '',
-      password: '', role_key: row.user_roles?.[0]?.roles?.role_key ?? 'user', is_active: row.is_active
-    })
-  }
-
-  return createElement('section', { className: 'admin-module-workspace' },
-    panel_header('User & Staff Accounts', message),
-    createElement('p', null, 'Super Admin is protected. Other User, Editor, Moderator, Manager and Admin accounts can be created, edited and deleted here.'),
-    createElement('form', { onSubmit: (event) => { event.preventDefault(); call(editing ? 'update' : 'create', editing) } },
-      createElement('div', { className: 'admin-form-grid' },
-        input({ label: 'Name', value: form.display_name, on_change: (value) => set_form({ ...form, display_name: value }) }),
-        input({ label: 'Email', value: form.email, on_change: (value) => set_form({ ...form, email: value }), type: 'email' }),
-        input({ label: editing ? 'New Password (optional)' : 'Password', value: form.password, on_change: (value) => set_form({ ...form, password: value }), type: 'password' }),
-        input({ label: 'Phone', value: form.phone, on_change: (value) => set_form({ ...form, phone: value }) }),
-        select({ label: 'Role', value: form.role_key, on_change: (value) => set_form({ ...form, role_key: value }), options: roles }),
-        checkbox({ label: 'Active', checked: form.is_active, on_change: (value) => set_form({ ...form, is_active: value }) })
-      ),
-      createElement('div', { className: 'admin-actions' },
-        createElement('button', { type: 'submit' }, editing ? 'Update Account' : 'Create Account'),
-        editing && createElement('button', { type: 'button', onClick: () => { set_editing(null); set_form(blank) } }, 'Cancel')
-      )
-    ),
-    createElement('div', { className: 'admin-record-list' }, rows.map((row) => {
-      const role = row.user_roles?.[0]?.roles?.role_key ?? row.account_type
-      return createElement('article', { key: row.profile_id, className: 'admin-record-row' },
-        createElement('strong', null, row.display_name || row.email),
-        createElement('span', null, role),
-        createElement('span', null, row.is_active ? 'Active' : 'Inactive'),
-        row.is_super_admin
-          ? createElement('strong', null, 'Protected Super Admin')
-          : createElement('div', null,
-              createElement('button', { type: 'button', onClick: () => edit(row) }, 'Edit'),
-              createElement('button', { type: 'button', onClick: () => { if (window.confirm('এই account মুছে ফেলবেন?')) call('delete', row.profile_id) } }, 'Delete')
-            )
-      )
-    }))
-  )
-}
-
-function analytics_workspace() {
-  const [stats, set_stats] = useState({ visits: 0, visitors: 0, pages: [] })
-  const [message, set_message] = useState('')
-  useEffect(() => {
-    Promise.all([
-      supabase.from('analytics_visits').select('visitor_key,page_path,visited_at').order('visited_at', { ascending: false }).limit(1000),
-      supabase.from('pages').select('page_id', { count: 'exact', head: true }),
-      supabase.from('posts').select('post_id', { count: 'exact', head: true })
-    ]).then(([visits, pages, posts]) => {
-      if (visits.error) return set_message(visits.error.message)
-      const unique = new Set((visits.data ?? []).map((row) => row.visitor_key)).size
-      set_stats({ visits: visits.data?.length ?? 0, visitors: unique, pages: [pages.count ?? 0, posts.count ?? 0] })
-    }).catch((error) => set_message(error.message))
-  }, [])
-  return createElement('section', { className: 'admin-module-workspace' },
-    panel_header('Analytics', message),
-    createElement('div', { className: 'admin-stat-grid' },
-      createElement('strong', null, `Visits: ${stats.visits}`),
-      createElement('strong', null, `Unique Visitors: ${stats.visitors}`),
-      createElement('strong', null, `Pages: ${stats.pages[0] ?? 0}`),
-      createElement('strong', null, `Posts: ${stats.pages[1] ?? 0}`)
-    )
-  )
-}
-
-function audit_workspace() {
-  const [rows, set_rows] = useState([])
-  const [message, set_message] = useState('')
-  useEffect(() => {
-    supabase.from('audit_logs').select('*,profiles(display_name,email)').order('created_at', { ascending: false }).limit(100)
-      .then(({ data, error }) => { if (error) set_message(error.message); set_rows(data ?? []) })
-  }, [])
-  return createElement('section', { className: 'admin-module-workspace' },
-    panel_header('Audit Logs', message),
-    createElement('div', { className: 'admin-record-list' }, rows.map((row) => createElement('article', { key: row.audit_log_id, className: 'admin-record-row' },
-      createElement('strong', null, row.action_key), createElement('span', null, row.entity_type || ''), createElement('time', null, new Date(row.created_at).toLocaleString()), createElement('pre', null, JSON.stringify(row.action_data))
-    )))
-  )
-}
-
-export function admin_module_workspace({ module_key }) {
-  if (module_key === 'websiteinformation') return createElement(village_information_workspace)
-  if (module_key === 'admininfo') return createElement(admin_information_workspace)
-  if (module_key === 'pagemanagement') return createElement(pages_workspace)
-  if (module_key === 'postmanagement') return createElement(posts_workspace)
-  if (module_key === 'albums') return createElement(albums_workspace)
-  if (module_key === 'media') return createElement(media_workspace)
-  if (module_key === 'usermanagement') return createElement(users_workspace)
-  if (module_key === 'seo') return createElement(seo_workspace)
-  if (module_key === 'analysisinfo') return createElement(analytics_workspace)
-  if (module_key === 'audit') return createElement(audit_workspace)
-  if (module_key === 'customization') return createElement(settings_workspace, { table: 'customization_settings', title: 'Customization', permission_hint: 'Theme, appearance and public UI settings.' })
-  if (module_key === 'translation') return createElement(translation_workspace)
-  if (module_key === 'system') return createElement(settings_workspace, { table: 'system_settings', title: 'System Settings', permission_hint: 'System-level settings. Backup and recovery is shown beside this module.' })
-  return createElement('section', null, 'Module unavailable')
 }
