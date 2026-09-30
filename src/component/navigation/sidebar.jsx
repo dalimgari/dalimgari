@@ -1,3 +1,4 @@
+import './sidebar.css'
 import { createElement } from 'react'
 import { Link } from 'react-router-dom'
 import { get_localized_value } from '../../function/translation/language'
