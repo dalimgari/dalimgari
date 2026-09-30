@@ -124,6 +124,7 @@ function village_information_workspace() {
             key,
             label,
             accept: 'image/*',
+            initial_url: values[key] ?? '',
             on_select: (media) => set_values({ ...values, village_avatar: media?.media_url ?? '' })
           })
         : input({
@@ -221,6 +222,8 @@ function admin_information_workspace() {
       createElement(global_media_uploader, {
         label: 'Admin Avatar',
         accept: 'image/*',
+        initial_url: form.image,
+        key: `admin-avatar-${selected}`,
         on_select: (media) => set_form({ ...form, image: media?.media_url ?? '' })
       }),
       textarea({ label: 'Admin Bio', value: form.bio, on_change: (value) => set_form({ ...form, bio: value }), rows: 4 }),
