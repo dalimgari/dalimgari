@@ -108,6 +108,7 @@ function render_website(state, language, pathname, language_control, theme_contr
 
   return createElement(website_layout, {
     profile: state.admin_information,
+    managed_links: state.links,
     navigation_items: state.pages.filter((page) => page.page_slug),
     language,
     header: createElement(header, {
