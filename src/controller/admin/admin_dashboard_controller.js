@@ -6,9 +6,14 @@ export async function get_current_admin() {
   const user = session_data.session?.user
   if (!user) return null
 
-  const { data, error } = await supabase.from('profiles').select('*').eq('profile_id', user.id).maybeSingle()
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('profile_id', user.id)
+    .maybeSingle()
+
   if (error) throw error
-  if (data?.account_type !== 'admin') return null
+  if (!data || data.account_type === 'user') return null
   return data
 }
 
