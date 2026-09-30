@@ -38,32 +38,6 @@ export function module_navigation({ modules = [], permissions = new Set(), on_se
         createElement('span', { className: 'admin-module-navigation-label' }, module.label)
       ))
     ),
-    createElement('div', { className: 'admin-sidebar-profile' },
-      createElement('div', { className: 'admin-sidebar-profile-image-wrap' },
-        createElement('img', {
-          className: 'admin-sidebar-profile-image',
-          src: admin_information?.information_value?.admin_profile_image || '',
-          alt: admin_information?.information_value?.admin_name || 'Admin',
-          loading: 'lazy'
-        })
-      ),
-      createElement('strong', { className: 'admin-sidebar-profile-name' }, admin_information?.information_value?.admin_name || 'Admin'),
-      createElement('div', { className: 'admin-sidebar-links', 'aria-label': 'Admin links' },
-        (Array.isArray(admin_information?.other_links?.admin_sidebar_links) ? admin_information.other_links.admin_sidebar_links : [])
-          .map((link, index) => {
-            const url = normalize_admin_url(link.url)
-            if (!url) return null
-            return createElement('a', {
-              key: (link.title || 'link') + '-' + index,
-              href: url,
-              target: '_blank',
-              rel: 'noopener noreferrer',
-              className: 'admin-sidebar-link',
-              title: link.title || url,
-              'aria-label': link.title || url
-            }, createElement('img', { src: admin_link_icon(url), alt: '', width: 28, height: 28, loading: 'lazy' }))
-          })
-      )
-    )
+
   )
 }
