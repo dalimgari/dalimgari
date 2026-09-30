@@ -9,8 +9,22 @@
   display:block;
   overflow:visible;
 }
-.website-header:has(.public-search.is-open)>*{
+.website-header:has(.public-search.is-open) .website-header-leading,
+.website-header:has(.public-search.is-open) .website-brand,
+.website-header:has(.public-search.is-open) .website-header-controls > :not(.public-search){
+  opacity:0;
+  transform:translateX(-140%);
+  pointer-events:none;
   visibility:hidden;
+  transition:opacity .18s ease,transform .22s ease,visibility 0s linear .22s;
+}
+.website-header .website-header-leading,
+.website-header .website-brand,
+.website-header .website-header-controls > :not(.public-search){
+  transition:opacity .18s ease,transform .22s ease,visibility 0s linear 0s;
+}
+.website-header:has(.public-search.is-open) .website-header-controls{
+  min-width:0;
 }
 .website-header:has(.public-search.is-open) .public-search{
   visibility:visible;
