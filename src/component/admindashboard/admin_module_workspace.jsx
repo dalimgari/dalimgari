@@ -3,14 +3,14 @@ import { supabase } from '../../service/supabase/supabase_client'
 import { delete_record } from '../../controller/admin/admin_record_controller'
 
 const module_config = {
-  websiteinformation: { table: 'website_information', id: 'website_information_id', label: 'Website Information', fields: ['information_key', 'information_value', 'is_active'] },
-  admininfo: { table: 'admin_information', id: 'admin_information_id', label: 'Admin Info', fields: ['profile_id', 'information_value', 'social_links', 'other_links'] },
-  pagemanagement: { table: 'pages', id: 'page_id', label: 'Page Management', fields: ['page_key', 'page_title', 'page_slug', 'html_content', 'seo_data', 'display_order', 'is_visible', 'status'] },
-  postmanagement: { table: 'posts', id: 'post_id', label: 'Post Management', fields: ['post_key', 'caption', 'album_id', 'status', 'is_visible', 'seo_data'] },
-  customization: { table: 'customization_settings', id: 'customization_setting_id', label: 'Customization', fields: ['setting_key', 'setting_value', 'is_active'] },
-  system: { table: 'system_settings', id: 'system_setting_id', label: 'System', fields: ['setting_key', 'setting_value', 'is_active'] },
-  analysisinfo: { table: 'analytics_visits', id: 'analytics_visit_id', label: 'Analysis Info', fields: [] },
-  usermanagement: { table: 'profiles', id: 'profile_id', label: 'User Management', fields: ['display_name', 'email', 'phone', 'profile_image_url', 'bio', 'social_links', 'other_links', 'is_active'] }
+  websiteinformation: { table: 'website_information', id: 'website_information_id', label: 'Website Information', fields: ['information_key', 'information_value', 'is_active'], allow_delete: true },
+  admininfo: { table: 'admin_information', id: 'admin_information_id', label: 'Admin Info', fields: ['profile_id', 'information_value', 'social_links', 'other_links'], allow_delete: true },
+  pagemanagement: { table: 'pages', id: 'page_id', label: 'Page Management', fields: ['page_key', 'page_title', 'page_slug', 'html_content', 'seo_data', 'display_order', 'is_visible', 'status'], allow_delete: true },
+  postmanagement: { table: 'posts', id: 'post_id', label: 'Post Management', fields: ['post_key', 'caption', 'album_id', 'status', 'is_visible', 'seo_data'], allow_delete: true },
+  customization: { table: 'customization_settings', id: 'customization_setting_id', label: 'Customization', fields: ['setting_key', 'setting_value', 'is_active'], allow_delete: true },
+  system: { table: 'system_settings', id: 'system_setting_id', label: 'System', fields: ['setting_key', 'setting_value', 'is_active'], allow_delete: true },
+  analysisinfo: { table: 'analytics_visits', id: 'analytics_visit_id', label: 'Analysis Info', fields: [], allow_delete: false },
+  usermanagement: { table: 'profiles', id: 'profile_id', label: 'User Management', fields: ['display_name', 'email', 'phone', 'profile_image_url', 'bio', 'social_links', 'other_links', 'is_active'], allow_delete: false }
 }
 
 export function admin_module_workspace({ module_key }) {
@@ -53,8 +53,8 @@ export function admin_module_workspace({ module_key }) {
     ) : null,
     createElement('div', null, rows.map((row) => createElement('article', { key: row[config.id] },
       createElement('span', null, row.display_name ?? row.information_key ?? row.page_key ?? row.post_key ?? row.setting_key ?? row.visited_at ?? row[config.id]),
-      createElement('button', { type: 'button', onClick: () => { set_editing_id(row[config.id]); set_form(Object.fromEntries(config.fields.map((field) => [field, row[field] ?? '']))) } }, 'Edit'),
-      config.fields.length ? createElement('button', { type: 'button', onClick: () => remove(row[config.id]) }, 'Delete') : null
+      config.fields.length ? createElement('button', { type: 'button', onClick: () => { set_editing_id(row[config.id]); set_form(Object.fromEntries(config.fields.map((field) => [field, row[field] ?? '']))) } }, 'Edit') : null,
+      config.allow_delete ? createElement('button', { type: 'button', onClick: () => remove(row[config.id]) }, 'Delete') : null
     )))
   )
 }
