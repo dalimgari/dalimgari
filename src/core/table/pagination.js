@@ -1,0 +1,1 @@
+export function get_pagination(total, page = 1, page_size = 20) { const total_pages = Math.max(1, Math.ceil(total / page_size)); const current = Math.min(Math.max(1, page), total_pages); return { page: current, page_size, total, total_pages, offset: (current - 1) * page_size } }
