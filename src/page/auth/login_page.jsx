@@ -6,9 +6,13 @@ import { get_website_information } from '../../service/supabase/website_service.
 
 function read_setting(settings, keys, fallback = '') {
   for (const key of keys) {
-    const item = settings.find((entry) => entry.setting_key === key)
+    const item = settings.find((entry) => (entry.information_key ?? entry.setting_key) === key)
+    if (item?.information_value !== undefined && item?.information_value !== null) {
+      const value = typeof item.information_value === 'object' ? item.information_value.value ?? item.information_value.bn ?? item.information_value.en : item.information_value
+      if (value) return String(value)
+    }
     if (item?.setting_value !== undefined && item?.setting_value !== null) {
-      const value = typeof item.setting_value === 'object' ? item.setting_value.value : item.setting_value
+      const value = typeof item.setting_value === 'object' ? item.setting_value.value ?? item.setting_value.bn ?? item.setting_value.en : item.setting_value
       if (value) return String(value)
     }
   }
@@ -34,30 +38,22 @@ export function login_page() {
     async function initialize() {
       try {
         const { data: session_data } = await get_user_session()
-
         if (!active) return
-
         set_loading(false)
 
         get_website_information().then((information) => {
           if (!active) return
           set_site_name(read_setting(information, ['village_name', 'website_name'], ''))
-          set_logo_url(read_setting(information, ['logo_url'], ''))
+          set_logo_url(read_setting(information, ['logo_url', 'website_logo'], ''))
         }).catch(() => {})
 
         if (session_data.session?.user) {
           const role = await get_user_role(session_data.session.user.id)
-          if (role?.role_key === 'user') {
-            navigate('/user', { replace: true })
-            return
-          }
-          if (role?.role_key) {
-            navigate('/admin', { replace: true })
-            return
-          }
+          if (role?.role_key === 'user') navigate('/user', { replace: true })
+          else if (role?.role_key) navigate('/admin', { replace: true })
         }
       } catch {
-        if (active) set_error('Unable to load login page.')
+        if (active) set_error('লগইন পেজ লোড করা যায়নি।')
       } finally {
         if (active) set_loading(false)
       }
@@ -68,183 +64,54 @@ export function login_page() {
   }, [navigate])
 
   async function submit(event) {
-    event.preventDefault()
-    set_error('')
-    set_message('')
-    set_submitting(true)
-
+    event.preventDefault(); set_error(''); set_message(''); set_submitting(true)
     try {
-      const { error: sign_in_error } = await sign_in_user({
-        email: email.trim(),
-        password
-      })
-
-      if (sign_in_error) {
-        set_error(sign_in_error.message || 'Invalid email or password.')
-        return
-      }
-
-      const { data } = await get_user_session()
-      const user_id = data.session?.user?.id
-
-      if (!user_id) {
-        set_error('Login succeeded, but the user session could not be loaded.')
-        return
-      }
-
+      const { error: sign_in_error } = await sign_in_user({ email: email.trim(), password })
+      if (sign_in_error) { set_error('ইমেইল বা পাসওয়ার্ড সঠিক নয়।'); return }
+      const { data } = await get_user_session(); const user_id = data.session?.user?.id
+      if (!user_id) { set_error('লগইন হয়েছে, কিন্তু সেশন পাওয়া যায়নি।'); return }
       const role = await get_user_role(user_id)
-
-      if (!role?.role_key) {
-        set_error('Your account does not have an assigned role.')
-        return
-      }
-
-      if (role.role_key === 'user') {
-        navigate('/user', { replace: true })
-        return
-      }
-
-      if (['admin', 'editor', 'manager', 'moderator'].includes(role.role_key)) {
-        navigate('/admin', { replace: true })
-        return
-      }
-
-      set_error('Your account role is not allowed to access this area.')
-    } catch (login_error) {
-      set_error(login_error?.message || 'Unable to complete login.')
-    } finally {
-      set_submitting(false)
-    }
+      if (!role?.role_key) { set_error('আপনার অ্যাকাউন্টে কোনো ভূমিকা নির্ধারিত নেই।'); return }
+      if (role.role_key === 'user') { navigate('/user', { replace: true }); return }
+      if (['admin', 'editor', 'manager', 'moderator'].includes(role.role_key)) { navigate('/admin', { replace: true }); return }
+      set_error('এই অ্যাকাউন্টের জন্য প্রবেশের অনুমতি নেই।')
+    } catch { set_error('লগইন সম্পন্ন করা যায়নি। আবার চেষ্টা করুন।') }
+    finally { set_submitting(false) }
   }
 
   async function forgot_password(event) {
-    event.preventDefault()
-    set_error('')
-    set_message('')
-
-    if (!email.trim()) {
-      set_error('Enter your email address first.')
-      return
-    }
-
+    event.preventDefault(); set_error(''); set_message('')
+    if (!email.trim()) { set_error('আগে আপনার ইমেইল ঠিকানা লিখুন।'); return }
     set_submitting(true)
-
     try {
       const { error: reset_error } = await reset_user_password(email.trim())
-      if (reset_error) {
-        set_error(reset_error.message || 'Unable to send the password reset email.')
-        return
-      }
-      set_message('Password reset instructions have been sent to your email.')
-    } catch (reset_error) {
-      set_error(reset_error?.message || 'Unable to send the password reset email.')
-    } finally {
-      set_submitting(false)
-    }
+      if (reset_error) { set_error('পাসওয়ার্ড রিসেট লিংক পাঠানো যায়নি।'); return }
+      set_message('পাসওয়ার্ড পরিবর্তনের নির্দেশনা আপনার ইমেইলে পাঠানো হয়েছে।')
+    } catch { set_error('পাসওয়ার্ড রিসেট করা যায়নি। আবার চেষ্টা করুন।') }
+    finally { set_submitting(false) }
   }
 
-  if (loading) {
-    return createElement(
-      'main',
-      { className: 'login-page' },
-      createElement('section', { className: 'login-shell login-loading', 'aria-label': 'Loading login' },
-        createElement('div', { className: 'login-brand' },
-          createElement('div', { className: 'login-logo login-logo-placeholder', 'aria-hidden': 'true' }, 'D'),
-          createElement('div', { className: 'login-skeleton login-skeleton-title' }),
-          createElement('p', null, 'Loading...')
-        ),
-        createElement('div', { className: 'login-form' },
-          createElement('div', { className: 'login-skeleton login-skeleton-input' }),
-          createElement('div', { className: 'login-skeleton login-skeleton-input' }),
-          createElement('div', { className: 'login-skeleton login-skeleton-button' })
-        )
-      )
-    )
-  }
+  if (loading) return createElement('main', { className: 'login-page' }, createElement('section', { className: 'login-shell login-loading', 'aria-label': 'Loading login' }, createElement('div', { className: 'login-skeleton login-skeleton-logo' }), createElement('div', { className: 'login-skeleton login-skeleton-title' }), createElement('div', { className: 'login-skeleton login-skeleton-input' }), createElement('div', { className: 'login-skeleton login-skeleton-input' }), createElement('div', { className: 'login-skeleton login-skeleton-button' })))
 
-  return createElement(
-    'main',
-    { className: 'login-page' },
-    createElement(
-      'section',
-      { className: 'login-shell' },
-      createElement(
-        'div',
-        { className: 'login-brand' },
-        logo_url
-          ? createElement('img', { src: logo_url, alt: site_name || 'Website logo', className: 'login-logo' })
-          : createElement('div', { className: 'login-logo login-logo-placeholder', 'aria-hidden': 'true' }, 'D'),
-        site_name ? createElement('h1', null, site_name) : null,
-        createElement('p', null, forgot_mode ? 'Reset your password' : 'Sign in to continue')
-      ),
-      forgot_mode
-        ? createElement(
-            'form',
-            { className: 'login-form', onSubmit: forgot_password },
-            createElement('label', null,
-              'Email address',
-              createElement('input', {
-                type: 'email',
-                value: email,
-                onChange: (event) => set_email(event.target.value),
-                autoComplete: 'email',
-                placeholder: 'Enter your email',
-                required: true
-              })
-            ),
-            error ? createElement('p', { className: 'login-error', role: 'alert' }, error) : null,
-            message ? createElement('p', { className: 'login-success', role: 'status' }, message) : null,
-            createElement('button', { type: 'submit', disabled: submitting }, submitting ? 'Sending...' : 'Send reset link'),
-            createElement('button', {
-              type: 'button',
-              className: 'login-secondary-button',
-              onClick: () => { set_forgot_mode(false); set_error(''); set_message('') }
-            }, 'Back to login')
-          )
-        : createElement(
-            'form',
-            { className: 'login-form', onSubmit: submit },
-            createElement('label', null,
-              'Email address',
-              createElement('input', {
-                type: 'email',
-                value: email,
-                onChange: (event) => set_email(event.target.value),
-                autoComplete: 'email',
-                inputMode: 'email',
-                placeholder: 'Enter your email',
-                required: true
-              })
-            ),
-            createElement('label', null,
-              'Password',
-              createElement('div', { className: 'login-password-field' },
-                createElement('input', {
-                  type: show_password ? 'text' : 'password',
-                  value: password,
-                  onChange: (event) => set_password(event.target.value),
-                  autoComplete: 'current-password',
-                  placeholder: 'Enter your password',
-                  required: true,
-                  minLength: 8
-                }),
-                createElement('button', {
-                  type: 'button',
-                  className: 'login-password-toggle',
-                  onClick: () => set_show_password((value) => !value),
-                  'aria-label': show_password ? 'Hide password' : 'Show password'
-                }, show_password ? 'Hide' : 'Show')
-              )
-            ),
-            error ? createElement('p', { className: 'login-error', role: 'alert' }, error) : null,
-            message ? createElement('p', { className: 'login-success', role: 'status' }, message) : null,
-            createElement('button', { type: 'submit', disabled: submitting }, submitting ? 'Signing in...' : 'Login'),
-            createElement('button', {
-              type: 'button',
-              className: 'login-forgot-button',
-              onClick: () => { set_forgot_mode(true); set_error(''); set_message('') }
-            }, 'Forgot password?')
-          )
+  return createElement('main', { className: 'login-page' }, createElement('section', { className: 'login-shell' },
+    createElement('div', { className: 'login-brand' },
+      logo_url ? createElement('img', { src: logo_url, alt: site_name || 'Website logo', className: 'login-logo' }) : createElement('div', { className: 'login-logo login-logo-placeholder', 'aria-hidden': 'true' }, 'D'),
+      site_name ? createElement('h1', null, site_name) : null,
+      createElement('p', null, forgot_mode ? 'পাসওয়ার্ড পরিবর্তন করুন' : 'আপনার অ্যাকাউন্টে প্রবেশ করুন')
+    ),
+    forgot_mode ? createElement('form', { className: 'login-form', onSubmit: forgot_password },
+      createElement('label', null, 'ইমেইল ঠিকানা', createElement('input', { type: 'email', value: email, onChange: (event) => set_email(event.target.value), autoComplete: 'email', inputMode: 'email', placeholder: 'আপনার ইমেইল লিখুন', required: true })),
+      error ? createElement('p', { className: 'login-error', role: 'alert' }, error) : null,
+      message ? createElement('p', { className: 'login-success', role: 'status' }, message) : null,
+      createElement('button', { type: 'submit', disabled: submitting }, submitting ? 'পাঠানো হচ্ছে…' : 'রিসেট লিংক পাঠান'),
+      createElement('button', { type: 'button', className: 'login-secondary-button', onClick: () => { set_forgot_mode(false); set_error(''); set_message('') } }, 'লগইনে ফিরে যান')
+    ) : createElement('form', { className: 'login-form', onSubmit: submit },
+      createElement('label', null, 'ইমেইল ঠিকানা', createElement('input', { type: 'email', value: email, onChange: (event) => set_email(event.target.value), autoComplete: 'email', inputMode: 'email', placeholder: 'আপনার ইমেইল লিখুন', required: true })),
+      createElement('label', null, 'পাসওয়ার্ড', createElement('div', { className: 'login-password-field' }, createElement('input', { type: show_password ? 'text' : 'password', value: password, onChange: (event) => set_password(event.target.value), autoComplete: 'current-password', placeholder: 'আপনার পাসওয়ার্ড লিখুন', required: true, minLength: 8 }), createElement('button', { type: 'button', className: 'login-password-toggle', onClick: () => set_show_password((value) => !value), 'aria-label': show_password ? 'পাসওয়ার্ড লুকান' : 'পাসওয়ার্ড দেখুন' }, show_password ? 'লুকান' : 'দেখুন'))),
+      error ? createElement('p', { className: 'login-error', role: 'alert' }, error) : null,
+      message ? createElement('p', { className: 'login-success', role: 'status' }, message) : null,
+      createElement('button', { type: 'submit', disabled: submitting }, submitting ? 'প্রবেশ করা হচ্ছে…' : 'লগইন'),
+      createElement('button', { type: 'button', className: 'login-forgot-button', onClick: () => { set_forgot_mode(true); set_error(''); set_message('') } }, 'পাসওয়ার্ড ভুলে গেছেন?')
     )
-  )
+  ))
 }
