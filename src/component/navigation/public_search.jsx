@@ -18,7 +18,7 @@ function normalize_text(value) {
 }
 
 function words(value) {
-  return normalize_text(value).split(/[^\\p{L}\\p{N}]+/u).filter(Boolean)
+  return normalize_text(value).split(/[^\p{L}\p{N}]+/u).filter(Boolean)
 }
 
 function match_score(value, query) {
@@ -71,7 +71,7 @@ function make_results({ information, pages, posts }, language, query) {
     if (!page.is_visible || page.status !== 'published' || !page.page_slug) continue
     const title = text_value(page.page_title, language)
     const content = plain_text(page.html_content)
-    add('page', title || (language === 'bn' ? 'তথ্য পেজ' : 'Information page'), snippet(content || title, q), '/' + String(page.page_slug).replace(/^\\/+|\\/+$/g, ''), 'page-' + (page.page_id ?? page.page_slug), title + ' ' + content)
+    add('page', title || (language === 'bn' ? 'তথ্য পেজ' : 'Information page'), snippet(content || title, q), '/' + String(page.page_slug).replace(/^\/+|\/+$/g, ''), 'page-' + (page.page_id ?? page.page_slug), title + ' ' + content)
   }
   for (const post of posts ?? []) {
     if (!post.is_visible || post.status !== 'published') continue
