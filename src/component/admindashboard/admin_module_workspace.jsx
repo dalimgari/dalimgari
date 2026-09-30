@@ -245,7 +245,7 @@ function pages_workspace() {
   function edit(row) {
     set_editing(row.page_id)
     set_form({
-      page_key: row.page_key, title_bn: localized(row.page_title, 'bn'), title_en: localized(row.page_title, 'en'),
+      title_bn: localized(row.page_title, 'bn'), title_en: localized(row.page_title, 'en'),
       slug: row.page_slug, content: row.html_content, seo_title: localized(row.seo_data?.title, 'bn'),
       seo_description: localized(row.seo_data?.description, 'bn'), canonical: row.seo_data?.canonical_url ?? '',
       robots: row.seo_data?.robots ?? 'index,follow', order: row.display_order ?? 0,
@@ -257,7 +257,7 @@ function pages_workspace() {
     event.preventDefault()
     if (!form.title_bn || !form.slug) return set_message('Bengali title and slug are required')
     const payload = {
-      page_key: editing ? form.page_key : undefined, page_title: { bn: form.title_bn, en: form.title_en || form.title_bn },
+      page_title: { bn: form.title_bn, en: form.title_en || form.title_bn },
       page_slug: form.slug.toLowerCase().replace(/^\/+|\/+$/g, ''), html_content: form.content,
       seo_data: { title: { bn: form.seo_title, en: form.seo_title }, description: { bn: form.seo_description, en: form.seo_description }, canonical_url: form.canonical, robots: form.robots },
       display_order: Number(form.order) || 0, is_visible: form.visible, status: form.status
@@ -322,7 +322,7 @@ function albums_workspace() {
   useEffect(() => { load() }, [])
   async function save(event) {
     event.preventDefault()
-    const payload = { album_key: editing ? form.key : undefined, album_title: { bn: form.title_bn, en: form.title_en || form.title_bn }, description: { bn: form.description, en: form.description }, is_visible: form.visible }
+    const payload = { album_title: { bn: form.title_bn, en: form.title_en || form.title_bn }, description: { bn: form.description, en: form.description }, is_visible: form.visible }
     const query = editing ? supabase.from('albums').update(payload).eq('album_id', editing) : supabase.from('albums').insert(payload)
     const { error } = await query
     set_message(error ? error.message : 'Saved')
@@ -337,8 +337,7 @@ function albums_workspace() {
       checkbox({ label: 'Visible', checked: form.visible, on_change: (value) => set_form({ ...form, visible: value }) })
     ), createElement('button', { type: 'submit' }, editing ? 'Update Album' : 'Create Album')),
     createElement('div', { className: 'admin-record-list' }, rows.map((row) => createElement('article', { key: row.album_id, className: 'admin-record-row' },
-      createElement('strong', null, localized(row.album_title)), createElement('span', null, row.album_key),
-      createElement('button', { type: 'button', onClick: () => { set_editing(row.album_id); set_form({ key: row.album_key, title_bn: localized(row.album_title, 'bn'), title_en: localized(row.album_title, 'en'), description: localized(row.description), visible: row.is_visible }) } }, 'Edit'),
+      createElement('strong', null, localized(row.album_title)), createElement('button', { type: 'button', onClick: () => { set_editing(row.album_id); set_form({ title_bn: localized(row.album_title, 'bn'), title_en: localized(row.album_title, 'en'), description: localized(row.description), visible: row.is_visible }) } }, 'Edit'),
       createElement('button', { type: 'button', onClick: async () => { if (!window.confirm('Delete album?')) return; const { error } = await delete_record('albums', 'album_id', row.album_id); set_message(error ? error.message : 'Deleted'); if (!error) load() } }, 'Delete')
     )))
   )
@@ -376,7 +375,7 @@ function media_workspace() {
       if (upload_error) return set_message(upload_error.message)
       url = supabase.storage.from('global_media').getPublicUrl(storage_path).data.publicUrl
     }
-    const payload = { media_key: undefined, media_method: form.method, file_name, mime_type, file_size, storage_path, media_url: url, album_id: form.album_id || null, is_visible: form.visible }
+    const payload = { media_method: form.method, file_name, mime_type, file_size, storage_path, media_url: url, album_id: form.album_id || null, is_visible: form.visible }
     const { error } = await supabase.from('media').insert(payload)
     set_message(error ? error.message : 'Media added')
     if (!error) { set_form({ method: 'url', url: '', album_id: '', visible: true }); set_file(null); await load() }
@@ -399,7 +398,7 @@ function media_workspace() {
       checkbox({ label: 'Visible', checked: form.visible, on_change: (value) => set_form({ ...form, visible: value }) })
     ), createElement('button', { type: 'submit' }, 'Add Media')),
     createElement('div', { className: 'admin-record-list' }, rows.map((row) => createElement('article', { key: row.media_id, className: 'admin-record-row' },
-      createElement('strong', null, row.media_key), createElement('span', null, row.file_name || row.media_url || ''),
+      createElement('strong', null, row.file_name || 'Media'), createElement('span', null, row.media_url || ''),
       createElement('button', { type: 'button', onClick: () => remove(row) }, 'Delete')
     )))
   )
@@ -429,7 +428,7 @@ function posts_workspace() {
 
   async function save(event) {
     event.preventDefault()
-    const payload = { post_key: editing ? form.key : undefined, caption: { bn: form.caption_bn, en: form.caption_en || form.caption_bn }, album_id: form.album_id || null, status: form.status, is_visible: form.visible, seo_data: { title: { bn: form.seo_title, en: form.seo_title }, description: { bn: form.seo_description, en: form.seo_description } }, published_at: form.status === 'published' ? new Date().toISOString() : null }
+    const payload = { caption: { bn: form.caption_bn, en: form.caption_en || form.caption_bn }, album_id: form.album_id || null, status: form.status, is_visible: form.visible, seo_data: { title: { bn: form.seo_title, en: form.seo_title }, description: { bn: form.seo_description, en: form.seo_description } }, published_at: form.status === 'published' ? new Date().toISOString() : null }
     const query = editing ? supabase.from('posts').update(payload).eq('post_id', editing) : supabase.from('posts').insert(payload).select('post_id').single()
     const { data, error } = await query
     if (error) return set_message(error.message)
@@ -465,7 +464,7 @@ function posts_workspace() {
     createElement('p', null, `Available media: ${media.map((item) => item.media_id).join(', ')}`),
     createElement('div', { className: 'admin-record-list' }, rows.map((row) => createElement('article', { key: row.post_id, className: 'admin-record-row' },
       createElement('strong', null, localized(row.caption)), createElement('span', null, row.status),
-      createElement('button', { type: 'button', onClick: () => { set_editing(row.post_id); set_form({ key: row.post_key, caption_bn: localized(row.caption, 'bn'), caption_en: localized(row.caption, 'en'), album_id: row.album_id ?? '', status: row.status, visible: row.is_visible, seo_title: localized(row.seo_data?.title, 'bn'), seo_description: localized(row.seo_data?.description, 'bn') }) } }, 'Edit'),
+      createElement('button', { type: 'button', onClick: () => { set_editing(row.post_id); set_form({ caption_bn: localized(row.caption, 'bn'), caption_en: localized(row.caption, 'en'), album_id: row.album_id ?? '', status: row.status, visible: row.is_visible, seo_title: localized(row.seo_data?.title, 'bn'), seo_description: localized(row.seo_data?.description, 'bn') }) } }, 'Edit'),
       createElement('button', { type: 'button', onClick: () => remove(row.post_id) }, 'Delete')
     )))
   )
