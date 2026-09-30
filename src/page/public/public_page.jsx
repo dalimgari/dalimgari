@@ -21,6 +21,12 @@ function get_information_map(information) { return information.reduce((result, i
 function get_information_value(map, key, language = 'bn') { const value = map[key]; if (value && typeof value === 'object') return value[language] ?? value.bn ?? value.en ?? ''; return value ?? '' }
 function sanitize_html(value) { if (!value) return ''; const template = document.createElement('template'); template.innerHTML = String(value); template.content.querySelectorAll('script, iframe, object, embed, style, link, meta').forEach((node) => node.remove()); template.content.querySelectorAll('*').forEach((node) => Array.from(node.attributes).forEach((attribute) => { if (/^on/i.test(attribute.name)) node.removeAttribute(attribute.name); if (['href', 'src', 'action'].includes(attribute.name) && /^javascript:/i.test(attribute.value)) node.removeAttribute(attribute.name) })); return template.innerHTML }
 
+function contact_icon(type) {
+  if (type === 'phone') return createElement('svg', { viewBox: '0 0 24 24', 'aria-hidden': 'true', focusable: 'false' }, createElement('path', { d: 'M6.6 2.5 9.2 2l2.1 5.1-1.8 1.5c1 2.1 2.8 3.9 4.9 4.9l1.5-1.8 5.1 2.1-.5 2.6c-.2 1.1-1.2 1.9-2.3 1.8C11.8 17.6 6.4 12.2 5.8 5.8 5.7 4.7 6.5 3.7 7.6 3.5L6.6 2.5Z' }))
+  if (type === 'whatsapp') return createElement('svg', { viewBox: '0 0 24 24', 'aria-hidden': 'true', focusable: 'false' }, createElement('path', { d: 'M20.5 3.5A11.2 11.2 0 0 0 12.6 1C6.5.7 1.4 5.5 1 11.6c-.1 2.2.5 4.3 1.7 6.1L1 23l5.5-1.7a11.4 11.4 0 0 0 5.8 1.6h.3c6.1-.4 10.9-5.5 10.4-11.6-.2-3-1.1-5.6-2.5-7.8Zm-8.1 17.2c-1.8 0-3.5-.5-5-1.5l-.4-.2-3.2 1 1-3.1-.2-.4a9.1 9.1 0 1 1 7.8 4.2Zm5-6.8c-.3-.2-1.7-.8-2-.9-.3-.1-.5-.1-.7.2l-.8 1c-.2.2-.4.2-.7.1-2-.9-3.4-2.2-4.3-4.2-.2-.3 0-.5.1-.7l.5-.6c.2-.2.2-.4.3-.6.1-.2 0-.5 0-.6l-.9-2.1c-.2-.5-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.1 1.1-1.1 2.6s1.1 3 1.3 3.2c.2.2 2.2 3.5 5.4 4.8 2.7 1.1 2.7.7 3.2.7.5 0 1.7-.7 1.9-1.3.3-.6.3-1.2.2-1.3-.2-.1-.4-.2-.7-.3Z' }))
+  return createElement('svg', { viewBox: '0 0 24 24', 'aria-hidden': 'true', focusable: 'false' }, createElement('path', { d: 'M2.5 4.5h19v15h-19v-15Zm2 2v.3l7.5 5.7 7.5-5.7v-.3h-15Zm15 2.8-7.5 5.7-7.5-5.7v8.2h15V9.3Z' }))
+}
+
 function render_home_page(state, language) {
   const information = get_information_map(state.information)
   const website_name = get_information_value(information, 'website_name', language)
@@ -32,6 +38,7 @@ function render_home_page(state, language) {
   const post_office = get_information_value(information, 'post_office', language)
   const postal_code = get_information_value(information, 'postal_code', language)
   const contact_phone = get_information_value(information, 'contact_phone', language)
+  const contact_whatsapp = get_information_value(information, 'contact_whatsapp', language)
   const contact_email = get_information_value(information, 'contact_email', language)
   const address_parts = [village_name, union, upazila, district, post_office, postal_code].filter(Boolean)
   return createElement('main', { className: 'website-body' },
@@ -67,8 +74,9 @@ function render_home_page(state, language) {
       ),
       createElement('p', { className: 'contact-address' }, address_parts.join(' • ')),
       createElement('div', { className: 'contact-actions' },
-        contact_phone && createElement('a', { className: 'website-contact-action primary', href: `tel:${contact_phone}` }, language === 'bn' ? `ফোন: ${contact_phone}` : `Call: ${contact_phone}`),
-        contact_email && createElement('a', { className: 'website-contact-action', href: `mailto:${contact_email}` }, language === 'bn' ? `ইমেইল: ${contact_email}` : `Email: ${contact_email}`)
+        contact_phone && createElement('a', { className: 'website-contact-action primary', href: `tel:${contact_phone}`, 'aria-label': language === 'bn' ? 'ফোন করুন' : 'Call', title: language === 'bn' ? 'ফোন করুন' : 'Call' }, contact_icon('phone')),
+        contact_whatsapp && createElement('a', { className: 'website-contact-action whatsapp', href: `https://wa.me/${String(contact_whatsapp).replace(/[^0-9+]/g, '').replace(/^\+/, '')}`, target: '_blank', rel: 'noreferrer', 'aria-label': 'WhatsApp', title: 'WhatsApp' }, contact_icon('whatsapp')),
+        contact_email && createElement('a', { className: 'website-contact-action email', href: `mailto:${contact_email}`, 'aria-label': language === 'bn' ? 'ইমেইল করুন' : 'Email', title: language === 'bn' ? 'ইমেইল করুন' : 'Email' }, contact_icon('email'))
       )
     )
   )
