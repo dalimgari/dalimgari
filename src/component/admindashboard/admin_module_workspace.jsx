@@ -142,10 +142,26 @@ function website_information_workspace() {
   )
 }
 
+function normalize_admin_url(value) {
+  const input = String(value ?? '').trim()
+  if (!input) return ''
+  if (!/^https?:\/\//i.test(input)) return `https://${input}`
+  try { return new URL(input).toString() } catch { return '' }
+}
+
+function admin_link_icon(url) {
+  try {
+    const domain = new URL(normalize_admin_url(url)).hostname.replace(/^www\./i, '')
+    return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128`
+  } catch {
+    return ''
+  }
+}
+
 function admin_information_workspace() {
   const [rows, set_rows] = useState([])
   const [selected, set_selected] = useState('')
-  const [form, set_form] = useState({ name: '', email: '', phone: '', image: '', bio: '', facebook: '', youtube: '', other: '' })
+  const [form, set_form] = useState({ name: '', email: '', phone: '', image: '', bio: '', admin_links: [] })
   const [message, set_message] = useState('')
 
   async function load() {
@@ -159,8 +175,7 @@ function admin_information_workspace() {
       set_form({
         name: info.admin_name ?? '', email: info.admin_email ?? '', phone: info.admin_phone ?? '',
         image: info.admin_profile_image ?? '', bio: info.admin_bio ?? '',
-        facebook: row.social_links?.facebook ?? '', youtube: row.social_links?.youtube ?? '',
-        other: row.other_links?.website ?? ''
+        admin_links: Array.isArray(row.other_links?.admin_sidebar_links) ? row.other_links.admin_sidebar_links : []
       })
     }
   }
@@ -187,8 +202,8 @@ function admin_information_workspace() {
         admin_name: form.name, admin_email: form.email, admin_phone: form.phone,
         admin_profile_image: form.image, admin_bio: form.bio
       },
-      social_links: { facebook: form.facebook, youtube: form.youtube },
-      other_links: { website: form.other },
+      social_links: row.social_links ?? {},
+      other_links: { ...(row.other_links ?? {}), admin_sidebar_links: form.admin_links.filter((link) => link.title?.trim() && link.url?.trim()).map((link) => ({ title: link.title.trim(), url: normalize_admin_url(link.url) })) },
       updated_at: new Date().toISOString()
     }).eq('admin_information_id', selected)
     set_message(error ? error.message : 'Admin information saved')
@@ -208,9 +223,18 @@ function admin_information_workspace() {
       input({ label: 'Admin Phone', value: form.phone, on_change: (value) => set_form({ ...form, phone: value }) }),
       input({ label: 'Profile Image URL', value: form.image, on_change: (value) => set_form({ ...form, image: value }) }),
       textarea({ label: 'Admin Bio', value: form.bio, on_change: (value) => set_form({ ...form, bio: value }), rows: 4 }),
-      input({ label: 'Facebook', value: form.facebook, on_change: (value) => set_form({ ...form, facebook: value }) }),
-      input({ label: 'YouTube', value: form.youtube, on_change: (value) => set_form({ ...form, youtube: value }) }),
-      input({ label: 'Other Link', value: form.other, on_change: (value) => set_form({ ...form, other: value }) })
+      createElement('div', { className: 'admin-links-editor' },
+        createElement('div', { className: 'admin-links-editor-header' },
+          createElement('strong', null, 'Admin Sidebar Links'),
+          createElement('button', { type: 'button', onClick: () => set_form({ ...form, admin_links: [...form.admin_links, { title: '', url: '' }] }) }, 'Add Link')
+        ),
+        form.admin_links.map((link, index) => createElement('div', { key: index, className: 'admin-link-editor-row' },
+          createElement('img', { src: admin_link_icon(link.url), alt: '', width: 32, height: 32 }),
+          input({ label: 'Title', value: link.title, on_change: (value) => set_form({ ...form, admin_links: form.admin_links.map((item, i) => i === index ? { ...item, title: value } : item) }) }),
+          input({ label: 'URL', value: link.url, on_change: (value) => set_form({ ...form, admin_links: form.admin_links.map((item, i) => i === index ? { ...item, url: value } : item) }), placeholder: 'https://example.com' }),
+          createElement('button', { type: 'button', onClick: () => set_form({ ...form, admin_links: form.admin_links.filter((_, i) => i !== index) }), 'aria-label': 'Remove link' }, '×')
+        ))
+      )
     ),
     selected && createElement('button', { type: 'button', onClick: save }, 'Save Admin Information')
   )
