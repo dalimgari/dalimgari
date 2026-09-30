@@ -9,6 +9,7 @@ import './style/global/login.css'
 import './style/global/design-polish.css'
 import './style/global/system-theme.css'
 import './style/global/contact-icons.css'
+import './style/global/link-management.css'
 
 createRoot(document.getElementById('root')).render(
   React.createElement(
