@@ -6,6 +6,22 @@
     <meta name="color-scheme" content="light dark" />
     <meta name="description" content="" />
     <title></title>
+    <script>
+      (() => {
+        try {
+          const savedMode = sessionStorage.getItem('theme_mode')
+          const mode = savedMode === 'dark' || savedMode === 'light'
+            ? savedMode
+            : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+          document.documentElement.dataset.themeMode = mode
+          document.documentElement.style.colorScheme = mode
+        } catch {
+          const mode = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+          document.documentElement.dataset.themeMode = mode
+          document.documentElement.style.colorScheme = mode
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>
