@@ -1,0 +1,64 @@
+name: Apply media upload update
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  update-media-upload:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Apply upload integration
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('src/component/admindashboard/admin_module_workspace.jsx')
+          s = p.read_text()
+
+          old = "import { delete_record, sync_input_fields } from '../../controller/admin/admin_record_controller'"
+          new = old + "\nimport { global_media_uploader } from '../media/global_media_uploader'"
+          if "global_media_uploader } from '../media/global_media_uploader'" not in s:
+              s = s.replace(old, new, 1)
+
+          old = "  ['contact_email', 'যোগাযোগের ইমেইল'],\n]"
+          new = "  ['contact_email', 'যোগাযোগের ইমেইল'],\n  ['village_avatar', 'গ্রামের লোগো / অ্যাভাটার'],\n]"
+          if "['village_avatar', 'গ্রামের লোগো / অ্যাভাটার']" not in s:
+              s = s.replace(old, new, 1)
+
+          old = "      village_fields.map(([key, label]) => input({\n        key, label, value: values[key],\n        on_change: (value) => set_values({ ...values, [key]: value }),\n        type: key.includes('email') ? 'email' : 'text'\n      }))"
+          new = "      village_fields.map(([key, label]) => key === 'village_avatar'\n        ? createElement(global_media_uploader, {\n            key,\n            label,\n            accept: 'image/*',\n            on_select: (media) => set_values({ ...values, village_avatar: media?.media_url ?? '' })\n          })\n        : input({\n            key, label, value: values[key],\n            on_change: (value) => set_values({ ...values, [key]: value }),\n            type: key.includes('email') ? 'email' : 'text'\n          }))"
+          if "key === 'village_avatar'" not in s:
+              s = s.replace(old, new, 1)
+
+          old = "      input({ label: 'Profile Image URL', value: form.image, on_change: (value) => set_form({ ...form, image: value }) }),"
+          new = "      createElement(global_media_uploader, {\n        label: 'Admin Avatar',\n        accept: 'image/*',\n        on_select: (media) => set_form({ ...form, image: media?.media_url ?? '' })\n      }),"
+          if "label: 'Admin Avatar'" not in s:
+              s = s.replace(old, new, 1)
+
+          p.write_text(s)
+          PY
+
+      - name: Commit update
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/component/admindashboard/admin_module_workspace.jsx
+          if git diff --cached --quiet; then
+            echo 'No changes needed'
+            exit 0
+          fi
+          git commit -m 'Add admin and village avatar upload methods'
+          git push
+
+      - name: Remove temporary workflow
+        if: success()
+        run: |
+          git rm .github/workflows/apply_media_upload_update.yml
+          git commit -m 'Remove temporary media upload update workflow'
+          git push
