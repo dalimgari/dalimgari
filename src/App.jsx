@@ -4,6 +4,7 @@ import Albums from './pages/Albums'
 import Search from './pages/Search'
 import Login from './pages/Login'
 import ControlPanel from './pages/ControlPanel'
+import PagesManagement from './pages/admin/PagesManagement'
 
 function getPath() {
   return window.location.pathname.replace(/^\/dalimgari/, '').replace(/\/$/, '') || '/'
@@ -16,6 +17,7 @@ export default function App() {
   if (path === '/albums') return <Albums />
   if (path === '/search') return <Search />
   if (path === '/login') return <Login />
+  if (path === '/admin/pages') return <PagesManagement />
   if (path === '/admin' || path === '/admin/website-information') return <ControlPanel />
 
   return <Home />
