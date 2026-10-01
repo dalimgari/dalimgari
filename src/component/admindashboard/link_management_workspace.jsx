@@ -1,12 +1,13 @@
 import { createElement, useEffect, useState } from 'react'
 import { supabase } from '../../service/supabase/supabase_client'
+import { global_auto_input } from '../form/global_auto_input'
 
 const blank = { title: '', url: '' }
 function normalize_url(value) { let input = String(value ?? '').trim(); if (!input) return ''; if (!/^https?:\/\//i.test(input)) input = `https://${input}`; try { return new URL(input).toString() } catch { return '' } }
 function normalize_domain(value) { try { return new URL(value).hostname.replace(/^www\./i, '').replace(/\.$/, '').toLowerCase() } catch { return '' } }
 function icon_url(domain) { return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128` }
 function panel_header(title, message) { return createElement('header', { className: 'admin-module-header' }, createElement('h2', null, title), message && createElement('p', { role: 'status' }, message)) }
-function field(label, value, on_change, placeholder) { return createElement('label', { className: 'admin-form-field' }, createElement('span', null, label), createElement('input', { value: value ?? '', placeholder, onChange: (event) => on_change(event.target.value) })) }
+function field(field_name, label, value, on_change, placeholder) { return global_auto_input({ field_name, label, value, on_change, placeholder }) }
 
 export function link_management_workspace() {
   const [rows, set_rows] = useState([])
@@ -82,8 +83,8 @@ export function link_management_workspace() {
       createElement('div', { className: 'link-management-modal', role: 'dialog', 'aria-modal': 'true', 'aria-label': editing ? 'Edit Link' : 'Add Link' },
         createElement('div', { className: 'link-management-modal-header' }, createElement('h3', null, editing ? 'Edit Link' : 'Add Link'), createElement('button', { type: 'button', onClick: close_form, 'aria-label': 'Close' }, '×')),
         createElement('form', { onSubmit: save },
-          field('Title', form.title, (value) => set_form({ ...form, title: value }), 'যেমন: Facebook'),
-          field('URL', form.url, (value) => set_form({ ...form, url: value }), 'https://example.com'),
+          field('title', 'Title', form.title, (value) => set_form({ ...form, title: value }), 'যেমন: Facebook'),
+          field('url', 'URL', form.url, (value) => set_form({ ...form, url: value }), 'https://example.com'),
           createElement('p', { className: 'link-management-help' }, 'লিঙ্কটি সেভ হলে সিস্টেম নিজে link_1, link_2, link_3… key এবং domain icon তৈরি করবে।'),
           createElement('div', { className: 'admin-actions' }, createElement('button', { type: 'submit', disabled: saving }, saving ? 'Saving…' : editing ? 'Update Link' : 'Save Link'), createElement('button', { type: 'button', onClick: close_form }, 'Cancel'))
         )
