@@ -21,7 +21,14 @@ function pad(value) {
   return String(value).padStart(2, '0')
 }
 
-function TimeCard({ location, language }) {
+function informationForLocation(location, language) {
+  if (!location.latitude || !location.longitude) return null
+  const lat = Number(location.latitude).toFixed(4)
+  const lon = Number(location.longitude).toFixed(4)
+  return <p className="village-local-card__coordinates">{language === 'bng' ? 'স্থানাঙ্ক: ' : 'Coordinates: '}{lat}, {lon}</p>
+}
+
+function TimeCard({ location, language, information }) {
   const [now, setNow] = useState(() => new Date())
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 1000)
@@ -46,7 +53,11 @@ function TimeCard({ location, language }) {
         <p className="village-local-card__eyebrow">{language === 'bng' ? 'স্থানীয় সময়' : 'Local time'}</p>
         <h2>{time}</h2>
         <p className="village-local-card__date">{weekday}, {date}</p>
-        <p className="village-local-card__place">{language === 'bng' ? location.nameBn : location.nameEn}</p>
+        <div className="village-local-card__location">
+          <strong>{language === 'bng' ? 'অবস্থান' : 'Location'}</strong>
+          <p className="village-local-card__place">{language === 'bng' ? location.nameBn : location.nameEn}</p>
+          {informationForLocation(location, language)}
+        </div>
       </div>
     </article>
   )
@@ -117,7 +128,7 @@ export default function VillageLocalCards({ information }) {
       <div className="site-container">
         <h2 id="village-local-title" className="sr-only">{language === 'bng' ? 'ডালিমগাড়ীর স্থানীয় তথ্য' : 'Dalimgari local information'}</h2>
         <div className="village-local-grid">
-          <TimeCard location={location} language={language} />
+          <TimeCard location={location} language={language} information={information} />
           <WeatherCard weather={weather} language={language} />
         </div>
       </div>
