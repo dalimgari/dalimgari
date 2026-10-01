@@ -25,6 +25,25 @@ export async function listManagedPosts() {
   return data ?? []
 }
 
+export async function listPostMedia(postId) {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const { data, error } = await supabase.from('post_media').select('post_media_id, media_id, display_order, media(*)').eq('post_id', postId).order('display_order', { ascending: true })
+  if (error) throw error
+  return data ?? []
+}
+
+export async function replacePostMedia(postId, mediaIds) {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const ids = [...new Set((mediaIds ?? []).filter(Boolean))]
+  const { error: deleteError } = await supabase.from('post_media').delete().eq('post_id', postId)
+  if (deleteError) throw deleteError
+  if (!ids.length) return []
+  const rows = ids.map((mediaId, index) => ({ post_id: postId, media_id: mediaId, display_order: index }))
+  const { data, error } = await supabase.from('post_media').insert(rows).select('post_media_id, media_id, display_order, media(*)')
+  if (error) throw error
+  return data ?? []
+}
+
 async function currentUserId() {
   const { data, error } = await supabase.auth.getUser()
   if (error) throw error
