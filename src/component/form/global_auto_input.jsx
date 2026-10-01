@@ -3,7 +3,11 @@ import { global_input_selector } from '../../utility/helper/global_input_selecto
 import { get_global_input_definition } from './input_methods'
 
 function field_label(label, field_name) {
-  return label || String(field_name ?? '').replace(/_/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())
+  const name = String(field_name ?? '').trim()
+  const fallback = name.replace(/_/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())
+  if (!name) return label || ''
+  if (!label || label === name || label === fallback) return name
+  return `${label} (${name})`
 }
 
 export function global_auto_input({
