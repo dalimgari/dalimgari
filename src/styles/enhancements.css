@@ -111,6 +111,8 @@ h1,h2,h3,h4,.site-brand__name,.rural-sidebar__heading,.ui-field label,.ui-label 
   color:#fffaf0;
 }
 .home-media-grid {
+  display:grid;
+  gap:1rem;
   grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr));
 }
 .media-card {
