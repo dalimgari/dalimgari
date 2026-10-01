@@ -11,3 +11,11 @@ export async function hasPermission(permissionKey) {
   if (error) throw error
   return Boolean(data)
 }
+
+export async function hasAdminAccess() {
+  if (!supabase) return false
+
+  const { data, error } = await supabase.rpc('current_user_has_admin_access')
+  if (error) throw error
+  return Boolean(data)
+}
