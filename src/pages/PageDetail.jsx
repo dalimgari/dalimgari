@@ -25,7 +25,7 @@ export default function PageDetail({ slug }) {
   const seoDescription = page?.content ? String(page.content).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160) : 'দালিমগাড়ীর তথ্যভিত্তিক পেজ।'
 
   return <Layout
-    seoTitle={page?.page_title || 'পেজ'}
+    seoTitle={page?.page_title || null}
     seoDescription={seoDescription}
     seoCanonicalPath={`/pages/${slug}`}
     navigationItems={[{ label: 'হোম', href: '/' }, { label: 'তথ্য', href: '/information' }, { label: 'পোস্ট', href: '/posts' }, { label: 'অ্যালবাম', href: '/albums' }]}
