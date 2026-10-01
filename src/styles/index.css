@@ -122,6 +122,10 @@ a {
 .home-banner p { margin: 0; max-width: 48rem; }
 .home-section { padding: 2.5rem 0; }
 .home-section h2 { margin-top: 0; }
+.content-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: 1rem; }
+.content-card { padding: 1.25rem; background: #fff; border: 1px solid #e5e7eb; border-radius: .75rem; }
+.content-card h3 { margin: 0 0 .5rem; }
+.content-card p { margin: 0; }
 .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: 1rem; margin: 0; }
 .info-card { padding: 1rem; background: #fff; border: 1px solid #e5e7eb; border-radius: .75rem; }
 .info-card dt { color: #64748b; font-size: .875rem; }
