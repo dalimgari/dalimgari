@@ -1,0 +1,2 @@
+export const RICH_TEXT_INPUT_CONFIG=Object.freeze({method:'rich_text',control:'rich_textarea',supports:['label','value','placeholder','required','disabled','rows','toolbar']})
+export function RichTextInput({label,value='',on_change=()=>{},rows=12,...props}){return <label className="admin-form-field"><span>{label}</span><textarea className="global-rich-text-input" value={value??''} rows={rows} onChange={e=>on_change(e.target.value)} {...props}/></label>}
