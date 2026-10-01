@@ -1,4 +1,4 @@
-import Home from './pages/Home'
+import { useEffect, useState } from 'react'\nimport Home from './pages/Home'
 import Posts from './pages/Posts'
 import Albums from './pages/Albums'
 import Search from './pages/Search'
@@ -14,31 +14,50 @@ import AuditLogs from './pages/admin/AuditLogs'
 import PageDetail from './pages/PageDetail'
 import PostDetail from './pages/PostDetail'
 import Information from './pages/Information'
+import Skeleton from './components/ui/Skeleton'
 
 function getPath() {
   const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
   return window.location.pathname.replace(new RegExp(`^${base}`), '').replace(/\/$/, '') || '/'
 }
 
+function RouteView({ path, children }) {
+  const [ready, setReady] = useState(false)
+
+  useEffect(() => {
+    setReady(true)
+  }, [path])
+
+  if (!ready) {
+    const variant = path === '/' ? 'home' : path.match(/^\/(pages|posts)\//) ? 'detail' : 'page'
+    return <Skeleton variant={variant} />
+  }
+
+  return children
+}
+
 export default function App() {
   const path = getPath()
+  let page = <Home />
+
   const pageMatch = path.match(/^\/pages\/([^/]+)$/)
   const postMatch = path.match(/^\/posts\/([^/]+)$/)
 
-  if (pageMatch) return <PageDetail slug={decodeURIComponent(pageMatch[1])} />
-  if (postMatch) return <PostDetail postId={decodeURIComponent(postMatch[1])} />
-  if (path === '/posts') return <Posts />
-  if (path === '/albums') return <Albums />
-  if (path === '/search') return <Search />
-  if (path === '/information') return <Information />
-  if (path === '/login') return <Login />
-  if (path === '/admin') return <Dashboard />
-  if (path === '/admin/pages') return <PagesManagement />
-  if (path === '/admin/posts') return <PostsManagement />
-  if (path === '/admin/albums') return <AlbumsManagement />
-  if (path === '/admin/media') return <MediaManagement />
-  if (path === '/admin/users') return <UsersManagement />
-  if (path === '/admin/audit') return <AuditLogs />
-  if (path === '/admin/website-information') return <ControlPanel />
-  return <Home />
+  if (pageMatch) page = <PageDetail slug={decodeURIComponent(pageMatch[1])} />
+  else if (postMatch) page = <PostDetail postId={decodeURIComponent(postMatch[1])} />
+  else if (path === '/posts') page = <Posts />
+  else if (path === '/albums') page = <Albums />
+  else if (path === '/search') page = <Search />
+  else if (path === '/information') page = <Information />
+  else if (path === '/login') page = <Login />
+  else if (path === '/admin') page = <Dashboard />
+  else if (path === '/admin/pages') page = <PagesManagement />
+  else if (path === '/admin/posts') page = <PostsManagement />
+  else if (path === '/admin/albums') page = <AlbumsManagement />
+  else if (path === '/admin/media') page = <MediaManagement />
+  else if (path === '/admin/users') page = <UsersManagement />
+  else if (path === '/admin/audit') page = <AuditLogs />
+  else if (path === '/admin/website-information') page = <ControlPanel />
+
+  return <RouteView path={path}>{page}</RouteView>
 }
