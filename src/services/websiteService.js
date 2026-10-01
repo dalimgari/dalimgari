@@ -1,5 +1,7 @@
 import { supabase } from '../lib/supabase'
 
+const DEFAULT_COPYRIGHT = '© 2026. All rights reserved.'
+
 export async function getWebsiteInformation() {
   if (!supabase) throw new Error('Supabase is not configured')
 
@@ -31,7 +33,7 @@ export async function updateWebsiteInformation(values) {
       : Number(values.population),
     established_date: values.established_date || null,
     map_location: values.map_location ?? null,
-    copyright_text: values.copyright_text || null,
+    copyright_text: String(values.copyright_text ?? '').trim() || DEFAULT_COPYRIGHT,
   }
 
   if (!information?.website_information_id) {
