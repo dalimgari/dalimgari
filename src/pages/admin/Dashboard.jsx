@@ -33,22 +33,29 @@ export default function Dashboard() {
     }
 
     let active = true
-    Promise.all(CARDS.map(async ([key, , permission, loader]) => {
-      const allowed = await hasPermission(permission)
-      if (!allowed) return [key, null]
-      const data = await loader()
-      return [key, Array.isArray(data) ? data.length : 0]
-    }))
-      .then((results) => {
-        if (!active) return
-        setCounts(Object.fromEntries(results))
-        setReady(true)
-      })
-      .catch((requestError) => {
-        if (!active) return
-        setError(requestError)
-        setReady(true)
-      })
+    async function loadDashboard() {
+      const permissions = await Promise.all(
+        CARDS.map(async ([key, , permission, loader]) => ({ key, permission, loader, allowed: await hasPermission(permission) }))
+      )
+      const allowedCards = permissions.filter((card) => card.allowed)
+      const results = await Promise.all(
+        allowedCards.map(async ({ key, loader }) => {
+          const data = await loader()
+          return [key, Array.isArray(data) ? data.length : 0]
+        })
+      )
+      const nextCounts = Object.fromEntries(permissions.map(({ key, allowed }) => [key, allowed ? undefined : null]))
+      results.forEach(([key, value]) => { nextCounts[key] = value })
+      if (!active) return
+      setCounts(nextCounts)
+      setReady(true)
+    }
+
+    loadDashboard().catch((requestError) => {
+      if (!active) return
+      setError(requestError)
+      setReady(true)
+    })
 
     return () => { active = false }
   }, [status, user])
@@ -60,7 +67,7 @@ export default function Dashboard() {
     <AdminLayout user={user} title="ড্যাশবোর্ড">
       <p className="admin-intro">বর্তমান সিস্টেমের অনুমোদিত তথ্যের সংক্ষিপ্তসার।</p>
       <div className="content-grid admin-dashboard-grid">
-        {CARDS.map(([key, label]) => (
+        {CARDS.filter(([key]) => counts[key] !== null).map(([key, label]) => (
           <article className="content-card" key={key}>
             <p className="eyebrow">{label}</p>
             <p className="admin-dashboard-count">{counts[key] == null ? '—' : counts[key]}</p>
