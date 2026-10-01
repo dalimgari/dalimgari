@@ -83,3 +83,11 @@ export async function deletePage(pageId) {
   const { error } = await supabase.from('pages').delete().eq('page_id', pageId)
   if (error) throw error
 }
+
+
+export async function getPublishedPageBySlug(slug) {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const { data, error } = await supabase.from('pages').select('*').eq('page_slug', slug).eq('status', 'published').eq('is_visible', true).maybeSingle()
+  if (error) throw error
+  return data
+}
