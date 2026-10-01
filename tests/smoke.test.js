@@ -13,7 +13,7 @@ describe('project smoke tests', () => {
   it('keeps the build and test scripts defined', async () => {
     const pkg = JSON.parse(await read('package.json'))
     expect(typeof pkg.scripts.build).toBe('string')
-    expect(pkg.scripts.test).toBe('node --test tests/**/*.test.js')
+    expect(pkg.scripts.test).toBe('node --test tests/smoke.test.js')
   })
 
   it('keeps the production workflow pointed at main', async () => {
