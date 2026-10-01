@@ -13,6 +13,7 @@ import MediaManagement from './pages/admin/MediaManagement'
 import UsersManagement from './pages/admin/UsersManagement'
 import AuditLogs from './pages/admin/AuditLogs'
 import HomepageManagement from './pages/admin/HomepageManagement'
+import SidebarManagement from './pages/admin/SidebarManagement'
 import PageDetail from './pages/PageDetail'
 import PostDetail from './pages/PostDetail'
 import Information from './pages/Information'
@@ -34,6 +35,7 @@ function RouteView({ children }) {
 function adminPage(path) {
   if (path === '/admin') return <AdminRoute><Dashboard /></AdminRoute>
   if (path === '/admin/homepage') return <AdminRoute permission="homepage_manage"><HomepageManagement /></AdminRoute>
+  if (path === '/admin/sidebar') return <AdminRoute permission="sidebar_manage"><SidebarManagement /></AdminRoute>
   if (path === '/admin/pages') return <AdminRoute permission="content_manage"><PagesManagement /></AdminRoute>
   if (path === '/admin/posts') return <AdminRoute permission="content_manage"><PostsManagement /></AdminRoute>
   if (path === '/admin/albums') return <AdminRoute permission="media_manage"><AlbumsManagement /></AdminRoute>
