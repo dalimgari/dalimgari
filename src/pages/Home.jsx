@@ -45,20 +45,14 @@ export default function Home() {
     }
   }, [])
 
-  const siteName = data.information?.village_name || 'ডালিমগাড়ী'
-  const slogan = data.information?.slogan || ''
-  const copyrightText = data.information?.copyright_text || '© 2026. All rights reserved.'
-
   return (
-    <Layout
-      siteName={siteName}
-      slogan={slogan}
-      navigationItems={NAVIGATION_ITEMS}
-      copyrightText={copyrightText}
-    >
-      {status === 'loading' ? <Loading /> : null}
+    <Layout navigationItems={NAVIGATION_ITEMS}>
+      {status === 'loading' ? <Loading variant="home" /> : null}
 
-      <Banner siteName={siteName} slogan={slogan} />
+      <Banner
+        siteName={data.information?.village_name}
+        slogan={data.information?.slogan}
+      />
       <Information information={data.information} />
       <PostsSection posts={data.posts} />
       <AlbumsSection albums={data.albums} />
