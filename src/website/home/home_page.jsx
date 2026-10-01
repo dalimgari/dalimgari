@@ -1,3 +1,8 @@
+import { createElement } from 'react'
+import { page_navigation } from '../navigation/page_navigation'
+import { post_list } from '../post/post_list'
+import { get_information_map, get_information_value, get_information_contact_icon } from '../information/public_information'
+
 export function home_page(state, language) {
   const information = get_information_map(state.information)
   const village_name = get_information_value(information, 'village_name', language)
