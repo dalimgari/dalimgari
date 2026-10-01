@@ -56,7 +56,7 @@ function checkbox({ field_name, label, checked, on_change, disabled = false }) {
 }
 
 function select({ field_name, label, value, on_change, options, disabled = false }) {
-  return global_auto_input({ field_name, label, value, on_change, input_method: 'select', enum_values: options.map((option) => option.value), disabled })
+  return global_auto_input({ field_name, label, value, on_change, input_method: 'select', options, disabled })
 }
 
 function panel_header(title, message) {
