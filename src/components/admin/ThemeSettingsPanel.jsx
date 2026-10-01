@@ -90,8 +90,8 @@ export default function ThemeSettingsPanel() {
     <div className="admin-form__section">
       <h2>থিমের সাজ</h2>
       <p className="admin-intro">ডে ও নাইটের প্রতিটি রঙ, ওয়ালপেপার, অবস্থা, ইন্টার‌্যাকশন, আকার, ছায়া, লেখা ও স্ক্রলবার আলাদাভাবে নিয়ন্ত্রণ করুন।</p>
-      <ThemeMode title="ডে থিম" values={values.day} onChange={(g,k,v)=>change('day',g,k,v)} onWallpaperChange={(v)=>changeWallpaper('day',v)} disabled={status==='loading'} />
-      <ThemeMode title="নাইট থিম" values={values.night} onChange={(g,k,v)=>change('night',g,k,v)} onWallpaperChange={(v)=>changeWallpaper('night',v)} disabled={status==='loading'} />
+      <ThemeMode title="ডে থিম" values={values.day} onChange={(group,key,value)=>group==='wallpaper'?changeWallpaper('day',key):change('day',group,key,value)} disabled={status==='loading'} />
+      <ThemeMode title="নাইট থিম" values={values.night} onChange={(group,key,value)=>group==='wallpaper'?changeWallpaper('night',key):change('night',group,key,value)} disabled={status==='loading'} />
       <div className="admin-form__actions"><Button type="submit" disabled={status==='loading'}>{status==='loading'?'সংরক্ষণ হচ্ছে…':'থিম সংরক্ষণ করুন'}</Button>{status==='success'?<span className="admin-success">ডে ও নাইট থিম সংরক্ষণ হয়েছে।</span>:null}</div>
       {status==='error'&&error?<ErrorState description={error.message||'থিম সংরক্ষণ করা যায়নি।'} />:null}
     </div>
