@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'\nimport Home from './pages/Home'
+import { useEffect, useState } from 'react'
+import Home from './pages/Home'
 import Posts from './pages/Posts'
 import Albums from './pages/Albums'
 import Search from './pages/Search'
