@@ -20,23 +20,21 @@ function normalizePath(value) {
   return String(value).replace(/^\/+/, '').replace(/\/+$/, '')
 }
 
-async function fetchPublicRows(table, select) {
-  if (!supabaseUrl || !supabaseKey) return []
+async function fetchPublicContent() {
+  if (!supabaseUrl || !supabaseKey) return { posts: [], pages: [] }
 
-  const url = new URL(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/${table}`)
-  url.searchParams.set('select', select)
-  url.searchParams.set('status', 'eq.published')
-  url.searchParams.set('is_visible', 'eq.true')
-
-  const response = await fetch(url, {
+  const response = await fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/rpc/get_sitemap_content`, {
+    method: 'POST',
     headers: {
       apikey: supabaseKey,
       Authorization: `Bearer ${supabaseKey}`,
+      'Content-Type': 'application/json',
     },
+    body: '{}',
   })
 
   if (!response.ok) {
-    throw new Error(`Sitemap query failed for ${table}: ${response.status} ${await response.text()}`)
+    throw new Error(`Sitemap RPC failed: ${response.status} ${await response.text()}`)
   }
 
   return response.json()
@@ -46,16 +44,13 @@ async function main() {
   const urls = new Set(staticRoutes.map((route) => `${baseUrl}${route}`))
 
   if (supabaseUrl && supabaseKey) {
-    const [posts, pages] = await Promise.all([
-      fetchPublicRows('posts', 'post_id'),
-      fetchPublicRows('pages', 'page_slug'),
-    ])
+    const content = await fetchPublicContent()
 
-    for (const post of posts) {
+    for (const post of content.posts ?? []) {
       if (post.post_id) urls.add(`${baseUrl}/posts/${encodeURIComponent(post.post_id)}`)
     }
 
-    for (const page of pages) {
+    for (const page of content.pages ?? []) {
       if (page.page_slug) urls.add(`${baseUrl}/pages/${encodeURIComponent(normalizePath(page.page_slug))}`)
     }
   } else {
