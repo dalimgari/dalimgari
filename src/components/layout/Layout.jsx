@@ -4,19 +4,19 @@ import Navigation from './Navigation'
 import Footer from './Footer'
 import { appPath } from '../../lib/routes'
 
-const DEFAULT_DESCRIPTION = 'দালিমগাড়ী গ্রামের তথ্য, সংবাদ, পোস্ট, অ্যালবাম ও কমিউনিটি ওয়েবসাইট।'
+const DEFAULT_DESCRIPTION = 'ডালিমগাড়ী গ্রামের তথ্য, সংবাদ, পোস্ট, অ্যালবাম ও কমিউনিটি ওয়েবসাইট।'
 const ROUTE_SEO = {
   '/': { title: 'হোম', description: DEFAULT_DESCRIPTION },
-  '/information': { title: 'গ্রামের তথ্য', description: 'দালিমগাড়ী গ্রামের পরিচিতি, অবস্থান ও গুরুত্বপূর্ণ তথ্য।' },
-  '/posts': { title: 'পোস্ট', description: 'দালিমগাড়ী গ্রামের প্রকাশিত পোস্ট ও সংবাদ।' },
-  '/albums': { title: 'অ্যালবাম', description: 'দালিমগাড়ী গ্রামের ছবি ও অ্যালবাম।' },
-  '/search': { title: 'সার্চ', description: 'দালিমগাড়ী গ্রামের পোস্ট ও পেজ খুঁজুন।' },
-  '/login': { title: 'লগইন', description: 'দালিমগাড়ী ওয়েবসাইটে নিরাপদে লগইন করুন।' },
+  '/information': { title: 'গ্রামের তথ্য', description: 'ডালিমগাড়ী গ্রামের পরিচিতি, অবস্থান ও গুরুত্বপূর্ণ তথ্য।' },
+  '/posts': { title: 'পোস্ট', description: 'ডালিমগাড়ী গ্রামের প্রকাশিত পোস্ট ও সংবাদ।' },
+  '/albums': { title: 'অ্যালবাম', description: 'ডালিমগাড়ী গ্রামের ছবি ও অ্যালবাম।' },
+  '/search': { title: 'সার্চ', description: 'ডালিমগাড়ী গ্রামের পোস্ট ও পেজ খুঁজুন।' },
+  '/login': { title: 'লগইন', description: 'ডালিমগাড়ী ওয়েবসাইটে নিরাপদে লগইন করুন।' },
 }
 
 function Seo({ title, description, canonicalPath }) {
   useEffect(() => {
-    const siteName = 'দালিমগাড়ী'
+    const siteName = 'ডালিমগাড়ী'
     const routeKey = canonicalPath || '/'
     const routeSeo = ROUTE_SEO[routeKey] || {}
     const finalTitle = title || routeSeo.title || siteName
@@ -54,7 +54,7 @@ function Seo({ title, description, canonicalPath }) {
 
 export default function Layout({
   children,
-  siteName = 'দালিমগাড়ী',
+  siteName = 'ডালিমগাড়ী',
   slogan = '',
   navigationItems = [],
   copyrightText = '© 2026. All rights reserved.',
