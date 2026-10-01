@@ -33,6 +33,7 @@ export default function AdminLayout({ user, title, children }) {
         <div className="site-container admin-nav__inner">
           <a href="/admin">ড্যাশবোর্ড</a>
           <a href="/admin/website-information">ওয়েবসাইট তথ্য</a>
+          <a href="/admin/pages">পেজসমূহ</a>
           <span className="admin-nav__user">{user?.email || ''}</span>
         </div>
       </nav>
