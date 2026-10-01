@@ -27,7 +27,7 @@ jobs:
           node-version: 22
           cache: npm
       - name: Install dependencies
-        run: npm install
+        run: npm ci
       - name: Run automated tests
         run: npm test
       - name: Generate production sitemap
