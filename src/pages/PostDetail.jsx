@@ -26,7 +26,7 @@ export default function PostDetail({ postId }) {
   const seoDescription = post?.description ? post.description.slice(0, 160) : 'দালিমগাড়ীর প্রকাশিত পোস্ট।'
 
   return <Layout
-    seoTitle={post?.title || 'পোস্ট'}
+    seoTitle={post?.title || null}
     seoDescription={seoDescription}
     seoCanonicalPath={`/posts/${postId}`}
     navigationItems={[{ label: 'হোম', href: '/' }, { label: 'তথ্য', href: '/information' }, { label: 'পোস্ট', href: '/posts' }, { label: 'অ্যালবাম', href: '/albums' }]}
