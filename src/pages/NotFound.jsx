@@ -1,5 +1,4 @@
 import { Layout } from '../components/layout'
-import { Button } from '../components/ui'
 import { appPath } from '../lib/routes'
 
 export default function NotFound() {
@@ -9,7 +8,7 @@ export default function NotFound() {
         <div className="site-container empty-state">
           <h1>পেজ পাওয়া যায়নি</h1>
           <p>আপনি যে ঠিকানাটি খুঁজছেন সেটি পাওয়া যাচ্ছে না।</p>
-          <Button as="a" href={appPath('/')}>হোমে ফিরে যান</Button>
+          <a className="ui-button ui-button--primary" href={appPath('/')}>হোমে ফিরে যান</a>
         </div>
       </section>
     </Layout>
