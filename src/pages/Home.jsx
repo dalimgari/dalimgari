@@ -7,7 +7,7 @@ import AlbumsSection from '../components/website/AlbumsSection'
 import { getWebsiteInformation } from '../services/websiteService'
 import { listPublishedPosts } from '../services/postService'
 import { listVisibleAlbums } from '../services/albumService'
-import { Loading, ErrorState } from '../components/ui'
+import { Loading } from '../components/ui'
 
 const NAVIGATION_ITEMS = [
   { label: 'হোম', href: '/' },
@@ -19,26 +19,26 @@ const NAVIGATION_ITEMS = [
 export default function Home() {
   const [data, setData] = useState({ information: null, posts: [], albums: [] })
   const [status, setStatus] = useState('loading')
-  const [error, setError] = useState(null)
 
   useEffect(() => {
     let active = true
 
-    Promise.all([
+    Promise.allSettled([
       getWebsiteInformation(),
       listPublishedPosts({ limit: 30 }),
       listVisibleAlbums(),
-    ])
-      .then(([information, posts, albums]) => {
-        if (!active) return
-        setData({ information, posts, albums })
-        setStatus('ready')
+    ]).then((results) => {
+      if (!active) return
+
+      const [informationResult, postsResult, albumsResult] = results
+
+      setData({
+        information: informationResult.status === 'fulfilled' ? informationResult.value : null,
+        posts: postsResult.status === 'fulfilled' ? postsResult.value : [],
+        albums: albumsResult.status === 'fulfilled' ? albumsResult.value : [],
       })
-      .catch((requestError) => {
-        if (!active) return
-        setError(requestError)
-        setStatus('error')
-      })
+      setStatus('ready')
+    })
 
     return () => {
       active = false
@@ -57,17 +57,11 @@ export default function Home() {
       copyrightText={copyrightText}
     >
       {status === 'loading' ? <Loading /> : null}
-      {status === 'error' ? (
-        <ErrorState description={error?.message || 'তথ্য লোড করা যায়নি।'} />
-      ) : null}
-      {status === 'ready' ? (
-        <>
-          <Banner siteName={siteName} slogan={slogan} />
-          <Information information={data.information} />
-          <PostsSection posts={data.posts} />
-          <AlbumsSection albums={data.albums} />
-        </>
-      ) : null}
+
+      <Banner siteName={siteName} slogan={slogan} />
+      <Information information={data.information} />
+      <PostsSection posts={data.posts} />
+      <AlbumsSection albums={data.albums} />
     </Layout>
   )
 }
