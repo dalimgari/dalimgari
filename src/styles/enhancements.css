@@ -45,3 +45,112 @@ h1,h2,h3,h4,.site-brand__name,.rural-sidebar__heading,.ui-field label,.ui-label 
 .site-header__menu.is-open { background:var(--color-field); color:var(--color-leaf-dark); }
 @media (max-width:760px) { .site-nav__toggle { display:inline-flex; align-items:center; gap:.35rem; }.site-nav__menu { display:none; flex-direction:column; align-items:stretch; padding:.5rem 0; }.site-nav__menu.is-open { display:flex; }.site-nav__link,.site-nav__control { width:100%; text-align:left; }.site-nav__profile { margin-left:0; }.admin-body { display:block; }.admin-sidebar { position:fixed; inset:5rem auto 0 0; z-index:2000; width:min(18rem,86vw); transform:translateX(-105%); transition:transform .2s ease; box-shadow:10px 0 30px rgb(77 56 32 / .14); }.admin-sidebar.is-open { transform:translateX(0); }.admin-sidebar-toggle { display:inline-block; }.admin-sidebar-backdrop { display:block; position:fixed; inset:5rem 0 0; z-index:1999; border:0; background:rgb(47 51 40 / .4); } }
 @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; }.admin-sidebar,.ui-loading__spinner,.ui-skeleton::after { animation:none; transition:none; } }
+
+
+.home-topic-tabs {
+  display:flex;
+  gap:.5rem;
+  overflow-x:auto;
+  padding-top:1rem;
+  padding-bottom:.35rem;
+  scrollbar-width:thin;
+}
+.home-topic-tab {
+  flex:0 0 auto;
+  display:inline-flex;
+  align-items:center;
+  min-height:2.65rem;
+  padding:.55rem .9rem;
+  border:1px solid var(--theme-border,var(--color-border));
+  border-radius:999px;
+  background:var(--theme-surface,var(--color-surface));
+  color:var(--theme-earthDark,var(--color-earth-dark));
+  text-decoration:none;
+  box-shadow:0 2px 8px var(--theme-shadow,var(--color-shadow));
+}
+.home-topic-tab:hover,
+.home-topic-tab:focus-visible {
+  background:var(--theme-hover,var(--color-hover));
+  color:var(--theme-leafDark,var(--color-leaf-dark));
+}
+.section-heading {
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:1rem;
+  margin-bottom:1rem;
+}
+.section-heading h2 { margin-bottom:0; }
+.section-kicker {
+  margin:0 0 .15rem;
+  color:var(--theme-muted,var(--color-muted));
+  font-size:.82rem;
+  font-weight:700;
+}
+.gallery-tabs {
+  display:flex;
+  gap:.45rem;
+  overflow-x:auto;
+  padding:.15rem 0 .75rem;
+  scrollbar-width:thin;
+}
+.gallery-tab {
+  flex:0 0 auto;
+  min-height:2.45rem;
+  padding:.45rem .85rem;
+  border:1px solid var(--theme-border,var(--color-border));
+  border-radius:999px;
+  background:transparent;
+  color:var(--theme-earthDark,var(--color-earth-dark));
+  cursor:pointer;
+}
+.gallery-tab:hover { background:var(--theme-hover,var(--color-hover)); }
+.gallery-tab.is-active {
+  background:var(--theme-leaf,var(--color-leaf));
+  border-color:var(--theme-leaf,var(--color-leaf));
+  color:#fffaf0;
+}
+.home-media-grid {
+  grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr));
+}
+.media-card {
+  overflow:hidden;
+  min-width:0;
+  margin:0;
+  background:var(--theme-surface,var(--color-surface));
+  border:1px solid var(--theme-border,var(--color-border));
+  border-radius:var(--theme-radius,.4rem);
+  box-shadow:var(--theme-shadowCard,0 3px 14px var(--theme-shadow,var(--color-shadow)));
+}
+.home-media-card img,
+.home-media-card video,
+.home-media-card iframe {
+  display:block;
+  width:100%;
+  aspect-ratio:4/3;
+  object-fit:cover;
+  border:0;
+  background:var(--theme-surfaceSoft,var(--color-surface-soft));
+}
+.home-media-card figcaption {
+  padding:.55rem .7rem .65rem;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:var(--theme-muted,var(--color-muted));
+  font-size:.78rem;
+}
+.gallery-empty {
+  margin:0;
+  padding:1.25rem;
+  text-align:center;
+  color:var(--theme-muted,var(--color-muted));
+  border:1px dashed var(--theme-border,var(--color-border));
+  border-radius:var(--theme-radius,.4rem);
+  background:var(--theme-surface,var(--color-surface));
+}
+@media (max-width:760px) {
+  .home-topic-tabs { width:calc(100% - 1rem); }
+  .section-heading { align-items:center; }
+  .section-heading .content-card__link { margin-top:0; }
+}
