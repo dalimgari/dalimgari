@@ -4,6 +4,7 @@ import Posts from './pages/Posts'
 import Albums from './pages/Albums'
 import Search from './pages/Search'
 import Login from './pages/Login'
+import Profile from './pages/Profile'
 import ControlPanel from './pages/ControlPanel'
 import Dashboard from './pages/admin/Dashboard'
 import PagesManagement from './pages/admin/PagesManagement'
@@ -18,6 +19,7 @@ import Information from './pages/Information'
 import NotFound from './pages/NotFound'
 import Skeleton from './components/ui/Skeleton'
 import AdminRoute from './components/auth/AdminRoute'
+import UserRoute from './components/auth/UserRoute'
 
 function getPath() {
   const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
@@ -27,16 +29,11 @@ function getPath() {
 
 function RouteView({ path, children }) {
   const [ready, setReady] = useState(false)
-
-  useEffect(() => {
-    setReady(true)
-  }, [path])
-
+  useEffect(() => { setReady(true) }, [path])
   if (!ready) {
     const variant = path === '/' ? 'home' : path.match(/^\/(pages|posts)\//) ? 'detail' : 'page'
     return <Skeleton variant={variant} />
   }
-
   return children
 }
 
@@ -55,7 +52,6 @@ function adminPage(path) {
 export default function App() {
   const path = getPath()
   let page = <NotFound />
-
   const pageMatch = path.match(/^\/pages\/([^/]+)$/)
   const postMatch = path.match(/^\/posts\/([^/]+)$/)
   const admin = path.startsWith('/admin') ? adminPage(path) : null
@@ -69,6 +65,7 @@ export default function App() {
   else if (path === '/search') page = <Search />
   else if (path === '/information') page = <Information />
   else if (path === '/login') page = <Login />
+  else if (path === '/profile') page = <UserRoute><Profile /></UserRoute>
 
   return <RouteView path={path}>{page}</RouteView>
 }
