@@ -1,33 +1,33 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Header from './Header'
 import Navigation from './Navigation'
 import Footer from './Footer'
 import { appPath } from '../../lib/routes'
+import { getWebsiteInformation } from '../../services/websiteService'
 
-const DEFAULT_DESCRIPTION = 'ডালিমগাড়ী গ্রামের তথ্য, সংবাদ, পোস্ট, অ্যালবাম ও কমিউনিটি ওয়েবসাইট।'
-const ROUTE_SEO = {
-  '/': { title: 'হোম', description: DEFAULT_DESCRIPTION },
-  '/information': { title: 'গ্রামের তথ্য', description: 'ডালিমগাড়ী গ্রামের পরিচিতি, অবস্থান ও গুরুত্বপূর্ণ তথ্য।' },
-  '/posts': { title: 'পোস্ট', description: 'ডালিমগাড়ী গ্রামের প্রকাশিত পোস্ট ও সংবাদ।' },
-  '/albums': { title: 'অ্যালবাম', description: 'ডালিমগাড়ী গ্রামের ছবি ও অ্যালবাম।' },
-  '/search': { title: 'সার্চ', description: 'ডালিমগাড়ী গ্রামের পোস্ট ও পেজ খুঁজুন।' },
-  '/login': { title: 'লগইন', description: 'ডালিমগাড়ী ওয়েবসাইটে নিরাপদে লগইন করুন।' },
+const ROUTE_TITLES = {
+  '/': 'হোম',
+  '/information': 'গ্রামের তথ্য',
+  '/posts': 'পোস্ট',
+  '/albums': 'অ্যালবাম',
+  '/search': 'সার্চ',
+  '/login': 'লগইন',
 }
 
-function Seo({ title, description, canonicalPath }) {
+function Seo({ siteName, title, description, canonicalPath }) {
   useEffect(() => {
-    const siteName = 'ডালিমগাড়ী'
     const routeKey = canonicalPath || '/'
-    const routeSeo = ROUTE_SEO[routeKey] || {}
-    const finalTitle = title || routeSeo.title || siteName
-    const finalDescription = description || routeSeo.description || DEFAULT_DESCRIPTION
-    const fullTitle = finalTitle === siteName ? siteName : `${finalTitle} | ${siteName}`
-    const canonical = new URL(appPath(routeKey), window.location.origin).href
+    const finalTitle = title || siteName || ''
+    const fullTitle = finalTitle && siteName && finalTitle !== siteName ? `${finalTitle} | ${siteName}` : finalTitle
 
-    document.title = fullTitle
+    if (fullTitle) document.title = fullTitle
 
     const setMeta = (selector, attributes, content) => {
       let element = document.head.querySelector(selector)
+      if (!content) {
+        element?.remove()
+        return
+      }
       if (!element) {
         element = document.createElement('meta')
         Object.entries(attributes).forEach(([key, value]) => element.setAttribute(key, value))
@@ -36,9 +36,9 @@ function Seo({ title, description, canonicalPath }) {
       element.setAttribute('content', content)
     }
 
-    setMeta('meta[name="description"]', { name: 'description' }, finalDescription)
+    setMeta('meta[name="description"]', { name: 'description' }, description)
     setMeta('meta[property="og:title"]', { property: 'og:title' }, fullTitle)
-    setMeta('meta[property="og:description"]', { property: 'og:description' }, finalDescription)
+    setMeta('meta[property="og:description"]', { property: 'og:description' }, description)
 
     let link = document.head.querySelector('link[rel="canonical"]')
     if (!link) {
@@ -46,22 +46,42 @@ function Seo({ title, description, canonicalPath }) {
       link.setAttribute('rel', 'canonical')
       document.head.appendChild(link)
     }
-    link.setAttribute('href', canonical)
-  }, [title, description, canonicalPath])
+    link.setAttribute('href', new URL(appPath(routeKey), window.location.origin).href)
+  }, [siteName, title, description, canonicalPath])
 
   return null
 }
 
 export default function Layout({
   children,
-  siteName = 'ডালিমগাড়ী',
-  slogan = '',
+  siteName,
+  slogan,
   navigationItems = [],
-  copyrightText = '© 2026. All rights reserved.',
+  copyrightText,
   seoTitle,
   seoDescription,
   seoCanonicalPath,
 }) {
+  const [websiteInformation, setWebsiteInformation] = useState(null)
+
+  useEffect(() => {
+    let active = true
+    getWebsiteInformation()
+      .then((data) => {
+        if (active) setWebsiteInformation(data)
+      })
+      .catch(() => {
+        if (active) setWebsiteInformation(null)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const resolvedSiteName = siteName ?? websiteInformation?.village_name
+  const resolvedSlogan = slogan ?? websiteInformation?.slogan
+  const resolvedCopyright = copyrightText ?? websiteInformation?.copyright_text
   const canonicalPath = seoCanonicalPath || (() => {
     const base = import.meta.env.BASE_URL || '/'
     const pathname = window.location.pathname
@@ -71,11 +91,16 @@ export default function Layout({
 
   return (
     <div className="site-layout">
-      <Seo title={seoTitle} description={seoDescription} canonicalPath={canonicalPath} />
-      <Header siteName={siteName} slogan={slogan} />
+      <Seo
+        siteName={resolvedSiteName}
+        title={seoTitle || ROUTE_TITLES[canonicalPath] || null}
+        description={seoDescription}
+        canonicalPath={canonicalPath}
+      />
+      <Header siteName={resolvedSiteName} slogan={resolvedSlogan} />
       <Navigation items={navigationItems} />
       <main className="site-main">{children}</main>
-      <Footer copyrightText={copyrightText} />
+      <Footer copyrightText={resolvedCopyright} />
     </div>
   )
 }
