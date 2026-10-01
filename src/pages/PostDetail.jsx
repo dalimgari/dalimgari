@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Layout } from '../components/layout'
-import { Loading, EmptyState, ErrorState } from '../components/ui'
+import { Loading, EmptyState, ErrorState, MediaContent } from '../components/ui'
 import { getPublishedPostById } from '../services/postService'
-import { getMediaPublicUrl } from '../services/mediaService'
 import { appPath } from '../lib/routes'
 import MediaViewer from '../components/ui/MediaViewer'
 
@@ -37,10 +36,7 @@ export default function PostDetail({ postId }) {
         {post.published_at ? <p className="content-meta">{new Date(post.published_at).toLocaleDateString('bn-BD')}</p> : null}
         {post.description ? <p>{post.description}</p> : null}
         {post.media?.length ? <div className="media-grid">
-          {post.media.map((media) => {
-            const url = media.media_url || getMediaPublicUrl(media.storage_path)
-            return url ? <figure className="media-card" key={media.media_id}>{media.media_type === 'video' ? <iframe src={url.includes('youtube.com/watch?v=') ? url.replace('watch?v=','embed/') : url} title={media.file_name || post.title} loading="lazy" allowFullScreen /> : <button className="media-card__button" type="button" onClick={() => setViewer({ url, alt: media.file_name || post.title })} aria-label="ছবি বড় করে দেখুন"><img src={url} alt={media.file_name || post.title} loading="lazy" /></button>}</figure> : null
-          })}
+          {post.media.map((media) => <figure className="media-card" key={media.media_id}><MediaContent media={media} title={media.file_name || post.title} onImageOpen={setViewer} /></figure>)}
         </div> : null}
       </article> : null}
       {viewer ? <MediaViewer {...viewer} onClose={() => setViewer(null)} /> : null}
