@@ -1,6 +1,6 @@
 import { createElement } from 'react'
 import { Routes, Route } from 'react-router-dom'
-import { public_page } from '../../page/public/public_page'
+import { public_page } from '../../website/page/public_page'
 import { login_page } from '../../page/auth/login_page'
 import { admin_dashboard_page } from '../../page/admin/admin_dashboard_page'
 import { user_dashboard_page } from '../../page/user/user_dashboard_page'
