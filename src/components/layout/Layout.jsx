@@ -20,6 +20,7 @@ function applyThemeSettings(settings, theme) {
   if (icons.size) root.style.setProperty('--theme-icon-size', String(icons.size))
   if (icons.strokeWidth) root.style.setProperty('--theme-icon-stroke-width', String(icons.strokeWidth))
   if (icons.opacity) root.style.setProperty('--theme-icon-opacity', String(icons.opacity))
+  if (icons.shadow) root.style.setProperty('--theme-icon-shadow', String(icons.shadow))
   const colors = palette.colors || {}
   const states = palette.states || {}
   const interaction = palette.interaction || {}
