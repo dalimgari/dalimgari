@@ -27,6 +27,13 @@ const TOPIC_ALIASES = [
   { label: 'ঐতিহ্য', words: ['ঐতিহ্য', 'সংস্কৃতি', 'heritage', 'culture'] },
 ]
 
+function HomePageCards({ pages = [], config = {} }) {
+  if (config.enabled === false) return null
+  const selected = (config.items || []).map((item) => pages.find((page) => page.page_id === item.page_id)).filter((page) => page && page.status === 'published' && page.is_visible !== false).slice(0, config.limit || 8)
+  if (!selected.length) return null
+  return <section className="home-section home-page-cards"><div className="site-container"><div className="section-heading"><h2>{config.title || 'আরও জানা যাক'}</h2></div><div className="home-page-cards__grid">{selected.map((page) => <a className="home-page-card" href={`/pages/${encodeURIComponent(page.page_slug)}`} key={page.page_id}><span className="home-page-card__icon" aria-hidden="true">❧</span><strong>{page.page_title}</strong><span>পেজটি দেখুন →</span></a>)}</div></div></section>
+}
+
 function findTopicPage(pages, words) {
   return pages.find((page) => {
     const text = [page.page_title, page.page_slug].filter(Boolean).join(' ').toLowerCase()
@@ -34,11 +41,26 @@ function findTopicPage(pages, words) {
   })
 }
 
+function resolvePageLink(item, pages) {
+  if (item?.page_id) {
+    const page = pages.find((entry) => entry.page_id === item.page_id)
+    if (!page) return null
+    return { label: item.label || page.page_title, href: `/pages/${encodeURIComponent(page.page_slug)}` }
+  }
+  if (item?.href) return { label: item.label || item.href, href: item.href }
+  return null
+}
+
 function HomeTopicTabs({ pages = [], albums = [], items = null }) {
   const configured = Array.isArray(items) && items.length ? items.filter(item => item.enabled !== false) : null
   const defaultItems = [{ label: 'গ্রামের তথ্য', href: '/information' }]
 
-  if (configured) return <nav className="home-topic-tabs site-container" aria-label="গ্রামের বিষয়সমূহ">{configured.map(item => <a className="home-topic-tab" href={item.href || '/'} key={`${item.label}-${item.href}`}>{item.label}</a>)}</nav>
+  if (configured) {
+    const links = configured.map((item) => resolvePageLink(item, pages)).filter(Boolean)
+    return <nav className="home-topic-tabs site-container" aria-label="গ্রামের বিষয়সমূহ">
+      {links.map((item) => <a className="home-topic-tab" href={item.href} key={item.href}>{item.label}</a>)}
+    </nav>
+  }
 
   TOPIC_ALIASES.forEach(({ label, words }) => {
     const page = findTopicPage(pages, words)
@@ -109,6 +131,7 @@ export default function Home() {
         showSlogan={data.homepage?.hero?.showSlogan !== false}
       /> : null}
       {data.homepage?.topicTabs?.enabled !== false ? <HomeTopicTabs pages={data.pages} albums={data.albums} items={data.homepage?.topicTabs?.items} /> : null}
+      {data.homepage?.pageCards ? <HomePageCards pages={data.pages} config={data.homepage.pageCards} /> : null}
       {data.homepage?.information?.enabled !== false ? <Information information={data.information} /> : null}
       {data.homepage?.posts?.enabled !== false ? <PostsSection posts={data.posts.slice(0, data.homepage?.posts?.limit || 6)} title={data.homepage?.posts?.title} /> : null}
       {data.homepage?.mediaGallery?.enabled !== false ? <HomeMediaGallery albums={data.albums} media={data.media} title={data.homepage?.mediaGallery?.title} subtitle={data.homepage?.mediaGallery?.subtitle} showAll={data.homepage?.mediaGallery?.showAll} albumIds={data.homepage?.mediaGallery?.albumIds} /> : null}
