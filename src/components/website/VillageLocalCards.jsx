@@ -17,14 +17,9 @@ const WEATHER_EN = {
   95: 'Thunderstorm', 96: 'Thunderstorm with hail', 99: 'Thunderstorm with hail',
 }
 
-function pad(value) {
-  return String(value).padStart(2, '0')
-}
 
 function informationForLocation(location, language) {
-  const parts = language === 'bng'
-    ? [location.union, location.upazila, location.district, location.division].filter(Boolean)
-    : [location.union, location.upazila, location.district, location.division].filter(Boolean)
+  const parts = [location.union, location.upazila, location.district, location.division].filter(Boolean)
   const lat = Number(location.latitude).toFixed(4)
   const lon = Number(location.longitude).toFixed(4)
   return (
@@ -37,7 +32,7 @@ function informationForLocation(location, language) {
   )
 }
 
-function TimeCard({ location, language, information }) {
+function TimeCard({ location, language }) {
   const [now, setNow] = useState(() => new Date())
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 1000)
@@ -120,7 +115,13 @@ export default function VillageLocalCards({ information }) {
     return value || {
       nameBn: information?.village_name || 'ডালিমগাড়ী',
       nameEn: 'Dalimgari',
+      latitude: 25.2168,
+      longitude: 89.197,
       timeZone: 'Asia/Dhaka',
+      division: information?.division || '',
+      district: information?.district || '',
+      upazila: information?.upazila_name || '',
+      union: information?.union_name || '',
     }
   }, [information?.village_name, weather?.location])
 
@@ -137,7 +138,7 @@ export default function VillageLocalCards({ information }) {
       <div className="site-container">
         <h2 id="village-local-title" className="sr-only">{language === 'bng' ? 'ডালিমগাড়ীর স্থানীয় তথ্য' : 'Dalimgari local information'}</h2>
         <div className="village-local-grid">
-          <TimeCard location={location} language={language} information={information} />
+          <TimeCard location={location} language={language} />
           <WeatherCard weather={weather} language={language} />
         </div>
       </div>
