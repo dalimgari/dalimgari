@@ -1,10 +1,9 @@
-export default function Skeleton({ variant = 'page', label = 'লোড হচ্ছে…' }) {
+export default function Skeleton({ variant = 'page' }) {
   const isDetail = variant === 'detail'
   const cardCount = isDetail ? 2 : 6
 
   return (
-    <div className={`ui-skeleton ui-skeleton--${variant}`} role="status" aria-live="polite" aria-label={label}>
-      <span className="ui-skeleton__sr-only">{label}</span>
+    <div className={`ui-skeleton ui-skeleton--${variant}`}>
       <div className="ui-skeleton__heading" aria-hidden="true">
         <span className="ui-skeleton__line ui-skeleton__line--title" />
         <span className="ui-skeleton__line ui-skeleton__line--short" />
