@@ -120,7 +120,7 @@ export default function Home() {
   }, [])
 
   return (
-    <Layout navigationItems={NAVIGATION_ITEMS} sidebarConfig={data.homepage?.sidebar}>
+    <Layout navigationItems={NAVIGATION_ITEMS}>
       {status === 'loading' ? <Skeleton variant="home" /> : null}
 
       {data.homepage?.hero?.enabled !== false ? <Banner
