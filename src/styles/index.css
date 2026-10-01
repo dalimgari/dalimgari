@@ -116,6 +116,24 @@ a {
   font-size: 0.875rem;
 }
 
+
+.home-banner { padding: clamp(3rem, 8vw, 6rem) 0; background: #e2e8f0; }
+.home-banner h1 { margin: 0 0 .75rem; font-size: clamp(2rem, 7vw, 4rem); }
+.home-banner p { margin: 0; max-width: 48rem; }
+.home-section { padding: 2.5rem 0; }
+.home-section h2 { margin-top: 0; }
+.info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: 1rem; margin: 0; }
+.info-card { padding: 1rem; background: #fff; border: 1px solid #e5e7eb; border-radius: .75rem; }
+.info-card dt { color: #64748b; font-size: .875rem; }
+.info-card dd { margin: .35rem 0 0; font-weight: 650; }
+
+@media (max-width: 640px) {
+  .site-container { width: min(100% - 1.25rem, 72rem); }
+  .site-header__inner { min-height: 4rem; }
+  .site-brand__name { font-size: 1.1rem; }
+  .site-nav__link { padding: .7rem .6rem; }
+}
+
 .app-shell {
   min-height: 100vh;
   display: grid;
