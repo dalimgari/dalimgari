@@ -6,6 +6,7 @@ import { getWebsiteInformation, updateWebsiteInformation } from '../services/web
 import { createAuditLog } from '../services/auditService'
 import { AdminLayout } from '../components/admin'
 import KeyLabelRename from '../components/admin/KeyLabelRename'
+import ThemeSettingsPanel from '../components/admin/ThemeSettingsPanel'
 import { Button, Input, Loading, ErrorState } from '../components/ui'
 import { getInputMethod } from '../forms/inputRegistry'
 import { validateField } from '../forms/validation'
