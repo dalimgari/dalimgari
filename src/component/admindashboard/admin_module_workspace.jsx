@@ -135,8 +135,7 @@ function village_information_workspace() {
     ),
     createElement('div', { className: 'admin-actions' },
       createElement('button', { type: 'button', onClick: save }, 'Save Village Information')
-    ),
-
+    )
   )
 }
 
@@ -530,4 +529,16 @@ function posts_workspace() {
     )
   )
 }
- 
+
+export function admin_module_workspace({ module_key }) {
+  const workspaces = useMemo(() => ({
+    websiteinformation: village_information_workspace,
+    admininformation: admin_information_workspace,
+    pages: pages_workspace,
+    albums: albums_workspace,
+    media: media_workspace,
+    posts: posts_workspace
+  }), [])
+  const Workspace = workspaces[module_key] ?? village_information_workspace
+  return createElement(Workspace)
+}
