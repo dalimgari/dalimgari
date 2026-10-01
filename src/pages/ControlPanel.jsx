@@ -44,7 +44,7 @@ export default function ControlPanel() {
   useEffect(() => {
     if (status === 'loading') return
     if (!user) {
-      window.location.href = '/login'
+      window.location.href = (import.meta.env.BASE_URL || '/') + 'login'
       return
     }
 
