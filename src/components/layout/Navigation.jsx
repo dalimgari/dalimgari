@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { appPath } from '../../lib/routes'
+import { appPath } from '../../lib/routes'\nimport { usePreferences } from '../../context/PreferencesContext'
 
 const LABELS = {
   'হোম': 'Home', 'তথ্য': 'Information', 'পোস্ট': 'Posts', 'অ্যালবাম': 'Albums', 'সার্চ': 'Search',
@@ -43,11 +43,11 @@ export default function Navigation({ items = [] }) {
   }, [theme])
 
   useEffect(() => {
-    document.documentElement.lang = language === 'bn' ? 'bn' : 'en'
+    document.documentElement.lang = language === 'bng' ? 'bn' : 'en'
     localStorage.setItem('dalimgari-language', language)
   }, [language])
 
-  const translatedItems = items.map((item) => ({ ...item, label: language === 'en' ? (LABELS[item.label] || item.label) : item.label }))
+  const translatedItems = items.map((item) => ({ ...item, label: language === 'eng' ? (LABELS[item.label] || item.label) : item.label }))
   const hasSearch = items.some((item) => item.href === '/search')
   const hasLogin = items.some((item) => item.href === '/login')
   const extra = [
@@ -75,11 +75,11 @@ export default function Navigation({ items = [] }) {
           <a className="site-nav__link site-nav__profile" href={appPath('/profile')} onClick={() => setOpen(false)}>
             <RuralIcon name="user" /><span>{language === 'en' ? 'Profile' : 'প্রোফাইল'}</span>
           </a>
-          <button className="site-nav__control" type="button" onClick={() => setTheme((value) => value === 'dark' ? 'light' : 'dark')} aria-label="থিম পরিবর্তন">
+          <button className="site-nav__control" type="button" onClick={() => setThemePreference(theme === 'dark' ? 'light' : 'dark')} aria-label="থিম পরিবর্তন">
             <RuralIcon name={theme === 'dark' ? 'sun' : 'moon'} />
             <span>{theme === 'dark' ? 'আলো' : 'রাত'}</span>
           </button>
-          <button className="site-nav__control" type="button" onClick={() => setLanguage((value) => value === 'bn' ? 'en' : 'bn')} aria-label="ভাষা পরিবর্তন">
+          <button className="site-nav__control" type="button" onClick={() => setLanguagePreference(language === 'bng' ? 'eng' : 'bng')} aria-label="ভাষা পরিবর্তন">
             <RuralIcon name="leaf" /><span>{language === 'bn' ? 'English' : 'বাংলা'}</span>
           </button>
         </div>
