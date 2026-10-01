@@ -1,0 +1,3 @@
+import {resolveFieldInputMethod} from "../../../function/form/input-method-resolver.js";import {INPUT_METHODS} from "./registry.js";
+export function GlobalFieldInput({field,value,onChange,override,...props}){const method=resolveFieldInputMethod(field,{override,...props});if(method==="system")return <div aria-readonly="true">{String(value??"")}</div>;const Component=INPUT_METHODS[method]?.component;if(!Component)throw new Error("Unknown input method: "+method);return <Component field={field} value={value} onChange={onChange} {...props}/>;}
+export {INPUT_METHODS} from "./registry.js";export {resolveFieldInputMethod} from "../../../function/form/input-method-resolver.js";
