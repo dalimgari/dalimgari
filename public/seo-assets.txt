@@ -1,1 +1,0 @@
-Canonical SEO assets: robots.txt, sitemap.xml, favicon.svg.
