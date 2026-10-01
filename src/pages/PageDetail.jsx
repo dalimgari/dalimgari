@@ -22,7 +22,7 @@ export default function PageDetail({ slug }) {
     return () => { active = false }
   }, [slug])
 
-  const seoDescription = page?.content ? String(page.content).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160) : 'দালিমগাড়ীর তথ্যভিত্তিক পেজ।'
+  const seoDescription = page?.content ? String(page.content).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160) : null
 
   return <Layout
     seoTitle={page?.page_title || null}
