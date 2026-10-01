@@ -2,6 +2,7 @@ import { supabase } from '../lib/supabase'
 
 const DEFAULT_THEME = {
   wallpaper: '',
+  icons: {},
   colors: {},
   states: {},
   interaction: {},
