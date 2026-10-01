@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Layout } from '../components/layout'
 import { ErrorState, Loading } from '../components/ui'
-import { signInWithPassword, resetPasswordForEmail } from '../services/authService'
+import { supabase } from '../lib/supabase'
+import { signInWithPassword, resetPasswordForEmail, updatePassword } from '../services/authService'
 import { appPath } from '../lib/routes'
 
 export default function Login() {
@@ -11,6 +12,20 @@ export default function Login() {
   const [status, setStatus] = useState('idle')
   const [message, setMessage] = useState(null)
   const [error, setError] = useState(null)
+
+  useEffect(() => {
+    if (!supabase) return undefined
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setMode('new-password')
+        setPassword('')
+        setStatus('idle')
+        setError(null)
+        setMessage('নতুন পাসওয়ার্ড দিন।')
+      }
+    })
+    return () => data.subscription.unsubscribe()
+  }, [])
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -22,6 +37,10 @@ export default function Login() {
       if (mode === 'reset') {
         await resetPasswordForEmail(email.trim())
         setMessage('পাসওয়ার্ড পরিবর্তনের লিংক আপনার ইমেইলে পাঠানো হয়েছে।')
+      } else if (mode === 'new-password') {
+        await updatePassword(password)
+        setMessage('পাসওয়ার্ড সফলভাবে পরিবর্তন হয়েছে।')
+        setTimeout(() => { window.location.href = appPath('/admin') }, 300)
       } else {
         await signInWithPassword(email.trim(), password)
         window.location.href = appPath('/admin')
@@ -33,25 +52,33 @@ export default function Login() {
     }
   }
 
+  const isRecovery = mode === 'new-password'
+
   return (
     <Layout>
       <section className="home-section"><div className="site-container">
-        <h1>{mode === 'reset' ? 'পাসওয়ার্ড পরিবর্তন' : 'অ্যাডমিন লগইন'}</h1>
+        <h1>{mode === 'reset' ? 'পাসওয়ার্ড পরিবর্তন' : isRecovery ? 'নতুন পাসওয়ার্ড সেট করুন' : 'অ্যাডমিন লগইন'}</h1>
         <form className="admin-form" onSubmit={handleSubmit}>
-          <label htmlFor="admin-email">ইমেইল</label>
-          <input id="admin-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
-          {mode === 'login' ? (
+          {mode !== 'new-password' ? (
+            <>
+              <label htmlFor="admin-email">ইমেইল</label>
+              <input id="admin-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
+            </>
+          ) : null}
+          {mode !== 'reset' ? (
             <>
               <label htmlFor="admin-password">পাসওয়ার্ড</label>
-              <input id="admin-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" />
+              <input id="admin-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} autoComplete={isRecovery ? 'new-password' : 'current-password'} />
             </>
           ) : null}
           <button type="submit" disabled={status === 'loading'}>
-            {status === 'loading' ? 'অপেক্ষা করুন…' : mode === 'reset' ? 'রিসেট লিংক পাঠান' : 'লগইন'}
+            {status === 'loading' ? 'অপেক্ষা করুন…' : mode === 'reset' ? 'রিসেট লিংক পাঠান' : isRecovery ? 'নতুন পাসওয়ার্ড সংরক্ষণ করুন' : 'লগইন'}
           </button>
-          <button type="button" className="ui-button ui-button--secondary" onClick={() => { setMode(mode === 'login' ? 'reset' : 'login'); setError(null); setMessage(null) }} disabled={status === 'loading'}>
-            {mode === 'login' ? 'পাসওয়ার্ড ভুলে গেছেন?' : 'লগইনে ফিরে যান'}
-          </button>
+          {!isRecovery ? (
+            <button type="button" className="ui-button ui-button--secondary" onClick={() => { setMode(mode === 'login' ? 'reset' : 'login'); setError(null); setMessage(null) }} disabled={status === 'loading'}>
+              {mode === 'login' ? 'পাসওয়ার্ড ভুলে গেছেন?' : 'লগইনে ফিরে যান'}
+            </button>
+          ) : null}
         </form>
         {status === 'loading' ? <Loading /> : null}
         {message ? <p className="admin-success">{message}</p> : null}
