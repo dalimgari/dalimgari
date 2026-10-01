@@ -1,0 +1,63 @@
+import { useEffect, useState } from 'react'
+import { Layout } from '../components/layout'
+import Banner from '../components/website/Banner'
+import Information from '../components/website/Information'
+import { getWebsiteInformation } from '../services/websiteService'
+import { Loading, ErrorState } from '../components/ui'
+
+const NAVIGATION_ITEMS = [
+  { label: 'হোম', href: '/' },
+  { label: 'তথ্য', href: '/information' },
+  { label: 'পোস্ট', href: '/posts' },
+  { label: 'অ্যালবাম', href: '/albums' },
+]
+
+export default function Home() {
+  const [information, setInformation] = useState(null)
+  const [status, setStatus] = useState('loading')
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    let active = true
+
+    getWebsiteInformation()
+      .then((data) => {
+        if (!active) return
+        setInformation(data)
+        setStatus('ready')
+      })
+      .catch((requestError) => {
+        if (!active) return
+        setError(requestError)
+        setStatus('error')
+      })
+
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const siteName = information?.village_name || 'দালিমগাড়ী'
+  const slogan = information?.slogan || ''
+  const copyrightText = information?.copyright_text || '© 2026. All rights reserved.'
+
+  return (
+    <Layout
+      siteName={siteName}
+      slogan={slogan}
+      navigationItems={NAVIGATION_ITEMS}
+      copyrightText={copyrightText}
+    >
+      {status === 'loading' ? <Loading /> : null}
+      {status === 'error' ? (
+        <ErrorState description={error?.message || 'তথ্য লোড করা যায়নি।'} />
+      ) : null}
+      {status === 'ready' ? (
+        <>
+          <Banner siteName={siteName} slogan={slogan} />
+          <Information information={information} />
+        </>
+      ) : null}
+    </Layout>
+  )
+}
