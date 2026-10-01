@@ -17,9 +17,6 @@ export async function updateWebsiteInformation(values) {
   if (!supabase) throw new Error('Supabase is not configured')
 
   const information = await getWebsiteInformation()
-  if (!information?.website_information_id) {
-    throw new Error('Website information record is missing')
-  }
 
   const payload = {
     village_name: values.village_name ?? null,
@@ -35,6 +32,17 @@ export async function updateWebsiteInformation(values) {
     established_date: values.established_date || null,
     map_location: values.map_location ?? null,
     copyright_text: values.copyright_text || null,
+  }
+
+  if (!information?.website_information_id) {
+    const { data, error } = await supabase
+      .from('website_information')
+      .insert(payload)
+      .select('*')
+      .single()
+
+    if (error) throw error
+    return data
   }
 
   const { data, error } = await supabase
