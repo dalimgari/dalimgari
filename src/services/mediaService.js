@@ -52,7 +52,7 @@ export async function createMediaRecord({ file, albumId = null, isVisible = true
   try {
     const { data, error } = await supabase.from('media').insert({
       media_key: crypto.randomUUID(),
-      media_type: file.type.startsWith('image/') ? 'image' : file.type.startsWith('video/') ? 'video' : 'file',
+      media_type: file.type.startsWith('image/') ? 'image' : file.type.startsWith('video/') ? 'video' : file.type.startsWith('audio/') ? 'audio' : 'file',
       file_name: file.name,
       mime_type: file.type || null,
       file_size: file.size,
@@ -76,18 +76,25 @@ export async function deleteMediaRecord(media) {
   if (error) throw error
 }
 
+function externalMimeType(mediaType) {
+  if (mediaType === 'video') return 'video/external'
+  if (mediaType === 'audio') return 'audio/external'
+  if (mediaType === 'document') return 'application/pdf'
+  return 'image/external'
+}
 
 export async function createExternalMediaRecord({ url, mediaType = 'image', fileName = '', albumId = null, isVisible = true }) {
   const userId = await currentUserId()
-  if (!url) throw new Error('Media URL is required')
+  const normalizedUrl = String(url || '').trim()
+  if (!normalizedUrl) throw new Error('Media URL is required')
   const { data, error } = await supabase.from('media').insert({
     media_key: crypto.randomUUID(),
     media_type: mediaType,
-    file_name: fileName || url.split('/').pop()?.split('?')[0] || 'external-media',
-    mime_type: mediaType === 'video' ? 'video/external' : 'image/external',
+    file_name: fileName || normalizedUrl.split('/').pop()?.split('?')[0] || 'external-media',
+    mime_type: externalMimeType(mediaType),
     file_size: null,
     storage_path: null,
-    media_url: url,
+    media_url: normalizedUrl,
     album_id: albumId || null,
     is_visible: isVisible,
     created_by: userId,
@@ -97,13 +104,17 @@ export async function createExternalMediaRecord({ url, mediaType = 'image', file
 }
 
 export async function updateMediaRecord(mediaId, values) {
-  const { data, error } = await supabase.from('media').update({
-    media_url: values.media_url ?? null,
+  const mediaUrl = String(values.media_url || '').trim() || null
+  const mediaType = values.media_type || 'image'
+  const payload = {
+    media_url: mediaUrl,
     album_id: values.album_id || null,
     is_visible: values.is_visible !== false,
     file_name: values.file_name || null,
-    media_type: values.media_type || 'image',
-  }).eq('media_id', mediaId).select('*').single()
+    media_type: mediaType,
+  }
+  if (mediaUrl) payload.mime_type = externalMimeType(mediaType)
+  const { data, error } = await supabase.from('media').update(payload).eq('media_id', mediaId).select('*').single()
   if (error) throw error
   return data
 }
