@@ -23,6 +23,14 @@ select {
   font: inherit;
 }
 
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 2px;
+}
+
 .app-shell {
   min-height: 100vh;
   display: grid;
@@ -53,4 +61,84 @@ h1 {
 
 p {
   line-height: 1.7;
+}
+
+.ui-field {
+  display: grid;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.ui-field__label {
+  font-weight: 600;
+}
+
+.ui-field__error {
+  color: #b91c1c;
+  font-size: 0.875rem;
+}
+
+.ui-input {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  background: #fff;
+}
+
+.ui-input--error {
+  border-color: #dc2626;
+}
+
+.ui-textarea {
+  min-height: 7rem;
+  resize: vertical;
+}
+
+.ui-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 2.75rem;
+  cursor: pointer;
+}
+
+.ui-button {
+  min-height: 2.75rem;
+  padding: 0.65rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.ui-button--primary {
+  background: #1d4ed8;
+  color: #fff;
+}
+
+.ui-button--secondary {
+  background: #fff;
+  color: #1f2937;
+  border-color: #cbd5e1;
+}
+
+.ui-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.ui-state {
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  background: #fff;
+}
+
+.ui-state--error {
+  border-color: #fecaca;
+}
+
+.ui-state p {
+  margin-bottom: 0;
 }
