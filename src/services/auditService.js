@@ -25,3 +25,16 @@ export async function createAuditLog({ actionKey, module, recordId = null, detai
   if (error) throw error
   return data
 }
+
+export async function listAuditLogs(limit = 100) {
+  if (!supabase) throw new Error('Supabase is not configured')
+
+  const { data, error } = await supabase
+    .from('audit_logs')
+    .select('audit_log_id,action_key,module,record_id,details,created_at,profiles(display_name,email)')
+    .order('created_at', { ascending: false })
+    .limit(limit)
+
+  if (error) throw error
+  return data ?? []
+}
