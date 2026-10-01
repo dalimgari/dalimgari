@@ -27,7 +27,7 @@ export function global_auto_input({
       : relation_options
 
   return createElement(Component, {
-    ...rest, method, label: resolved_label, value, on_change, placeholder, disabled, required,
+    ...rest, method, field_name, label: resolved_label, value, on_change, placeholder, disabled, required,
     accept, multiple, min, max, step, options, relation_options
   })
 }
