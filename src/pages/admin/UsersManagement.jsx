@@ -18,11 +18,7 @@ export default function UsersManagement() {
   async function load() {
     const permission = await hasPermission('user_manage')
     setAllowed(permission)
-    if (!permission) {
-      setReady(true)
-      return
-    }
-
+    if (!permission) { setReady(true); return }
     const [userData, roleData] = await Promise.all([listManagedUsers(), listRoles()])
     setUsers(userData)
     setRoles(roleData)
@@ -35,24 +31,16 @@ export default function UsersManagement() {
       window.location.href = (import.meta.env.BASE_URL || '/') + 'login'
       return
     }
-    load().catch((e) => {
-      setError(e)
-      setReady(true)
-    })
+    load().catch((e) => { setError(e); setReady(true) })
   }, [status, user])
 
   async function changeRole(profileId, roleId) {
-    setBusy(true)
-    setError(null)
+    setBusy(true); setError(null)
     try {
       await assignUserRole(profileId, roleId)
       await createAuditLog({ actionKey: 'role_change', module: 'user_roles', recordId: profileId, details: { role_id: roleId } })
       await load()
-    } catch (e) {
-      setError(e)
-    } finally {
-      setBusy(false)
-    }
+    } catch (e) { setError(e) } finally { setBusy(false) }
   }
 
   if (status === 'loading' || !ready) return <Loading />
@@ -75,14 +63,7 @@ export default function UsersManagement() {
                   {isProtectedAdmin ? <p className="admin-list__status">🔒 Protected Admin</p> : null}
                 </div>
                 <div className="admin-list__actions">
-                  <Select
-                    id={'role-' + item.profile_id}
-                    aria-label="ভূমিকা"
-                    value={current}
-                    onChange={(e) => changeRole(item.profile_id, e.target.value)}
-                    options={roles.map((r) => ({ value: r.role_id, label: r.role_name }))}
-                    disabled={busy || isProtectedAdmin}
-                  />
+                  <Select id={'role-' + item.profile_id} aria-label="ভূমিকা" value={current} onChange={(e) => changeRole(item.profile_id, e.target.value)} options={roles.map((r) => ({ value: r.role_id, label: r.role_name }))} disabled={busy || isProtectedAdmin} />
                 </div>
               </article>
             )
