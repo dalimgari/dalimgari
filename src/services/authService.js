@@ -13,6 +13,14 @@ export async function signInWithPassword(email, password) {
   return data
 }
 
+export async function signInWithOAuth(provider = 'google') {
+  const client = requireSupabase()
+  const redirectTo = new URL(appPath('/admin'), window.location.origin).toString()
+  const { data, error } = await client.auth.signInWithOAuth({ provider, options: { redirectTo } })
+  if (error) throw error
+  return data
+}
+
 export async function resetPasswordForEmail(email) {
   const client = requireSupabase()
   const redirectTo = new URL(appPath('/login'), window.location.origin).toString()
