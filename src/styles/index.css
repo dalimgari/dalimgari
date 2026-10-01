@@ -268,3 +268,9 @@ p {
   }
 }
 \n.album-block { margin-top: 2rem; }\n.media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr)); gap: .75rem; margin-top: 1rem; }\n.media-card { margin: 0; aspect-ratio: 1; overflow: hidden; border-radius: .75rem; background: #f3f4f6; }\n.media-card img { width: 100%; height: 100%; object-fit: cover; display: block; }\n
+.search-form { margin-bottom: 2rem; }
+.search-form label { display: block; margin-bottom: .5rem; font-weight: 600; }
+.search-form__row { display: flex; gap: .75rem; }
+.search-form input { flex: 1; min-width: 0; padding: .75rem; border: 1px solid #d1d5db; border-radius: .5rem; font: inherit; }
+.search-form button { padding: .75rem 1rem; border: 0; border-radius: .5rem; font: inherit; cursor: pointer; }
+@media (max-width: 600px) { .search-form__row { flex-direction: column; } }
