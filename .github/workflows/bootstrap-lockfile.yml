@@ -23,7 +23,7 @@ jobs:
           node-version: 22
 
       - name: Generate lockfile
-        run: npm install --package-lock-only
+        run: npm install --package-lock-only --package-lock=true
 
       - name: Commit lockfile if changed
         run: |
