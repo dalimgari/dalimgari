@@ -14,7 +14,7 @@ export default function AlbumsManagement() {
   const [allowed,setAllowed]=useState(false),[ready,setReady]=useState(false),[albums,setAlbums]=useState([])
   const [form,setForm]=useState(EMPTY),[editingId,setEditingId]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState(null)
   async function load(){const [permission,data]=await Promise.all([hasPermission('media_manage'),listManagedAlbums()]);setAllowed(permission);setAlbums(data);setReady(true)}
-  useEffect(()=>{if(status==='loading')return;if(!user){window.location.href='/login';return}load().catch(e=>{setError(e);setReady(true)})},[status,user])
+  useEffect(()=>{if(status==='loading')return;if(!user){window.location.href=(import.meta.env.BASE_URL||'/')+'login';return}load().catch(e=>{setError(e);setReady(true)})},[status,user])
   function change(k,v){setForm(x=>({...x,[k]:v}));setError(null)}
   function edit(a){setEditingId(a.album_id);setForm({album_key:a.album_key,title:a.title,description:a.description||'',is_visible:a.is_visible});}
   function reset(){setEditingId(null);setForm(EMPTY);setError(null)}
