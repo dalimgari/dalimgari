@@ -3,25 +3,36 @@ import { upload_media, get_media_library, save_external_media } from '../../cont
 
 export function global_media_uploader({
   on_select = () => {},
+  on_change = () => {},
   accept = '*/*',
   label = 'মিডিয়া',
   multiple = false,
   initial_url = '',
-  disabled = false
+  value,
+  disabled = false,
+  method = 'media_uploader'
 }) {
   const id = useId()
-  const [media_url, set_media_url] = useState(initial_url ?? '')
+  const resolved_initial_url = value ?? initial_url ?? ''
+  const resolved_accept = method === 'image' ? 'image/*' : accept
+  const [media_url, set_media_url] = useState(resolved_initial_url)
   const [library, set_library] = useState([])
   const [selected, set_selected] = useState(null)
   const [message, set_message] = useState('')
   const [loading, set_loading] = useState(false)
 
-  useEffect(() => { set_media_url(initial_url ?? '') }, [initial_url])
+  useEffect(() => { set_media_url(value ?? initial_url ?? '') }, [value, initial_url])
+
+  function emit_selection(media) {
+    on_select(media)
+    if (Array.isArray(media)) on_change(media.map((item) => item?.media_url).filter(Boolean))
+    else on_change(media?.media_url ?? '')
+  }
 
   function select_media(media) {
     set_selected(media)
-    set_media_url(media?.media_url ?? '')
-    on_select(media)
+    set_media_url(Array.isArray(media) ? media.map((item) => item?.media_url).join('\n') : (media?.media_url ?? ''))
+    emit_selection(media)
   }
 
   async function handle_upload(event) {
@@ -32,13 +43,7 @@ export function global_media_uploader({
     try {
       const uploaded = []
       for (const file of files) uploaded.push(await upload_media(file))
-      if (multiple) {
-        set_selected(uploaded)
-        set_media_url(uploaded.map((item) => item.media_url).join('\n'))
-        uploaded.forEach((item) => on_select(item))
-      } else {
-        select_media(uploaded[0])
-      }
+      select_media(multiple ? uploaded : uploaded[0])
       set_message(uploaded.length > 1 ? `${uploaded.length}টি ফাইল আপলোড সম্পন্ন হয়েছে` : 'আপলোড সম্পন্ন হয়েছে')
     } catch (error) {
       set_message(error?.message || 'আপলোড করা যায়নি')
@@ -81,7 +86,7 @@ export function global_media_uploader({
     createElement('div', { className: 'admin-form-grid' },
       createElement('label', { className: 'admin-form-field' },
         createElement('span', null, 'ফাইল নির্বাচন করুন'),
-        createElement('input', { id: `${id}-file`, type: 'file', accept, multiple, disabled: loading || disabled, onChange: handle_upload })
+        createElement('input', { id: `${id}-file`, type: 'file', accept: resolved_accept, multiple, disabled: loading || disabled, onChange: handle_upload })
       ),
       createElement('label', { className: 'admin-form-field' },
         createElement('span', null, 'File URL'),
@@ -100,11 +105,7 @@ export function global_media_uploader({
     ),
     Array.isArray(selected) && createElement('p', { className: 'media-selection-summary' }, `${selected.length}টি ফাইল নির্বাচিত`),
     library.length > 0 && createElement('div', { className: 'media-library-actions' },
-      library.map((media) => createElement('button', {
-        type: 'button',
-        key: media.media_id,
-        onClick: () => select_media(media)
-      }, media.file_name || media.media_url || 'মিডিয়া'))
+      library.map((media) => createElement('button', { type: 'button', key: media.media_id, onClick: () => select_media(media) }, media.file_name || media.media_url || 'মিডিয়া'))
     ),
     createElement('div', { className: 'media-status', 'aria-live': 'polite' }, message)
   )
