@@ -1,10 +1,45 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { signOut } from '../../services/authService'
+import { hasPermission } from '../../services/permissionService'
 import { Button } from '../ui'
 import { appPath } from '../../lib/routes'
 
+const adminNavItems = [
+  { label: 'ওয়েবসাইট তথ্য', path: '/admin/website-information', permission: 'settings_manage' },
+  { label: 'পেজসমূহ', path: '/admin/pages', permission: 'content_manage' },
+  { label: 'পোস্ট', path: '/admin/posts', permission: 'content_manage' },
+  { label: 'অ্যালবাম', path: '/admin/albums', permission: 'content_manage' },
+  { label: 'মিডিয়া', path: '/admin/media', permission: 'media_manage' },
+  { label: 'ইউজার', path: '/admin/users', permission: 'user_manage' },
+  { label: 'অডিট', path: '/admin/audit', permission: 'audit_view' },
+]
+
 export default function AdminLayout({ user, title, children }) {
   const [loggingOut, setLoggingOut] = useState(false)
+  const [visibleNav, setVisibleNav] = useState([])
+
+  useEffect(() => {
+    let active = true
+
+    async function loadNavigation() {
+      try {
+        const results = await Promise.all(
+          adminNavItems.map(async (item) => ({
+            ...item,
+            allowed: await hasPermission(item.permission),
+          }))
+        )
+        if (active) setVisibleNav(results.filter((item) => item.allowed))
+      } catch {
+        if (active) setVisibleNav([])
+      }
+    }
+
+    loadNavigation()
+    return () => {
+      active = false
+    }
+  }, [user?.id])
 
   async function handleLogout() {
     setLoggingOut(true)
@@ -33,13 +68,9 @@ export default function AdminLayout({ user, title, children }) {
       <nav className="admin-nav" aria-label="অ্যাডমিন নেভিগেশন">
         <div className="site-container admin-nav__inner">
           <a href={appPath('/admin')}>ড্যাশবোর্ড</a>
-          <a href={appPath('/admin/website-information')}>ওয়েবসাইট তথ্য</a>
-          <a href={appPath('/admin/pages')}>পেজসমূহ</a>
-          <a href={appPath('/admin/posts')}>পোস্ট</a>
-          <a href={appPath('/admin/albums')}>অ্যালবাম</a>
-          <a href={appPath('/admin/media')}>মিডিয়া</a>
-          <a href={appPath('/admin/users')}>ইউজার</a>
-          <a href={appPath('/admin/audit')}>অডিট</a>
+          {visibleNav.map((item) => (
+            <a key={item.path} href={appPath(item.path)}>{item.label}</a>
+          ))}
           <span className="admin-nav__user">{user?.email || ''}</span>
         </div>
       </nav>
