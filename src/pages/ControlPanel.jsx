@@ -49,14 +49,19 @@ export default function ControlPanel() {
     }
 
     let active = true
-    Promise.all([
-      hasPermission('settings_manage'),
-      getCurrentProfile(),
-      getWebsiteInformation(),
-    ])
-      .then(([permission, currentProfile, information]) => {
-        if (!active) return
+    hasPermission('settings_manage')
+      .then((permission) => {
+        if (!active) return null
         setAllowed(permission)
+        if (!permission) {
+          setReady(true)
+          return null
+        }
+        return Promise.all([getCurrentProfile(), getWebsiteInformation()])
+      })
+      .then((result) => {
+        if (!active || !result) return
+        const [currentProfile, information] = result
         setProfile(currentProfile)
         setValues(toFormValues(information))
         setReady(true)
