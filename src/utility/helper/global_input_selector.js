@@ -208,6 +208,7 @@ export const GLOBAL_INPUT_METHODS = Object.freeze([
   'slug',
   'image',
   'file',
+  'media',
   'number',
   'date',
   'datetime',
