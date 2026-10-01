@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Layout } from '../components/layout'
 import { EmptyState, ErrorState, Loading } from '../components/ui'
 import { searchPublicContent } from '../services/searchService'
+import { appPath } from '../lib/routes'
 
 const NAVIGATION_ITEMS = [
   { label: 'হোম', href: '/' }, { label: 'তথ্য', href: '/information' },
@@ -33,7 +34,7 @@ export default function Search() {
       {status === 'loading' ? <Loading /> : null}
       {status === 'error' ? <ErrorState description={error?.message || 'খোঁজার সময় সমস্যা হয়েছে।'} /> : null}
       {status === 'ready' && !results.length ? <EmptyState description="কোনো ফলাফল পাওয়া যায়নি।" /> : null}
-      {status === 'ready' && results.length ? <div className="content-grid">{results.map((result) => <article className="content-card" key={result.type + '-' + result.id}><p className="eyebrow">{result.type === 'page' ? 'পেজ' : 'পোস্ট'}</p><h2>{result.title}</h2>{result.description ? <p>{result.description}</p> : null}<a href={result.href}>বিস্তারিত দেখুন</a></article>)}</div> : null}
+      {status === 'ready' && results.length ? <div className="content-grid">{results.map((result) => <article className="content-card" key={result.type + '-' + result.id}><p className="eyebrow">{result.type === 'page' ? 'পেজ' : 'পোস্ট'}</p><h2>{result.title}</h2>{result.description ? <p>{result.description}</p> : null}<a href={appPath(result.href)}>বিস্তারিত দেখুন</a></article>)}</div> : null}
     </div></section>
   </Layout>
 }
