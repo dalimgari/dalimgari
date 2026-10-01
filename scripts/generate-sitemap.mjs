@@ -1,6 +1,6 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 
-const baseUrl = 'https://dalimgari.github.io/dalimgari'
+const baseUrl = (process.env.SITE_URL || 'https://dalimgari.github.io/dalimgari').replace(/\/$/, '')
 const outputPath = 'public/sitemap.xml'
 const supabaseUrl = process.env.VITE_SUPABASE_URL
 const supabaseKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY
@@ -33,28 +33,20 @@ async function fetchPublicContent() {
     body: '{}',
   })
 
-  if (!response.ok) {
-    throw new Error(`Sitemap RPC failed: ${response.status} ${await response.text()}`)
-  }
-
+  if (!response.ok) throw new Error(`Sitemap RPC failed: ${response.status} ${await response.text()}`)
   return response.json()
 }
 
 async function main() {
-  const urls = new Set(staticRoutes.map((route) => `${baseUrl}${route}`))
+  const urls = new Set(staticRoutes.map((route) => `${baseUrl}${route === '/' ? '' : route}`))
+  const content = await fetchPublicContent()
 
-  if (supabaseUrl && supabaseKey) {
-    const content = await fetchPublicContent()
+  for (const post of content.posts ?? []) {
+    if (post.post_id) urls.add(`${baseUrl}/posts/${encodeURIComponent(post.post_id)}`)
+  }
 
-    for (const post of content.posts ?? []) {
-      if (post.post_id) urls.add(`${baseUrl}/posts/${encodeURIComponent(post.post_id)}`)
-    }
-
-    for (const page of content.pages ?? []) {
-      if (page.page_slug) urls.add(`${baseUrl}/pages/${encodeURIComponent(normalizePath(page.page_slug))}`)
-    }
-  } else {
-    console.warn('Supabase build variables are unavailable; generating the static sitemap only.')
+  for (const page of content.pages ?? []) {
+    if (page.page_slug) urls.add(`${baseUrl}/pages/${encodeURIComponent(normalizePath(page.page_slug))}`)
   }
 
   const entries = [...urls].sort().map((url) => `  <url><loc>${xmlEscape(url)}</loc></url>`).join('\n')
