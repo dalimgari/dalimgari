@@ -12,6 +12,7 @@ import UsersManagement from './pages/admin/UsersManagement'
 import AuditLogs from './pages/admin/AuditLogs'
 import PageDetail from './pages/PageDetail'
 import PostDetail from './pages/PostDetail'
+import Information from './pages/Information'
 
 function getPath() {
   return window.location.pathname.replace(/^\/dalimgari/, '').replace(/\/$/, '') || '/'
@@ -27,6 +28,7 @@ export default function App() {
   if (path === '/posts') return <Posts />
   if (path === '/albums') return <Albums />
   if (path === '/search') return <Search />
+  if (path === '/information') return <Information />
   if (path === '/login') return <Login />
   if (path === '/admin/pages') return <PagesManagement />
   if (path === '/admin/posts') return <PostsManagement />
