@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabase'
 
 const DEFAULT_THEME = {
+  wallpaper: '',
   colors: {},
   states: {},
   interaction: {},
@@ -12,7 +13,7 @@ const DEFAULT_THEME = {
 
 export async function getThemeSettings() {
   if (!supabase) throw new Error('Supabase is not configured')
-  const { data, error } = await supabase.from('theme_settings').select('settings_key,day,night,is_active,updated_at').eq('is_active', true).order('updated_at', { ascending: false }).limit(1).maybeSingle()
+  const { data, error } = await supabase.from('theme_settings').select('theme_settings_id,settings_key,day,night,is_active,updated_at').eq('is_active', true).order('updated_at', { ascending: false }).limit(1).maybeSingle()
   if (error) throw error
   return data
 }
