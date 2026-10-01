@@ -8,6 +8,7 @@ import { appPath } from '../../lib/routes'
 const adminNavItems = [
   { label: 'ড্যাশবোর্ড', path: '/admin', permission: null },
   { label: 'হোমপেজ ম্যানেজমেন্ট', path: '/admin/homepage', permission: 'homepage_manage' },
+  { label: 'সাইডবার ম্যানেজমেন্ট', path: '/admin/sidebar', permission: 'sidebar_manage' },
   { label: 'ওয়েবসাইট তথ্য', path: '/admin/website-information', permission: 'settings_manage' },
   { label: 'পেজসমূহ', path: '/admin/pages', permission: 'content_manage' },
   { label: 'পোস্ট', path: '/admin/posts', permission: 'content_manage' },
