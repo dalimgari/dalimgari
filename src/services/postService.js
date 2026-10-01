@@ -15,7 +15,7 @@ export async function getPublishedPostById(postId) {
   if (!post) return null
   const { data: links, error: linkError } = await supabase.from('post_media').select('display_order, media(*)').eq('post_id', postId).order('display_order', { ascending: true })
   if (linkError) throw linkError
-  return { ...post, media: (links ?? []).map((item) => item.media).filter(Boolean) }
+  return { ...post, media: (links ?? []).map((item) => item.media).filter((media) => media && media.is_visible !== false) }
 }
 
 export async function listManagedPosts() {
