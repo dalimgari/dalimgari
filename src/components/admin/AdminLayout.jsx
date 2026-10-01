@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { signOut } from '../../services/authService'
+import { getWebsiteInformation } from '../../services/websiteService'
 import { hasPermission } from '../../services/permissionService'
 import { Button } from '../ui'
 import { appPath } from '../../lib/routes'
@@ -17,6 +18,7 @@ const adminNavItems = [
 export default function AdminLayout({ user, title, children }) {
   const [loggingOut, setLoggingOut] = useState(false)
   const [visibleNav, setVisibleNav] = useState([])
+  const [siteName, setSiteName] = useState(null)
 
   useEffect(() => {
     let active = true
@@ -35,7 +37,18 @@ export default function AdminLayout({ user, title, children }) {
       }
     }
 
+    async function loadWebsiteIdentity() {
+      try {
+        const information = await getWebsiteInformation()
+        if (active) setSiteName(information?.village_name || null)
+      } catch {
+        if (active) setSiteName(null)
+      }
+    }
+
     loadNavigation()
+    loadWebsiteIdentity()
+
     return () => {
       active = false
     }
@@ -58,7 +71,9 @@ export default function AdminLayout({ user, title, children }) {
         <div className="site-container admin-header__inner">
           <div>
             <p className="admin-header__eyebrow">অ্যাডমিন</p>
-            <h1 className="admin-header__title">ডালিমগাড়ী নিয়ন্ত্রণ প্যানেল</h1>
+            <h1 className="admin-header__title">
+              {siteName ? siteName + ' নিয়ন্ত্রণ প্যানেল' : 'নিয়ন্ত্রণ প্যানেল'}
+            </h1>
           </div>
           <Button variant="secondary" disabled={loggingOut} onClick={handleLogout}>
             {loggingOut ? 'লগআউট হচ্ছে…' : 'লগআউট'}
