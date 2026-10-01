@@ -4,6 +4,7 @@ import { getThemeSettings, updateThemeSettings } from '../../services/themeServi
 import { createAuditLog } from '../../services/auditService'
 
 const FIELDS = [
+  ['icons','set','আইকন সেট'],['icons','color','আইকনের রঙ'],['icons','size','আইকনের আকার'],['icons','strokeWidth','আইকনের রেখার পুরুত্ব'],['icons','opacity','আইকনের স্বচ্ছতা'],
   ['colors','earth','মাটি'],['colors','earthDark','গাঢ় মাটি'],['colors','leaf','পাতা'],['colors','leafDark','গাঢ় পাতা'],
   ['colors','paddy','ধান'],['colors','field','মাঠ'],['colors','water','পানি'],['colors','clay','কাদা'],['colors','sun','রোদ'],
   ['colors','surface','কার্ড/পৃষ্ঠ'],['colors','surfaceSoft','হালকা পৃষ্ঠ'],['colors','text','লেখা'],['colors','muted','ম্লান লেখা'],
