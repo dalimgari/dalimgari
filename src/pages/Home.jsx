@@ -11,6 +11,7 @@ import { listVisibleAlbums } from '../services/albumService'
 import { listVisibleMedia } from '../services/mediaService'
 import { listPublishedPages } from '../services/pageService'
 import Skeleton from '../components/ui/Skeleton'
+import { getHomepageSettings } from '../services/homepageService'
 
 const NAVIGATION_ITEMS = [
   { label: 'হোম', href: '/' },
@@ -33,33 +34,36 @@ function findTopicPage(pages, words) {
   })
 }
 
-function HomeTopicTabs({ pages = [], albums = [] }) {
-  const items = [{ label: 'গ্রামের তথ্য', href: '/information' }]
+function HomeTopicTabs({ pages = [], albums = [], items = null }) {
+  const configured = Array.isArray(items) && items.length ? items.filter(item => item.enabled !== false) : null
+  const defaultItems = [{ label: 'গ্রামের তথ্য', href: '/information' }]
+
+  if (configured) return <nav className="home-topic-tabs site-container" aria-label="গ্রামের বিষয়সমূহ">{configured.map(item => <a className="home-topic-tab" href={item.href || '/'} key={`${item.label}-${item.href}`}>{item.label}</a>)}</nav>
 
   TOPIC_ALIASES.forEach(({ label, words }) => {
     const page = findTopicPage(pages, words)
     if (page) {
-      items.push({ label, href: `/pages/${encodeURIComponent(page.page_slug)}` })
+      defaultItems.push({ label, href: `/pages/${encodeURIComponent(page.page_slug)}` })
       return
     }
     const album = albums.find((item) => {
       const text = [item.title, item.description].filter(Boolean).join(' ').toLowerCase()
       return words.some((word) => text.includes(word.toLowerCase()))
     })
-    if (album) items.push({ label, href: `/albums#album-${album.album_id}` })
+    if (album) defaultItems.push({ label, href: `/albums#album-${album.album_id}` })
   })
 
-  items.push({ label: 'ছবি ও ভিডিও', href: '#media-gallery' })
+  defaultItems.push({ label: 'ছবি ও ভিডিও', href: '#media-gallery' })
 
   return (
     <nav className="home-topic-tabs site-container" aria-label="গ্রামের বিষয়সমূহ">
-      {items.map((item) => <a className="home-topic-tab" href={item.href} key={item.href}>{item.label}</a>)}
+      {defaultItems.map((item) => <a className="home-topic-tab" href={item.href} key={item.href}>{item.label}</a>)}
     </nav>
   )
 }
 
 export default function Home() {
-  const [data, setData] = useState({ information: null, posts: [], albums: [], media: [], pages: [] })
+  const [data, setData] = useState({ information: null, posts: [], albums: [], media: [], pages: [], homepage: null })
   const [status, setStatus] = useState('loading')
 
   useEffect(() => {
@@ -71,10 +75,11 @@ export default function Home() {
       listVisibleAlbums(),
       listVisibleMedia(),
       listPublishedPages(),
+      getHomepageSettings(),
     ]).then((results) => {
       if (!active) return
 
-      const [informationResult, postsResult, albumsResult, mediaResult, pagesResult] = results
+      const [informationResult, postsResult, albumsResult, mediaResult, pagesResult, homepageResult] = results
 
       setData({
         information: informationResult.status === 'fulfilled' ? informationResult.value : null,
@@ -82,6 +87,7 @@ export default function Home() {
         albums: albumsResult.status === 'fulfilled' ? albumsResult.value : [],
         media: mediaResult.status === 'fulfilled' ? mediaResult.value : [],
         pages: pagesResult.status === 'fulfilled' ? pagesResult.value : [],
+        homepage: homepageResult.status === 'fulfilled' ? homepageResult.value : null,
       })
       setStatus('ready')
     })
@@ -92,18 +98,21 @@ export default function Home() {
   }, [])
 
   return (
-    <Layout navigationItems={NAVIGATION_ITEMS}>
+    <Layout navigationItems={NAVIGATION_ITEMS} sidebarConfig={data.homepage?.sidebar}>
       {status === 'loading' ? <Skeleton variant="home" /> : null}
 
-      <Banner
+      {data.homepage?.hero?.enabled !== false ? <Banner
         siteName={data.information?.village_name}
         slogan={data.information?.slogan}
-      />
-      <HomeTopicTabs pages={data.pages} albums={data.albums} />
-      <Information information={data.information} />
-      <PostsSection posts={data.posts} />
-      <HomeMediaGallery albums={data.albums} media={data.media} />
-      <AlbumsSection albums={data.albums} />
+        title={data.homepage?.hero?.title}
+        subtitle={data.homepage?.hero?.subtitle}
+        showSlogan={data.homepage?.hero?.showSlogan !== false}
+      /> : null}
+      {data.homepage?.topicTabs?.enabled !== false ? <HomeTopicTabs pages={data.pages} albums={data.albums} items={data.homepage?.topicTabs?.items} /> : null}
+      {data.homepage?.information?.enabled !== false ? <Information information={data.information} /> : null}
+      {data.homepage?.posts?.enabled !== false ? <PostsSection posts={data.posts.slice(0, data.homepage?.posts?.limit || 6)} title={data.homepage?.posts?.title} /> : null}
+      {data.homepage?.mediaGallery?.enabled !== false ? <HomeMediaGallery albums={data.albums} media={data.media} title={data.homepage?.mediaGallery?.title} subtitle={data.homepage?.mediaGallery?.subtitle} showAll={data.homepage?.mediaGallery?.showAll} albumIds={data.homepage?.mediaGallery?.albumIds} /> : null}
+      {data.homepage?.albums?.enabled !== false ? <AlbumsSection albums={data.albums.slice(0, data.homepage?.albums?.limit || 4)} /> : null}
     </Layout>
   )
 }
