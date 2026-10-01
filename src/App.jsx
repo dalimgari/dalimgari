@@ -4,6 +4,7 @@ import Albums from './pages/Albums'
 import Search from './pages/Search'
 import Login from './pages/Login'
 import ControlPanel from './pages/ControlPanel'
+import Dashboard from './pages/admin/Dashboard'
 import PagesManagement from './pages/admin/PagesManagement'
 import PostsManagement from './pages/admin/PostsManagement'
 import AlbumsManagement from './pages/admin/AlbumsManagement'
@@ -15,7 +16,8 @@ import PostDetail from './pages/PostDetail'
 import Information from './pages/Information'
 
 function getPath() {
-  return window.location.pathname.replace(/^\/dalimgari/, '').replace(/\/$/, '') || '/'
+  const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
+  return window.location.pathname.replace(new RegExp(`^${base}`), '').replace(/\/$/, '') || '/'
 }
 
 export default function App() {
@@ -30,12 +32,13 @@ export default function App() {
   if (path === '/search') return <Search />
   if (path === '/information') return <Information />
   if (path === '/login') return <Login />
+  if (path === '/admin') return <Dashboard />
   if (path === '/admin/pages') return <PagesManagement />
   if (path === '/admin/posts') return <PostsManagement />
   if (path === '/admin/albums') return <AlbumsManagement />
   if (path === '/admin/media') return <MediaManagement />
   if (path === '/admin/users') return <UsersManagement />
   if (path === '/admin/audit') return <AuditLogs />
-  if (path === '/admin' || path === '/admin/website-information') return <ControlPanel />
+  if (path === '/admin/website-information') return <ControlPanel />
   return <Home />
 }
