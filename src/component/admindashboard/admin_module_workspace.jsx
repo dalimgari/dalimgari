@@ -2,6 +2,7 @@ import { createElement, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../../service/supabase/supabase_client'
 import { delete_record, sync_input_fields } from '../../controller/admin/admin_record_controller'
 import { global_media_uploader } from '../media/global_media_uploader'
+import { global_auto_input } from '../form/global_auto_input'
 
 const footer_fields = [['footer_copyright', 'Footer Copyright']]
 
@@ -41,40 +42,21 @@ function json_value(value, fallback = {}) {
   }
 }
 
-function input({ label, value, on_change, type = 'text', placeholder = '', disabled = false }) {
-  return createElement('label', { className: 'admin-form-field' },
-    createElement('span', null, label),
-    createElement('input', {
-      type, value: value ?? '', placeholder, disabled,
-      onChange: (event) => on_change(event.target.value)
-    })
-  )
+function input({ field_name, label, value, on_change, type = 'text', placeholder = '', disabled = false }) {
+  const input_method = type === 'email' ? 'email' : type === 'number' ? 'number' : 'text'
+  return global_auto_input({ field_name, label, value, on_change, input_method, placeholder, disabled })
 }
 
-function textarea({ label, value, on_change, placeholder = '', rows = 6 }) {
-  return createElement('label', { className: 'admin-form-field' },
-    createElement('span', null, label),
-    createElement('textarea', {
-      value: value ?? '', placeholder, rows,
-      onChange: (event) => on_change(event.target.value)
-    })
-  )
+function textarea({ field_name, label, value, on_change, placeholder = '', rows = 6, rich_text = false }) {
+  return global_auto_input({ field_name, label, value, on_change, input_method: rich_text ? 'rich_text' : 'textarea', placeholder, rows })
 }
 
-function checkbox({ label, checked, on_change, disabled = false }) {
-  return createElement('label', { className: 'admin-form-check' },
-    createElement('input', { type: 'checkbox', checked: Boolean(checked), disabled, onChange: (event) => on_change(event.target.checked) }),
-    createElement('span', null, label)
-  )
+function checkbox({ field_name, label, checked, on_change, disabled = false }) {
+  return global_auto_input({ field_name, label, value: checked, on_change, input_method: 'switch', disabled })
 }
 
-function select({ label, value, on_change, options, disabled = false }) {
-  return createElement('label', { className: 'admin-form-field' },
-    createElement('span', null, label),
-    createElement('select', { value: value ?? '', disabled, onChange: (event) => on_change(event.target.value) },
-      options.map((option) => createElement('option', { key: option.value, value: option.value }, option.label))
-    )
-  )
+function select({ field_name, label, value, on_change, options, disabled = false }) {
+  return global_auto_input({ field_name, label, value, on_change, input_method: 'select', enum_values: options.map((option) => option.value), disabled })
 }
 
 function panel_header(title, message) {
@@ -214,9 +196,9 @@ function admin_information_workspace() {
       ))
     ),
     selected && createElement('div', { className: 'admin-form-grid' },
-      input({ label: 'Admin Name', value: form.name, on_change: (value) => set_form({ ...form, name: value }) }),
-      input({ label: 'Admin Email', value: form.email, on_change: (value) => set_form({ ...form, email: value }), type: 'email' }),
-      input({ label: 'Admin Phone', value: form.phone, on_change: (value) => set_form({ ...form, phone: value }) }),
+      input({ field_name: 'admin_name', label: 'Admin Name', value: form.name, on_change: (value) => set_form({ ...form, name: value }) }),
+      input({ field_name: 'admin_email', label: 'Admin Email', value: form.email, on_change: (value) => set_form({ ...form, email: value }), type: 'email' }),
+      input({ field_name: 'admin_phone', label: 'Admin Phone', value: form.phone, on_change: (value) => set_form({ ...form, phone: value }) }),
       createElement(global_media_uploader, {
         label: 'Admin Avatar',
         accept: 'image/*',
@@ -224,7 +206,7 @@ function admin_information_workspace() {
         key: `admin-avatar-${selected}`,
         on_select: (media) => set_form({ ...form, image: media?.media_url ?? '' })
       }),
-      textarea({ label: 'Admin Bio', value: form.bio, on_change: (value) => set_form({ ...form, bio: value }), rows: 4 }),
+      textarea({ field_name: 'admin_bio', label: 'Admin Bio', value: form.bio, on_change: (value) => set_form({ ...form, bio: value }), rows: 4 }),
       createElement('div', { className: 'admin-links-editor' },
         createElement('div', { className: 'admin-links-editor-header' },
           createElement('strong', null, 'Admin Sidebar Links'),
@@ -232,8 +214,8 @@ function admin_information_workspace() {
         ),
         form.admin_links.map((link, index) => createElement('div', { key: index, className: 'admin-link-editor-row' },
           createElement('img', { src: admin_link_icon(link.url), alt: '', width: 32, height: 32 }),
-          input({ label: 'Title', value: link.title, on_change: (value) => set_form({ ...form, admin_links: form.admin_links.map((item, i) => i === index ? { ...item, title: value } : item) }) }),
-          input({ label: 'URL', value: link.url, on_change: (value) => set_form({ ...form, admin_links: form.admin_links.map((item, i) => i === index ? { ...item, url: value } : item) }), placeholder: 'https://example.com' }),
+          input({ field_name: 'title', label: 'Title', value: link.title, on_change: (value) => set_form({ ...form, admin_links: form.admin_links.map((item, i) => i === index ? { ...item, title: value } : item) }) }),
+          input({ field_name: 'url', label: 'URL', value: link.url, on_change: (value) => set_form({ ...form, admin_links: form.admin_links.map((item, i) => i === index ? { ...item, url: value } : item) }), placeholder: 'https://example.com' }),
           createElement('button', { type: 'button', onClick: () => set_form({ ...form, admin_links: form.admin_links.filter((_, i) => i !== index) }), 'aria-label': 'Remove link' }, '×')
         ))
       )
@@ -293,18 +275,18 @@ function pages_workspace() {
     panel_header('Page Management', message),
     createElement('form', { onSubmit: save },
       createElement('div', { className: 'admin-form-grid' },
-        input({ label: 'Page Title (বাংলা)', value: form.title_bn, on_change: (value) => set_form({ ...form, title_bn: value }) }),
-        input({ label: 'Page Title (English)', value: form.title_en, on_change: (value) => set_form({ ...form, title_en: value }) }),
-        input({ label: 'Slug', value: form.slug, on_change: (value) => set_form({ ...form, slug: value }) }),
-        input({ label: 'SEO Title', value: form.seo_title, on_change: (value) => set_form({ ...form, seo_title: value }) }),
-        input({ label: 'SEO Description', value: form.seo_description, on_change: (value) => set_form({ ...form, seo_description: value }) }),
-        input({ label: 'Canonical URL', value: form.canonical, on_change: (value) => set_form({ ...form, canonical: value }) }),
-        input({ label: 'Robots', value: form.robots, on_change: (value) => set_form({ ...form, robots: value }) }),
-        input({ label: 'Display Order', value: form.order, on_change: (value) => set_form({ ...form, order: value }), type: 'number' }),
-        checkbox({ label: 'Visible', checked: form.visible, on_change: (value) => set_form({ ...form, visible: value }) }),
-        select({ label: 'Status', value: form.status, on_change: (value) => set_form({ ...form, status: value }), options: [{ value: 'draft', label: 'Draft' }, { value: 'published', label: 'Published' }, { value: 'archived', label: 'Archived' }] })
+        input({ field_name: 'title_bn', label: 'Page Title (বাংলা)', value: form.title_bn, on_change: (value) => set_form({ ...form, title_bn: value }) }),
+        input({ field_name: 'title_en', label: 'Page Title (English)', value: form.title_en, on_change: (value) => set_form({ ...form, title_en: value }) }),
+        input({ field_name: 'slug', label: 'Slug', value: form.slug, on_change: (value) => set_form({ ...form, slug: value }) }),
+        input({ field_name: 'seo_title', label: 'SEO Title', value: form.seo_title, on_change: (value) => set_form({ ...form, seo_title: value }) }),
+        input({ field_name: 'seo_description', label: 'SEO Description', value: form.seo_description, on_change: (value) => set_form({ ...form, seo_description: value }) }),
+        input({ field_name: 'canonical', label: 'Canonical URL', value: form.canonical, on_change: (value) => set_form({ ...form, canonical: value }) }),
+        input({ field_name: 'robots', label: 'Robots', value: form.robots, on_change: (value) => set_form({ ...form, robots: value }) }),
+        input({ field_name: 'order', label: 'Display Order', value: form.order, on_change: (value) => set_form({ ...form, order: value }), type: 'number' }),
+        checkbox({ field_name: 'visible', label: 'Visible', checked: form.visible, on_change: (value) => set_form({ ...form, visible: value }) }),
+        select({ field_name: 'status', label: 'Status', value: form.status, on_change: (value) => set_form({ ...form, status: value }), options: [{ value: 'draft', label: 'Draft' }, { value: 'published', label: 'Published' }, { value: 'archived', label: 'Archived' }] })
       ),
-      textarea({ label: 'Page Content (HTML)', value: form.content, on_change: (value) => set_form({ ...form, content: value }), rows: 12 }),
+      textarea({ field_name: 'content', label: 'Page Content (HTML)', rich_text: true, value: form.content, on_change: (value) => set_form({ ...form, content: value }), rows: 12 }),
       createElement('div', { className: 'admin-actions' },
         createElement('button', { type: 'submit' }, editing ? 'Update Page' : 'Create Page'),
         editing && createElement('button', { type: 'button', onClick: () => { set_editing(null); set_form(blank) } }, 'Cancel')
@@ -347,8 +329,8 @@ function albums_workspace() {
     createElement('form', { onSubmit: save }, createElement('div', { className: 'admin-form-grid' },
       input({ label: 'Album Title (বাংলা)', value: form.title_bn, on_change: (value) => set_form({ ...form, title_bn: value }) }),
       input({ label: 'Album Title (English)', value: form.title_en, on_change: (value) => set_form({ ...form, title_en: value }) }),
-      textarea({ label: 'Description', value: form.description, on_change: (value) => set_form({ ...form, description: value }), rows: 4 }),
-      checkbox({ label: 'Visible', checked: form.visible, on_change: (value) => set_form({ ...form, visible: value }) })
+      textarea({ field_name: 'description', label: 'Description', value: form.description, on_change: (value) => set_form({ ...form, description: value }), rows: 4 }),
+      checkbox({ field_name: 'visible', label: 'Visible', checked: form.visible, on_change: (value) => set_form({ ...form, visible: value }) })
     ), createElement('button', { type: 'submit' }, editing ? 'Update Album' : 'Create Album')),
     createElement('div', { className: 'admin-record-list' }, rows.map((row) => createElement('article', { key: row.album_id, className: 'admin-record-row' },
       createElement('strong', null, localized(row.album_title)), createElement('button', { type: 'button', onClick: () => { set_editing(row.album_id); set_form({ title_bn: localized(row.album_title, 'bn'), title_en: localized(row.album_title, 'en'), description: localized(row.description), visible: row.is_visible }) } }, 'Edit'),
@@ -404,6 +386,7 @@ function media_workspace() {
         on_select: apply_media_settings
       }),
       select({
+        field_name: 'album_id',
         label: 'Album',
         value: form.album_id,
         on_change: (value) => set_form({ ...form, album_id: value }),
@@ -502,10 +485,10 @@ function posts_workspace() {
     panel_header('Post Management', message),
     createElement('form', { onSubmit: save },
       createElement('div', { className: 'admin-form-grid' },
-        input({ label: 'Caption (বাংলা)', value: form.caption_bn, on_change: (value) => set_form({ ...form, caption_bn: value }) }),
-        input({ label: 'Caption (English)', value: form.caption_en, on_change: (value) => set_form({ ...form, caption_en: value }) }),
-        select({ label: 'Album', value: form.album_id, on_change: (value) => set_form({ ...form, album_id: value }), options: [{ value: '', label: 'No album' }, ...albums.map((row) => ({ value: row.album_id, label: localized(row.album_title) }))] }),
-        select({ label: 'Status', value: form.status, on_change: (value) => set_form({ ...form, status: value }), options: [{ value: 'draft', label: 'Draft' }, { value: 'published', label: 'Published' }, { value: 'archived', label: 'Archived' }] }),
+        input({ field_name: 'caption_bn', label: 'Caption (বাংলা)', value: form.caption_bn, on_change: (value) => set_form({ ...form, caption_bn: value }) }),
+        input({ field_name: 'caption_en', label: 'Caption (English)', value: form.caption_en, on_change: (value) => set_form({ ...form, caption_en: value }) }),
+        select({ field_name: 'album_id', label: 'Album', value: form.album_id, on_change: (value) => set_form({ ...form, album_id: value }), options: [{ value: '', label: 'No album' }, ...albums.map((row) => ({ value: row.album_id, label: localized(row.album_title) }))] }),
+        select({ field_name: 'status', label: 'Status', value: form.status, on_change: (value) => set_form({ ...form, status: value }), options: [{ value: 'draft', label: 'Draft' }, { value: 'published', label: 'Published' }, { value: 'archived', label: 'Archived' }] }),
         checkbox({ label: 'Visible', checked: form.visible, on_change: (value) => set_form({ ...form, visible: value }) }),
         input({ label: 'SEO Title', value: form.seo_title, on_change: (value) => set_form({ ...form, seo_title: value }) }),
         input({ label: 'SEO Description', value: form.seo_description, on_change: (value) => set_form({ ...form, seo_description: value }) })
