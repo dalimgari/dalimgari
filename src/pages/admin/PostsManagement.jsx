@@ -115,7 +115,7 @@ export default function PostsManagement() {
             {!media.length ? <EmptyState description="এখনও কোনো মিডিয়া নেই।" /> : <div className="admin-media-picker__grid">
               {media.map((item) => <label className="admin-media-picker__item" key={item.media_id}>
                 <input type="checkbox" checked={selectedMediaIds.includes(item.media_id)} onChange={()=>toggleMedia(item.media_id)} disabled={busy} />
-                {item.mime_type?.startsWith('image/') ? <img src={getMediaPublicUrl(item.storage_path)} alt={item.file_name || ''} /> : null}
+                {item.mime_type?.startsWith('image/') ? <img src={getMediaPublicUrl(item.storage_path, item.media_url)} alt={item.file_name || ''} /> : null}
                 <span>{item.file_name || item.media_key}</span>
               </label>)}
             </div>}
