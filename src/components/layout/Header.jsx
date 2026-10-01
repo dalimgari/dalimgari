@@ -1,6 +1,6 @@
 import { appPath } from '../../lib/routes'
 
-export default function Header({ siteName = 'দালিমগাড়ী', slogan = '' }) {
+export default function Header({ siteName = 'ডালিমগাড়ী', slogan = '' }) {
   return (
     <header className="site-header">
       <div className="site-container site-header__inner">
