@@ -21,7 +21,8 @@ import AdminRoute from './components/auth/AdminRoute'
 
 function getPath() {
   const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
-  return window.location.pathname.replace(new RegExp(`^${base}`), '').replace(/\/$/, '') || '/'
+  const escapedBase = base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return window.location.pathname.replace(new RegExp(`^${escapedBase}`), '').replace(/\/$/, '') || '/'
 }
 
 function RouteView({ path, children }) {
@@ -43,7 +44,7 @@ function adminPage(path) {
   if (path === '/admin') return <AdminRoute><Dashboard /></AdminRoute>
   if (path === '/admin/pages') return <AdminRoute permission="content_manage"><PagesManagement /></AdminRoute>
   if (path === '/admin/posts') return <AdminRoute permission="content_manage"><PostsManagement /></AdminRoute>
-  if (path === '/admin/albums') return <AdminRoute permission="content_manage"><AlbumsManagement /></AdminRoute>
+  if (path === '/admin/albums') return <AdminRoute permission="media_manage"><AlbumsManagement /></AdminRoute>
   if (path === '/admin/media') return <AdminRoute permission="media_manage"><MediaManagement /></AdminRoute>
   if (path === '/admin/users') return <AdminRoute permission="user_manage"><UsersManagement /></AdminRoute>
   if (path === '/admin/audit') return <AdminRoute permission="audit_view"><AuditLogs /></AdminRoute>
