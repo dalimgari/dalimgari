@@ -5,8 +5,6 @@ import { email_input, EMAIL_INPUT_CONFIG } from './email_input'
 import { phone_input, PHONE_INPUT_CONFIG } from './phone_input'
 import { url_input, URL_INPUT_CONFIG } from './url_input'
 import { slug_input, SLUG_INPUT_CONFIG } from './slug_input'
-import { image_input, IMAGE_INPUT_CONFIG } from './image_input'
-import { file_input, FILE_INPUT_CONFIG } from './file_input'
 import { media_input, MEDIA_INPUT_CONFIG } from './media_input'
 import { number_input, NUMBER_INPUT_CONFIG } from './number_input'
 import { date_input, DATE_INPUT_CONFIG } from './date_input'
@@ -26,8 +24,8 @@ export const GLOBAL_INPUT_REGISTRY = Object.freeze({
   phone: { ...PHONE_INPUT_CONFIG, component: phone_input },
   url: { ...URL_INPUT_CONFIG, component: url_input },
   slug: { ...SLUG_INPUT_CONFIG, component: slug_input },
-  image: { ...IMAGE_INPUT_CONFIG, component: image_input },
-  file: { ...FILE_INPUT_CONFIG, component: file_input },
+  image: { ...MEDIA_INPUT_CONFIG, method: 'image', accept: 'image/*', component: media_input },
+  file: { ...MEDIA_INPUT_CONFIG, method: 'file', component: media_input },
   media: { ...MEDIA_INPUT_CONFIG, component: media_input },
   number: { ...NUMBER_INPUT_CONFIG, component: number_input },
   date: { ...DATE_INPUT_CONFIG, component: date_input },
