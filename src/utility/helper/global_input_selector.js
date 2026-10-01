@@ -57,8 +57,8 @@ function is_system_field(name) {
 
 function pattern_method(name) {
   if (is_system_field(name)) return 'system'
-  if (IMAGE_PATTERNS.some((pattern) => pattern.test(name))) return 'image'
-  if (FILE_PATTERNS.some((pattern) => pattern.test(name))) return 'file'
+  if (IMAGE_PATTERNS.some((pattern) => pattern.test(name))) return 'media_uploader'
+  if (FILE_PATTERNS.some((pattern) => pattern.test(name))) return 'media_uploader'
   if (URL_PATTERNS.some((pattern) => pattern.test(name))) return 'url'
   if (BOOLEAN_PATTERNS.some((pattern) => pattern.test(name))) return 'switch'
   if (KEY_PATTERNS.some((pattern) => pattern.test(name))) return 'text'
@@ -100,6 +100,6 @@ export function global_input_selector(field = {}) {
 }
 
 export const GLOBAL_INPUT_METHODS = Object.freeze([
-  'text','textarea','rich_text','email','phone','url','slug','image','file','media',
+  'text','textarea','rich_text','email','phone','url','slug','media_uploader',
   'number','date','datetime','switch','select','multi_select','relation','json','system'
 ])
