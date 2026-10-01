@@ -5,6 +5,7 @@ import Information from '../components/website/Information'
 import PostsSection from '../components/website/PostsSection'
 import AlbumsSection from '../components/website/AlbumsSection'
 import HomeMediaGallery from '../components/website/HomeMediaGallery'
+import VillageLocalCards from '../components/website/VillageLocalCards'
 import { getWebsiteInformation } from '../services/websiteService'
 import { listPublishedPosts } from '../services/postService'
 import { listVisibleAlbums } from '../services/albumService'
@@ -133,6 +134,7 @@ export default function Home() {
       {data.homepage?.topicTabs?.enabled !== false ? <HomeTopicTabs pages={data.pages} albums={data.albums} items={data.homepage?.topicTabs?.items} /> : null}
       {data.homepage?.pageCards ? <HomePageCards pages={data.pages} config={data.homepage.pageCards} /> : null}
       {data.homepage?.information?.enabled !== false ? <Information information={data.information} /> : null}
+      <VillageLocalCards information={data.information} />
       {data.homepage?.posts?.enabled !== false ? <PostsSection posts={data.posts.slice(0, data.homepage?.posts?.limit || 6)} title={data.homepage?.posts?.title} /> : null}
       {data.homepage?.mediaGallery?.enabled !== false ? <HomeMediaGallery albums={data.albums} media={data.media} title={data.homepage?.mediaGallery?.title} subtitle={data.homepage?.mediaGallery?.subtitle} showAll={data.homepage?.mediaGallery?.showAll} albumIds={data.homepage?.mediaGallery?.albumIds} /> : null}
       {data.homepage?.albums?.enabled !== false ? <AlbumsSection albums={data.albums.slice(0, data.homepage?.albums?.limit || 4)} /> : null}
