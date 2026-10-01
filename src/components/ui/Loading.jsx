@@ -1,3 +1,5 @@
-export default function Loading({ label = 'লোড হচ্ছে…' }) {
-  return <div className="ui-state" role="status" aria-live="polite">{label}</div>
+import Skeleton from './Skeleton'
+
+export default function Loading({ label = 'লোড হচ্ছে…', variant = 'page' }) {
+  return <Skeleton label={label} variant={variant} />
 }
