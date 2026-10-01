@@ -1,5 +1,6 @@
 import { createElement, useState } from 'react'
 import { supabase } from '../../service/supabase/supabase_client'
+import { global_auto_input } from '../form/global_auto_input'
 
 export function user_account_settings() {
   const [password, set_password] = useState('')
@@ -13,7 +14,7 @@ export function user_account_settings() {
   }
 
   return createElement('form', { onSubmit: update_password, className: 'user-account-settings' },
-    createElement('label', null, 'New Password', createElement('input', { type: 'password', value: password, onChange: (event) => set_password(event.target.value), minLength: 8, required: true })),
+    createElement(global_auto_input, { field_name: 'password', label: 'New Password', value: password, on_change: set_password, input_method: 'text', type: 'password', minLength: 8, required: true }),
     createElement('button', { type: 'submit' }, 'Update Password'),
     createElement('span', null, message)
   )
