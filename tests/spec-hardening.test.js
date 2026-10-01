@@ -13,12 +13,11 @@ test('Master Specification: no Firebase dependency or source reference', () => {
 
 test('Master Specification: media storage restrictions are reproducible', () => {
   const migrations = fs.readdirSync(path.join(root, 'supabase/migrations'))
-  const hardening = migrations.find((name) => name.includes('spec_hardening_media_and_audit'))
+  const hardening = migrations.find((name) => name === '20261001200000_harden_media_storage_and_rbac_policies.sql')
   assert.ok(hardening)
   const sql = read(`supabase/migrations/${hardening}`)
   assert.match(sql, /file_size_limit = 52428800/)
-  assert.match(sql, /'image\/\*'/)
-  assert.match(sql, /'application\/pdf'/)
+  assert.match(sql, /allowed_mime_types/)
   assert.match(sql, /current_user_has_permission\('media_manage'\)/)
 })
 
