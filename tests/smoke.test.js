@@ -14,7 +14,7 @@ describe('project smoke tests', () => {
   it('keeps the build and test scripts defined', async () => {
     const pkg = JSON.parse(await read('package.json'))
     assert.equal(typeof pkg.scripts.build, 'string')
-    assert.equal(pkg.scripts.test, 'node --test tests/smoke.test.js')
+    assert.equal(pkg.scripts.test, 'node --test tests/*.test.js')
   })
 
   it('keeps production deployment on main and Pages fallback enabled', async () => {
@@ -39,11 +39,11 @@ describe('project smoke tests', () => {
 
   it('protects every admin route with an explicit permission guard', async () => {
     const app = await read('src/App.jsx')
-    assert.match(app, /import AdminRoute from ['"]\.\/components\/auth\/AdminRoute['"]/)
+    assert.match(app, /import AdminRoute from ['"]\.\/components\/auth\/AdminRoute['"]/) 
     assert.match(app, /AdminRoute><Dashboard/)
     assert.match(app, /permission="content_manage"><PagesManagement/)
     assert.match(app, /permission="content_manage"><PostsManagement/)
-    assert.match(app, /permission="content_manage"><AlbumsManagement/)
+    assert.match(app, /permission="media_manage"><AlbumsManagement/)
     assert.match(app, /permission="media_manage"><MediaManagement/)
     assert.match(app, /permission="user_manage"><UsersManagement/)
     assert.match(app, /permission="audit_view"><AuditLogs/)
@@ -69,7 +69,7 @@ describe('project smoke tests', () => {
 
   it('keeps the admin-access RPC reproducible in migrations', async () => {
     const migration = await read('supabase/migrations/20261001200500_add_admin_access_guard_rpc.sql')
-    assert.match(migration, /current_user_has_admin_access/) 
+    assert.match(migration, /current_user_has_admin_access/)
     assert.match(migration, /grant execute on function public\.current_user_has_admin_access\(\) to authenticated/)
   })
 })
