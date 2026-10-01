@@ -22,10 +22,19 @@ function pad(value) {
 }
 
 function informationForLocation(location, language) {
-  if (!location.latitude || !location.longitude) return null
+  const parts = language === 'bng'
+    ? [location.union, location.upazila, location.district, location.division].filter(Boolean)
+    : [location.union, location.upazila, location.district, location.division].filter(Boolean)
   const lat = Number(location.latitude).toFixed(4)
   const lon = Number(location.longitude).toFixed(4)
-  return <p className="village-local-card__coordinates">{language === 'bng' ? 'স্থানাঙ্ক: ' : 'Coordinates: '}{lat}, {lon}</p>
+  return (
+    <>
+      {parts.length ? <p className="village-local-card__address">{parts.join(language === 'bng' ? ' • ' : ' • ')}</p> : null}
+      {Number.isFinite(Number(location.latitude)) && Number.isFinite(Number(location.longitude))
+        ? <p className="village-local-card__coordinates">{language === 'bng' ? 'স্থানাঙ্ক: ' : 'Coordinates: '}{lat}, {lon}</p>
+        : null}
+    </>
+  )
 }
 
 function TimeCard({ location, language, information }) {
