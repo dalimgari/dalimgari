@@ -16,9 +16,19 @@ describe('project smoke tests', () => {
     expect(pkg.scripts.test).toBe('node --test tests/smoke.test.js')
   })
 
-  it('keeps the production workflow pointed at main', async () => {
+  it('keeps production deployment on main and Pages fallback enabled', async () => {
     const workflow = await read('.github/workflows/deploy.yml')
     expect(workflow).toContain('branches: [main]')
+    expect(workflow).toContain('npm test')
+    expect(workflow).toContain('cp dist/index.html dist/404.html')
+    expect(workflow).toContain('VITE_BASE_PATH: /dalimgari/')
+    expect(workflow).toContain('SITE_URL: https://dalimgari.github.io/dalimgari')
+  })
+
+  it('keeps the dedicated automated-test workflow on Node 22', async () => {
+    const workflow = await read('.github/workflows/tests.yml')
+    expect(workflow).toContain('node-version: 22')
+    expect(workflow).toContain('run: npm test')
   })
 
   it('keeps the application route helper present', async () => {
