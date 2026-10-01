@@ -7,7 +7,7 @@ import AlbumsSection from '../components/website/AlbumsSection'
 import { getWebsiteInformation } from '../services/websiteService'
 import { listPublishedPosts } from '../services/postService'
 import { listVisibleAlbums } from '../services/albumService'
-import { Loading } from '../components/ui'
+import Skeleton from '../components/ui/Skeleton'
 
 const NAVIGATION_ITEMS = [
   { label: 'হোম', href: '/' },
@@ -47,7 +47,7 @@ export default function Home() {
 
   return (
     <Layout navigationItems={NAVIGATION_ITEMS}>
-      {status === 'loading' ? <Loading variant="home" /> : null}
+      {status === 'loading' ? <Skeleton variant="home" /> : null}
 
       <Banner
         siteName={data.information?.village_name}
