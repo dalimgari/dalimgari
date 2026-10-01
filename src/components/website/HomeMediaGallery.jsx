@@ -8,17 +8,17 @@ function mediaKind(media) {
   return null
 }
 
-export default function HomeMediaGallery({ albums = [], media = [] }) {
+export default function HomeMediaGallery({ albums = [], media = [], title = 'গ্যালারি', subtitle = 'ছবি ও ভিডিও', showAll = true, albumIds = [] }) {
   const [activeAlbum, setActiveAlbum] = useState('all')
   const [viewer, setViewer] = useState(null)
 
   const galleryMedia = useMemo(
-    () => media.filter((item) => mediaKind(item) && (activeAlbum === 'all' || item.album_id === activeAlbum)),
+    () => media.filter((item) => mediaKind(item) && (activeAlbum === 'all' || item.album_id === activeAlbum) && (!albumIds?.length || albumIds.includes(item.album_id))),
     [media, activeAlbum],
   )
 
   const visibleAlbums = useMemo(
-    () => albums.filter((album) => media.some((item) => item.album_id === album.album_id && mediaKind(item))),
+    () => albums.filter((album) => (!albumIds?.length || albumIds.includes(album.album_id)) && media.some((item) => item.album_id === album.album_id && mediaKind(item))),
     [albums, media],
   )
 
@@ -27,8 +27,8 @@ export default function HomeMediaGallery({ albums = [], media = [] }) {
       <div className="site-container">
         <div className="section-heading">
           <div>
-            <p className="section-kicker">ছবি ও ভিডিও</p>
-            <h2 id="home-media-title">গ্যালারি</h2>
+            <p className="section-kicker">{subtitle}</p>
+            <h2 id="home-media-title">{title}</h2>
           </div>
           <a className="content-card__link" href="/albums">সব অ্যালবাম দেখুন</a>
         </div>
@@ -36,7 +36,7 @@ export default function HomeMediaGallery({ albums = [], media = [] }) {
         {visibleAlbums.length || media.some((item) => mediaKind(item)) ? (
           <>
             <div className="gallery-tabs" role="tablist" aria-label="গ্যালারি অ্যালবাম">
-              <button
+              {showAll ? <button
                 type="button"
                 role="tab"
                 aria-selected={activeAlbum === 'all'}
@@ -44,7 +44,7 @@ export default function HomeMediaGallery({ albums = [], media = [] }) {
                 onClick={() => setActiveAlbum('all')}
               >
                 সব
-              </button>
+              </button> : null}
               {visibleAlbums.map((album) => (
                 <button
                   type="button"
