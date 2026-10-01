@@ -21,7 +21,7 @@ const NAVIGATION_ITEMS = [
 
 const TOPIC_ALIASES = [
   { label: 'প্রকৃতি', words: ['প্রকৃতি', 'প্রাকৃতিক', 'nature'] },
-  { label: 'গ্রামবাসী', words: ['গ্রামবাসী', 'মানুষ', 'people', 'villagers'] },
+  { label: 'গ্রামবাসী', words: ['গ্রামবাসী', 'মানুষ', 'সমাজ', 'people', 'villagers'] },
   { label: 'ইতিহাস', words: ['ইতিহাস', 'history'] },
   { label: 'ঐতিহ্য', words: ['ঐতিহ্য', 'সংস্কৃতি', 'heritage', 'culture'] },
 ]
