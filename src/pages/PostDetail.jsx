@@ -23,7 +23,7 @@ export default function PostDetail({ postId }) {
     return () => { active = false }
   }, [postId])
 
-  const seoDescription = post?.description ? post.description.slice(0, 160) : 'দালিমগাড়ীর প্রকাশিত পোস্ট।'
+  const seoDescription = post?.description ? post.description.slice(0, 160) : null
 
   return <Layout
     seoTitle={post?.title || null}
