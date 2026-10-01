@@ -9,7 +9,7 @@ const DEFAULT_LOCATION = {
 export function resolveVillageLocation(information = {}) {
   const raw = String(information.map_location || '')
   const matches = raw.match(/(-?\\d+(?:\\.\\d+)?)\\s*[,;]\\s*(-?\\d+(?:\\.\\d+)?)/)
-  if (!matches) return { ...DEFAULT_LOCATION }
+  if (!matches) return { ...DEFAULT_LOCATION, nameBn: information.village_name || DEFAULT_LOCATION.nameBn, division: information.division || '', district: information.district || '', upazila: information.upazila_name || '', union: information.union_name || '' }
 
   const latitude = Number(matches[1])
   const longitude = Number(matches[2])
@@ -21,6 +21,10 @@ export function resolveVillageLocation(information = {}) {
     longitude,
     nameBn: information.village_name || DEFAULT_LOCATION.nameBn,
     nameEn: DEFAULT_LOCATION.nameEn,
+    division: information.division || '',
+    district: information.district || '',
+    upazila: information.upazila_name || '',
+    union: information.union_name || '',
   }
 }
 
