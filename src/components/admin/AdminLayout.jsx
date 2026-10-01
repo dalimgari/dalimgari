@@ -58,7 +58,7 @@ export default function AdminLayout({ user, title, children }) {
         <div className="site-container admin-header__inner">
           <div>
             <p className="admin-header__eyebrow">অ্যাডমিন</p>
-            <h1 className="admin-header__title">দালিমগাড়ী নিয়ন্ত্রণ প্যানেল</h1>
+            <h1 className="admin-header__title">ডালিমগাড়ী নিয়ন্ত্রণ প্যানেল</h1>
           </div>
           <Button variant="secondary" disabled={loggingOut} onClick={handleLogout}>
             {loggingOut ? 'লগআউট হচ্ছে…' : 'লগআউট'}
