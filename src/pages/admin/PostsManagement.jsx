@@ -43,7 +43,7 @@ export default function PostsManagement() {
 
   useEffect(() => {
     if (status === 'loading') return
-    if (!user) { window.location.href = '/login'; return }
+    if (!user) { window.location.href = (import.meta.env.BASE_URL || '/') + 'login'; return }
     load().catch((e) => { setError(e); setReady(true) })
   }, [status, user])
 
