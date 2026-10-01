@@ -10,11 +10,11 @@ Each method has its own file. Every method exposes a configuration object and a 
 - `control`: UI control family.
 - `supports`: supported renderer properties/capabilities.
 - renderer receives the shared field props: `label`, `value`, `on_change`, `placeholder`, `disabled`, `required` and method-specific props.
-- media-based methods reuse the existing global media uploader; they do not create a second upload system.
+- media/image/file fields route directly to `global_media_uploader`; no separate input wrapper is used.
 - system/read-only fields are rendered as non-editable controls.
 
 ## Methods
 
-text, textarea, rich_text, email, phone, url, slug, image, file, media, number, date, datetime, switch, select, multi_select, relation, json, system.
+text, textarea, rich_text, email, phone, url, slug, media_uploader, number, date, datetime, switch, select, multi_select, relation, json, system.
 
 Do not add per-form input implementations when a method can be represented by this registry. Add or extend a method here, then let the global auto input route to it.
