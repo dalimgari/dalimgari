@@ -15,6 +15,7 @@ import AuditLogs from './pages/admin/AuditLogs'
 import PageDetail from './pages/PageDetail'
 import PostDetail from './pages/PostDetail'
 import Information from './pages/Information'
+import NotFound from './pages/NotFound'
 import Skeleton from './components/ui/Skeleton'
 
 function getPath() {
@@ -39,12 +40,13 @@ function RouteView({ path, children }) {
 
 export default function App() {
   const path = getPath()
-  let page = <Home />
+  let page = <NotFound />
 
   const pageMatch = path.match(/^\/pages\/([^/]+)$/)
   const postMatch = path.match(/^\/posts\/([^/]+)$/)
 
-  if (pageMatch) page = <PageDetail slug={decodeURIComponent(pageMatch[1])} />
+  if (path === '/') page = <Home />
+  else if (pageMatch) page = <PageDetail slug={decodeURIComponent(pageMatch[1])} />
   else if (postMatch) page = <PostDetail postId={decodeURIComponent(postMatch[1])} />
   else if (path === '/posts') page = <Posts />
   else if (path === '/albums') page = <Albums />
