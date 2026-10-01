@@ -16,7 +16,7 @@ export default function App() {
   if (path === '/albums') return <Albums />
   if (path === '/search') return <Search />
   if (path === '/login') return <Login />
-  if (path === '/admin') return <ControlPanel />
+  if (path === '/admin' || path === '/admin/website-information') return <ControlPanel />
 
   return <Home />
 }
