@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://dalimgari.github.io/dalimgari/sitemap.xml
