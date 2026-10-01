@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import { applyTheme, getDeviceClass, getLanguagePreference, getThemePreference, resolveTheme, setLanguagePreference, setThemePreference, subscribeToSystemTheme } from '../services/devicePreferenceService'
+import { applyTheme, getDeviceClass, getLanguagePreference, getThemePreference, resolveTheme, setLanguagePreference, setThemePreference, subscribeToSystemTheme } from '../services/devicePreferenceService'\nimport { enableBengaliNumerals } from '../services/bengaliLanguageService'
 
 const PreferencesContext = createContext(null)
 
