@@ -75,3 +75,35 @@ export async function deleteMediaRecord(media) {
   const { error } = await supabase.from('media').delete().eq('media_id', media.media_id)
   if (error) throw error
 }
+
+
+export async function createExternalMediaRecord({ url, mediaType = 'image', fileName = '', albumId = null, isVisible = true }) {
+  const userId = await currentUserId()
+  if (!url) throw new Error('Media URL is required')
+  const { data, error } = await supabase.from('media').insert({
+    media_key: crypto.randomUUID(),
+    media_type: mediaType,
+    file_name: fileName || url.split('/').pop()?.split('?')[0] || 'external-media',
+    mime_type: mediaType === 'video' ? 'video/external' : 'image/external',
+    file_size: null,
+    storage_path: null,
+    media_url: url,
+    album_id: albumId || null,
+    is_visible: isVisible,
+    created_by: userId,
+  }).select('*').single()
+  if (error) throw error
+  return data
+}
+
+export async function updateMediaRecord(mediaId, values) {
+  const { data, error } = await supabase.from('media').update({
+    media_url: values.media_url ?? null,
+    album_id: values.album_id || null,
+    is_visible: values.is_visible !== false,
+    file_name: values.file_name || null,
+    media_type: values.media_type || 'image',
+  }).eq('media_id', mediaId).select('*').single()
+  if (error) throw error
+  return data
+}
