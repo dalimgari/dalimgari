@@ -39,9 +39,7 @@ export default function PostDetail({ postId }) {
         {post.media?.length ? <div className="media-grid">
           {post.media.map((media) => {
             const url = media.media_url || getMediaPublicUrl(media.storage_path)
-            return url ? <figure className="media-card" key={media.media_id}>
-              <button className="media-card__button" type="button" onClick={() => setViewer({ url, alt: media.file_name || post.title })} aria-label="ছবি বড় করে দেখুন"><img src={url} alt={media.file_name || post.title} loading="lazy" /></button>
-            </figure> : null
+            return url ? <figure className="media-card" key={media.media_id}>{media.media_type === 'video' ? <iframe src={url.includes('youtube.com/watch?v=') ? url.replace('watch?v=','embed/') : url} title={media.file_name || post.title} loading="lazy" allowFullScreen /> : <button className="media-card__button" type="button" onClick={() => setViewer({ url, alt: media.file_name || post.title })} aria-label="ছবি বড় করে দেখুন"><img src={url} alt={media.file_name || post.title} loading="lazy" /></button>}</figure> : null
           })}
         </div> : null}
       </article> : null}
