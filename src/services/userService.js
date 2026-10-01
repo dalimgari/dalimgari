@@ -2,7 +2,7 @@ import { supabase } from '../lib/supabase'
 
 export async function listManagedUsers() {
   if (!supabase) throw new Error('Supabase is not configured')
-  const { data, error } = await supabase.from('profiles').select('profile_id,email,phone,display_name,bio,link,profile_image_url,is_active,user_roles(role_id,roles(role_key,role_name))').order('created_at', { ascending: false })
+  const { data, error } = await supabase.from('profiles').select('profile_id,email,phone,display_name,bio,link,profile_image_url,is_active,is_protected,user_roles(role_id,roles(role_key,role_name))').order('created_at', { ascending: false })
   if (error) throw error
   return data ?? []
 }
