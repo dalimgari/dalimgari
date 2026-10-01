@@ -18,9 +18,9 @@ export async function listManagedMedia() {
   return data ?? []
 }
 
-export function getMediaPublicUrl(storagePath) {
-  if (!supabase || !storagePath) return null
-  return supabase.storage.from(MEDIA_BUCKET).getPublicUrl(storagePath).data.publicUrl
+export function getMediaPublicUrl(storagePath, mediaUrl = null) {
+  if (storagePath && supabase) return supabase.storage.from(MEDIA_BUCKET).getPublicUrl(storagePath).data.publicUrl
+  return mediaUrl || null
 }
 
 export async function uploadMediaObject(path, file, options = {}) {
@@ -52,7 +52,7 @@ export async function createMediaRecord({ file, albumId = null, isVisible = true
   try {
     const { data, error } = await supabase.from('media').insert({
       media_key: crypto.randomUUID(),
-      media_type: file.type.startsWith('image/') ? 'image' : 'file',
+      media_type: file.type.startsWith('image/') ? 'image' : file.type.startsWith('video/') ? 'video' : 'file',
       file_name: file.name,
       mime_type: file.type || null,
       file_size: file.size,
