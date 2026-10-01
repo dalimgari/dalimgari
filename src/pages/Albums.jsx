@@ -43,7 +43,7 @@ export default function Albums() {
         {mediaByAlbum[album.album_id]?.length ? <div className="media-grid">
           {mediaByAlbum[album.album_id].map((media) => {
             const url = getMediaUrl(media)
-            return url ? <figure className="media-card" key={media.media_id}><button className="media-card__button" type="button" onClick={() => setViewer({ url, alt: media.file_name || album.title })} aria-label="ছবি বড় করে দেখুন"><img src={url} alt={media.file_name || album.title} loading="lazy" /></button></figure> : null
+            return url ? <figure className="media-card" key={media.media_id}>{media.media_type === 'video' ? <iframe src={url.includes('youtube.com/watch?v=') ? url.replace('watch?v=','embed/') : url} title={media.file_name || album.title} loading="lazy" allowFullScreen /> : <button className="media-card__button" type="button" onClick={() => setViewer({ url, alt: media.file_name || album.title })} aria-label="ছবি বড় করে দেখুন"><img src={url} alt={media.file_name || album.title} loading="lazy" /></button>}</figure> : null
           })}
         </div> : <p>এই অ্যালবামে এখনও কোনো ছবি নেই।</p>}
       </section>) : null}
