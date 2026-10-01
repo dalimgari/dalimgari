@@ -133,16 +133,7 @@ export default function HomepageManagement() {
         <Input id="albums-limit" type="number" min="1" max="20" label="অ্যালবাম সংখ্যা" value={config.albums.limit || 4} onChange={(e) => update('albums', 'limit', Number(e.target.value) || 4)} />
       </section>
 
-      <section className="admin-form">
-        <h3>Sidebar</h3>
-        <Checkbox id="sidebar-enabled" label="Sidebar দেখান" checked={config.sidebar.enabled !== false} onChange={(e) => update('sidebar', 'enabled', e.target.checked)} />
-        <p className="admin-intro">Sidebar-এর কনটেন্টও Page Presenter হিসেবে থাকবে। এখানে শুধু বিদ্যমান পেজের লিংক ব্যবহার করুন।</p>
-        <textarea className="ui-input" rows="8" value={JSON.stringify({ items: config.sidebar.items || [], cards: config.sidebar.cards || [] }, null, 2)} onChange={(e) => {
-          try { const v = JSON.parse(e.target.value); setConfig((c) => ({ ...c, sidebar: { ...c.sidebar, ...v } })); setError(null) } catch { setError(new Error('Sidebar JSON সঠিক নয়।')) }
-        }} />
-      </section>
-
-      <div className="admin-form__actions"><Button type="submit" disabled={saving}>{saving ? 'সংরক্ষণ হচ্ছে…' : 'হোমপেজ সেটিংস সংরক্ষণ করুন'}</Button></div>
+<div className="admin-form__actions"><Button type="submit" disabled={saving}>{saving ? 'সংরক্ষণ হচ্ছে…' : 'হোমপেজ সেটিংস সংরক্ষণ করুন'}</Button></div>
       {error ? <ErrorState description={error.message || 'সেটিংস সংরক্ষণ করা যায়নি।'} /> : null}
     </form>
   </AdminLayout>
