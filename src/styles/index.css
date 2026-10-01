@@ -26,9 +26,94 @@ select {
 button:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
-select:focus-visible {
+select:focus-visible,
+a:focus-visible {
   outline: 3px solid #93c5fd;
   outline-offset: 2px;
+}
+
+a {
+  color: inherit;
+}
+
+.site-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.site-container {
+  width: min(100% - 2rem, 72rem);
+  margin-inline: auto;
+}
+
+.site-header {
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.site-header__inner {
+  min-height: 4.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.site-brand {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  text-decoration: none;
+}
+
+.site-brand__name {
+  font-size: 1.25rem;
+  font-weight: 750;
+}
+
+.site-brand__slogan {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.site-nav {
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.site-nav__inner {
+  display: flex;
+  gap: 0.25rem;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.site-nav__link {
+  flex: 0 0 auto;
+  padding: 0.8rem 0.75rem;
+  text-decoration: none;
+  color: #334155;
+}
+
+.site-nav__link:hover {
+  background: #f1f5f9;
+}
+
+.site-main {
+  flex: 1;
+  width: 100%;
+}
+
+.site-footer {
+  margin-top: auto;
+  padding: 1.25rem 0;
+  background: #fff;
+  border-top: 1px solid #e5e7eb;
+}
+
+.site-footer p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.875rem;
 }
 
 .app-shell {
@@ -141,4 +226,22 @@ p {
 
 .ui-state p {
   margin-bottom: 0;
+}
+
+@media (max-width: 640px) {
+  .site-container {
+    width: min(100% - 1.25rem, 72rem);
+  }
+
+  .site-header__inner {
+    min-height: 4rem;
+  }
+
+  .site-brand__name {
+    font-size: 1.1rem;
+  }
+
+  .site-nav__link {
+    padding: 0.7rem 0.6rem;
+  }
 }
