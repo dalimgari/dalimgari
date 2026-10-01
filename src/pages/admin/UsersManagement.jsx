@@ -66,7 +66,7 @@ export default function UsersManagement() {
         <div className="admin-list">
           {users.map((item) => {
             const current = item.user_roles?.[0]?.role_id || ''
-            const isProtectedAdmin = item.is_protected === true || item.email === 'dalimgariofficial@gmail.com'
+            const isProtectedAdmin = item.is_protected === true
             return (
               <article className="admin-list__item" key={item.profile_id}>
                 <div>
