@@ -1,4 +1,4 @@
-export default function Footer({ copyrightText = '© 2026. All rights reserved.' }) {
+export default function Footer({ copyrightText }) {
   return (
     <footer className="site-footer">
       <div className="site-container">
