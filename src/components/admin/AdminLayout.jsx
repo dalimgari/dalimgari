@@ -47,7 +47,7 @@ export default function AdminLayout({ user, title, children }) {
   return <div className="admin-layout">
     <header className="admin-header"><div className="site-container admin-header__inner">
       <div className="admin-header__identity">
-        <button className="admin-sidebar-toggle" type="button" aria-expanded={menuOpen} aria-controls="admin-sidebar" onClick={() => setMenuOpen((value) => !value)}>{menuOpen ? '✕' : '☰'} <span className="sr-only">অ্যাডমিন মেনু</span></button>
+        <button className="admin-sidebar-toggle" type="button" aria-expanded={menuOpen} aria-controls="admin-sidebar" onClick={() => setMenuOpen((value) => !value)}>{menuOpen ? '✕' : '☰'} <span className="sr-only">{menuOpen ? 'অ্যাডমিন মেনু বন্ধ করুন' : 'অ্যাডমিন মেনু খুলুন'}</span></button>
         <div><p className="admin-header__eyebrow">অ্যাডমিন</p><h1 className="admin-header__title">{siteName ? `${siteName} নিয়ন্ত্রণ প্যানেল` : 'নিয়ন্ত্রণ প্যানেল'}</h1></div>
       </div>
       <div className="admin-header__actions"><a className="ui-button ui-button--secondary" href={appPath('/profile')}>প্রোফাইল</a><Button variant="secondary" disabled={loggingOut} onClick={handleLogout}>{loggingOut ? 'লগআউট হচ্ছে…' : 'লগআউট'}</Button></div>
@@ -55,7 +55,7 @@ export default function AdminLayout({ user, title, children }) {
     <div className="admin-body">
       <aside id="admin-sidebar" className={`admin-sidebar${menuOpen ? ' is-open' : ''}`}>
         <nav className="admin-sidebar__nav" aria-label="অ্যাডমিন নেভিগেশন">
-          {visibleNav.map((item) => <a key={item.path} href={appPath(item.path)} onClick={() => setMenuOpen(false)}>{item.label}</a>)}
+          {visibleNav.length > 0 ? visibleNav.map((item) => <a key={item.path} href={appPath(item.path)} onClick={() => setMenuOpen(false)}>{item.label}</a>) : <p className="admin-sidebar__empty">এই অ্যাকাউন্টের জন্য কোনো মেনু পাওয়া যায়নি।</p>}
           <a href={appPath('/')} onClick={() => setMenuOpen(false)}>সাইট দেখুন</a>
         </nav>
         <p className="admin-nav__user">{user?.email || ''}</p>
