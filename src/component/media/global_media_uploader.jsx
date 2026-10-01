@@ -10,11 +10,13 @@ export function global_media_uploader({
   initial_url = '',
   value,
   disabled = false,
-  method = 'media_uploader'
+  method = 'media_uploader',
+  field_name = ''
 }) {
   const id = useId()
   const resolved_initial_url = value ?? initial_url ?? ''
-  const resolved_accept = method === 'image' ? 'image/*' : accept
+  const image_field = /(^|_)(image|avatar|logo|icon|thumbnail|cover)(_|$)/i.test(String(field_name))
+  const resolved_accept = image_field ? 'image/*' : accept
   const [media_url, set_media_url] = useState(resolved_initial_url)
   const [library, set_library] = useState([])
   const [selected, set_selected] = useState(null)
