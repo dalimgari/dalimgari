@@ -37,6 +37,8 @@ export default function AdminLayout({ user, title, children }) {
           <a href="/admin/posts">পোস্ট</a>
           <a href="/admin/albums">অ্যালবাম</a>
           <a href="/admin/media">মিডিয়া</a>
+          <a href="/admin/users">ইউজার</a>
+          <a href="/admin/audit">অডিট</a>
           <span className="admin-nav__user">{user?.email || ''}</span>
         </div>
       </nav>
