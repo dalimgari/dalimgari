@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { signOut } from '../../services/authService'
 import { Button } from '../ui'
+import { appPath } from '../../lib/routes'
 
 export default function AdminLayout({ user, title, children }) {
   const [loggingOut, setLoggingOut] = useState(false)
@@ -9,7 +10,7 @@ export default function AdminLayout({ user, title, children }) {
     setLoggingOut(true)
     try {
       await signOut()
-      window.location.href = '/login'
+      window.location.href = appPath('/login')
     } catch (error) {
       setLoggingOut(false)
       window.alert(error?.message || 'লগআউট করা যায়নি।')
@@ -31,14 +32,14 @@ export default function AdminLayout({ user, title, children }) {
       </header>
       <nav className="admin-nav" aria-label="অ্যাডমিন নেভিগেশন">
         <div className="site-container admin-nav__inner">
-          <a href="/admin">ড্যাশবোর্ড</a>
-          <a href="/admin/website-information">ওয়েবসাইট তথ্য</a>
-          <a href="/admin/pages">পেজসমূহ</a>
-          <a href="/admin/posts">পোস্ট</a>
-          <a href="/admin/albums">অ্যালবাম</a>
-          <a href="/admin/media">মিডিয়া</a>
-          <a href="/admin/users">ইউজার</a>
-          <a href="/admin/audit">অডিট</a>
+          <a href={appPath('/admin')}>ড্যাশবোর্ড</a>
+          <a href={appPath('/admin/website-information')}>ওয়েবসাইট তথ্য</a>
+          <a href={appPath('/admin/pages')}>পেজসমূহ</a>
+          <a href={appPath('/admin/posts')}>পোস্ট</a>
+          <a href={appPath('/admin/albums')}>অ্যালবাম</a>
+          <a href={appPath('/admin/media')}>মিডিয়া</a>
+          <a href={appPath('/admin/users')}>ইউজার</a>
+          <a href={appPath('/admin/audit')}>অডিট</a>
           <span className="admin-nav__user">{user?.email || ''}</span>
         </div>
       </nav>
