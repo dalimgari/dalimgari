@@ -34,7 +34,7 @@ export async function updateWebsiteInformation(values) {
       : Number(values.population),
     established_date: values.established_date || null,
     map_location: values.map_location ?? null,
-    copyright_text: values.copyright_text || '© 2026. All rights reserved.',
+    copyright_text: values.copyright_text || null,
   }
 
   const { data, error } = await supabase
