@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Layout } from '../components/layout'
-import { Loading, EmptyState, ErrorState } from '../components/ui'
+import { Loading, EmptyState, ErrorState, MediaContent } from '../components/ui'
 import { listVisibleAlbums } from '../services/albumService'
-import { listVisibleMedia, getMediaPublicUrl } from '../services/mediaService'
+import { listVisibleMedia } from '../services/mediaService'
 import MediaViewer from '../components/ui/MediaViewer'
-
-function getMediaUrl(media) { return media.media_url || getMediaPublicUrl(media.storage_path) }
 
 export default function Albums() {
   const [albums, setAlbums] = useState([])
@@ -41,11 +39,8 @@ export default function Albums() {
         <h2>{album.title}</h2>
         {album.description ? <p>{album.description}</p> : null}
         {mediaByAlbum[album.album_id]?.length ? <div className="media-grid">
-          {mediaByAlbum[album.album_id].map((media) => {
-            const url = getMediaUrl(media)
-            return url ? <figure className="media-card" key={media.media_id}>{media.media_type === 'video' ? <iframe src={url.includes('youtube.com/watch?v=') ? url.replace('watch?v=','embed/') : url} title={media.file_name || album.title} loading="lazy" allowFullScreen /> : <button className="media-card__button" type="button" onClick={() => setViewer({ url, alt: media.file_name || album.title })} aria-label="ছবি বড় করে দেখুন"><img src={url} alt={media.file_name || album.title} loading="lazy" /></button>}</figure> : null
-          })}
-        </div> : <p>এই অ্যালবামে এখনও কোনো ছবি নেই।</p>}
+          {mediaByAlbum[album.album_id].map((media) => <figure className="media-card" key={media.media_id}><MediaContent media={media} title={media.file_name || album.title} onImageOpen={setViewer} /></figure>)}
+        </div> : <p>এই অ্যালবামে এখনও কোনো মিডিয়া নেই।</p>}
       </section>) : null}
       {viewer ? <MediaViewer {...viewer} onClose={() => setViewer(null)} /> : null}
     </div></section>
