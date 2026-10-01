@@ -45,7 +45,7 @@ export default function Home() {
     }
   }, [])
 
-  const siteName = data.information?.village_name || 'দালিমগাড়ী'
+  const siteName = data.information?.village_name || 'ডালিমগাড়ী'
   const slogan = data.information?.slogan || ''
   const copyrightText = data.information?.copyright_text || '© 2026. All rights reserved.'
 
