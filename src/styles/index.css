@@ -312,3 +312,12 @@ p {
 @media (max-width: 800px) {
   .admin-page-grid { grid-template-columns: 1fr; }
 }
+
+
+.admin-media-grid { margin-top: 1rem; }
+.admin-media-card { padding: .75rem; }
+.admin-media-card img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: .5rem; }
+.admin-media-card p { margin: .6rem 0; overflow-wrap: anywhere; }
+.content-card--detail { max-width: 52rem; margin: 0 auto; }
+.content-meta { color: #64748b; font-size: .875rem; }
+.rich-content { white-space: pre-wrap; line-height: 1.8; }
