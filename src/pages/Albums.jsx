@@ -35,7 +35,7 @@ export default function Albums() {
       {status === 'loading' ? <Loading /> : null}
       {status === 'error' ? <ErrorState description={error?.message || 'অ্যালবাম লোড করা যায়নি।'} /> : null}
       {status === 'ready' && !albums.length ? <EmptyState description="এখনও কোনো দৃশ্যমান অ্যালবাম নেই।" /> : null}
-      {status === 'ready' && albums.length ? albums.map((album) => <section className="album-block" key={album.album_id}>
+      {status === 'ready' && albums.length ? albums.map((album) => <section className="album-block" id={`album-${album.album_id}`} key={album.album_id}>
         <h2>{album.title}</h2>
         {album.description ? <p>{album.description}</p> : null}
         {mediaByAlbum[album.album_id]?.length ? <div className="media-grid">
