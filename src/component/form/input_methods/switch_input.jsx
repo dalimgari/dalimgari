@@ -1,0 +1,2 @@
+export const SWITCH_INPUT_CONFIG=Object.freeze({method:'switch',control:'checkbox',type:'checkbox',supports:['label','value','disabled']})
+export function SwitchInput({label,value=false,on_change=()=>{},disabled=false}){return <label className="admin-form-check"><input type="checkbox" checked={Boolean(value)} disabled={disabled} onChange={e=>on_change(e.target.checked)}/><span>{label}</span></label>}
