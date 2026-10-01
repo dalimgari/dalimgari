@@ -33,15 +33,23 @@ function findTopicPage(pages, words) {
   })
 }
 
-function HomeTopicTabs({ pages = [] }) {
-  const topicPages = TOPIC_ALIASES
-    .map((topic) => ({ ...topic, page: findTopicPage(pages, topic.words) }))
-    .filter(({ page }) => page)
-  const items = [
-    { label: 'গ্রামের তথ্য', href: '/information' },
-    ...topicPages.map(({ label, page }) => ({ label, href: `/pages/${encodeURIComponent(page.page_slug)}` })),
-    { label: 'ছবি ও ভিডিও', href: '#media-gallery' },
-  ]
+function HomeTopicTabs({ pages = [], albums = [] }) {
+  const items = [{ label: 'গ্রামের তথ্য', href: '/information' }]
+
+  TOPIC_ALIASES.forEach(({ label, words }) => {
+    const page = findTopicPage(pages, words)
+    if (page) {
+      items.push({ label, href: `/pages/${encodeURIComponent(page.page_slug)}` })
+      return
+    }
+    const album = albums.find((item) => {
+      const text = [item.title, item.description].filter(Boolean).join(' ').toLowerCase()
+      return words.some((word) => text.includes(word.toLowerCase()))
+    })
+    if (album) items.push({ label, href: `/albums#album-${album.album_id}` })
+  })
+
+  items.push({ label: 'ছবি ও ভিডিও', href: '#media-gallery' })
 
   return (
     <nav className="home-topic-tabs site-container" aria-label="গ্রামের বিষয়সমূহ">
@@ -91,7 +99,7 @@ export default function Home() {
         siteName={data.information?.village_name}
         slogan={data.information?.slogan}
       />
-      <HomeTopicTabs pages={data.pages} />
+      <HomeTopicTabs pages={data.pages} albums={data.albums} />
       <Information information={data.information} />
       <PostsSection posts={data.posts} />
       <HomeMediaGallery albums={data.albums} media={data.media} />
