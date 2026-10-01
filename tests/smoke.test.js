@@ -36,4 +36,40 @@ describe('project smoke tests', () => {
     const routes = await read('src/lib/routes.js')
     assert.match(routes, /export function appPath/)
   })
+
+  it('protects every admin route with an explicit permission guard', async () => {
+    const app = await read('src/App.jsx')
+    assert.match(app, /import AdminRoute from ['"]\.\/components\/auth\/AdminRoute['"]/)
+    assert.match(app, /AdminRoute><Dashboard/)
+    assert.match(app, /permission="content_manage"><PagesManagement/)
+    assert.match(app, /permission="content_manage"><PostsManagement/)
+    assert.match(app, /permission="content_manage"><AlbumsManagement/)
+    assert.match(app, /permission="media_manage"><MediaManagement/)
+    assert.match(app, /permission="user_manage"><UsersManagement/)
+    assert.match(app, /permission="audit_view"><AuditLogs/)
+    assert.match(app, /permission="settings_manage"><ControlPanel/)
+  })
+
+  it('keeps the admin guard backed by Supabase permission RPCs', async () => {
+    const guard = await read('src/components/auth/AdminRoute.jsx')
+    const permissionService = await read('src/services/permissionService.js')
+    assert.match(guard, /hasAdminAccess, hasPermission/)
+    assert.match(guard, /window\.location\.replace\(appPath\('\/login'\)\)/)
+    assert.match(permissionService, /current_user_has_permission/)
+    assert.match(permissionService, /current_user_has_admin_access/)
+  })
+
+  it('keeps storage hardening reproducible in migrations', async () => {
+    const migration = await read('supabase/migrations/20261001200000_harden_media_storage_and_rbac_policies.sql')
+    assert.match(migration, /file_size_limit = 52428800/)
+    assert.match(migration, /allowed_mime_types/)
+    assert.match(migration, /to authenticated/)
+    assert.match(migration, /current_user_has_permission\('media_manage'\)/)
+  })
+
+  it('keeps the admin-access RPC reproducible in migrations', async () => {
+    const migration = await read('supabase/migrations/20261001200500_add_admin_access_guard_rpc.sql')
+    assert.match(migration, /current_user_has_admin_access/) 
+    assert.match(migration, /grant execute on function public\.current_user_has_admin_access\(\) to authenticated/)
+  })
 })
