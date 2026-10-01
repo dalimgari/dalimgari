@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Home from './pages/Home'
 import Posts from './pages/Posts'
 import Albums from './pages/Albums'
@@ -27,13 +27,7 @@ function getPath() {
   return window.location.pathname.replace(new RegExp(`^${escapedBase}`), '').replace(/\/$/, '') || '/'
 }
 
-function RouteView({ path, children }) {
-  const [ready, setReady] = useState(false)
-  useEffect(() => { setReady(true) }, [path])
-  if (!ready) {
-    const variant = path === '/' ? 'home' : path.match(/^\/(pages|posts)\//) ? 'detail' : 'page'
-    return <Skeleton variant={variant} />
-  }
+function RouteView({ children }) {
   return children
 }
 
@@ -67,5 +61,5 @@ export default function App() {
   else if (path === '/login') page = <Login />
   else if (path === '/profile') page = <UserRoute><Profile /></UserRoute>
 
-  return <RouteView path={path}>{page}</RouteView>
+  return <RouteView>{page}</RouteView>
 }
