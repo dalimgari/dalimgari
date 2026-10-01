@@ -17,6 +17,7 @@ import PostDetail from './pages/PostDetail'
 import Information from './pages/Information'
 import NotFound from './pages/NotFound'
 import Skeleton from './components/ui/Skeleton'
+import AdminRoute from './components/auth/AdminRoute'
 
 function getPath() {
   const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
@@ -38,29 +39,35 @@ function RouteView({ path, children }) {
   return children
 }
 
+function adminPage(path) {
+  if (path === '/admin') return <AdminRoute><Dashboard /></AdminRoute>
+  if (path === '/admin/pages') return <AdminRoute permission="content_manage"><PagesManagement /></AdminRoute>
+  if (path === '/admin/posts') return <AdminRoute permission="content_manage"><PostsManagement /></AdminRoute>
+  if (path === '/admin/albums') return <AdminRoute permission="content_manage"><AlbumsManagement /></AdminRoute>
+  if (path === '/admin/media') return <AdminRoute permission="media_manage"><MediaManagement /></AdminRoute>
+  if (path === '/admin/users') return <AdminRoute permission="user_manage"><UsersManagement /></AdminRoute>
+  if (path === '/admin/audit') return <AdminRoute permission="audit_view"><AuditLogs /></AdminRoute>
+  if (path === '/admin/website-information') return <AdminRoute permission="settings_manage"><ControlPanel /></AdminRoute>
+  return null
+}
+
 export default function App() {
   const path = getPath()
   let page = <NotFound />
 
   const pageMatch = path.match(/^\/pages\/([^/]+)$/)
   const postMatch = path.match(/^\/posts\/([^/]+)$/)
+  const admin = path.startsWith('/admin') ? adminPage(path) : null
 
-  if (path === '/') page = <Home />
+  if (admin) page = admin
   else if (pageMatch) page = <PageDetail slug={decodeURIComponent(pageMatch[1])} />
   else if (postMatch) page = <PostDetail postId={decodeURIComponent(postMatch[1])} />
+  else if (path === '/') page = <Home />
   else if (path === '/posts') page = <Posts />
   else if (path === '/albums') page = <Albums />
   else if (path === '/search') page = <Search />
   else if (path === '/information') page = <Information />
   else if (path === '/login') page = <Login />
-  else if (path === '/admin') page = <Dashboard />
-  else if (path === '/admin/pages') page = <PagesManagement />
-  else if (path === '/admin/posts') page = <PostsManagement />
-  else if (path === '/admin/albums') page = <AlbumsManagement />
-  else if (path === '/admin/media') page = <MediaManagement />
-  else if (path === '/admin/users') page = <UsersManagement />
-  else if (path === '/admin/audit') page = <AuditLogs />
-  else if (path === '/admin/website-information') page = <ControlPanel />
 
   return <RouteView path={path}>{page}</RouteView>
 }
