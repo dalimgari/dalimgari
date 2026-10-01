@@ -23,11 +23,9 @@ const FIELDS = [
   { key: 'copyright_text', label: 'কপিরাইট', type: 'text', inputMethod: 'text' },
 ]
 
-const DEFAULT_COPYRIGHT = '© 2026. All rights reserved.'
-
 function toFormValues(data) {
   return FIELDS.reduce((values, field) => {
-    values[field.key] = data?.[field.key] ?? (field.key === 'copyright_text' ? DEFAULT_COPYRIGHT : '')
+    values[field.key] = data?.[field.key] ?? ''
     return values
   }, {})
 }
