@@ -8,6 +8,8 @@ import PagesManagement from './pages/admin/PagesManagement'
 import PostsManagement from './pages/admin/PostsManagement'
 import AlbumsManagement from './pages/admin/AlbumsManagement'
 import MediaManagement from './pages/admin/MediaManagement'
+import UsersManagement from './pages/admin/UsersManagement'
+import AuditLogs from './pages/admin/AuditLogs'
 import PageDetail from './pages/PageDetail'
 import PostDetail from './pages/PostDetail'
 
@@ -30,6 +32,8 @@ export default function App() {
   if (path === '/admin/posts') return <PostsManagement />
   if (path === '/admin/albums') return <AlbumsManagement />
   if (path === '/admin/media') return <MediaManagement />
+  if (path === '/admin/users') return <UsersManagement />
+  if (path === '/admin/audit') return <AuditLogs />
   if (path === '/admin' || path === '/admin/website-information') return <ControlPanel />
   return <Home />
 }
