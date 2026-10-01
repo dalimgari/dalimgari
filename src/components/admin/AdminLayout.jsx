@@ -9,7 +9,7 @@ const adminNavItems = [
   { label: 'ওয়েবসাইট তথ্য', path: '/admin/website-information', permission: 'settings_manage' },
   { label: 'পেজসমূহ', path: '/admin/pages', permission: 'content_manage' },
   { label: 'পোস্ট', path: '/admin/posts', permission: 'content_manage' },
-  { label: 'অ্যালবাম', path: '/admin/albums', permission: 'content_manage' },
+  { label: 'অ্যালবাম', path: '/admin/albums', permission: 'media_manage' },
   { label: 'মিডিয়া', path: '/admin/media', permission: 'media_manage' },
   { label: 'ইউজার', path: '/admin/users', permission: 'user_manage' },
   { label: 'অডিট', path: '/admin/audit', permission: 'audit_view' },
@@ -51,9 +51,8 @@ export default function AdminLayout({ user, title, children }) {
     try {
       await signOut()
       window.location.href = appPath('/login')
-    } catch (error) {
+    } catch {
       setLoggingOut(false)
-      window.alert(error?.message || 'লগআউট করা যায়নি।')
     }
   }
 
