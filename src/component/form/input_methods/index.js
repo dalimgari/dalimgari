@@ -11,7 +11,7 @@ import { media_input, MEDIA_INPUT_CONFIG } from './media_input'
 import { number_input, NUMBER_INPUT_CONFIG } from './number_input'
 import { date_input, DATE_INPUT_CONFIG } from './date_input'
 import { datetime_input, DATETIME_INPUT_CONFIG } from './datetime_input'
-import { switch_input, SWITCH_INPUT_CONFIG } from './switch_input'
+import { SwitchInput, SWITCH_INPUT_CONFIG } from './switch_input'
 import { select_input, SELECT_INPUT_CONFIG } from './select_input'
 import { multi_select_input, MULTI_SELECT_INPUT_CONFIG } from './multi_select_input'
 import { relation_input, RELATION_INPUT_CONFIG } from './relation_input'
@@ -32,7 +32,7 @@ export const GLOBAL_INPUT_REGISTRY = Object.freeze({
   number: { ...NUMBER_INPUT_CONFIG, component: number_input },
   date: { ...DATE_INPUT_CONFIG, component: date_input },
   datetime: { ...DATETIME_INPUT_CONFIG, component: datetime_input },
-  switch: { ...SWITCH_INPUT_CONFIG, component: switch_input },
+  switch: { ...SWITCH_INPUT_CONFIG, component: SwitchInput },
   select: { ...SELECT_INPUT_CONFIG, component: select_input },
   multi_select: { ...MULTI_SELECT_INPUT_CONFIG, component: multi_select_input },
   relation: { ...RELATION_INPUT_CONFIG, component: relation_input },
