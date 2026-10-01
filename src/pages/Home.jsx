@@ -2,7 +2,11 @@ import { useEffect, useState } from 'react'
 import { Layout } from '../components/layout'
 import Banner from '../components/website/Banner'
 import Information from '../components/website/Information'
+import PostsSection from '../components/website/PostsSection'
+import AlbumsSection from '../components/website/AlbumsSection'
 import { getWebsiteInformation } from '../services/websiteService'
+import { listPublishedPosts } from '../services/postService'
+import { listVisibleAlbums } from '../services/albumService'
 import { Loading, ErrorState } from '../components/ui'
 
 const NAVIGATION_ITEMS = [
@@ -13,17 +17,21 @@ const NAVIGATION_ITEMS = [
 ]
 
 export default function Home() {
-  const [information, setInformation] = useState(null)
+  const [data, setData] = useState({ information: null, posts: [], albums: [] })
   const [status, setStatus] = useState('loading')
   const [error, setError] = useState(null)
 
   useEffect(() => {
     let active = true
 
-    getWebsiteInformation()
-      .then((data) => {
+    Promise.all([
+      getWebsiteInformation(),
+      listPublishedPosts({ limit: 30 }),
+      listVisibleAlbums(),
+    ])
+      .then(([information, posts, albums]) => {
         if (!active) return
-        setInformation(data)
+        setData({ information, posts, albums })
         setStatus('ready')
       })
       .catch((requestError) => {
@@ -37,9 +45,9 @@ export default function Home() {
     }
   }, [])
 
-  const siteName = information?.village_name || 'দালিমগাড়ী'
-  const slogan = information?.slogan || ''
-  const copyrightText = information?.copyright_text || '© 2026. All rights reserved.'
+  const siteName = data.information?.village_name || 'দালিমগাড়ী'
+  const slogan = data.information?.slogan || ''
+  const copyrightText = data.information?.copyright_text || '© 2026. All rights reserved.'
 
   return (
     <Layout
@@ -55,7 +63,9 @@ export default function Home() {
       {status === 'ready' ? (
         <>
           <Banner siteName={siteName} slogan={slogan} />
-          <Information information={information} />
+          <Information information={data.information} />
+          <PostsSection posts={data.posts} />
+          <AlbumsSection albums={data.albums} />
         </>
       ) : null}
     </Layout>
