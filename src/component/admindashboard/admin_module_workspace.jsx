@@ -530,5 +530,4 @@ function posts_workspace() {
     )
   )
 }
-
-}
+ 
