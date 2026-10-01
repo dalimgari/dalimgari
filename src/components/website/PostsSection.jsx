@@ -1,8 +1,8 @@
-export default function PostsSection({ posts = [] }) {
+export default function PostsSection({ posts = [], title = 'সাম্প্রতিক পোস্ট' }) {
   return (
     <section className="home-section" aria-labelledby="latest-posts-title">
       <div className="site-container">
-        <h2 id="latest-posts-title">সাম্প্রতিক পোস্ট</h2>
+        <h2 id="latest-posts-title">{title}</h2>
         {posts.length ? (
           <div className="content-grid">
             {posts.map((post) => (
