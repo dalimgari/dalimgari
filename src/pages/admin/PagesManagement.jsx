@@ -53,8 +53,14 @@ export default function PagesManagement() {
   const [error, setError] = useState(null)
 
   async function load() {
-    const [permission, data] = await Promise.all([hasPermission('content_manage'), listManagedPages()])
+    const permission = await hasPermission('content_manage')
     setAllowed(permission)
+    if (!permission) {
+      setPages([])
+      setReady(true)
+      return
+    }
+    const data = await listManagedPages()
     setPages(data)
     setReady(true)
   }
