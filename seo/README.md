@@ -1,0 +1,1 @@
+SEO assets are maintained in the public directory: robots.txt, sitemap.xml, and favicon.svg. Public route metadata is maintained in the application source.
