@@ -50,8 +50,7 @@ const SYSTEM_EXACT = new Set([
 ])
 
 const SYSTEM_PATTERNS = [
-  /^(created|updated|assigned|actor|created_by|updated_by|assigned_by|retention)_/i,
-  /_id$/i
+  /^(created|updated|assigned|actor|created_by|updated_by|assigned_by|retention)_/i
 ]
 
 const IMAGE_PATTERNS = [
@@ -152,6 +151,13 @@ export function resolve_global_input_method({
     }
   }
 
+  if (relation) {
+    return {
+      method: 'relation',
+      source: 'relation'
+    }
+  }
+
   if (system || is_system_field(name)) {
     return {
       method: 'system',
@@ -164,13 +170,6 @@ export function resolve_global_input_method({
     return {
       method: enum_resolved,
       source: 'enum'
-    }
-  }
-
-  if (relation) {
-    return {
-      method: 'relation',
-      source: 'relation'
     }
   }
 
