@@ -15,6 +15,11 @@ function applyThemeSettings(settings, theme) {
   const palette = settings?.[theme] || {}
   const wallpaper = palette.wallpaper || ''
   if (wallpaper) root.style.setProperty('--rural-wallpaper', `url("${wallpaper}")`)
+  const icons = palette.icons || {}
+  if (icons.color) root.style.setProperty('--theme-icon-color', String(icons.color))
+  if (icons.size) root.style.setProperty('--theme-icon-size', String(icons.size))
+  if (icons.strokeWidth) root.style.setProperty('--theme-icon-stroke-width', String(icons.strokeWidth))
+  if (icons.opacity) root.style.setProperty('--theme-icon-opacity', String(icons.opacity))
   const colors = palette.colors || {}
   const states = palette.states || {}
   const interaction = palette.interaction || {}
