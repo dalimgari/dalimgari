@@ -21,9 +21,9 @@ export default function Information({ information }) {
       <div className="site-container">
         <h2 id="village-information-title">গ্রামের তথ্য</h2>
         {items.length ? (
-          <dl className="info-grid">
+          <dl className="information-document">
             {items.map(([label, value]) => (
-              <div className="info-card" key={label}>
+              <div className="information-document__row" key={label}>
                 <dt>{label}</dt>
                 <dd>{String(value)}</dd>
               </div>
