@@ -1,0 +1,9 @@
+SHARED ARCHITECTURE
+
+Shared/common components: UI, Layout, Loading, Form System, Input Registry, shared services, Supabase client ও Website Service।
+
+Common patterns: same component pattern, form pattern, label pattern, validation pattern, responsive pattern ও permission pattern।
+
+Child functionality parent feature architecture-এর মধ্যে থাকবে। একই functionality অপ্রয়োজনীয়ভাবে duplicate করা যাবে না।
+
+Single Source of Truth: Database → Service/Data Layer → UI।
