@@ -7,6 +7,9 @@ import './styles/index.css'
 import './styles/enhancements.css'
 import './styles/local-cards-scroll.css'
 import './styles/information.css'
+import { initHorizontalAutoScroll } from './lib/horizontalAutoScroll.js'
+
+initHorizontalAutoScroll()
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
