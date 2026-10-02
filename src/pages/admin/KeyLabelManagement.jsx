@@ -35,7 +35,6 @@ export default function KeyLabelManagement() {
 
   useEffect(() => {
     let active = true
-    setLoading(true)
     listGlobalLabels()
       .then((data) => {
         if (active) setLabels(data)
@@ -64,6 +63,13 @@ export default function KeyLabelManagement() {
     setEnglish(row.eng || '')
     setBangla(row.bng || '')
     setQuery(row.key)
+    setNotice('')
+    setError(null)
+  }
+
+  function startNewSearch(value) {
+    setQuery(value)
+    setSelected(null)
     setNotice('')
     setError(null)
   }
@@ -132,11 +138,7 @@ export default function KeyLabelManagement() {
               className="ui-input"
               type="search"
               value={query}
-              onChange={(event) => {
-                setQuery(event.target.value)
-                if (!normalize(event.target.value)) setSelected(null)
-                setNotice('')
-              }}
+              onChange={(event) => startNewSearch(event.target.value)}
               placeholder="Key name / English label / বাংলা label"
               autoComplete="off"
               aria-controls="key-label-suggestions"
@@ -198,7 +200,7 @@ export default function KeyLabelManagement() {
                 <button type="submit" className="ui-button" disabled={saving}>
                   {saving ? 'রাখা হচ্ছে…' : 'রাখা'}
                 </button>
-                <button type="button" className="ui-button ui-button--secondary" onClick={() => { setSelected(null); setQuery(''); setNotice(''); setError(null) }} disabled={saving}>
+                <button type="button" className="ui-button ui-button--secondary" onClick={() => startNewSearch('')} disabled={saving}>
                   বন্ধ
                 </button>
               </div>
