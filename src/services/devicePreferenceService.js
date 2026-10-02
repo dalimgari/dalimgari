@@ -1,4 +1,4 @@
-const KEYS = { theme: 'dalimgari_theme_preference', language: 'dalimgari_language_preference' }
+const KEYS = { theme: 'dalimgari_theme_preference', language: 'dalimgari_language_preference_v2' }
 
 function read(key) {
   try { return window.localStorage.getItem(key) } catch { return null }
