@@ -15,9 +15,10 @@ export default function ProfileAvatar({
     let active = true
 
     async function load() {
+      let fallback = ''
       try {
         // The database-managed default avatar is the single fallback source.
-        const fallback = await getDefaultProfileAvatarUrl()
+        fallback = await getDefaultProfileAvatarUrl()
         if (!active) return
         setFallbackUrl(fallback)
 
@@ -32,7 +33,7 @@ export default function ProfileAvatar({
         if (!active) return
         // Keep the database fallback if it was resolved before a profile
         // lookup failed; never expose a broken/empty profile image.
-        setAvatarUrl(fallbackUrl)
+        setAvatarUrl(fallback)
       }
     }
 
