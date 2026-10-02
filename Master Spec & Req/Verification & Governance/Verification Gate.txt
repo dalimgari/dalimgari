@@ -1,0 +1,13 @@
+VERIFICATION GATE
+
+Every project change:
+Actual project files/code inspect
+→ Relevant database/schema/config inspect
+→ Real problem identify
+→ Targeted change
+→ Build/test/verification
+→ Result report
+
+No assumption about field, table, column, function, route, permission, RLS, service, configuration, bug or connection.
+
+Specification is not evidence of existing implementation.
