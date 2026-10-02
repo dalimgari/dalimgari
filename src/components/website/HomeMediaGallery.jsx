@@ -1,3 +1,4 @@
+import { appPath } from '../../lib/routes'
 import { useMemo, useState } from 'react'
 import { MediaContent } from '../ui'
 import MediaViewer from '../ui/MediaViewer'
@@ -30,7 +31,7 @@ export default function HomeMediaGallery({ albums = [], media = [], title = 'গ
             <p className="section-kicker">{subtitle}</p>
             <h2 id="home-media-title">{title}</h2>
           </div>
-          <a className="content-card__link" href="/albums">সব অ্যালবাম দেখুন</a>
+          <a className="content-card__link" href={appPath('/albums')}>সব অ্যালবাম দেখুন</a>
         </div>
 
         {visibleAlbums.length || media.some((item) => mediaKind(item)) ? (
