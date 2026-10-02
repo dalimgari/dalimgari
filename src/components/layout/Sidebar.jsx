@@ -1,5 +1,6 @@
 import { usePreferences } from '../../context/PreferencesContext'
 import { appPath } from '../../lib/routes'
+import { useGlobalLabels } from '../../context'
 
 const ICONS = {
   home: <><path d="M3 11.5 12 4l9 7.5" /><path d="M5.5 10.5V20h13v-9.5" /><path d="M9 20v-5h6v5" /></>,
@@ -40,9 +41,10 @@ function iconKeyFor(item) {
 
 export default function Sidebar({ items = [], open, onClose }) {
   const { theme, language, setThemePreference, setLanguagePreference } = usePreferences()
+  const { t } = useGlobalLabels()
   const targetLanguageLabel = language === 'bng' ? 'English' : 'বাংলা'
   const translatedItems = items.map((item) => ({ ...item, label: language === 'eng' ? (ENGLISH_LABELS[item.label] || item.label) : item.label }))
-  const homeItem = translatedItems.find((item) => item.href === '/') || { label: language === 'eng' ? 'Home' : 'হোম', href: '/' }
+  const homeItem = translatedItems.find((item) => item.href === '/') || { label: t('home', 'হোম', 'Home'), href: '/' }
   const menuItems = translatedItems.filter((item) => item.href !== '/')
 
   function toggleTheme() {
@@ -51,14 +53,14 @@ export default function Sidebar({ items = [], open, onClose }) {
 
   return (
     <>
-      <button data-no-translate="true" className={'rural-sidebar__backdrop' + (open ? ' is-visible' : '')} aria-label={language === 'eng' ? 'Close village menu' : 'উঠান বন্ধ করুন'} onClick={onClose} />
-      <aside className={'rural-sidebar' + (open ? ' is-open' : '')} aria-label={language === 'eng' ? 'Village menu' : 'গ্রামের উঠান'}>
+      <button data-no-translate="true" className={'rural-sidebar__backdrop' + (open ? ' is-visible' : '')} aria-label={t('close_village_menu', 'উঠান বন্ধ করুন', 'Close village menu')} onClick={onClose} />
+      <aside className={'rural-sidebar' + (open ? ' is-open' : '')} aria-label={t('village_menu', 'গ্রামের উঠান', 'Village menu')}>
         <a className="rural-sidebar__home" href={appPath(homeItem.href)} onClick={onClose} aria-current={window.location.pathname.endsWith('/') ? 'page' : undefined}>
           <RuralIcon name="home" />
           <span>{homeItem.label}</span>
         </a>
 
-        <nav className="rural-sidebar__nav" aria-label={language === 'eng' ? 'Village navigation' : 'গ্রামের নেভিগেশন'}>
+        <nav className="rural-sidebar__nav" aria-label={t('village_navigation', 'গ্রামের নেভিগেশন', 'Village navigation')}>
           {menuItems.map((item) => (
             <a key={item.href} href={appPath(item.href)} onClick={onClose} aria-current={window.location.pathname === appPath(item.href) ? 'page' : undefined}>
               <RuralIcon name={iconKeyFor(item)} />
@@ -70,7 +72,7 @@ export default function Sidebar({ items = [], open, onClose }) {
         <div className="rural-sidebar__tools">
           <button type="button" onClick={toggleTheme}>
             <RuralIcon name={theme === 'dark' ? 'sun' : 'moon'} />
-            <span>{theme === 'dark' ? 'দিনের আলো' : 'রাতের আবহ'}</span>
+            <span>{theme === 'dark' ? t('day', 'দিনের আলো', 'Day') : t('night', 'রাতের আবহ', 'Night')}</span>
           </button>
           <button data-no-translate="true" type="button" aria-label={targetLanguageLabel} onClick={() => setLanguagePreference(language === 'bng' ? 'eng' : 'bng')}>
             <RuralIcon name="leaf" />
