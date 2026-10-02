@@ -4,6 +4,7 @@ import { ErrorState, Loading } from '../components/ui'
 import { supabase } from '../lib/supabase'
 import { signInWithPassword, signInWithOAuth, resetPasswordForEmail, updatePassword } from '../services/authService'
 import { appPath } from '../lib/routes'
+import { useAuth } from '../context'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -12,6 +13,12 @@ export default function Login() {
   const [status, setStatus] = useState('idle')
   const [message, setMessage] = useState(null)
   const [error, setError] = useState(null)
+
+  const { user, status: authStatus } = useAuth()
+
+  useEffect(() => {
+    if (authStatus === 'ready' && user && mode === 'login') window.location.replace(appPath('/admin'))
+  }, [authStatus, user, mode])
 
   useEffect(() => {
     if (!supabase) return undefined
