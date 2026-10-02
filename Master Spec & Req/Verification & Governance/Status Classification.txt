@@ -1,0 +1,15 @@
+STATUS CLASSIFICATION
+
+CONFIRMED:
+Actual project files/code/database/config থেকে verified।
+
+DEFINED:
+User specification/requirement হিসেবে নির্ধারিত।
+
+SHEET INVENTORY:
+User-supplied spreadsheet inventory; automatically actual database schema নয়।
+
+VERIFICATION REQUIRED:
+Specification/implementation relationship বা current state audit করে নিশ্চিত করা বাকি।
+
+Documentation-এ status mix করা যাবে না।
