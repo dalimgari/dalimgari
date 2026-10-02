@@ -16,6 +16,7 @@ const adminNavItems = [
   { label: 'মিডিয়া', path: '/admin/media', permission: 'media_manage' },
   { label: 'ইউজার', path: '/admin/users', permission: 'user_manage' },
   { label: 'অডিট', path: '/admin/audit', permission: 'audit_view' },
+  { label: 'পরিসংখ্যান', path: '/admin/analytics', permission: 'audit_view' },
 ]
 
 export default function AdminLayout({ user, title, children }) {
