@@ -1,0 +1,13 @@
+BACKUP BEFORE REBUILD
+
+Before complete delete/rebuild, preserve where applicable:
+
+Source: source code, repository information, configuration, branches/workflows।
+
+Supabase: project information, schema, data, tables, columns, relationships, RLS, policies, functions/RPC, migrations, storage configuration/files, auth configuration।
+
+Configuration: environment configuration, deployment configuration, GitHub Pages, Vite, domain/URL information, secure secrets।
+
+Content: pages, posts, media, albums, links, website information, village information, required user data ও other existing project data।
+
+Backup must happen before destructive rebuild operations.
