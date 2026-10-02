@@ -1,0 +1,21 @@
+DALIMGARI WEBSITE — OBJECTIVES
+
+Primary Objective: ডালিমগাড়ী গ্রামের মানুষের জন্য সহজ, পরিষ্কার, তথ্যভিত্তিক ও community-oriented digital platform তৈরি করা।
+
+User Objectives:
+- কম technical knowledge থাকা মানুষও সহজে ব্যবহার করতে পারবে।
+- Bengali-first ও mobile-first experience।
+- দ্রুত তথ্য খোঁজা ও দেখা।
+- গ্রামের পরিচয়, তথ্য, ইতিহাস, মানুষ, প্রকৃতি, ছবি ও ভিডিও সহজে পাওয়া।
+
+Administration Objectives:
+- Database-driven content management।
+- সহজ Create/View/Edit/Delete ও Search/Filter।
+- Consistent forms, labels, validation ও permissions।
+- Automatic value generation যেখানে নিরাপদ ও নির্ভরযোগ্য।
+
+Engineering Objectives:
+- Reusable, maintainable ও low-duplication code।
+- Secure authentication, RBAC ও RLS।
+- Reliable data flow ও responsive UI।
+- GitHub Pages deployment ও reproducible build।
