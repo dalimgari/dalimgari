@@ -37,7 +37,7 @@ export default function PageDetail({ slug }) {
       {status === 'loading' ? <Loading /> : null}
       {status === 'error' ? <ErrorState description={error?.message || 'পেজ লোড করা যায়নি।'} /> : null}
       {status === 'ready' && !page ? <EmptyState description="পেজটি পাওয়া যায়নি।" /> : null}
-      {page ? <article className="content-card content-card--detail"><p className="section-kicker">ডালিমগাড়ী কমিউনিটি তথ্য</p><h1>{page.page_title}</h1><ContentBlocks content={page.content} /></article> : null}
+      {page ? <article className="content-card content-card--detail"><h1>{page.page_title}</h1><ContentBlocks content={page.content} /></article> : null}
     </div></section>
   </Layout>
 }
