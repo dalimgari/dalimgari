@@ -1,0 +1,5 @@
+SYSTEM SETTINGS
+
+Defined inventory includes date format, time format, timezone, language, maintenance mode, email settings, notification settings, security settings ও session settings।
+
+These are specification/sheet requirements; actual storage form, JSON/config structure, table/entity boundary and editable/read-only behavior must be verified from implementation.
