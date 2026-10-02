@@ -1,0 +1,40 @@
+DALIMGARI WEBSITE — PROJECT RULES
+
+PRIORITY: P0 — READ BEFORE ANY WORK
+
+MANDATORY START RULE
+1. Before doing ANY work in this project, read this file first:
+   DALIMGARI_PROJECT_RULES.txt
+2. These rules are mandatory for all development, database, UI/UX, content, configuration, deployment, debugging and maintenance work.
+3. After reading this file, inspect the relevant project code, database/schema, configuration and existing implementation before making changes.
+
+P0 — NEVER BREAK
+4. No assumption: never assume a table, field, route, function, permission, RLS policy, relationship or configuration without verification.
+5. Preserve existing working functionality, data, relationships and valid project configuration.
+6. UI hiding is not security. Protected operations must be enforced by application authorization and Supabase RLS/database policies.
+7. Destructive changes require backup first.
+8. No change is Complete until it has been built/tested and actually verified.
+
+P1 — ARCHITECTURE & DATA
+9. Keep the flow: UI → Service/Data Layer → Supabase → Database/Storage/Auth.
+10. Use a single source of truth; avoid unnecessary duplicate data/configuration.
+11. Database schema changes must use a new timestamped migration. Never rewrite existing migration history to alter production history.
+12. Verify CRUD end-to-end: UI → Service → DB → Permission/RLS → resulting UI/data.
+13. Specification, actual implementation/database and spreadsheet inventory are separate sources. Never treat one as automatic proof of another.
+14. Existing specification/data structure must not be deleted, renamed, merged, split or retyped by assistant decision. Approved additions are additive.
+15. Never put secrets in source code or the repository.
+16. Firebase must not be introduced in new implementation.
+
+P2 — UX & ENGINEERING
+17. Bengali-first, mobile-first, responsive, accessible and simple/clean UX.
+18. Preserve the rural Bengal/community visual identity; avoid unnecessary urban/corporate styling.
+19. Automatic-first: do not ask users for values the system can reliably generate; allow safe manual override where appropriate.
+20. Reuse shared components and centralized logic; avoid duplicate/dead/unused code.
+21. User-facing errors must be human-readable; no raw technical errors.
+22. Prevent uncontrolled overflow, especially long URLs, filenames, metadata and media.
+23. Avoid unnecessary dependencies, large assets, repeated requests and inefficient operations.
+
+MANDATORY CHANGE WORKFLOW
+READ RULES → AUDIT ACTUAL PROJECT → IDENTIFY REAL PROBLEM → TARGETED CHANGE → BUILD/TEST → REAL VERIFICATION → REPORT RESULT
+
+END OF PROJECT RULES
