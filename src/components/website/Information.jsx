@@ -19,7 +19,7 @@ export default function Information({ information }) {
   return (
     <section className="home-section" aria-labelledby="village-information-title">
       <div className="site-container">
-        <h2 id="village-information-title">গ্রামের তথ্য</h2>
+        <h2 id="village-information-title">সাধারণ তথ্য</h2>
         {items.length ? (
           <dl className="information-document">
             {items.map(([label, value]) => (
