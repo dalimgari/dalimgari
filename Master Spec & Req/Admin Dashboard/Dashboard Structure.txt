@@ -1,0 +1,10 @@
+ADMIN DASHBOARD
+
+Structure:
+Header → Sidebar/Module Navigation → Selected Module/Tab → Forms/Tables/Cards/Actions → Status/Feedback।
+
+Admin navigation: module list, active module, selected tab, hierarchy, module switching, responsive/mobile sidebar।
+
+Module isolation: selected module/tab active থাকবে; selected interface-ই প্রদর্শিত হবে; অন্য module interface অপ্রত্যাশিতভাবে overlap করবে না।
+
+Common management: Create, View, Edit, Delete, Search, Filter, Visibility/Status where applicable।
