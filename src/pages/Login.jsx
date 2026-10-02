@@ -57,7 +57,7 @@ export default function Login() {
         {!isRecovery && mode === 'login' ? <button type="button" className="ui-button" onClick={handleOAuth} disabled={status === 'loading'}>Google দিয়ে লগইন</button> : null}
         {!isRecovery ? <>
           <button type="button" className="ui-button" onClick={() => { setMode(mode === 'login' ? 'reset' : 'login'); setError(null); setMessage(null) }} disabled={status === 'loading'}>{mode === 'login' ? 'পাসওয়ার্ড ভুলে গেছেন?' : 'লগইনে ফিরে যান'}</button>
-          {mode === 'login' ? <a className="ui-button" href={appPath('/signup')}>Create New Account</a> : null}
+          {mode === 'login' ? <a className="ui-button" href={appPath('/signup')} style={{ textDecoration: 'none', textAlign: 'center' }}>Create New Account</a> : null}
         </> : null}
       </form>
       {status === 'loading' ? <Loading /> : null}
