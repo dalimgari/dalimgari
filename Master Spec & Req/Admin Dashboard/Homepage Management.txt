@@ -1,0 +1,12 @@
+HOMEPAGE MANAGEMENT
+
+Homepage management is database-driven and follows the common Admin architecture.
+
+Defined management scope includes applicable homepage hero/banner, tabs, sections, gallery/media and homepage configuration/data.
+
+Management flow:
+Admin authentication → permission → management UI → service/data layer → Supabase → public homepage.
+
+Homepage-specific permissions/RLS must protect management operations; UI hiding alone is not security.
+
+Actual current routes, tables, RPCs and permissions are CONFIRMED only after project audit.
