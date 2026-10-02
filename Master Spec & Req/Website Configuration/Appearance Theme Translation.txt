@@ -1,0 +1,11 @@
+APPEARANCE / THEME / TRANSLATION
+
+Appearance: website logo, favicon, website name এবং appearance configuration where defined।
+
+Website Appearance inventory includes copyright text, font, font color, font size, hero banner, primary color ও secondary color।
+
+Theme: Day/Light + Night/Dark, dynamic switching, consistent surfaces/background/text contrast। Night mode must not simply place an unnecessary black overlay over the visual background where transparent canvas is intended।
+
+Translation: Bengali primary, English secondary; localized titles, navigation, public content ও UI labels।
+
+Appearance এবং Website Appearance spreadsheet entries actual separate entities/table হিসেবে ধরা যাবে না; implementation audit required।
