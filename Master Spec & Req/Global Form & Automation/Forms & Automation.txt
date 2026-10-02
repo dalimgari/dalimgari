@@ -1,0 +1,20 @@
+GLOBAL FORM SYSTEM
+
+Common structure: Label → Control → Validation → Help/Error → Action।
+
+Automatic functions:
+- Auto Input Method Selector
+- Auto Label System
+- Auto Validation
+- Automatic Metadata
+- Auto Default Value
+- Auto Slug
+- Auto Date/Time
+- Automatic Creator
+- Safe Manual Override
+
+Automatic-first: system reliably value তৈরি করতে পারলে unnecessary user input নয়।
+
+Forms: text, number, email, password, date, time, file, select, checkbox, radio, textarea support করবে।
+
+Admin forms: human-readable labels, grouping, required indication, validation, save/update, cancel/reset, responsive layout ও long-value containment।
