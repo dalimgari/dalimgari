@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react'
-import { signOut } from '../../services/authService'
 import { hasPermission } from '../../services/permissionService'
-import { Button } from '../ui'
 import { appPath } from '../../lib/routes'
 import Layout from '../layout/Layout'
 
@@ -20,7 +18,6 @@ const adminNavItems = [
 ]
 
 export default function AdminLayout({ user, title, children }) {
-  const [loggingOut, setLoggingOut] = useState(false)
   const [visibleNav, setVisibleNav] = useState([])
 
   useEffect(() => {
@@ -39,16 +36,6 @@ export default function AdminLayout({ user, title, children }) {
       })
     return () => { active = false }
   }, [user?.id])
-
-  async function handleLogout() {
-    setLoggingOut(true)
-    try {
-      await signOut()
-      window.location.href = appPath('/login')
-    } catch {
-      setLoggingOut(false)
-    }
-  }
 
   return (
     <Layout seoTitle={title}>
