@@ -16,7 +16,14 @@ export const DEFAULT_HOMEPAGE_CONFIG = {
   mediaGallery: { enabled: true, title: 'গ্যালারি', subtitle: 'ছবি ও ভিডিও', showAll: true, albumIds: [] },
   albums: { enabled: true, limit: 4, title: 'অ্যালবাম' },
   sidebar: { enabled: true, items: [], cards: [] },
-  horizontalAutoScroll: { enabled: true, intervalMs: 4000, pauseAfterInteractionMs: 60000 },
+  horizontalAutoScroll: {
+    enabled: true,
+    intervalMs: 4000,
+    durationMs: 650,
+    pauseAfterInteractionMs: 60000,
+    scrollType: 'smooth',
+    infiniteLoop: true,
+  },
 }
 
 function mergeConfig(config) {
