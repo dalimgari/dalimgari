@@ -51,3 +51,10 @@ MANDATORY CHANGE WORKFLOW
 READ RULES → AUDIT ACTUAL PROJECT → IDENTIFY REAL PROBLEM → TARGETED CHANGE → BUILD/TEST → REAL VERIFICATION → REPORT RESULT
 
 END OF PROJECT RULES
+
+UI SSOT — REQUIRED
+- The project uses a centralized UI Single Source of Truth at src/config/uiSSOT.js.
+- The SSOT structure is: globalLabels, navigationLabels, pageLabels, systemMessages, terminology.canonicalTerms.
+- Reusable UI labels, navigation labels, system messages, and canonical terminology must not be duplicated as independent hardcoded sources in components.
+- Runtime global label overrides continue to be supported through global_ui_labels/globalLabelService, while the SSOT remains the code-level default source.
+- New reusable UI text must be added to the appropriate SSOT category first and consumed through the global labels context or SSOT-derived APIs.
