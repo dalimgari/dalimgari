@@ -8,15 +8,16 @@ import { listManagedMedia } from '../../services/mediaService'
 import { listManagedUsers } from '../../services/userService'
 import { listAuditLogs } from '../../services/auditService'
 import { AdminLayout } from '../../components/admin'
+import { appPath } from '../../lib/routes'
 import { Loading, ErrorState } from '../../components/ui'
 
 const CARDS = [
-  ['pages', 'পেজ', 'content_manage', listManagedPages],
-  ['posts', 'পোস্ট', 'content_manage', listManagedPosts],
-  ['albums', 'অ্যালবাম', 'media_manage', listManagedAlbums],
-  ['media', 'মিডিয়া', 'media_manage', listManagedMedia],
-  ['users', 'ইউজার', 'user_manage', listManagedUsers],
-  ['audit', 'অডিট লগ', 'audit_view', listAuditLogs],
+  ['pages', 'পেজ', 'content_manage', listManagedPages, '/admin/pages'],
+  ['posts', 'পোস্ট', 'content_manage', listManagedPosts, '/admin/posts'],
+  ['albums', 'অ্যালবাম', 'media_manage', listManagedAlbums, '/admin/albums'],
+  ['media', 'মিডিয়া', 'media_manage', listManagedMedia, '/admin/media'],
+  ['users', 'ইউজার', 'user_manage', listManagedUsers, '/admin/users'],
+  ['audit', 'অডিট লগ', 'audit_view', listAuditLogs, '/admin/audit'],
 ]
 
 export default function Dashboard() {
@@ -66,11 +67,11 @@ export default function Dashboard() {
   return (
     <AdminLayout user={user} title="ড্যাশবোর্ড">
       <div className="content-grid admin-dashboard-grid">
-        {CARDS.filter(([key]) => counts[key] !== null).map(([key, label]) => (
-          <article className="content-card" key={key}>
-            <p className="eyebrow">{label}</p>
-            <p className="admin-dashboard-count">{counts[key] == null ? '—' : counts[key]}</p>
-          </article>
+        {CARDS.filter(([key]) => counts[key] !== null).map(([key, label, , , path]) => (
+          <a className="admin-dashboard-module" key={key} href={appPath(path)}>
+            <span>{label}</span>
+            <strong>{counts[key] == null ? '—' : counts[key]}</strong>
+          </a>
         ))}
       </div>
     </AdminLayout>
