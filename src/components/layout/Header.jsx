@@ -19,7 +19,8 @@ export default function Header({ pageTitle, onMenu, sidebarOpen, labels = {}, sh
     const item=labels[key]
     return language==='eng' ? (item?.eng||fallbackEn) : (item?.bng||item?.eng||fallbackBn)
   }
-  const isSecureArea = canonicalPath === '/profile' || canonicalPath.startsWith('/admin')
+  const isRoleProfile = /^\/(admin|manager|editor|moderator|user)\/profile$/.test(canonicalPath)
+  const isSecureArea = canonicalPath === '/profile' || canonicalPath.startsWith('/admin') || isRoleProfile
   const showLogout = status === 'ready' && !!user && isSecureArea
   const dashboardHref = status === 'ready' && user ? appPath('/dashboard') : appPath('/login')
   async function handleLogout() { try { await supabase.auth.signOut() } catch {} }
