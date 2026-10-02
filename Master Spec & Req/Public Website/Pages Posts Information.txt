@@ -1,0 +1,9 @@
+PUBLIC CONTENT
+
+Pages: database-driven, create/edit/delete, dynamic rendering, public visibility, navigation connection, individual rendering ও localized content।
+
+Posts: create/edit/delete, published/hidden status, ordering, content, post media, display ordering, hidden-media filtering, public rendering ও anchors।
+
+Information: village/site information public UI-তে human-friendly section/list/document layout-এ দেখানো হবে।
+
+Public content: published/visible data only; admin/private/internal/user data excluded।
