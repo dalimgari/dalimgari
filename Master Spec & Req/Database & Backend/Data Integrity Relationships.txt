@@ -1,0 +1,9 @@
+DATA INTEGRITY
+
+System must create valid records, update intended records, delete intended records, preserve relationships and correctly reflect current database data in public UI।
+
+Invalid data silently accept করা যাবে না। Visibility rules ও relationship integrity বজায় থাকবে।
+
+Database → Service/Data Layer → UI remains the single source flow।
+
+Spreadsheet inventory actual database schema হিসেবে automatically ধরা যাবে না।
