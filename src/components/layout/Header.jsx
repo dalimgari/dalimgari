@@ -21,7 +21,7 @@ export default function Header({ pageTitle, onMenu, sidebarOpen, labels = {}, sh
   }
   const isSecureArea = canonicalPath === '/profile' || canonicalPath.startsWith('/admin')
   const showLogout = status === 'ready' && !!user && isSecureArea
-  const dashboardHref = status === 'ready' && user ? appPath('/profile') : appPath('/login')
+  const dashboardHref = status === 'ready' && user ? appPath('/dashboard') : appPath('/login')
   async function handleLogout() { try { await supabase.auth.signOut() } catch {} }
   const menuLabel=sidebarOpen?text('close','বন্ধ','Close'):text('menu','উঠান','Menu')
   const searchLabel=text('search','খোঁজ','Search')
