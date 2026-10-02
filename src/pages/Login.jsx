@@ -49,13 +49,16 @@ export default function Login() {
   return <Layout navigationItems={[{ label: 'হোম', href: '/' }, { label: 'তথ্য', href: '/information' }, { label: 'পোস্ট', href: '/posts' }, { label: 'অ্যালবাম', href: '/albums' }]}>
     <section className="login-page"><div className="site-container login-page__container"><div className="login-card">
       <h1>{mode === 'reset' ? 'পাসওয়ার্ড পরিবর্তন' : isRecovery ? 'নতুন পাসওয়ার্ড সেট করুন' : 'লগইন'}</h1>
-      <a className="ui-button ui-button--secondary" href={appPath('/')}>হোমে ফিরে যান</a>
       <form className="admin-form" onSubmit={handleSubmit}>
         {mode !== 'new-password' ? <><label htmlFor="admin-email">ইমেইল</label><input id="admin-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" /></> : null}
         {mode !== 'reset' ? <><label htmlFor="admin-password">পাসওয়ার্ড</label><input id="admin-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} autoComplete={isRecovery ? 'new-password' : 'current-password'} /></> : null}
         <button type="submit" disabled={status === 'loading'}>{status === 'loading' ? 'অপেক্ষা করুন…' : mode === 'reset' ? 'রিসেট লিংক পাঠান' : isRecovery ? 'নতুন পাসওয়ার্ড সংরক্ষণ করুন' : 'লগইন'}</button>
         {!isRecovery && mode === 'login' ? <button type="button" className="ui-button ui-button--secondary" onClick={handleOAuth} disabled={status === 'loading'}>Google দিয়ে লগইন</button> : null}
-        {!isRecovery ? <button type="button" className="ui-button ui-button--secondary" onClick={() => { setMode(mode === 'login' ? 'reset' : 'login'); setError(null); setMessage(null) }} disabled={status === 'loading'}>{mode === 'login' ? 'পাসওয়ার্ড ভুলে গেছেন?' : 'লগইনে ফিরে যান'}</button> : null}
+        {!isRecovery ? <>
+          <button type="button" className="ui-button ui-button--secondary" onClick={() => { setMode(mode === 'login' ? 'reset' : 'login'); setError(null); setMessage(null) }} disabled={status === 'loading'}>{mode === 'login' ? 'পাসওয়ার্ড ভুলে গেছেন?' : 'লগইনে ফিরে যান'}</button>
+          {mode === 'login' ? <a className="ui-button ui-button--secondary" href={appPath('/signup')}>নতুন একাউন্ট বানান</a> : null}
+          {mode === 'login' ? <a className="ui-button ui-button--secondary" href={appPath('/')}>হোমে ফিরে যান</a> : null}
+        </> : null}
       </form>
       {status === 'loading' ? <Loading /> : null}
       {message ? <p className="admin-success">{message}</p> : null}
