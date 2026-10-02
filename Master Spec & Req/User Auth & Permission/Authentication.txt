@@ -1,0 +1,10 @@
+AUTHENTICATION
+
+Foundation: Supabase Auth।
+
+Required capabilities: login, password authentication, OAuth, password reset, auth state, protected pages, admin authentication, user authentication, branding/configuration where applicable।
+
+Flow:
+Supabase Auth → Authenticated Identity → Application User/Profile → Role → Permission → Allowed Data/Action।
+
+Secrets source code-এ রাখা যাবে না।
