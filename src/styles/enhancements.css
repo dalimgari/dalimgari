@@ -110,3 +110,10 @@ h1,h2,h3,h4,.site-brand__name,.rural-sidebar__heading,.ui-field label,.ui-label 
 @media(max-width:520px){.drag-reorder__item{min-height:2.85rem;padding:.5rem .6rem}.drag-reorder__hint{font-size:.78rem}}
 
 .admin-dashboard-module{display:flex;align-items:center;justify-content:space-between;gap:1rem;width:100%;min-height:clamp(4.5rem,8vw,6rem);padding:1rem 1.15rem;border:1px solid var(--theme-border,var(--color-border));border-radius:var(--theme-buttonRadius,.45rem);background:var(--theme-surfaceSoft,var(--color-surface-soft));color:var(--theme-earthDark,var(--color-earth-dark));text-decoration:none;box-shadow:0 2px 8px var(--theme-shadow,var(--color-shadow));transition:background .15s ease,border-color .15s ease,transform .15s ease,box-shadow .15s ease}.admin-dashboard-module:hover{background:var(--theme-hover,var(--color-hover));border-color:var(--theme-leaf,var(--color-leaf));transform:translateY(-1px);box-shadow:0 3px 10px var(--theme-shadow,var(--color-shadow))}.admin-dashboard-module span{font-weight:700}.admin-dashboard-module strong{font-size:clamp(1.5rem,3vw,2.2rem);line-height:1;font-weight:800}@media(max-width:520px){.admin-dashboard-module{min-height:4.25rem;padding:.85rem}.admin-dashboard-module strong{font-size:1.5rem}}
+
+.admin-inline-nav{justify-content:center;align-content:center;align-items:center;}
+.admin-module-button{flex:0 1 auto;min-height:2.65rem;padding:.55rem clamp(.75rem,1.5vw,1rem);white-space:nowrap;font-weight:650;}
+.admin-module-button.ui-button--secondary{background:var(--theme-surfaceSoft,var(--color-surface-soft));color:var(--theme-earthDark,var(--color-earth-dark));}
+.admin-module-button.ui-button--secondary:hover{background:var(--theme-hover,var(--color-hover));color:var(--theme-leafDark,var(--color-leaf-dark));transform:translateY(-1px);}
+.admin-module-button.ui-button--primary{box-shadow:0 3px 10px var(--theme-shadow,var(--color-shadow));}
+@media(max-width:760px){.admin-inline-nav{justify-content:center}.admin-module-button{min-height:2.5rem;padding-inline:.7rem;}}
