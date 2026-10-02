@@ -2,14 +2,7 @@ import { useState } from 'react'
 import { appPath } from '../../lib/routes'
 import { usePreferences } from '../../context/PreferencesContext'
 import KeyIcon from '../ui/KeyIcon'
-
-const LABELS = {
-  'হোম': 'Home',
-  'তথ্য': 'Information',
-  'পোস্ট': 'Posts',
-  'অ্যালবাম': 'Albums',
-  'সার্চ': 'Search',
-}
+import { useGlobalLabels } from '../../context'
 
 function iconKeyFor(label, href) {
   if (href === '/') return 'home'
@@ -25,16 +18,21 @@ function iconKeyFor(label, href) {
 export default function Navigation({ items = [] }) {
   const [open, setOpen] = useState(false)
   const { theme, language, setThemePreference, setLanguagePreference } = usePreferences()
+  const { t } = useGlobalLabels()
 
   const translatedItems = items.map((item) => ({
     ...item,
-    label: language === 'eng' ? (LABELS[item.label] || item.label) : item.label,
+    label: (() => {
+      const keys = { '/': 'home', '/information': 'information', '/posts': 'posts', '/albums': 'albums', '/search': 'search', '/profile': 'profile', '/login': 'login' }
+      const key = keys[item.href]
+      return key ? t(key, item.label, item.label) : item.label
+    })(),
   }))
   const hasSearch = items.some((item) => item.href === '/search')
   const hasLogin = items.some((item) => item.href === '/login')
   const extra = [
-    ...(!hasSearch ? [{ label: language === 'eng' ? 'Search' : 'সার্চ', href: '/search' }] : []),
-    ...(!hasLogin ? [{ label: language === 'eng' ? 'Login' : 'লগইন', href: '/login' }] : []),
+    ...(!hasSearch ? [{ label: t('search', 'খুঁজুন', 'Search'), href: '/search' }] : []),
+    ...(!hasLogin ? [{ label: t('login', 'লগইন', 'Login'), href: '/login' }] : []),
   ]
 
   const link = (item) => (
@@ -45,24 +43,24 @@ export default function Navigation({ items = [] }) {
   )
 
   return (
-    <nav className="site-nav" aria-label={language === 'eng' ? 'Main navigation' : 'প্রধান নেভিগেশন'}>
+    <nav className="site-nav" aria-label={t('village_navigation', 'প্রধান নেভিগেশন', 'Main navigation')}>
       <div className="site-container site-nav__inner">
         <button className="site-nav__toggle" type="button" aria-expanded={open} aria-controls="site-menu" onClick={() => setOpen((value) => !value)}>
           <KeyIcon iconKey={open ? 'close' : 'menu'} />
-          <span>{open ? 'বন্ধ করুন' : 'মেনু'}</span>
-          <span className="sr-only">{open ? 'মেনু বন্ধ করুন' : 'মেনু খুলুন'}</span>
+          <span>{open ? t('close', 'বন্ধ', 'Close') : t('menu', 'উঠান', 'Menu')}</span>
+          <span className="sr-only">{open ? t('close_village_menu', 'মেনু বন্ধ করুন', 'Close menu') : t('village_menu', 'মেনু খুলুন', 'Open menu')}</span>
         </button>
         <div id="site-menu" className={`site-nav__menu${open ? ' is-open' : ''}`}>
           {[...translatedItems, ...extra].map(link)}
           <a className="site-nav__link site-nav__profile" href={appPath('/profile')} onClick={() => setOpen(false)}>
-            <KeyIcon iconKey="profile" /><span>{language === 'eng' ? 'Profile' : 'প্রোফাইল'}</span>
+            <KeyIcon iconKey="profile" /><span>{t('profile', 'প্রোফাইল', 'Profile')}</span>
           </a>
-          <button className="site-nav__control" type="button" onClick={() => setThemePreference(theme === 'dark' ? 'light' : 'dark')} aria-label="থিম পরিবর্তন">
+          <button className="site-nav__control" type="button" onClick={() => setThemePreference(theme === 'dark' ? 'light' : 'dark')} aria-label={t('theme', 'থিম পরিবর্তন', 'Change theme')}>
             <KeyIcon iconKey="theme" />
-            <span>{theme === 'dark' ? 'আলো' : 'রাত'}</span>
+            <span>{theme === 'dark' ? t('day', 'আলো', 'Day') : t('night', 'রাত', 'Night')}</span>
           </button>
-          <button className="site-nav__control" type="button" onClick={() => setLanguagePreference(language === 'bng' ? 'eng' : 'bng')} aria-label="ভাষা পরিবর্তন">
-            <KeyIcon iconKey="language" /><span>{language === 'bng' ? 'English' : 'বাংলা'}</span>
+          <button className="site-nav__control" type="button" onClick={() => setLanguagePreference(language === 'bng' ? 'eng' : 'bng')} aria-label={t('language', 'ভাষা পরিবর্তন', 'Change language')}>
+            <KeyIcon iconKey="language" /><span>{language === 'bng' ? t('english', 'English', 'English') : t('bengali', 'বাংলা', 'Bengali')}</span>
           </button>
         </div>
       </div>
