@@ -15,13 +15,11 @@ function getSessionId() {
   }
 }
 
-function getTrackedKey(path) {
-  return `${TRACKED_PREFIX}${path}`
-}
+function getTrackedKey(path) { return `${TRACKED_PREFIX}${path}` }
 
 export async function trackPageView({ path, deviceClass, language, theme }) {
   if (!supabase || !path) return
-  let key = getTrackedKey(path)
+  const key = getTrackedKey(path)
   try {
     const last = Number(sessionStorage.getItem(key) || 0)
     if (Date.now() - last < 30 * 60 * 1000) return
@@ -37,9 +35,7 @@ export async function trackPageView({ path, deviceClass, language, theme }) {
     p_language: language || null,
     p_theme: theme || null,
   })
-  if (error) {
-    try { sessionStorage.removeItem(key) } catch {}
-  }
+  if (error) { try { sessionStorage.removeItem(key) } catch {} }
 }
 
 export async function getAnalyticsSummary(days = 30) {
@@ -47,7 +43,7 @@ export async function getAnalyticsSummary(days = 30) {
   const since = new Date(Date.now() - Math.max(1, days) * 86400000).toISOString()
   const { data, error } = await supabase
     .from('analytics_visits')
-    .select('path,device_class,language,theme,created_at')
+    .select('path,session_id,device_class,language,theme,created_at')
     .gte('created_at', since)
     .order('created_at', { ascending: false })
     .limit(5000)
@@ -57,7 +53,7 @@ export async function getAnalyticsSummary(days = 30) {
   rows.forEach((row) => byPath.set(row.path, (byPath.get(row.path) || 0) + 1))
   return {
     total: rows.length,
-    uniqueSessions: new Set(rows.map((row) => `${row.path}:${row.created_at?.slice(0,10)}`)).size,
+    uniqueSessions: new Set(rows.map((row) => row.session_id).filter(Boolean)).size,
     byPath: [...byPath.entries()].sort((a, b) => b[1] - a[1]),
     rows,
   }
