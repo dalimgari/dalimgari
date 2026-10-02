@@ -90,3 +90,8 @@ h1,h2,h3,h4,.site-brand__name,.rural-sidebar__heading,.ui-field label,.ui-label 
 .admin-inline-nav a.is-active { background:var(--theme-leaf,var(--color-leaf)); color:#fffaf0; border-color:var(--theme-leaf,var(--color-leaf)); }
 .admin-inline-nav a:last-child { margin-left:auto; }
 @media (max-width:760px) { .admin-inline-nav { margin-inline:.5rem; } .admin-inline-nav a { min-height:2.5rem; padding-inline:.75rem; } .admin-inline-nav a:last-child { margin-left:0; } }
+
+.admin-dashboard-grid{grid-template-columns:repeat(auto-fit,minmax(clamp(9.5rem,18vw,15rem),1fr));gap:clamp(.65rem,1.5vw,1rem);align-items:stretch;justify-items:stretch;margin:0 auto;width:100%;}
+.admin-dashboard-grid .content-card{width:100%;min-height:clamp(7rem,12vw,10rem);padding:clamp(.8rem,2vw,1.25rem);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;}
+.admin-dashboard-count{font-size:clamp(1.7rem,4vw,2.8rem);line-height:1;margin:.35rem 0 0;font-weight:800;}
+@media(max-width:520px){.admin-dashboard-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.admin-dashboard-grid .content-card{min-height:6.5rem;}}
