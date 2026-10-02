@@ -1,0 +1,9 @@
+GLOBAL HEADER / SIDEBAR / NAVIGATION
+
+Header: sticky, responsive, mobile-friendly, logo/site identity, navigation control, menu control, compact mobile form ও clear hierarchy।
+
+Sidebar: admin/profile image where applicable, admin name, social/external link icons, navigation items, language control, Light/Dark mode, active state, overlay, mobile-friendly navigation ও controlled scrolling।
+
+Primary/Secondary/Context Navigation: consistent hierarchy, active state ও responsive behavior।
+
+Sidebar scrolling যেন website-এর অন্য অংশকে অস্বাভাবিকভাবে প্রভাবিত না করে।
