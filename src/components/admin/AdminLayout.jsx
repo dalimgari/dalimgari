@@ -9,6 +9,7 @@ const adminNavItems = [
   { label: 'হোমপেজ ম্যানেজমেন্ট', path: '/admin/homepage', permission: 'homepage_manage' },
   { label: 'সাইডবার ম্যানেজমেন্ট', path: '/admin/sidebar', permission: 'sidebar_manage' },
   { label: 'ওয়েবসাইট তথ্য', path: '/admin/website-information', permission: 'settings_manage' },
+  { label: 'Key Label Rename', path: '/admin/key-labels', permission: 'settings_manage' },
   { label: 'পেজসমূহ', path: '/admin/pages', permission: 'content_manage' },
   { label: 'পোস্ট', path: '/admin/posts', permission: 'content_manage' },
   { label: 'অ্যালবাম', path: '/admin/albums', permission: 'media_manage' },
