@@ -5,7 +5,7 @@ import Sidebar from './Sidebar'
 import Footer from './Footer'
 import { appPath } from '../../lib/routes'
 import { getWebsiteInformation, getRuralVisualSettings } from '../../services/websiteService'
-import { getGlobalLabels } from '../../services/globalLabelService'
+import { useGlobalLabels } from '../../context'
 import { getThemeSettings } from '../../services/themeService'
 import { trackPageView } from '../../services/analyticsService'
 
@@ -107,23 +107,22 @@ function applyRuralVisualSettings(settings) {
 
 export default function Layout({ children, siteName, navigationItems = [], copyrightText, seoTitle, seoDescription, seoCanonicalPath }) {
   const { theme, language, deviceClass } = usePreferences()
+  const { t } = useGlobalLabels()
   const [websiteInformation, setWebsiteInformation] = useState(null)
   const [visualSettings, setVisualSettings] = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [labels, setLabels] = useState({})
   const [themeSettings, setThemeSettings] = useState(null)
 
   useEffect(() => {
     let active = true
-    Promise.allSettled([getWebsiteInformation(), getRuralVisualSettings(), getGlobalLabels(), getThemeSettings()])
-      .then(([info, visual, labelResult, themeResult]) => {
+    Promise.allSettled([getWebsiteInformation(), getRuralVisualSettings(), getThemeSettings()])
+      .then(([info, visual, themeResult]) => {
         if (!active) return
         if (info.status === 'fulfilled') setWebsiteInformation(info.value)
         if (visual.status === 'fulfilled') {
           setVisualSettings(visual.value)
           applyRuralVisualSettings(visual.value)
         }
-        if (labelResult.status === 'fulfilled') setLabels(labelResult.value)
         if (themeResult.status === 'fulfilled') {
           setThemeSettings(themeResult.value)
           applyThemeSettings(themeResult.value, theme)
@@ -154,9 +153,9 @@ export default function Layout({ children, siteName, navigationItems = [], copyr
 
   return (
     <div className="site-layout">
-      <a className="skip-link" href="#main-content">{language === 'eng' ? 'Skip to main content' : 'মূল জায়গায় যান'}</a>
+      <a className="skip-link" href="#main-content">{t('skip_to_main', 'মূল জায়গায় যান', 'Skip to main content')}</a>
       <Seo siteName={resolvedSiteName} title={resolvedSeoTitle} description={seoDescription} canonicalPath={canonicalPath} />
-      <Header pageTitle={resolvedSeoTitle || 'হোম'} labels={labels} sidebarOpen={sidebarOpen} showSearch canonicalPath={canonicalPath} onMenu={() => setSidebarOpen((value) => !value)} />
+      <Header pageTitle={resolvedSeoTitle || t('home', 'হোম', 'Home')} sidebarOpen={sidebarOpen} showSearch canonicalPath={canonicalPath} onMenu={() => setSidebarOpen((value) => !value)} />
       <div className={'site-content-area' + (sidebarOpen ? ' sidebar-visible' : '')}>
         <Sidebar items={navigationItems} open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <main id="main-content" className="site-main" data-content-slot="dynamic">{children}</main>
