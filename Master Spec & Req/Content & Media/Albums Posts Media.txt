@@ -1,0 +1,11 @@
+ALBUMS / POSTS / MEDIA
+
+Albums: title, description, slug, creator, created/updated metadata, visibility ও related media as defined।
+
+Posts: title/content, creator, dates, visibility, ordering ও related media।
+
+Media: image/video records, visibility, album relation ও display order where applicable।
+
+Album gallery is a grouping/filtering mechanism. Album ↔ Post এবং Album ↔ Media relationship-এর actual database form audit করে CONFIRMED করতে হবে।
+
+Hidden media public rendering-এ দেখানো যাবে না।
