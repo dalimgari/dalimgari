@@ -1,0 +1,17 @@
+DALIMGARI WEBSITE — CORE PRINCIPLES
+
+- Simple, clean, clear ও low-clutter UX।
+- Bengali-first, mobile-first, responsive ও accessible।
+- একই ধরনের কাজের জন্য একই UI/UX pattern।
+- Human-friendly labels; unnecessary technical field/code names নয়।
+- Public, Admin ও User একই underlying architecture ব্যবহার করবে।
+- Single Source of Truth; অপ্রয়োজনীয় duplicate data/configuration নয়।
+- Automatic-first; reliable automatic value থাকলে unnecessary input নয়।
+- Safe manual override যেখানে logically appropriate।
+- UI hiding alone security নয়; application permission ও Supabase RLS enforce করবে।
+- Existing project facts অনুমান করা যাবে না।
+- Actual audit ছাড়া table, field, route, function, permission, RLS বা config CONFIRMED বলা যাবে না।
+- Existing valid project/database/content preserve ও reuse করতে হবে যেখানে প্রযোজ্য।
+- Original specification ও Final Spreadsheet নিজ সিদ্ধান্তে পরিবর্তন করা যাবে না।
+- Uncontrolled overflow, raw technical errors ও unnecessary motion থাকবে না।
+- Maintainability, consistency, data integrity ও secure access অগ্রাধিকার।
