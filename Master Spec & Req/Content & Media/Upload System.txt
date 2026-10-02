@@ -1,0 +1,8 @@
+MEDIA UPLOAD SYSTEM
+
+Flow:
+File Selection → Validation → Upload → Storage/External Source → Media/Data Record → Success/Error।
+
+Requirements: file type validation, size validation, controlled filename/path, upload progress where applicable, failure handling, storage security, visibility ও permission।
+
+Current implementation values must be verified from actual configuration before being treated as universal requirements.
