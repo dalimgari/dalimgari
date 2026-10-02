@@ -78,6 +78,7 @@ export default function App() {
   else if (path === '/information') page = <Information />
   else if (path === '/login') page = <Login />
   else if (path === '/signup') page = <Signup />
+  else if (path === '/profile') page = <NotFound />
   else if (/^\/[^/]+$/.test(path)) page = <PageDetail slug={decodeURIComponent(path.slice(1))} />
   return <RouteView>{page}</RouteView>
 }
