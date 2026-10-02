@@ -1,0 +1,11 @@
+WEBSITE / VILLAGE / ADMIN INFORMATION
+
+Website Information: website identity/configuration, footer copyright, social links, branding/customization, language/theme settings where defined।
+
+Footer: no separate Footer Management module; editable copyright text; village/site name automatically appended নয়। Default: © 2026. All rights reserved.
+
+Village Information: Village Name, Village Slogan, Division, District, Upazila, Union, Postal Code, Population, Established Date, Map Location।
+
+Admin Information: Name, Email, Phone, Bio, Link, Profile Image।
+
+Actual storage/entity structure must be verified from implementation.
