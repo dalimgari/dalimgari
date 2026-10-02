@@ -1,0 +1,9 @@
+SYSTEM SERVICES
+
+SEO: page/public metadata ও admin management where defined।
+
+Analytics: admin-side tracking/configuration and defined metrics; calculated/read-only বনাম managed fields actual implementation audit করে নির্ধারণ করতে হবে।
+
+Audit: administrative activity tracking—action, module, record, user, timestamp, details, IP information where defined।
+
+Backup: database/configuration/content backup architecture, backup records/status ও restore-related information where defined। Backup record থাকা actual backup mechanism প্রমাণ করে না।
