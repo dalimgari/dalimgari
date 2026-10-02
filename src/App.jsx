@@ -67,8 +67,9 @@ export default function App() {
     }
   }, [])
   let page = <NotFound />
-  const pageMatch = path.match(/^\/pages\/([^/]+)$/); const albumMatch = path.match(/^\/albums\/([^/]+)$/); const postMatch = path.match(/^\/posts\/([^/]+)$/); const dashboardMatch = path.match(/^\/dashboard(?:\/([^/]+))?$/); const admin = path.startsWith('/admin') ? adminPage(path) : null
+  const pageMatch = path.match(/^\/pages\/([^/]+)$/); const albumMatch = path.match(/^\/albums\/([^/]+)$/); const postMatch = path.match(/^\/posts\/([^/]+)$/); const dashboardMatch = path.match(/^\/dashboard(?:\/([^/]+))?$/); const roleProfileMatch = path.match(/^\/(admin|manager|editor|moderator|user)\/profile$/); const admin = path.startsWith('/admin') ? adminPage(path) : null
   if (dashboardMatch) page = <RoleRoute requestedRole={dashboardMatch[1] || null} />
+  else if (roleProfileMatch) page = <RoleRoute requestedRole={roleProfileMatch[1]} />
   else if (admin) page = admin
   else if (pageMatch) page = <PageDetail slug={decodeURIComponent(pageMatch[1])} />
   else if (albumMatch) page = <AlbumDetail albumKey={decodeURIComponent(albumMatch[1])} />
@@ -79,7 +80,7 @@ export default function App() {
   else if (path === '/information') page = <Information />
   else if (path === '/login') page = <Login />
   else if (path === '/signup') page = <Signup />
-  else if (path === '/profile') page = <UserRoute><Profile /></UserRoute>
+  else if (path === '/profile') page = <RoleRoute />
   else if (/^\/[^/]+$/.test(path)) page = <PageDetail slug={decodeURIComponent(path.slice(1))} />
   return <RouteView>{page}</RouteView>
 }
