@@ -1,0 +1,10 @@
+FEATURE GROUPS / CODE ARCHITECTURE
+
+Feature groups:
+Auth, Website, Pages, Posts, Albums, Media, Users, SEO, Customization, Translation, Analytics, Audit, Backup।
+
+Defined source architecture includes src/website/ with Home, Banner, Header, Footer, Navigation, Search, Post, Information, Loading, Layout ও Public Page।
+
+Shared/common architecture includes UI, Layout, Loading, Form System, Input Registry, shared services, Supabase client ও Website service।
+
+Child functionality parent feature-এর architecture-এর মধ্যে থাকবে।
