@@ -41,11 +41,13 @@ export default function AdminLayout({ user, title, children }) {
     <Layout seoTitle={title}>
       <section className="home-section admin-page-shell">
         <div className="site-container">
-          <nav className="admin-inline-nav" aria-label="অ্যাডমিন নেভিগেশন">
-            {visibleNav.map((item) => (
-              <a key={item.path} href={appPath(item.path)}>{item.label}</a>
-            ))}
-            <a href={appPath('/')}>সাইট দেখুন</a>
+          <nav className="admin-inline-nav" aria-label="অ্যাডমিন মডিউল">
+            {visibleNav.map((item) => {
+              const currentPath = window.location.pathname.replace(/\\/$/, '') || '/'
+              const itemPath = appPath(item.path).replace(/\\/$/, '') || '/'
+              const isActive = currentPath === itemPath
+              return <a key={item.path} className={isActive ? 'is-active' : ''} href={appPath(item.path)} aria-current={isActive ? 'page' : undefined}>{item.label}</a>
+            })}
           </nav>
 
           <div className="admin-main-content">
