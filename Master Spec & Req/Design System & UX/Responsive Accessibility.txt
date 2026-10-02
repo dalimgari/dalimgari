@@ -1,0 +1,11 @@
+RESPONSIVE & ACCESSIBILITY
+
+Responsive targets: Desktop, Tablet, Mobile।
+
+Mobile-first: large touch targets, compact header, simple navigation, readable typography, screen-width content, touch-friendly forms/buttons, unnecessary horizontal scrolling নয়।
+
+Accessibility: readable text, sufficient contrast, clear labels/states, focus/keyboard consideration, touch targets ও reduced-motion support।
+
+Overflow: long text, URL, image/file URL, table content, form values, cards ও metadata কখনো uncontrolledভাবে container-এর বাইরে যাবে না।
+
+Animation: minimal, subtle, state-based এবং প্রয়োজনীয় interaction-কেন্দ্রিক।
