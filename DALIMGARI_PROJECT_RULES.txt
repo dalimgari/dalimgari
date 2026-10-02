@@ -15,24 +15,29 @@ P0 — NEVER BREAK
 7. Destructive changes require backup first.
 8. No change is Complete until it has been built/tested and actually verified.
 
+P0 — GLOBAL HEADER & SIDEBAR
+9. The Home Page Header and Sidebar are the canonical global UI and must remain identical on every website page.
+10. Every page must use the same Header and Sidebar as the Home Page. Their size, dimensions, design, layout, styling, spacing, behavior, interaction, responsive/mobile behavior, navigation behavior and internal content must remain unchanged.
+11. Do not create page-specific Header/Sidebar variants, resized versions, redesigned versions or different internal content. Page-specific changes are allowed only in the main page content area; the global Header and Sidebar remain unchanged.
+
 P1 — ARCHITECTURE & DATA
-9. Keep the flow: UI → Service/Data Layer → Supabase → Database/Storage/Auth.
-10. Use a single source of truth; avoid unnecessary duplicate data/configuration.
-11. Database schema changes must use a new timestamped migration. Never rewrite existing migration history to alter production history.
-12. Verify CRUD end-to-end: UI → Service → DB → Permission/RLS → resulting UI/data.
-13. Specification, actual implementation/database and spreadsheet inventory are separate sources. Never treat one as automatic proof of another.
-14. Existing specification/data structure must not be deleted, renamed, merged, split or retyped by assistant decision. Approved additions are additive.
-15. Never put secrets in source code or the repository.
-16. Firebase must not be introduced in new implementation.
+12. Keep the flow: UI → Service/Data Layer → Supabase → Database/Storage/Auth.
+13. Use a single source of truth; avoid unnecessary duplicate data/configuration.
+14. Database schema changes must use a new timestamped migration. Never rewrite existing migration history to alter production history.
+15. Verify CRUD end-to-end: UI → Service → DB → Permission/RLS → resulting UI/data.
+16. Specification, actual implementation/database and spreadsheet inventory are separate sources. Never treat one as automatic proof of another.
+17. Existing specification/data structure must not be deleted, renamed, merged, split or retyped by assistant decision. Approved additions are additive.
+18. Never put secrets in source code or the repository.
+19. Firebase must not be introduced in new implementation.
 
 P2 — UX & ENGINEERING
-17. Bengali-first, mobile-first, responsive, accessible and simple/clean UX.
-18. Preserve the rural Bengal/community visual identity; avoid unnecessary urban/corporate styling.
-19. Automatic-first: do not ask users for values the system can reliably generate; allow safe manual override where appropriate.
-20. Reuse shared components and centralized logic; avoid duplicate/dead/unused code.
-21. User-facing errors must be human-readable; no raw technical errors.
-22. Prevent uncontrolled overflow, especially long URLs, filenames, metadata and media.
-23. Avoid unnecessary dependencies, large assets, repeated requests and inefficient operations.
+20. Bengali-first, mobile-first, responsive, accessible and simple/clean UX.
+21. Preserve the rural Bengal/community visual identity; avoid unnecessary urban/corporate styling.
+22. Automatic-first: do not ask users for values the system can reliably generate; allow safe manual override where appropriate.
+23. Reuse shared components and centralized logic; avoid duplicate/dead/unused code.
+24. User-facing errors must be human-readable; no raw technical errors.
+25. Prevent uncontrolled overflow, especially long URLs, filenames, metadata and media.
+26. Avoid unnecessary dependencies, large assets, repeated requests and inefficient operations.
 
 MANDATORY CHANGE WORKFLOW
 READ RULES → AUDIT ACTUAL PROJECT → IDENTIFY REAL PROBLEM → TARGETED CHANGE → BUILD/TEST → REAL VERIFICATION → REPORT RESULT
