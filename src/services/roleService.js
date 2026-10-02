@@ -25,5 +25,5 @@ export async function getCurrentRole() {
 }
 
 export function dashboardPathForRole(roleKey) {
-  return `/${roleKey}/profile`
+  return `/dashboard/${roleKey}`
 }
