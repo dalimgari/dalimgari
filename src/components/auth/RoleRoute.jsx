@@ -5,9 +5,6 @@ import { dashboardPathForRole, getCurrentRole } from '../../services/roleService
 import Skeleton from '../ui/Skeleton'
 import { Layout } from '../layout'
 import { ErrorState } from '../ui'
-import AdminRoute from './AdminRoute'
-import Profile from '../../pages/Profile'
-import Dashboard from '../../pages/admin/Dashboard'
 
 const ROLE_NAMES = { admin: 'অ্যাডমিন', manager: 'ম্যানেজার', editor: 'এডিটর', moderator: 'মডারেটর', user: 'ইউজার' }
 
@@ -56,6 +53,5 @@ export default function RoleRoute({ requestedRole = null }) {
     return <Layout seoTitle="অ্যাক্সেস ত্রুটি"><section className="home-section"><div className="site-container"><ErrorState title="রোল মিলছে না" description={state.error} onRetry={() => window.location.replace(appPath('/dashboard'))} /></div></section></Layout>
   }
   if (state.status !== 'ready') return <Skeleton variant="page" />
-  if (state.role.key === 'admin') return <AdminRoute><Dashboard /></AdminRoute>
-  return <Profile />
+  return <Skeleton variant="page" />
 }
