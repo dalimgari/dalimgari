@@ -1,8 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { applyTheme, getDeviceClass, getLanguagePreference, getThemePreference, resolveTheme, setLanguagePreference, setThemePreference, subscribeToSystemTheme } from '../services/devicePreferenceService'
-import { enableBengaliNumerals } from '../services/bengaliLanguageService'
 import { getGlobalLabels } from '../services/globalLabelService'
-import { observeLanguageDocument } from '../services/languageRuntime'
 
 const PreferencesContext = createContext(null)
 
@@ -36,11 +34,7 @@ export function PreferencesProvider({ children }) {
 
   useEffect(() => {
     document.documentElement.lang = language === 'bng' ? 'bn' : 'en'
-    const stop = observeLanguageDocument(language, labels)
-    if (language !== 'bng') return stop
-    const stopNumerals = enableBengaliNumerals()
-    return () => { stop(); stopNumerals?.() }
-  }, [language, labels])
+  }, [language])
 
   const changeTheme = useCallback((value) => {
     const next = setThemePreference(value)
