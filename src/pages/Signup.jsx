@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Layout } from '../components/layout'
-import { ErrorState, Loading } from '../components/ui'
+import { Button, ErrorState, Loading } from '../components/ui'
 import { signUpWithPassword } from '../services/authService'
 import { appPath } from '../lib/routes'
 import { useAuth } from '../context'
@@ -128,8 +128,8 @@ export default function Signup() {
             <button type="submit" className="ui-button" disabled={status === 'loading' || Boolean(user)}>
               {status === 'loading' ? 'অপেক্ষা করুন…' : 'একাউন্ট তৈরি করুন'}
             </button>
-            <a className="ui-button" href={appPath('/login')}>লগইন</a>
-            <a className="ui-button" href={appPath('/')}>হোম</a>
+            <Button onClick={() => { window.location.href = appPath('/login') }}>লগইন</Button>
+            <Button variant="secondary" onClick={() => { window.location.href = appPath('/') }}>হোম</Button>
           </form>
 
           {status === 'loading' ? <Loading /> : null}
