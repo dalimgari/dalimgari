@@ -1,0 +1,11 @@
+VITE / NPM / CONFIGURATION
+
+Vite: correct production base path, asset paths, SPA compatibility ও GitHub Pages compatibility।
+
+npm: package.json, package-lock.json, reproducible installation, production build; unnecessary dependencies নয়।
+
+Configuration: development ও production configuration পরিষ্কার; environment variables সঠিকভাবে ব্যবহার; secrets source code-এ নয়।
+
+Performance: fast initial load, mobile network consideration, optimized images/resources, unnecessary DB requests/repeated operations avoid, efficient rendering।
+
+Code quality: reusable components, clean naming, duplicate/dead code reduction, centralized shared logic ও maintainable structure।
