@@ -1,6 +1,6 @@
 const AUTO_SCROLL_INTERVAL = 4000
 const AUTO_SCROLL_DURATION = 650
-const USER_PAUSE_DURATION = 2500
+const USER_PAUSE_DURATION = 60000
 
 const isHorizontalScroller = (element) => {
   if (!(element instanceof HTMLElement)) return false
@@ -60,6 +60,16 @@ const initHorizontalAutoScroll = () => {
   }
 
   document.addEventListener('pointerdown', (event) => {
+    const element = event.target instanceof Element ? event.target.closest('*') : null
+    if (element && scrollers.has(element)) pause(element)
+  }, { passive: true })
+
+  document.addEventListener('pointermove', (event) => {
+    const element = event.target instanceof Element ? event.target.closest('*') : null
+    if (element && scrollers.has(element)) pause(element)
+  }, { passive: true })
+
+  document.addEventListener('touchstart', (event) => {
     const element = event.target instanceof Element ? event.target.closest('*') : null
     if (element && scrollers.has(element)) pause(element)
   }, { passive: true })
