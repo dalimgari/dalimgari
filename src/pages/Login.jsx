@@ -17,7 +17,7 @@ export default function Login() {
   const { user, status: authStatus } = useAuth()
 
   useEffect(() => {
-    if (authStatus === 'ready' && user && mode === 'login') window.location.replace(appPath('/admin'))
+    if (authStatus === 'ready' && user && mode === 'login') window.location.replace(appPath('/dashboard'))
   }, [authStatus, user, mode])
 
   useEffect(() => {
@@ -34,8 +34,8 @@ export default function Login() {
     event.preventDefault(); setStatus('loading'); setError(null); setMessage(null)
     try {
       if (mode === 'reset') await resetPasswordForEmail(email.trim()).then(() => setMessage('পাসওয়ার্ড পরিবর্তনের লিংক আপনার ইমেইলে পাঠানো হয়েছে।'))
-      else if (mode === 'new-password') { await updatePassword(password); setMessage('পাসওয়ার্ড সফলভাবে পরিবর্তন হয়েছে।'); setTimeout(() => { window.location.href = appPath('/admin') }, 300) }
-      else { await signInWithPassword(email.trim(), password); window.location.href = appPath('/admin') }
+      else if (mode === 'new-password') { await updatePassword(password); setMessage('পাসওয়ার্ড সফলভাবে পরিবর্তন হয়েছে।'); setTimeout(() => { window.location.href = appPath('/dashboard') }, 300) }
+      else { await signInWithPassword(email.trim(), password); window.location.href = appPath('/dashboard') }
       setStatus('ready')
     } catch (requestError) { setError(requestError); setStatus('error') }
   }
