@@ -1,0 +1,16 @@
+FINAL SPREADSHEET — SHEET 2: INPUT REGISTRY
+
+RULE: Registry is final. Type/Input Method pairs must not be changed by assistant decision.
+
+Input Method | Type
+Text Input | text
+Number Input | number
+Email Input | email
+Password Input | password
+Date Picker | date
+Time Picker | time
+File/Image Upload | file
+Select / Dropdown | select
+Checkbox | checkbox
+Radio Button | radio
+Textarea | textarea
