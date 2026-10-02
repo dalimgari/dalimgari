@@ -31,7 +31,7 @@ export default function PageDetail({ slug }) {
   }, [slug])
 
   const seoDescription = page?.content ? String(page.content).replace(/\s+/g, ' ').trim().slice(0, 160) : null
-  return <Layout seoTitle={page?.page_title || null} seoDescription={seoDescription} seoCanonicalPath={`/pages/${slug}`} navigationItems={[{ label: 'হোম', href: '/' }, { label: 'তথ্য', href: '/information' }, { label: 'পোস্ট', href: '/posts' }, { label: 'অ্যালবাম', href: '/albums' }, { label: 'সার্চ', href: '/search' }]}>
+  return <Layout seoTitle={page?.page_title || null} seoDescription={seoDescription} seoCanonicalPath={`/${slug}`} navigationItems={[{ label: 'হোম', href: '/' }, { label: 'তথ্য', href: '/information' }, { label: 'পোস্ট', href: '/posts' }, { label: 'অ্যালবাম', href: '/albums' }, { label: 'সার্চ', href: '/search' }]}>
     <section className="home-section"><div className="site-container">
       <a className="back-link" href={appPath('/')}>← হোমে ফিরে যান</a>
       {status === 'loading' ? <Loading /> : null}
