@@ -1,0 +1,13 @@
+GITHUB / ACTIONS / PAGES
+
+GitHub: source repository, version control ও project source।
+
+GitHub Actions: production build, dependency installation, build verification ও GitHub Pages deployment।
+
+npm ci where reproducible installation is required; package-lock.json maintained।
+
+GitHub Pages: Vite production base path, correct assets, SPA routing/handling এবং successful production build required।
+
+Repository secrets source code-এ রাখা যাবে না।
+
+Current branch/deployment policy must follow verified project configuration; routine development must not be treated as production deployment without verification.
