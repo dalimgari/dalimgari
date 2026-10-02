@@ -1,3 +1,5 @@
+import { appPath } from '../../lib/routes'
+
 export default function AlbumsSection({ albums = [] }) {
   return (
     <section className="home-section" aria-labelledby="albums-title">
@@ -6,10 +8,10 @@ export default function AlbumsSection({ albums = [] }) {
         {albums.length ? (
           <div className="content-grid">
             {albums.map((album) => (
-              <article className="content-card" key={album.album_id}>
+              <a className="content-card home-album-card" href={appPath(`/albums/${encodeURIComponent(album.album_key)}`)} key={album.album_id}>
                 <h3>{album.title}</h3>
                 {album.description ? <p>{album.description}</p> : null}
-              </article>
+              </a>
             ))}
           </div>
         ) : (
