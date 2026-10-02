@@ -40,18 +40,28 @@ create trigger trg_media_rate_limit before insert on public.media for each row e
 drop trigger if exists trg_analytics_rate_limit on public.analytics_visits;
 create trigger trg_analytics_rate_limit before insert on public.analytics_visits for each row execute function private.enforce_analytics_rate_limit();
 
+alter table public.analytics_visits
+  drop constraint if exists analytics_visits_path_length_check,
+  drop constraint if exists analytics_visits_referrer_length_check,
+  drop constraint if exists analytics_visits_user_agent_length_check,
+  drop constraint if exists analytics_visits_session_id_length_check,
+  drop constraint if exists analytics_visits_device_class_length_check,
+  drop constraint if exists analytics_visits_language_length_check,
+  drop constraint if exists analytics_visits_theme_length_check;
+
+alter table public.analytics_visits
+  add constraint analytics_visits_path_length_check check (coalesce(length(trim(path)),0) between 1 and 500),
+  add constraint analytics_visits_referrer_length_check check (coalesce(length(referrer),0) <= 1000),
+  add constraint analytics_visits_user_agent_length_check check (coalesce(length(user_agent),0) <= 1000),
+  add constraint analytics_visits_session_id_length_check check (coalesce(length(session_id),0) <= 200),
+  add constraint analytics_visits_device_class_length_check check (coalesce(length(device_class),0) <= 32),
+  add constraint analytics_visits_language_length_check check (coalesce(length(language),0) <= 16),
+  add constraint analytics_visits_theme_length_check check (coalesce(length(theme),0) <= 16);
+
 drop policy if exists analytics_visits_public_insert on public.analytics_visits;
 create policy analytics_visits_public_insert on public.analytics_visits
 for insert to anon, authenticated
-with check (
-  coalesce(length(trim(path)),0) between 1 and 500
-  and coalesce(length(referrer),0) <= 1000
-  and coalesce(length(user_agent),0) <= 1000
-  and coalesce(length(session_id),0) <= 200
-  and coalesce(length(device_class),0) <= 32
-  and coalesce(length(language),0) <= 16
-  and coalesce(length(theme),0) <= 16
-);
+with check (true);
 
 create or replace function public.record_analytics_visit(
   p_path text, p_referrer text default null, p_user_agent text default null,
