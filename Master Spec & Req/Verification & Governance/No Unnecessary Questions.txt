@@ -1,0 +1,11 @@
+NO UNNECESSARY QUESTIONS
+
+User technical কাজ নিজে করবে না; তাই প্রয়োজনীয় information ছাড়া প্রশ্ন করা যাবে না।
+
+System reliableভাবে value তৈরি করতে পারলে user-এর কাছে তা জিজ্ঞেস করা যাবে না।
+
+Required information থাকলে কাজ এগিয়ে নিতে হবে।
+
+Optional information optional হিসেবেই থাকবে।
+
+User-কে অপ্রয়োজনীয় technical steps দেওয়া যাবে না।
