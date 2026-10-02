@@ -1,0 +1,17 @@
+SECURITY ARCHITECTURE
+
+Security layers:
+- Authentication
+- UI visibility
+- Application authorization
+- Supabase RLS/database policies
+- Public/private data separation
+- Storage access control
+- Input/data validation
+- Secret protection
+
+Admin INSERT/UPDATE/DELETE, protected user data and restricted operations must be database-enforced where applicable.
+
+No secrets in source code.
+
+UI hiding alone is never considered sufficient security.
