@@ -1,0 +1,20 @@
+SUPABASE DATABASE
+
+Supabase is the backend/database foundation.
+
+Existing valid database foundation must be preserved/reused where applicable.
+
+Audit before changes:
+- Tables
+- Columns
+- Primary/foreign keys
+- Relationships
+- Existing data
+- RLS
+- Policies
+- Functions/RPC
+- Migrations
+- Database configuration
+- Storage configuration
+
+Mentioned key tables: pages, posts, post_media, media, profiles. These are specification references; actual implementation must be verified.
