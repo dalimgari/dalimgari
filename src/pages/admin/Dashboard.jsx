@@ -53,7 +53,7 @@ function ModuleData({ label, items }) {
   )
 }
 
-export default function Dashboard() {
+export default function Dashboard({ verifiedRole = null }) {
   const { user, status } = useAuth()
   const [moduleData, setModuleData] = useState({})
   const [allowedModules, setAllowedModules] = useState([])
@@ -71,7 +71,13 @@ export default function Dashboard() {
     let active = true
     async function loadDashboard() {
       const permissions = await Promise.all(
-        MODULES.map(async ([key, label, permission, loader]) => ({ key, label, permission, loader, allowed: await hasPermission(permission) }))
+        MODULES.map(async ([key, label, permission, loader]) => ({
+          key,
+          label,
+          permission,
+          loader,
+          allowed: verifiedRole?.key === 'admin' ? true : await hasPermission(permission),
+        }))
       )
       const allowed = permissions.filter((module) => module.allowed)
       const initial = Object.fromEntries(allowed.map(({ key }) => [key, []]))
@@ -100,7 +106,7 @@ export default function Dashboard() {
     })
 
     return () => { active = false }
-  }, [status, user?.id])
+  }, [status, user?.id, verifiedRole?.key])
 
   const selected = useMemo(() => allowedModules.find(({ key }) => key === selectedKey), [allowedModules, selectedKey])
   const selectedLabel = selected?.label || 'মডিউল'
