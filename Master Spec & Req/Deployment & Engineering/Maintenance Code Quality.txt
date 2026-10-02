@@ -1,0 +1,7 @@
+MAINTENANCE / CODE QUALITY
+
+Architecture must remain easy to maintain। সাধারণ change-এর জন্য অপ্রয়োজনীয়ভাবে অনেক file modify করা যাবে না।
+
+Requirements: reusable components, clean naming, centralized shared logic, duplicate/dead/unused code removal, unnecessary dependency removal, broken functionality রেখে না দেওয়া, database-driven admin content where needed।
+
+Performance: unnecessary large assets/DB requests/repeated operations avoid; efficient rendering and mobile-network consideration।
