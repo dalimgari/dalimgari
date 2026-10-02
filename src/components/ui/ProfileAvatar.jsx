@@ -9,17 +9,17 @@ export default function ProfileAvatar({ user, profile = null, className = 'site-
   useEffect(() => {
     let active = true
     async function load() {
-      if (!user) {
-        if (active) { setAvatarUrl(''); setFallbackUrl('') }
-        return
-      }
       try {
-        const [resolvedProfile, fallback] = await Promise.all([
-          profile ? Promise.resolve(profile) : getCurrentProfile(),
-          getDefaultProfileAvatarUrl(),
-        ])
+        const fallback = await getDefaultProfileAvatarUrl()
         if (!active) return
         setFallbackUrl(fallback)
+
+        if (!user) {
+          setAvatarUrl(fallback)
+          return
+        }
+
+        const resolvedProfile = profile || await getCurrentProfile()
         setAvatarUrl(await getProfileAvatarUrl(resolvedProfile))
       } catch {
         if (!active) return
@@ -31,7 +31,6 @@ export default function ProfileAvatar({ user, profile = null, className = 'site-
     return () => { active = false }
   }, [user?.id, profile?.profile_image_url])
 
-  if (!user) return null
   if (!avatarUrl && !fallbackUrl) return null
   return <img className={className} src={avatarUrl || fallbackUrl} alt={alt} referrerPolicy="no-referrer" onError={() => setAvatarUrl(fallbackUrl)} />
 }
