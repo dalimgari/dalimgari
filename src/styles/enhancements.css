@@ -119,6 +119,16 @@ h1,h2,h3,h4,.site-brand__name,.rural-sidebar__heading,.ui-field label,.ui-label 
 .admin-module-button.ui-button--primary{box-shadow:0 3px 10px var(--theme-shadow,var(--color-shadow));}
 @media(max-width:760px){.admin-inline-nav{justify-content:center}.admin-module-button{min-height:2.5rem;padding-inline:.7rem;}}
 
-/* Global scrollbar visibility: scrolling remains enabled, scrollbar UI is hidden site-wide. */
-html, body, * { scrollbar-width:none; -ms-overflow-style:none; }
-html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar { width:0; height:0; display:none; }
+/* Hide every scrollbar UI while preserving native scrolling (wheel, touch, keyboard, trackpad). */
+html, body, * {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
+  background: transparent !important;
+}
