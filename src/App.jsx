@@ -4,6 +4,7 @@ import Albums from './pages/Albums'
 import AlbumDetail from './pages/AlbumDetail'
 import Search from './pages/Search'
 import Login from './pages/Login'
+import Signup from './pages/Signup'
 import Profile from './pages/Profile'
 import ControlPanel from './pages/ControlPanel'
 import Dashboard from './pages/admin/Dashboard'
@@ -75,6 +76,7 @@ export default function App() {
   else if (path === '/search') page = <Search />
   else if (path === '/information') page = <Information />
   else if (path === '/login') page = <Login />
+  else if (path === '/signup') page = <Signup />
   else if (path === '/profile') page = <UserRoute><Profile /></UserRoute>
   else if (/^\/[^/]+$/.test(path)) page = <PageDetail slug={decodeURIComponent(path.slice(1))} />
   return <RouteView>{page}</RouteView>
