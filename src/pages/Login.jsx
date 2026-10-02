@@ -39,8 +39,8 @@ export default function Login() {
   }
 
   const isRecovery = mode === 'new-password'
-  return <Layout navigationItems={[{ label: 'হোম', href: '/' }, { label: 'তথ্য', href: '/information' }, { label: 'পোস্ট', href: '/posts' }, { label: 'অ্যালবাম', href: '/albums' }, { label: 'সার্চ', href: '/search' }]}>
-    <section className="home-section"><div className="site-container">
+  return <Layout navigationItems={[{ label: 'হোম', href: '/' }, { label: 'তথ্য', href: '/information' }, { label: 'পোস্ট', href: '/posts' }, { label: 'অ্যালবাম', href: '/albums' }]}>
+    <section className="login-page"><div className="site-container login-page__container"><div className="login-card">
       <h1>{mode === 'reset' ? 'পাসওয়ার্ড পরিবর্তন' : isRecovery ? 'নতুন পাসওয়ার্ড সেট করুন' : 'অ্যাডমিন লগইন'}</h1>
       <form className="admin-form" onSubmit={handleSubmit}>
         {mode !== 'new-password' ? <><label htmlFor="admin-email">ইমেইল</label><input id="admin-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" /></> : null}
@@ -52,6 +52,6 @@ export default function Login() {
       {status === 'loading' ? <Loading /> : null}
       {message ? <p className="admin-success">{message}</p> : null}
       {status === 'error' ? <ErrorState description={error?.message || 'অনুরোধটি সম্পন্ন করা যায়নি।'} /> : null}
-    </div></section>
+      </div></div></section>
   </Layout>
 }
