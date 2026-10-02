@@ -5,7 +5,6 @@ import AlbumDetail from './pages/AlbumDetail'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import ControlPanel from './pages/ControlPanel'
-import Dashboard from './pages/admin/Dashboard'
 import PagesManagement from './pages/admin/PagesManagement'
 import PostsManagement from './pages/admin/PostsManagement'
 import AlbumsManagement from './pages/admin/AlbumsManagement'
@@ -48,7 +47,7 @@ export default function App(){
  useEffect(()=>{const sync=()=>setPath(getPath());window.addEventListener('popstate',sync);window.addEventListener('app:navigate',sync);return()=>{window.removeEventListener('popstate',sync);window.removeEventListener('app:navigate',sync)}},[])
  const legacy=legacyPaths[path];if(legacy){window.history.replaceState({},'',appPath(legacy));return null}
  let page=<NotFound/>;const pageMatch=path.match(/^\/pages\/([^/]+)$/),albumMatch=path.match(/^\/albums\/([^/]+)$/),postMatch=path.match(/^\/posts\/([^/]+)$/),management=managementPages[path]
- if(path==='/dashboard')page=<AdminRoute permission="dashboard_view" routePath="/dashboard"><Dashboard/></AdminRoute>
+ if(path==='/dashboard')page=<RoleRoute/>
  else if(management){const Component=management[0];page=<AdminRoute permission={management[1]} routePath={path}><Component/></AdminRoute>}
- else if(path==='/access-denied')page=<AccessDenied/>;else if(pageMatch)page=<PageDetail slug={decodeURIComponent(pageMatch[1])}/>;else if(albumMatch)page=<AlbumDetail albumKey={decodeURIComponent(albumMatch[1])}/>;else if(postMatch)page=<PostDetail postId={decodeURIComponent(postMatch[1])}/>;else if(path==='/')page=<Home/>;else if(path==='/posts')page=<Posts/>;else if(path==='/albums')page=<Albums/>;else if(path==='/information')page=<Information/>;else if(path==='/login')page=<Login/>;else if(path==='/signup')page=<Signup/>;else if(path==='/profile'||/^\/(admin|manager|editor|moderator|user)\/profile$/.test(path)||/^\/dashboard\/(admin|manager|editor|moderator|user)$/.test(path))page=<RoleRoute/>;else if(/^\/[^/]+$/.test(path))page=<PageDetail slug={decodeURIComponent(path.slice(1))}/>;return page
+ else if(path==='/access-denied')page=<AccessDenied/>;else if(pageMatch)page=<PageDetail slug={decodeURIComponent(pageMatch[1])}/>;else if(albumMatch)page=<AlbumDetail albumKey={decodeURIComponent(albumMatch[1])}/>;else if(postMatch)page=<PostDetail postId={decodeURIComponent(postMatch[1])}/>;else if(path==='/')page=<Home/>;else if(path==='/posts')page=<Posts/>;else if(path==='/albums')page=<Albums/>;else if(path==='/information')page=<Information/>;else if(path==='/login')page=<Login/>;else if(path==='/signup')page=<Signup/>;else if(path==='/profile')page=<RoleRoute/>;else if(/^\/(admin|manager|editor|moderator|user)\/profile$/.test(path)){window.history.replaceState({},'',appPath('/dashboard'));return null}else if(/^\/dashboard\/(admin|manager|editor|moderator|user)$/.test(path)){window.history.replaceState({},'',appPath('/dashboard'));return null}else if(/^\/[^/]+$/.test(path))page=<PageDetail slug={decodeURIComponent(path.slice(1))}/>;return page
 }
