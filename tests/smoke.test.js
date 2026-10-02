@@ -37,26 +37,25 @@ describe('project smoke tests', () => {
     assert.match(routes, /export function appPath/)
   })
 
-  it('protects every admin route with an explicit permission guard', async () => {
+  it('protects every management route with an explicit AdminRoute permission guard', async () => {
     const app = await read('src/App.jsx')
-    assert.match(app, /import AdminRoute from ['"]\.\/components\/auth\/AdminRoute['"]/) 
-    assert.match(app, /AdminRoute><Dashboard/)
-    assert.match(app, /permission="content_manage"><PagesManagement/)
-    assert.match(app, /permission="content_manage"><PostsManagement/)
-    assert.match(app, /permission="media_manage"><AlbumsManagement/)
-    assert.match(app, /permission="media_manage"><MediaManagement/)
-    assert.match(app, /permission="user_manage"><UsersManagement/)
-    assert.match(app, /permission="audit_view"><AuditLogs/)
-    assert.match(app, /permission="settings_manage"><ControlPanel/)
+    assert.match(app, /import AdminRoute from ['"]\.\/components\/auth\/AdminRoute['"]/)
+    assert.match(app, /AdminRoute permission="dashboard_view" routePath="\/dashboard">/)
+    assert.match(app, /else if \(management\).*AdminRoute permission=\{management\[1\]\} routePath=\{path\}/s)
+    for (const permission of ['content_manage', 'media_manage', 'user_manage', 'audit_view', 'settings_manage']) {
+      assert.match(app, new RegExp(permission))
+    }
   })
 
   it('keeps the admin guard backed by Supabase permission RPCs', async () => {
     const guard = await read('src/components/auth/AdminRoute.jsx')
     const permissionService = await read('src/services/permissionService.js')
-    assert.match(guard, /hasAdminAccess, hasPermission/)
-    assert.match(guard, /window\.location\.replace\(appPath\('\/login'\)\)/)
+    assert.match(guard, /hasPermission, canAccessRoute/)
+    assert.match(guard, /canAccessRoute\(routePath\)/)
+    assert.match(guard, /hasPermission\(permission\)/)
     assert.match(permissionService, /current_user_has_permission/)
     assert.match(permissionService, /current_user_has_admin_access/)
+    assert.match(guard, /window\.location\.replace\(appPath\('\/access-denied'\)\)/)
   })
 
   it('keeps storage hardening reproducible in migrations', async () => {
