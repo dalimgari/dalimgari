@@ -2,7 +2,6 @@ import Home from './pages/Home'
 import Posts from './pages/Posts'
 import Albums from './pages/Albums'
 import AlbumDetail from './pages/AlbumDetail'
-import Search from './pages/Search'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Profile from './pages/Profile'
@@ -75,7 +74,6 @@ export default function App() {
   else if (path === '/') page = <Home />
   else if (path === '/posts') page = <Posts />
   else if (path === '/albums') page = <Albums />
-  else if (path === '/search') page = <Search />
   else if (path === '/information') page = <Information />
   else if (path === '/login') page = <Login />
   else if (path === '/signup') page = <Signup />
