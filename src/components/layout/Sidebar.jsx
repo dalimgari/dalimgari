@@ -18,10 +18,19 @@ export default function Sidebar({items=[],open,onClose,labels={}}){
   useEffect(()=>{let active=true;Promise.allSettled([getSidebarSettings(),listPublishedPages()]).then(([a,b])=>{if(!active)return;if(a.status==='fulfilled')setSettings(a.value);if(b.status==='fulfilled')setPages(b.value)});return()=>{active=false}},[])
 
   const homeLabel=labels.home?.bng||labels.home?.eng||'বাড়ি'
+  // Home Page navigation is the canonical public Sidebar navigation.
+  // Page components cannot provide a different global Sidebar structure.
+  const canonicalItems=[
+    { label:'হোম', href:'/' },
+    { label:'তথ্য', href:'/information' },
+    { label:'পোস্ট', href:'/posts' },
+    { label:'অ্যালবাম', href:'/albums' },
+    { label:'সার্চ', href:'/search' },
+  ]
   const configured=settings?.items?.length ? settings.items : null
   const pageItems=configured
     ? configured.filter(item=>item.enabled!==false).map(item=>pages.find(page=>page.page_id===item.page_id)).filter(Boolean).map(page=>({label:page.page_title,href:'/pages/'+encodeURIComponent(page.page_slug)}))
-    : items
+    : canonicalItems
   const translated=pageItems.map(item=>{const ruralLabel=LABELS[item.label]||item.label;return {...item,label:language==='eng'?(ENGLISH_LABELS[ruralLabel]||ruralLabel):ruralLabel}})
   if(settings?.enabled===false)return null
 
