@@ -20,24 +20,32 @@ P0 — GLOBAL HEADER & SIDEBAR
 10. Every page must use the same Header and Sidebar as the Home Page. Their size, dimensions, design, layout, styling, spacing, behavior, interaction, responsive/mobile behavior, navigation behavior and internal content must remain unchanged.
 11. Do not create page-specific Header/Sidebar variants, resized versions, redesigned versions or different internal content. Page-specific changes are allowed only in the main page content area; the global Header and Sidebar remain unchanged.
 
+P0 — GLOBAL PROFILE AVATAR FALLBACK
+12. The database-managed default profile avatar is the single fallback source for profile pictures throughout the entire project.
+13. Every profile-picture/avatar display must use the shared profile-avatar resolution logic/component. Do not directly render profile_image_url, auth avatar metadata, or another profile-image URL without the default-avatar fallback.
+14. Resolution order is mandatory: valid user/profile custom picture → database default avatar fallback.
+15. If a custom profile-picture URL is empty, unavailable, invalid, fails to load, or returns an image error, the database default avatar must be shown automatically.
+16. The fallback must work both for the current logged-in user's profile and when displaying another user's profile/avatar.
+17. Profile-picture upload/edit interfaces may store or change the custom profile picture, but must never replace or remove the database default fallback behavior.
+
 P1 — ARCHITECTURE & DATA
-12. Keep the flow: UI → Service/Data Layer → Supabase → Database/Storage/Auth.
-13. Use a single source of truth; avoid unnecessary duplicate data/configuration.
-14. Database schema changes must use a new timestamped migration. Never rewrite existing migration history to alter production history.
-15. Verify CRUD end-to-end: UI → Service → DB → Permission/RLS → resulting UI/data.
-16. Specification, actual implementation/database and spreadsheet inventory are separate sources. Never treat one as automatic proof of another.
-17. Existing specification/data structure must not be deleted, renamed, merged, split or retyped by assistant decision. Approved additions are additive.
-18. Never put secrets in source code or the repository.
-19. Firebase must not be introduced in new implementation.
+18. Keep the flow: UI → Service/Data Layer → Supabase → Database/Storage/Auth.
+19. Use a single source of truth; avoid unnecessary duplicate data/configuration.
+20. Database schema changes must use a new timestamped migration. Never rewrite existing migration history to alter production history.
+21. Verify CRUD end-to-end: UI → Service → DB → Permission/RLS → resulting UI/data.
+22. Specification, actual implementation/database and spreadsheet inventory are separate sources. Never treat one as automatic proof of another.
+23. Existing specification/data structure must not be deleted, renamed, merged, split or retyped by assistant decision. Approved additions are additive.
+24. Never put secrets in source code or the repository.
+25. Firebase must not be introduced in new implementation.
 
 P2 — UX & ENGINEERING
-20. Bengali-first, mobile-first, responsive, accessible and simple/clean UX.
-21. Preserve the rural Bengal/community visual identity; avoid unnecessary urban/corporate styling.
-22. Automatic-first: do not ask users for values the system can reliably generate; allow safe manual override where appropriate.
-23. Reuse shared components and centralized logic; avoid duplicate/dead/unused code.
-24. User-facing errors must be human-readable; no raw technical errors.
-25. Prevent uncontrolled overflow, especially long URLs, filenames, metadata and media.
-26. Avoid unnecessary dependencies, large assets, repeated requests and inefficient operations.
+26. Bengali-first, mobile-first, responsive, accessible and simple/clean UX.
+27. Preserve the rural Bengal/community visual identity; avoid unnecessary urban/corporate styling.
+28. Automatic-first: do not ask users for values the system can reliably generate; allow safe manual override where appropriate.
+29. Reuse shared components and centralized logic; avoid duplicate/dead/unused code.
+30. User-facing errors must be human-readable; no raw technical errors.
+31. Prevent uncontrolled overflow, especially long URLs, filenames, metadata and media.
+32. Avoid unnecessary dependencies, large assets, repeated requests and inefficient operations.
 
 MANDATORY CHANGE WORKFLOW
 READ RULES → AUDIT ACTUAL PROJECT → IDENTIFY REAL PROBLEM → TARGETED CHANGE → BUILD/TEST → REAL VERIFICATION → REPORT RESULT
