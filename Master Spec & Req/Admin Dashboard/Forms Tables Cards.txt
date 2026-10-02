@@ -1,0 +1,9 @@
+ADMIN UI PATTERNS
+
+Forms: human-readable labels, grouped fields, required indication, validation, save/update, cancel/reset, responsive layout ও long-value containment।
+
+Tables: header, rows, action column, responsive layout, horizontal overflow control, long content containment, clear hierarchy ও mobile usability।
+
+Cards: consistent padding/layout/radius/border, responsive width ও controlled overflow।
+
+Actions: clear labels, accessible icons, confirmation for destructive operations, consistent success/error feedback।
