@@ -1,0 +1,17 @@
+PUBLIC GALLERY
+
+Homepage gallery supports images and videos।
+
+Views:
+- All
+- Album-based
+
+Flow:
+Gallery → All Media অথবা Selected Album → Visible Media।
+
+Image: gallery preview → expanded/lightbox view যেখানে প্রযোজ্য।
+Video: gallery preview → inline playback যেখানে প্রযোজ্য।
+
+Gallery: responsive, mobile-friendly, visibility-aware, album-aware, image/video-aware এবং overflow-safe।
+
+Media URL/interface কখনো uncontrolledভাবে container-এর বাইরে যাবে না।
