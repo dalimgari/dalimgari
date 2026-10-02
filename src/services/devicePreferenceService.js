@@ -1,4 +1,4 @@
-const KEYS = { theme: 'dalimgari_theme_preference', language: 'dalimgari_language_preference_v2' }
+const KEYS = { theme: 'dalimgari_theme_preference', language: 'dalimgari_language_preference_v3' }
 
 function read(key) {
   try { return window.localStorage.getItem(key) } catch { return null }
@@ -29,6 +29,7 @@ export function resolveTheme(preference = getThemePreference()) {
 export function getLanguagePreference() {
   const saved = read(KEYS.language)
   if (saved === 'bng' || saved === 'eng') return saved
+  write(KEYS.language, 'bng')
   return 'bng'
 }
 
