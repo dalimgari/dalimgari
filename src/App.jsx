@@ -1,6 +1,7 @@
 import Home from './pages/Home'
 import Posts from './pages/Posts'
 import Albums from './pages/Albums'
+import AlbumDetail from './pages/AlbumDetail'
 import Search from './pages/Search'
 import Login from './pages/Login'
 import Profile from './pages/Profile'
@@ -50,9 +51,10 @@ function adminPage(path) {
 }
 export default function App() {
   const path = getPath(); let page = <NotFound />
-  const pageMatch = path.match(/^\/pages\/([^/]+)$/); const postMatch = path.match(/^\/posts\/([^/]+)$/); const admin = path.startsWith('/admin') ? adminPage(path) : null
+  const pageMatch = path.match(/^\/pages\/([^/]+)$/); const albumMatch = path.match(/^\/albums\/([^/]+)$/); const postMatch = path.match(/^\/posts\/([^/]+)$/); const admin = path.startsWith('/admin') ? adminPage(path) : null
   if (admin) page = admin
   else if (pageMatch) page = <PageDetail slug={decodeURIComponent(pageMatch[1])} />
+  else if (albumMatch) page = <AlbumDetail albumKey={decodeURIComponent(albumMatch[1])} />
   else if (postMatch) page = <PostDetail postId={decodeURIComponent(postMatch[1])} />
   else if (path === '/') page = <Home />
   else if (path === '/posts') page = <Posts />
