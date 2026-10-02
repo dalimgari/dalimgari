@@ -1,0 +1,7 @@
+USERS / PROFILES
+
+User system includes: authentication identity, profile, name, contact data where defined, role, permissions, status ও authentication state।
+
+User area must be protected according to permission and RLS।
+
+Supabase Auth identity এবং application user/profile record-এর exact table/relationship actual schema audit করে CONFIRMED করতে হবে; specification থেকে table name অনুমান করা যাবে না।
