@@ -38,3 +38,10 @@ export async function deleteAlbum(albumId) {
   const { error } = await supabase.from('albums').delete().eq('album_id', albumId)
   if (error) throw error
 }
+
+export async function getVisibleAlbumByKey(albumKey) {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const { data, error } = await supabase.from('albums').select('*').eq('album_key', albumKey).eq('is_visible', true).maybeSingle()
+  if (error) throw error
+  return data
+}
