@@ -6,10 +6,18 @@ function requireSupabase() {
   return supabase
 }
 
-export async function signUpWithPassword(email, password) {
+export async function signUpWithPassword(email, password, displayName = '') {
   const client = requireSupabase()
   const redirectTo = new URL(appPath('/login'), window.location.origin).toString()
-  const { data, error } = await client.auth.signUp({ email, password, options: { emailRedirectTo: redirectTo } })
+  const metadata = displayName ? { full_name: displayName } : undefined
+  const { data, error } = await client.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: redirectTo,
+      ...(metadata ? { data: metadata } : {}),
+    },
+  })
   if (error) throw error
   return data
 }
