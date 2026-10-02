@@ -12,6 +12,7 @@ const adminNavItems = [
   { label: 'পোস্ট', path: '/admin/posts', permission: 'content_manage' },
   { label: 'অ্যালবাম', path: '/admin/albums', permission: 'media_manage' },
   { label: 'মিডিয়া', path: '/admin/media', permission: 'media_manage' },
+  { label: 'ডাটাবেজ ও স্টোরেজ', path: '/admin/database-storage', permission: 'settings_manage' },
   { label: 'ইউজার', path: '/admin/users', permission: 'user_manage' },
   { label: 'অডিট', path: '/admin/audit', permission: 'audit_view' },
   { label: 'পরিসংখ্যান', path: '/admin/analytics', permission: 'audit_view' },
