@@ -45,7 +45,7 @@ const legacyPaths={'/admin':'/dashboard','/admin/homepage':'/manage/homepage','/
 export default function App(){
  const [path,setPath]=useState(getPath)
  useEffect(()=>{const sync=()=>setPath(getPath());window.addEventListener('popstate',sync);window.addEventListener('app:navigate',sync);return()=>{window.removeEventListener('popstate',sync);window.removeEventListener('app:navigate',sync)}},[])
- const legacy=legacyPaths[path];if(legacy){window.history.replaceState({},'',appPath(legacy));return null}
+ const legacy=legacyPaths[path];if(legacy){window.history.replaceState({},'',appPath(legacy));if(path!==legacy){setTimeout(()=>window.dispatchEvent(new Event('app:navigate')),0);return null}}
  let page=<NotFound/>;const pageMatch=path.match(/^\/pages\/([^/]+)$/),albumMatch=path.match(/^\/albums\/([^/]+)$/),postMatch=path.match(/^\/posts\/([^/]+)$/),management=managementPages[path]
  if(path==='/dashboard')page=<RoleRoute/>
  else if(management){const Component=management[0];page=<AdminRoute permission={management[1]} routePath={path}><Component/></AdminRoute>}
