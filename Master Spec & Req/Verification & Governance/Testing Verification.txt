@@ -1,0 +1,19 @@
+TESTING & VERIFICATION
+
+After changes verify:
+- Production build
+- Relevant tests
+- Authentication
+- Admin route protection
+- RBAC/permissions
+- RLS
+- CRUD
+- Media/storage
+- Public visibility
+- Search
+- Homepage
+- Mobile/responsive behavior
+- Bengali UI
+- Production deployment
+
+Use targeted testing based on the changed feature; report verified result and remaining uncertainty separately.
