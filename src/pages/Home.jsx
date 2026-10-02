@@ -65,7 +65,7 @@ function HomeTopicTabs({ pages = [], albums = [], items = null }) {
 
   if (configured) {
     const links = configured.map((item) => resolvePageLink(item, pages)).filter(Boolean)
-    return <nav className="home-topic-tabs site-container" aria-label="গ্রামের বিষয়সমূহ">
+    return <nav className="home-topic-tabs site-container" aria-label="বিষয়সমূহ">
       {links.map((item) => <a className="home-topic-tab" href={item.href} key={item.href}>{item.label}</a>)}
     </nav>
   }
