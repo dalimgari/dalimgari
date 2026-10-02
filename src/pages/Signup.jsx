@@ -37,8 +37,8 @@ export default function Signup() {
         <label htmlFor="signup-password">পাসওয়ার্ড</label>
         <input id="signup-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} autoComplete="new-password" />
         <button type="submit" className="ui-button" disabled={status === 'loading'}>{status === 'loading' ? 'অপেক্ষা করুন…' : 'একাউন্ট বানান'}</button>
-        <a className="ui-button ui-button--secondary" href={appPath('/login')}>লগইনে ফিরে যান</a>
-        <a className="ui-button ui-button--secondary" href={appPath('/')}>হোমে ফিরে যান</a>
+        <a className="ui-button" href={appPath('/login')}>লগইনে ফিরে যান</a>
+        <a className="ui-button" href={appPath('/')}>হোমে ফিরে যান</a>
       </form>
       {status === 'loading' ? <Loading /> : null}
       {message ? <p className="admin-success">{message}</p> : null}
