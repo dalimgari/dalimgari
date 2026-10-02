@@ -1,0 +1,11 @@
+UI STATES & FEEDBACK
+
+Loading: indicator থাকবে, UI structure preserve করবে, blank screen নয়।
+Empty: clear, friendly message ও preserved visual structure।
+Error: user-friendly controlled message; raw technical error নয়; recovery/action যেখানে প্রযোজ্য।
+Success: completed action-এর clear feedback।
+Confirmation: গুরুত্বপূর্ণ/destructive action-এর আগে confirmation।
+Delete Confirmation: delete-এর আগে explicit confirmation।
+Unsaved Changes: unsaved state বোঝানো ও প্রয়োজনীয় warning।
+
+সব state-এ একই ধরনের global interaction pattern বজায় থাকবে।
