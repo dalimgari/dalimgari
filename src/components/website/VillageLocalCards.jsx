@@ -32,6 +32,56 @@ function informationForLocation(location, language) {
   )
 }
 
+const BENGALI_DIGITS = '০১২৩৪৫৬৭৮৯'
+
+function toBengaliDigits(value) {
+  return String(value).replace(/[0-9]/g, (digit) => BENGALI_DIGITS[Number(digit)])
+}
+
+function getTimeParts(date, timeZone) {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+  }).formatToParts(date)
+  return Object.fromEntries(parts.filter((part) => part.type !== 'literal').map((part) => [part.type, part.value]))
+}
+
+function getGregorianDateParts(date, timeZone) {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone, day: 'numeric', month: 'numeric', year: 'numeric',
+  }).formatToParts(date)
+  return Object.fromEntries(parts.filter((part) => part.type !== 'literal').map((part) => [part.type, part.value]))
+}
+
+// Bangladesh's current revised Bangla calendar: Pohela Boishakh is 14 April;
+// the first five months have 31 days, Ashwin through Magh have 30,
+// Falgun has 29 (30 in Gregorian leap years), and Chaitra has 30.
+const BENGALI_MONTHS = ['বৈশাখ', 'জ্যৈষ্ঠ', 'আষাঢ়', 'শ্রাবণ', 'ভাদ্র', 'আশ্বিন', 'কার্তিক', 'অগ্রহায়ণ', 'পৌষ', 'মাঘ', 'ফাল্গুন', 'চৈত্র']
+
+function isGregorianLeapYear(year) {
+  return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0)
+}
+
+function getBengaliDate(date, timeZone) {
+  const { day, month, year } = getGregorianDateParts(date, timeZone)
+  const gYear = Number(year)
+  const gMonth = Number(month)
+  const gDay = Number(day)
+
+  // Bangla year changes on 14 April.
+  const banglaYear = gMonth > 4 || (gMonth === 4 && gDay >= 14) ? gYear - 593 : gYear - 594
+  const start = Date.UTC(gYear - (gMonth < 4 || (gMonth === 4 && gDay < 14) ? 1 : 0), 3, 14)
+  const current = Date.UTC(gYear, gMonth - 1, gDay)
+  let dayOfYear = Math.floor((current - start) / 86400000) + 1
+  const lengths = [31, 31, 31, 31, 30, 30, 30, 30, 30, 30, isGregorianLeapYear(gYear) ? 30 : 29, 30]
+  let monthIndex = 0
+  while (dayOfYear > lengths[monthIndex]) {
+    dayOfYear -= lengths[monthIndex]
+    monthIndex += 1
+  }
+
+  return { day: dayOfYear, month: BENGALI_MONTHS[monthIndex], year: banglaYear }
+}
+
 function TimeCard({ location, language }) {
   const [now, setNow] = useState(() => new Date())
   useEffect(() => {
@@ -39,16 +89,21 @@ function TimeCard({ location, language }) {
     return () => window.clearInterval(timer)
   }, [])
 
-  const locale = language === 'bng' ? 'bn-BD' : 'en-BD'
-  const time = new Intl.DateTimeFormat(locale, {
-    timeZone: location.timeZone, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
-  }).format(now)
-  const date = new Intl.DateTimeFormat(locale, {
-    timeZone: location.timeZone, day: 'numeric', month: 'long', year: 'numeric',
-  }).format(now)
-  const weekday = new Intl.DateTimeFormat(locale, {
+  const parts = getTimeParts(now, location.timeZone)
+  const rawTime = `${parts.hour}:${parts.minute}:${parts.second}`
+  const time = language === 'bng' ? toBengaliDigits(rawTime) : rawTime
+  const weekday = new Intl.DateTimeFormat(language === 'bng' ? 'bn-BD' : 'en-BD', {
     timeZone: location.timeZone, weekday: 'long',
   }).format(now)
+
+  const date = language === 'bng'
+    ? (() => {
+        const bengali = getBengaliDate(now, location.timeZone)
+        return `${toBengaliDigits(bengali.day)} ${bengali.month} ${toBengaliDigits(bengali.year)}`
+      })()
+    : new Intl.DateTimeFormat('en-BD', {
+        timeZone: location.timeZone, day: 'numeric', month: 'long', year: 'numeric',
+      }).format(now)
 
   return (
     <article className="village-local-card village-local-card--time">
