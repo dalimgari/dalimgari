@@ -1,0 +1,1 @@
+revoke execute on function public.get_sitemap_content() from authenticated;

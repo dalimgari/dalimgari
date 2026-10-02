@@ -1,0 +1,1 @@
+alter table public.global_ui_labels alter column bng drop not null; alter table public.global_ui_labels drop constraint if exists global_ui_labels_bng_check; alter table public.global_ui_labels add constraint global_ui_labels_bng_check check (bng is null or btrim(bng) <> '');

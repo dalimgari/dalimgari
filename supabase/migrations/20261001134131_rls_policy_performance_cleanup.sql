@@ -1,5 +1,3 @@
--- Optimize current RLS policies without changing authorization semantics.
-
 drop policy if exists "audit_logs_authenticated_insert" on public.audit_logs;
 create policy "audit_logs_authenticated_insert"
 on public.audit_logs
