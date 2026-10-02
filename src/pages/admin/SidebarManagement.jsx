@@ -1,86 +1,16 @@
-import { useEffect, useState } from 'react'
+import { useEffect,useState } from 'react'
 import { useAuth } from '../../context'
 import { hasPermission } from '../../services/permissionService'
-import { getSidebarSettings, saveSidebarSettings } from '../../services/sidebarService'
+import { getSidebarSettings,saveSidebarSettings } from '../../services/sidebarService'
 import { listPublishedPages } from '../../services/pageService'
 import { createAuditLog } from '../../services/auditService'
 import { AdminLayout } from '../../components/admin'
-import { Button, Checkbox, Loading, ErrorState } from '../../components/ui'
-
-function togglePage(list, pageId) {
-  const exists = list.some((item) => item.page_id === pageId)
-  return exists ? list.filter((item) => item.page_id !== pageId) : [...list, { page_id: pageId, enabled: true }]
-}
-
-export default function SidebarManagement() {
-  const { user, status } = useAuth()
-  const [allowed, setAllowed] = useState(false)
-  const [ready, setReady] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState(null)
-  const [config, setConfig] = useState(null)
-  const [pages, setPages] = useState([])
-
-  useEffect(() => {
-    if (status === 'loading') return
-    if (!user) { window.location.href = (import.meta.env.BASE_URL || '/') + 'login'; return }
-    Promise.all([hasPermission('sidebar_manage'), getSidebarSettings(), listPublishedPages()])
-      .then(([permission, settings, publishedPages]) => { setAllowed(permission); setConfig(settings); setPages(publishedPages); setReady(true) })
-      .catch((e) => { setError(e); setReady(true) })
-  }, [status, user])
-
-  function selectPage(pageId) {
-    setConfig((current) => ({ ...current, items: togglePage(current.items || [], pageId) }))
-  }
-
-  function moveItem(index, direction) {
-    setConfig((current) => {
-      const items = [...(current.items || [])]
-      const target = index + direction
-      if (target < 0 || target >= items.length) return current
-      ;[items[index], items[target]] = [items[target], items[index]]
-      return { ...current, items }
-    })
-  }
-
-  async function handleSave(event) {
-    event.preventDefault()
-    setSaving(true); setError(null)
-    try {
-      const saved = await saveSidebarSettings(config)
-      setConfig(saved)
-      await createAuditLog({ actionKey: 'update', module: 'sidebar', details: { settings: saved } })
-    } catch (e) { setError(e) } finally { setSaving(false) }
-  }
-
-  const selected = config?.items || []
-  if (status === 'loading' || !ready) return <Loading />
-  if (!allowed) return <ErrorState description="আপনার সাইডবার ম্যানেজমেন্টের অনুমতি নেই।" />
-
-  return <AdminLayout user={user} title="সাইডবার ম্যানেজমেন্ট">
-    <form className="admin-management" onSubmit={handleSave}>
-      <p className="admin-intro">সাইডবারের মেনু এখান থেকে ঠিক করা যাবে। প্রকাশিত পেজ নির্বাচন করুন, তারপর ↑ ↓ দিয়ে মেনুর ক্রম সাজান। মেনুর নিজস্ব তথ্য নেই—প্রতিটি মেনু সংশ্লিষ্ট পেজকেই উপস্থাপন করবে।</p>
-      <section className="admin-form">
-        <h3>সাইডবার</h3>
-        <Checkbox id="sidebar-enabled" label="সাইডবার চালু রাখুন" checked={config.enabled !== false} onChange={(e) => setConfig((current) => ({ ...current, enabled: e.target.checked }))} />
-        <p className="admin-intro">‘বাড়ি’, ‘নিজের পরিচয়’, দিন/রাত ও ভাষার নিয়ন্ত্রণ আলাদা থাকবে। নিচের তালিকা শুধু সাইডবারের পেজ-মেনু নিয়ন্ত্রণ করে।</p>
-        <div className="admin-list">
-          {pages.map((page) => {
-            const selectedIndex = selected.findIndex((item) => item.page_id === page.page_id)
-            const isSelected = selectedIndex >= 0
-            return <div className="admin-list__item" key={page.page_id}>
-              <Checkbox id={'sidebar-page-' + page.page_id} label={page.page_title} checked={isSelected} onChange={() => selectPage(page.page_id)} />
-              <div className="admin-list__actions">
-                {isSelected ? <Button type="button" variant="secondary" disabled={selectedIndex === 0} onClick={() => moveItem(selectedIndex, -1)}>↑</Button> : null}
-                {isSelected ? <Button type="button" variant="secondary" disabled={selectedIndex === selected.length - 1} onClick={() => moveItem(selectedIndex, 1)}>↓</Button> : null}
-              </div>
-            </div>
-          })}
-        </div>
-        {!pages.length ? <p className="gallery-empty">কোনো প্রকাশিত পেজ নেই। আগে পেজ তৈরি ও প্রকাশ করুন।</p> : null}
-      </section>
-      <div className="admin-form__actions"><Button type="submit" disabled={saving}>{saving ? 'সংরক্ষণ হচ্ছে…' : 'সাইডবার সেটিংস সংরক্ষণ করুন'}</Button></div>
-      {error ? <ErrorState description={error.message || 'সাইডবার সেটিংস সংরক্ষণ করা যায়নি।'} /> : null}
-    </form>
-  </AdminLayout>
-}
+import { Button,Checkbox,Textarea,Loading,ErrorState } from '../../components/ui'
+function togglePage(list,pageId){const exists=list.some(x=>x.page_id===pageId);return exists?list.filter(x=>x.page_id!==pageId):[...list,{page_id:pageId,enabled:true}]}
+export default function SidebarManagement(){const{user,status}=useAuth();const[allowed,setAllowed]=useState(false),[ready,setReady]=useState(false),[saving,setSaving]=useState(false),[error,setError]=useState(null),[config,setConfig]=useState(null),[pages,setPages]=useState([]),[json,setJson]=useState('')
+ useEffect(()=>{if(status==='loading')return;if(!user){window.location.href=(import.meta.env.BASE_URL||'/')+'login';return}Promise.all([hasPermission('sidebar_manage'),getSidebarSettings(),listPublishedPages()]).then(([p,s,pg])=>{setAllowed(p);setConfig(s);setJson(JSON.stringify(s,null,2));setPages(pg);setReady(true)}).catch(e=>{setError(e);setReady(true)})},[status,user])
+ function selectPage(id){setConfig(c=>({...c,items:togglePage(c.items||[],id)}))};function moveItem(index,direction){setConfig(c=>{const items=[...(c.items||[])],target=index+direction;if(target<0||target>=items.length)return c;[items[index],items[target]]=[items[target],items[index]];return {...c,items}})}
+ function changeAdvanced(value){setJson(value);try{setConfig(JSON.parse(value));setError(null)}catch{setError(new Error('Sidebar config JSON সঠিক নয়।'))}}
+ async function handleSave(e){e.preventDefault();setSaving(true);setError(null);try{const saved=await saveSidebarSettings(config);setConfig(saved);setJson(JSON.stringify(saved,null,2));await createAuditLog({actionKey:'update',module:'sidebar',details:{settings:saved}})}catch(e2){setError(e2)}finally{setSaving(false)}}
+ const selected=config?.items||[];if(status==='loading'||!ready)return <Loading/>;if(!allowed)return <ErrorState description="আপনার সাইডবার ম্যানেজমেন্টের অনুমতি নেই।"/>
+ return <AdminLayout user={user} title="সাইডবার ম্যানেজমেন্ট"><form className="admin-management" onSubmit={handleSave}><section className="admin-form"><Checkbox id="sidebar-enabled" label="সাইডবার চালু রাখুন" checked={config.enabled!==false} onChange={e=>setConfig(c=>({...c,enabled:e.target.checked}))}/><p className="admin-intro">প্রকাশিত পেজ নির্বাচন করুন এবং ক্রম সাজান।</p><div className="admin-list">{pages.map(page=>{const i=selected.findIndex(x=>x.page_id===page.page_id);const on=i>=0;return <div className="admin-list__item" key={page.page_id}><Checkbox id={'sidebar-page-'+page.page_id} label={page.page_title} checked={on} onChange={()=>selectPage(page.page_id)}/><div className="admin-list__actions">{on?<Button type="button" variant="secondary" disabled={i===0} onClick={()=>moveItem(i,-1)}>↑</Button>:null}{on?<Button type="button" variant="secondary" disabled={i===selected.length-1} onClick={()=>moveItem(i,1)}>↓</Button>:null}</div></div>})}</div></section><section className="admin-form"><h3>Advanced config — 100% DB JSON</h3><p className="admin-intro">config-এর items, enabled, cards এবং ভবিষ্যতের অতিরিক্ত key-সহ সম্পূর্ণ JSON editable।</p><Textarea id="sidebar-config-json" label="config" value={json} onChange={e=>changeAdvanced(e.target.value)}/></section><div className="admin-form__actions"><Button type="submit" disabled={saving}>{saving?'সংরক্ষণ হচ্ছে…':'সাইডবার সেটিংস সংরক্ষণ করুন'}</Button></div>{error?<ErrorState description={error.message}/>:null}</form></AdminLayout>}
