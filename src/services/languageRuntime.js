@@ -1,8 +1,10 @@
 const BUILTIN_PAIRS = {
-  'হোম':'Home','তথ্য':'Information','গ্রামের তথ্য':'Village Information','পোস্ট':'Posts','অ্যালবাম':'Albums','খুঁজুন':'Search','লগইন':'Login','নতুন একাউন্ট':'Create Account','প্রোফাইল':'Profile','ড্যাশবোর্ড':'Dashboard','হোমপেজ ব্যবস্থাপনা':'Homepage Management','সাইডবার ব্যবস্থাপনা':'Sidebar Management','পেজ ব্যবস্থাপনা':'Page Management','পোস্ট ব্যবস্থাপনা':'Post Management','অ্যালবাম ব্যবস্থাপনা':'Album Management','মিডিয়া ব্যবস্থাপনা':'Media Management','ব্যবহারকারী ব্যবস্থাপনা':'User Management','অ্যাক্সেস ব্যবস্থাপনা':'Access Management','অডিট লগ':'Audit Log','অ্যানালিটিক্স':'Analytics','ওয়েবসাইট তথ্য':'Website Information','অ্যাডমিন তথ্য':'Admin Information','গ্রামীণ ভিজ্যুয়াল ব্যবস্থাপনা':'Rural Visual Management','বন্ধ':'Close','উঠান':'Menu','খোঁজ':'Search','বাড়ি':'Home','লগআউট':'Logout','বাংলা':'Bengali','ইংরেজি':'English','English':'English','বাংলা':'Bengali','রাতের আবহ':'Night','দিনের আলো':'Day','সেভ':'Save','সংরক্ষণ':'Save','এডিট':'Edit','সম্পাদনা':'Edit','ডিলেট':'Delete','মুছুন':'Delete','যোগ করুন':'Add','অপসারণ':'Remove','শেয়ার':'Share','ডাউনলোড':'Download','আপলোড':'Upload','রিফ্রেশ':'Refresh','লোড হচ্ছে':'Loading','বিস্তারিত পড়ুন':'Read more','বিস্তারিত':'Details','পরিচিতি':'Introduction','আরও জানা যাক':'Learn More','ছবি ও ভিডিও':'Photos & Videos','বিষয়সমূহ':'Topics','প্রকৃতি':'Nature','গ্রামবাসী':'Villagers','মানুষ':'People','সমাজ':'Society','ইতিহাস':'History','ঐতিহ্য':'Heritage','সংস্কৃতি':'Culture','নোটিশ':'Notice','ইভেন্ট':'Events','সদস্য':'Members','যোগাযোগ':'Contact','সেটিংস':'Settings','বিজ্ঞপ্তি':'Notifications','বার্তা':'Messages','মন্তব্য':'Comments','ছবি':'Photos','ভিডিও':'Videos','ডকুমেন্ট':'Documents','সাহায্য':'Help','সম্পর্কে':'About','ভাষা':'Language','দিন':'Day','রাত':'Night','ব্যবহারকারী':'User','অ্যাডমিন':'Admin','মূল জায়গায় যান':'Skip to main content','সব':'All','হ্যাঁ':'Yes','না':'No','বাতিল':'Cancel','নিশ্চিত করুন':'Confirm','পিছনে':'Back','পরবর্তী':'Next','আগের':'Previous','খুঁজুন...':'Search...','সফল':'Success','ত্রুটি':'Error','সতর্কতা':'Warning','তথ্য পাওয়া যায়নি':'No information found'
+  'হোম':'Home','তথ্য':'Information','গ্রামের তথ্য':'Village Information','পোস্ট':'Posts','অ্যালবাম':'Albums','খুঁজুন':'Search','লগইন':'Login','নতুন একাউন্ট':'Create Account','প্রোফাইল':'Profile','ড্যাশবোর্ড':'Dashboard','হোমপেজ ব্যবস্থাপনা':'Homepage Management','সাইডবার ব্যবস্থাপনা':'Sidebar Management','পেজ ব্যবস্থাপনা':'Page Management','পোস্ট ব্যবস্থাপনা':'Post Management','অ্যালবাম ব্যবস্থাপনা':'Album Management','মিডিয়া ব্যবস্থাপনা':'Media Management','ব্যবহারকারী ব্যবস্থাপনা':'User Management','অ্যাক্সেস ব্যবস্থাপনা':'Access Management','অডিট লগ':'Audit Log','অ্যানালিটিক্স':'Analytics','ওয়েবসাইট তথ্য':'Website Information','অ্যাডমিন তথ্য':'Admin Information','গ্রামীণ ভিজ্যুয়াল ব্যবস্থাপনা':'Rural Visual Management','বন্ধ':'Close','উঠান':'Menu','খোঁজ':'Search','বাড়ি':'Home','লগআউট':'Logout','বাংলা':'Bengali','ইংরেজি':'English','English':'English','রাতের আবহ':'Night','দিনের আলো':'Day','সেভ':'Save','সংরক্ষণ':'Save','এডিট':'Edit','সম্পাদনা':'Edit','ডিলেট':'Delete','মুছুন':'Delete','যোগ করুন':'Add','অপসারণ':'Remove','শেয়ার':'Share','ডাউনলোড':'Download','আপলোড':'Upload','রিফ্রেশ':'Refresh','লোড হচ্ছে':'Loading','বিস্তারিত পড়ুন':'Read more','বিস্তারিত':'Details','পরিচিতি':'Introduction','আরও জানা যাক':'Learn More','ছবি ও ভিডিও':'Photos & Videos','বিষয়সমূহ':'Topics','প্রকৃতি':'Nature','গ্রামবাসী':'Villagers','মানুষ':'People','সমাজ':'Society','ইতিহাস':'History','ঐতিহ্য':'Heritage','সংস্কৃতি':'Culture','নোটিশ':'Notice','ইভেন্ট':'Events','সদস্য':'Members','যোগাযোগ':'Contact','সেটিংস':'Settings','বিজ্ঞপ্তি':'Notifications','বার্তা':'Messages','মন্তব্য':'Comments','ছবি':'Photos','ভিডিও':'Videos','ডকুমেন্ট':'Documents','সাহায্য':'Help','সম্পর্কে':'About','ভাষা':'Language','দিন':'Day','রাত':'Night','ব্যবহারকারী':'User','অ্যাডমিন':'Admin','মূল জায়গায় যান':'Skip to main content','সব':'All','হ্যাঁ':'Yes','না':'No','বাতিল':'Cancel','নিশ্চিত করুন':'Confirm','পিছনে':'Back','পরবর্তী':'Next','আগের':'Previous','খুঁজুন...':'Search...','সফল':'Success','ত্রুটি':'Error','সতর্কতা':'Warning','তথ্য পাওয়া যায়নি':'No information found'
 }
 
 const reversePairs = Object.fromEntries(Object.entries(BUILTIN_PAIRS).map(([bn,en]) => [en,bn]))
+const translationCache = new Map()
+const pendingTranslations = new Map()
 
 function normalize(value) {
   return String(value ?? '').replace(/\s+/g, ' ').trim()
@@ -11,7 +13,7 @@ function normalize(value) {
 function buildMaps(labels = {}) {
   const bnToEn = { ...BUILTIN_PAIRS }
   const enToBn = { ...reversePairs }
-  Object.entries(labels || {}).forEach(([key, value]) => {
+  Object.values(labels || {}).forEach((value) => {
     const en = normalize(value?.eng)
     const bn = normalize(value?.bng)
     if (en && bn) {
@@ -27,31 +29,114 @@ function translateExact(value, map) {
   return text && map[text] ? map[text] : null
 }
 
-function translateNode(node, map) {
+function cacheKey(text, source, target) {
+  return `${source}:${target}:${text}`
+}
+
+async function translateRemote(text, source, target) {
+  const clean = normalize(text)
+  if (!clean || source === target) return clean
+  const key = cacheKey(clean, source, target)
+  if (translationCache.has(key)) return translationCache.get(key)
+  if (pendingTranslations.has(key)) return pendingTranslations.get(key)
+  const promise = fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=${source}&tl=${target}&dt=t&q=${encodeURIComponent(clean)}`)
+    .then((response) => response.ok ? response.json() : null)
+    .then((data) => {
+      const translated = Array.isArray(data?.[0]) ? data[0].map((part) => part?.[0] || '').join('') : ''
+      const result = normalize(translated) || clean
+      translationCache.set(key, result)
+      return result
+    })
+    .catch(() => clean)
+    .finally(() => pendingTranslations.delete(key))
+  pendingTranslations.set(key, promise)
+  return promise
+}
+
+async function translateText(value, language, labels) {
+  const text = normalize(value)
+  if (!text) return value
+  const maps = buildMaps(labels)
+  const target = language === 'eng' ? 'en' : 'bn'
+  const exact = language === 'eng' ? maps.bnToEn[text] : maps.enToBn[text]
+  if (exact) return exact
+  const source = language === 'eng' ? 'bn' : 'en'
+  return translateRemote(text, source, target)
+}
+
+function shouldSkipElement(node) {
+  return ['SCRIPT','STYLE','NOSCRIPT','PRE','CODE','TEXTAREA','OPTION'].includes(node.tagName) || node.isContentEditable || node.matches('[data-no-translate],.user-content') || node.closest('[data-no-translate],.user-content')
+}
+
+function markAndTranslateTextNode(node, language, labels) {
+  const parent = node.parentElement
+  if (!parent || shouldSkipElement(parent)) return
+  const current = normalize(node.nodeValue)
+  if (!current) return
+
+  const rendered = node.__dalimgariRendered || ''
+  let source = node.__dalimgariSource || current
+  let sourceLanguage = node.__dalimgariSourceLanguage || (language === 'eng' ? 'bn' : 'en')
+  if (rendered && current !== rendered) {
+    source = current
+    sourceLanguage = language === 'eng' ? 'en' : 'bn'
+  }
+  node.__dalimgariSource = source
+  node.__dalimgariSourceLanguage = sourceLanguage
+
+  const target = language === 'eng' ? 'en' : 'bn'
+  if (sourceLanguage === target) return
+
+  translateText(source, language, labels).then((translated) => {
+    if (!node.isConnected) return
+    if (node.__dalimgariSource !== source || node.__dalimgariSourceLanguage !== sourceLanguage) return
+    const result = normalize(translated)
+    if (!result || result === normalize(node.nodeValue)) return
+    node.nodeValue = result
+    node.__dalimgariRendered = result
+  })
+}
+
+function translateAttribute(node, attribute, language, labels) {
+  const value = node.getAttribute(attribute)
+  if (!value) return
+  const marker = `__dalimgari_${attribute}`
+  const rendered = node[`${marker}Rendered`] || ''
+  let source = node[`${marker}Source`] || value
+  let sourceLanguage = node[`${marker}SourceLanguage`] || (language === 'eng' ? 'bn' : 'en')
+  if (rendered && value !== rendered) {
+    source = value
+    sourceLanguage = language === 'eng' ? 'en' : 'bn'
+  }
+  node[`${marker}Source`] = source
+  node[`${marker}SourceLanguage`] = sourceLanguage
+  const target = language === 'eng' ? 'en' : 'bn'
+  if (sourceLanguage === target) return
+  translateText(source, language, labels).then((translated) => {
+    if (!node.isConnected) return
+    if (node[`${marker}Source`] !== source || node[`${marker}SourceLanguage`] !== sourceLanguage) return
+    const result = normalize(translated)
+    if (result && result !== value) {
+      node.setAttribute(attribute, result)
+      node[`${marker}Rendered`] = result
+    }
+  })
+}
+
+function translateNode(node, language, labels) {
   if (node.nodeType === Node.TEXT_NODE) {
-    const parent = node.parentElement
-    if (!parent || ['SCRIPT','STYLE','NOSCRIPT','PRE','CODE','TEXTAREA'].includes(parent.tagName) || parent.isContentEditable || parent.closest('[data-no-translate],.user-content')) return
-    const translated = translateExact(node.nodeValue, map)
-    if (translated && translated !== normalize(node.nodeValue)) node.nodeValue = translated
+    markAndTranslateTextNode(node, language, labels)
     return
   }
-  if (node.nodeType !== Node.ELEMENT_NODE) return
-  if (['SCRIPT','STYLE','NOSCRIPT','PRE','CODE','TEXTAREA'].includes(node.tagName) || node.isContentEditable || node.matches('[data-no-translate],.user-content')) return
-
-  for (const attribute of ['aria-label','title','placeholder','alt']) {
-    const value = node.getAttribute(attribute)
-    const translated = translateExact(value, map)
-    if (translated) node.setAttribute(attribute, translated)
-  }
-  node.childNodes.forEach((child) => translateNode(child, map))
+  if (node.nodeType !== Node.ELEMENT_NODE || shouldSkipElement(node)) return
+  for (const attribute of ['aria-label','title','placeholder','alt']) translateAttribute(node, attribute, language, labels)
+  node.childNodes.forEach((child) => translateNode(child, language, labels))
 }
 
 export function applyLanguageToDocument(language, labels = {}) {
   if (typeof document === 'undefined') return
-  const maps = buildMaps(labels)
-  const map = language === 'eng' ? maps.bnToEn : maps.enToBn
   document.documentElement.lang = language === 'eng' ? 'en' : 'bn'
-  translateNode(document.body, map)
+  translateNode(document.body, language, labels)
 }
 
 export function observeLanguageDocument(language, labels = {}) {
