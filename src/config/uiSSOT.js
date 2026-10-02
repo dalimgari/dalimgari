@@ -37,6 +37,7 @@ export const UI_SSOT = {
       back: { bng: 'পিছনে', eng: 'Back' },
       next: { bng: 'পরবর্তী', eng: 'Next' },
       previous: { bng: 'আগের', eng: 'Previous' },
+      signup: { bng: 'নতুন একাউন্ট', eng: 'Create Account' },
     },
     commonActions: {
       loading: { bng: 'লোড হচ্ছে', eng: 'Loading' },
@@ -46,6 +47,7 @@ export const UI_SSOT = {
       bengali: { bng: 'বাংলা', eng: 'Bengali' },
       english: { bng: 'ইংরেজি', eng: 'English' },
       skipToMain: { bng: 'মূল জায়গায় যান', eng: 'Skip to main content' },
+      theme: { bng: 'থিম', eng: 'Theme' },
     },
   },
 
