@@ -1,0 +1,15 @@
+GLOBAL INPUT REGISTRY
+
+text → Text Input
+number → Number Input
+email → Email Input
+password → Password Input
+date → Date Picker
+time → Time Picker
+file → File/Image Upload
+select → Select / Dropdown
+checkbox → Checkbox
+radio → Radio Button
+textarea → Textarea
+
+Registry final; field/type/input-method নিজ সিদ্ধান্তে পরিবর্তন করা যাবে না।
