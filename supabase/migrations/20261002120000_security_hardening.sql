@@ -69,13 +69,16 @@ create or replace function public.record_analytics_visit(
   p_language text default null, p_theme text default null
 )
 returns uuid language plpgsql set search_path = public, extensions as $$
-declare v_id uuid;
+declare v_id uuid := gen_random_uuid();
 begin
   if coalesce(length(trim(p_path)),0)=0 then return null; end if;
-  insert into public.analytics_visits(path,referrer,user_agent,session_id,device_class,language,theme)
-  values(left(trim(p_path),500),left(p_referrer,1000),left(p_user_agent,1000),
-         left(p_session_id,200),left(p_device_class,32),left(p_language,16),left(p_theme,16))
-  returning visit_id into v_id;
+  insert into public.analytics_visits(
+    visit_id,path,referrer,user_agent,session_id,device_class,language,theme
+  )
+  values(
+    v_id,left(trim(p_path),500),left(p_referrer,1000),left(p_user_agent,1000),
+    left(p_session_id,200),left(p_device_class,32),left(p_language,16),left(p_theme,16)
+  );
   return v_id;
 end;
 $$;
