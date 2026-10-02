@@ -8,6 +8,22 @@
     <link rel="canonical" href="https://dalimgari.github.io/dalimgari/" />
     <link rel="icon" type="image/svg+xml" href="/dalimgari/favicon.svg" />
     <title>হোম — কমিউনিটি ওয়েবসাইট</title>
+    <script>
+      (function () {
+        try {
+          var key = 'dalimgari_language_preference_v3'
+          var saved = localStorage.getItem(key)
+          if (saved !== 'bng' && saved !== 'eng') {
+            localStorage.setItem(key, 'bng')
+            document.documentElement.lang = 'bn'
+          } else {
+            document.documentElement.lang = saved === 'eng' ? 'en' : 'bn'
+          }
+        } catch (_) {
+          document.documentElement.lang = 'bn'
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>
