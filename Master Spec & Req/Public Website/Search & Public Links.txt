@@ -1,0 +1,7 @@
+PUBLIC SEARCH & LINKS
+
+Search sources: published/visible pages, posts, village/site information ও public links; separate search database নয়।
+
+Rules: maximum 30 results, no-result message, Bengali/English content support, post/page anchors where applicable, admin/private/internal/user data excluded।
+
+Public links: database-driven where defined, human-friendly title/icon/URL presentation, long URL overflow-safe।
