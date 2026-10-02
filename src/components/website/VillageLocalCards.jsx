@@ -136,7 +136,7 @@ export default function VillageLocalCards({ information }) {
   return (
     <section className="home-section village-local-section" data-theme={theme} aria-labelledby="village-local-title">
       <div className="site-container">
-        <h2 id="village-local-title" className="sr-only">{language === 'bng' ? 'ডালিমগাড়ীর স্থানীয় তথ্য' : 'Dalimgari local information'}</h2>
+        <h2 id="village-local-title" className="sr-only">{language === 'bng' ? 'স্থানীয় তথ্য' : 'Local information'}</h2>
         <div className="village-local-grid">
           <TimeCard location={location} language={language} />
           <WeatherCard weather={weather} language={language} />
