@@ -1,0 +1,20 @@
+import { useCallback, useEffect, useState } from 'react'
+import { useAuth } from '../../context'
+import { hasPermission } from '../../services/permissionService'
+import { getDatabaseStorageInfo } from '../../services/databaseStorageService'
+import { AdminLayout } from '../../components/admin'
+import { Button, Loading, ErrorState, EmptyState } from '../../components/ui'
+
+function formatBytes(value) { const n=Number(value||0); if(!n)return '0 B'; const units=['B','KB','MB','GB','TB']; let i=0,size=n; while(size>=1024&&i<units.length-1){size/=1024;i+=1} return size.toFixed(size>=10||i===0?0:1)+' '+units[i] }
+function Stat({ label, value }) { return <article className="admin-stat-card"><span>{label}</span><strong>{value}</strong></article> }
+
+export default function DatabaseStorageInformation() {
+ const {user,status}=useAuth(); const [allowed,setAllowed]=useState(false),[ready,setReady]=useState(false),[info,setInfo]=useState(null),[error,setError]=useState(null),[busy,setBusy]=useState(false)
+ const load=useCallback(async()=>{setBusy(true);setError(null);try{const [permission,data]=await Promise.all([hasPermission('settings_manage'),getDatabaseStorageInfo()]);setAllowed(permission);if(permission)setInfo(data);setReady(true)}catch(e){setError(e);setReady(true)}finally{setBusy(false)}},[])
+ useEffect(()=>{if(status==='loading')return;if(!user){window.location.href=(import.meta.env.BASE_URL||'/')+'login';return}load()},[status,user,load])
+ if(status==='loading'||!ready)return <Loading/>; if(error&&!allowed)return <ErrorState description={error.message||'ডাটাবেজ ও স্টোরেজ তথ্য লোড করা যায়নি।'}/>; if(!allowed)return <ErrorState description="আপনার এই তথ্য দেখার অনুমতি নেই।"/>; if(!info)return <ErrorState description={error?.message||'তথ্য পাওয়া যায়নি।'}/>
+ const d=info.database,s=info.storage
+ return <AdminLayout user={user} title="Database & Storage Information"><section className="admin-form"><div className="admin-section-heading"><div><h3>Supabase Database ও Storage</h3><p>তথ্য সরাসরি বর্তমান Production Supabase project থেকে পড়া হচ্ছে।</p></div><Button type="button" variant="secondary" onClick={load} disabled={busy}>{busy?'রিফ্রেশ হচ্ছে…':'রিফ্রেশ'}</Button></div><p><strong>Project:</strong> yopfogoyjxwxplnabqii · <strong>Bucket:</strong> {s.bucket} · <strong>সর্বশেষ:</strong> {new Date(info.refreshedAt).toLocaleString('bn-BD')}</p></section>
+ <section><h3>Database</h3><div className="admin-stat-grid"><Stat label="মিডিয়া রেকর্ড" value={d.media}/><Stat label="Storage media" value={d.uploadedMedia}/><Stat label="External media" value={d.externalMedia}/><Stat label="অ্যালবাম" value={d.albums}/><Stat label="পেজ" value={d.pages}/><Stat label="পোস্ট" value={d.posts}/><Stat label="Media file size" value={formatBytes(d.mediaBytes)}/></div></section>
+ <section><h3>Storage Bucket: {s.bucket}</h3><div className="admin-stat-grid"><Stat label="Storage objects" value={s.objects}/><Stat label="Storage size" value={formatBytes(s.bytes)}/></div>{!s.objects?<EmptyState description="বর্তমানে এই bucket-এ কোনো object পাওয়া যায়নি।"/>:<div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>নাম</th><th>ধরন</th><th>আকার</th><th>আপডেট</th></tr></thead><tbody>{s.objectsList.map(item=><tr key={item.id||item.name}><td>{item.name}</td><td>{item.metadata?.mimetype||'—'}</td><td>{formatBytes(item.metadata?.size)}</td><td>{item.updated_at?new Date(item.updated_at).toLocaleString('bn-BD'):'—'}</td></tr>)}</tbody></table></div>}</section></AdminLayout>
+}
