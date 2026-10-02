@@ -23,52 +23,87 @@ import KeyLabelManagement from './pages/admin/KeyLabelManagement'
 import PageDetail from './pages/PageDetail'
 import PostDetail from './pages/PostDetail'
 import Information from './pages/Information'
+import AccessDenied from './pages/AccessDenied'
 import NotFound from './pages/NotFound'
-import { useEffect, useState } from 'react'
-import AdminRoute from './components/auth/AdminRoute'
 import RoleRoute from './components/auth/RoleRoute'
+import AdminRoute from './components/auth/AdminRoute'
+import { useEffect, useState } from 'react'
 
 function getPath() {
   const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
-  const escapedBase = base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  return window.location.pathname.replace(new RegExp(`^${escapedBase}`), '').replace(/\/$/, '') || '/'
+  let path = window.location.pathname
+  if (base && path.startsWith(base)) path = path.slice(base.length)
+  return path.replace(/\/$/, '') || '/'
 }
-function RouteView({ children }) { return children }
-function adminPage(path) {
-  if (path === '/admin') return <AdminRoute><Dashboard /></AdminRoute>
-  if (path === '/admin/homepage') return <AdminRoute permission="homepage_manage"><HomepageManagement /></AdminRoute>
-  if (path === '/admin/sidebar') return <AdminRoute permission="sidebar_manage"><SidebarManagement /></AdminRoute>
-  if (path === '/admin/pages') return <AdminRoute permission="content_manage"><PagesManagement /></AdminRoute>
-  if (path === '/admin/posts') return <AdminRoute permission="content_manage"><PostsManagement /></AdminRoute>
-  if (path === '/admin/albums') return <AdminRoute permission="media_manage"><AlbumsManagement /></AdminRoute>
-  if (path === '/admin/media') return <AdminRoute permission="media_manage"><MediaManagement /></AdminRoute>
-  if (path === '/admin/users') return <AdminRoute permission="user_manage"><UsersManagement /></AdminRoute>
-  if (path === '/admin/access') return <AdminRoute permission="user_manage"><AccessManagement /></AdminRoute>
-  if (path === '/admin/audit') return <AdminRoute permission="audit_view"><AuditLogs /></AdminRoute>
-  if (path === '/admin/analytics') return <AdminRoute permission="audit_view"><Analytics /></AdminRoute>
-  if (path === '/admin/website-information') return <AdminRoute permission="settings_manage"><ControlPanel /></AdminRoute>
-  if (path === '/admin/admin-information') return <AdminRoute permission="settings_manage"><AdminInformationManagement /></AdminRoute>
-  if (path === '/admin/database-storage') return <AdminRoute permission="settings_manage"><DatabaseStorageInformation /></AdminRoute>
-  if (path === '/admin/rural-visual') return <AdminRoute permission="settings_manage"><RuralVisualManagement /></AdminRoute>
-  if (path === '/admin/key-labels') return <AdminRoute permission="settings_manage"><KeyLabelManagement /></AdminRoute>
-  return null
+
+function appPath(path = '/') {
+  const base = import.meta.env.BASE_URL || '/'
+  const normalizedBase = base.endsWith('/') ? base.slice(0, -1) : base
+  const normalizedPath = path.startsWith('/') ? path : '/' + path
+  return (normalizedBase + normalizedPath) || '/'
 }
+
+const managementPages = {
+  '/manage/homepage': [HomepageManagement, 'homepage_manage'],
+  '/manage/sidebar': [SidebarManagement, 'sidebar_manage'],
+  '/manage/pages': [PagesManagement, 'content_manage'],
+  '/manage/posts': [PostsManagement, 'content_manage'],
+  '/manage/albums': [AlbumsManagement, 'media_manage'],
+  '/manage/media': [MediaManagement, 'media_manage'],
+  '/manage/users': [UsersManagement, 'user_manage'],
+  '/manage/access': [AccessManagement, 'user_manage'],
+  '/manage/audit': [AuditLogs, 'audit_view'],
+  '/manage/analytics': [Analytics, 'audit_view'],
+  '/manage/website-information': [ControlPanel, 'settings_manage'],
+  '/manage/admin-information': [AdminInformationManagement, 'settings_manage'],
+  '/manage/database-storage': [DatabaseStorageInformation, 'settings_manage'],
+  '/manage/rural-visual': [RuralVisualManagement, 'settings_manage'],
+  '/manage/key-labels': [KeyLabelManagement, 'settings_manage'],
+}
+
+const legacyPaths = {
+  '/admin': '/dashboard',
+  '/admin/homepage': '/manage/homepage',
+  '/admin/sidebar': '/manage/sidebar',
+  '/admin/pages': '/manage/pages',
+  '/admin/posts': '/manage/posts',
+  '/admin/albums': '/manage/albums',
+  '/admin/media': '/manage/media',
+  '/admin/users': '/manage/users',
+  '/admin/access': '/manage/access',
+  '/admin/audit': '/manage/audit',
+  '/admin/analytics': '/manage/analytics',
+  '/admin/website-information': '/manage/website-information',
+  '/admin/admin-information': '/manage/admin-information',
+  '/admin/database-storage': '/manage/database-storage',
+  '/admin/rural-visual': '/manage/rural-visual',
+  '/admin/key-labels': '/manage/key-labels',
+}
+
 export default function App() {
   const [path, setPath] = useState(getPath)
   useEffect(() => {
     const sync = () => setPath(getPath())
     window.addEventListener('popstate', sync)
     window.addEventListener('app:navigate', sync)
-    return () => {
-      window.removeEventListener('popstate', sync)
-      window.removeEventListener('app:navigate', sync)
-    }
+    return () => { window.removeEventListener('popstate', sync); window.removeEventListener('app:navigate', sync) }
   }, [])
+
+  const legacy = legacyPaths[path]
+  if (legacy) {
+    window.history.replaceState({}, '', appPath(legacy))
+    return null
+  }
+
   let page = <NotFound />
-  const pageMatch = path.match(/^\/pages\/([^/]+)$/); const albumMatch = path.match(/^\/albums\/([^/]+)$/); const postMatch = path.match(/^\/posts\/([^/]+)$/); const dashboardMatch = path.match(/^\/dashboard(?:\/([^/]+))?$/); const roleProfileMatch = path.match(/^\/(admin|manager|editor|moderator|user)\/profile$/); const admin = path.startsWith('/admin') ? adminPage(path) : null
-  if (dashboardMatch) page = <RoleRoute requestedRole={dashboardMatch[1] || null} />
-  else if (roleProfileMatch) page = <RoleRoute requestedRole={roleProfileMatch[1]} />
-  else if (admin) page = admin
+  const pageMatch = path.match(/^\/pages\/([^/]+)$/)
+  const albumMatch = path.match(/^\/albums\/([^/]+)$/)
+  const postMatch = path.match(/^\/posts\/([^/]+)$/)
+  const management = managementPages[path]
+
+  if (path === '/dashboard') page = <AdminRoute permission="dashboard_view" routePath="/dashboard"><Dashboard /></AdminRoute>
+  else if (management) { const Component = management[0]; page = <AdminRoute permission={management[1]} routePath={path}><Component /></AdminRoute> }
+  else if (path === '/access-denied') page = <AccessDenied />
   else if (pageMatch) page = <PageDetail slug={decodeURIComponent(pageMatch[1])} />
   else if (albumMatch) page = <AlbumDetail albumKey={decodeURIComponent(albumMatch[1])} />
   else if (postMatch) page = <PostDetail postId={decodeURIComponent(postMatch[1])} />
@@ -78,7 +113,8 @@ export default function App() {
   else if (path === '/information') page = <Information />
   else if (path === '/login') page = <Login />
   else if (path === '/signup') page = <Signup />
-  else if (path === '/profile') page = <RoleRoute />
+  else if (path === '/profile' || /^\/(admin|manager|editor|moderator|user)\/profile$/.test(path) || /^\/dashboard\/(admin|manager|editor|moderator|user)$/.test(path)) page = <RoleRoute />
   else if (/^\/[^/]+$/.test(path)) page = <PageDetail slug={decodeURIComponent(path.slice(1))} />
-  return <RouteView>{page}</RouteView>
+
+  return page
 }
