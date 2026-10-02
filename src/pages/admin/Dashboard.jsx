@@ -100,10 +100,10 @@ export default function Dashboard() {
     })
 
     return () => { active = false }
-  }, [status, user])
+  }, [status, user?.id])
 
-  const selected = useMemo(() => allowedModules.find(([key]) => key === selectedKey), [allowedModules, selectedKey])
-  const selectedLabel = selected?.[1] || 'মডিউল'
+  const selected = useMemo(() => allowedModules.find(({ key }) => key === selectedKey), [allowedModules, selectedKey])
+  const selectedLabel = selected?.label || 'মডিউল'
   const selectedItems = moduleData[selectedKey] || []
 
   if (status === 'loading' || !ready) return <Loading />
@@ -114,7 +114,7 @@ export default function Dashboard() {
       <div className="admin-management" style={{ gap: '1rem' }}>
         <SecurityStatusCard />
         <div className="admin-dashboard-modules" role="tablist" aria-label="অ্যাডমিন মডিউল" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(9rem, 1fr))', gap: '.65rem' }}>
-          {allowedModules.map(([key, label]) => {
+          {allowedModules.map(({ key, label }) => {
             const active = key === selectedKey
             const count = moduleData[key]?.length ?? 0
             return (
