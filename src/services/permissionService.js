@@ -3,18 +3,21 @@ import { supabase } from '../lib/supabase'
 export async function hasPermission(permissionKey) {
   if (!supabase) throw new Error('Supabase is not configured')
   if (!permissionKey) return false
+  const { data, error } = await supabase.rpc('current_user_has_permission', { required_permission: permissionKey })
+  if (error) throw error
+  return Boolean(data)
+}
 
-  const { data, error } = await supabase.rpc('current_user_has_permission', {
-    required_permission: permissionKey,
-  })
-
+export async function canAccessRoute(routePath) {
+  if (!supabase) throw new Error('Supabase is not configured')
+  if (!routePath) return false
+  const { data, error } = await supabase.rpc('can_access_route', { requested_path: routePath })
   if (error) throw error
   return Boolean(data)
 }
 
 export async function hasAdminAccess() {
   if (!supabase) return false
-
   const { data, error } = await supabase.rpc('current_user_has_admin_access')
   if (error) throw error
   return Boolean(data)
