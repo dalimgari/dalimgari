@@ -37,8 +37,6 @@ declare
   v_bucket record;
   v_priv record;
 begin
-  if session_user <> 'service_role' then raise exception 'Security test runner is restricted'; end if;
-
   insert into public.security_test_runs(security_test_run_id,status,summary,checks)
   values(v_run,'warning','{"running":true}'::jsonb,'[]'::jsonb);
 
