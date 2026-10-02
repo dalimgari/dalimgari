@@ -1,0 +1,7 @@
+VISIBILITY / VALIDATION / OVERFLOW
+
+Visibility applies to pages, posts, albums, images, videos and other applicable public entities। Exact allowed values must be verified from actual schema/code; do not invent states.
+
+Validation: invalid data silently accept নয়; required fields, type, format ও relationship integrity enforce করতে হবে।
+
+Overflow: long text, URLs, media URLs, file values, tables, cards and metadata must use wrapping, truncation or controlled scrolling as appropriate।
