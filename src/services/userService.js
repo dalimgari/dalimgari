@@ -7,7 +7,7 @@ function requireSupabase() {
 
 export async function listManagedUsers() {
   const client = requireSupabase()
-  const { data, error } = await client.from('profiles').select('profile_id,email,phone,display_name,bio,link,profile_image_url,is_active,is_protected,user_roles(role_id,roles(role_key,role_name))').order('created_at', { ascending: false })
+  const { data, error } = await client.from('profiles').select('profile_id,email,phone,display_name,bio,link,profile_image_url,is_active,is_protected,user_roles!user_roles_profile_id_fkey(role_id,roles(role_key,role_name))').order('created_at', { ascending: false })
   if (error) throw error
   return data ?? []
 }
