@@ -9,6 +9,7 @@ import { listManagedUsers } from '../../services/userService'
 import { listAuditLogs } from '../../services/auditService'
 import { AdminLayout } from '../../components/admin'
 import { Loading, ErrorState } from '../../components/ui'
+import SecurityStatusCard from '../../components/admin/SecurityStatusCard'
 
 const MODULES = [
   ['pages', 'পেজ', 'content_manage', listManagedPages],
@@ -111,6 +112,7 @@ export default function Dashboard() {
   return (
     <AdminLayout user={user} title="ড্যাশবোর্ড">
       <div className="admin-management" style={{ gap: '1rem' }}>
+        <SecurityStatusCard />
         <div className="admin-dashboard-modules" role="tablist" aria-label="অ্যাডমিন মডিউল" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(9rem, 1fr))', gap: '.65rem' }}>
           {allowedModules.map(([key, label]) => {
             const active = key === selectedKey
