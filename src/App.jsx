@@ -19,6 +19,7 @@ import HomepageManagement from './pages/admin/HomepageManagement'
 import SidebarManagement from './pages/admin/SidebarManagement'
 import RuralVisualManagement from './pages/admin/RuralVisualManagement'
 import AdminInformationManagement from './pages/admin/AdminInformationManagement'
+import DatabaseStorageInformation from './pages/admin/DatabaseStorageInformation'
 import PageDetail from './pages/PageDetail'
 import PostDetail from './pages/PostDetail'
 import Information from './pages/Information'
@@ -46,6 +47,7 @@ function adminPage(path) {
   if (path === '/admin/analytics') return <AdminRoute permission="audit_view"><Analytics /></AdminRoute>
   if (path === '/admin/website-information') return <AdminRoute permission="settings_manage"><ControlPanel /></AdminRoute>
   if (path === '/admin/admin-information') return <AdminRoute permission="settings_manage"><AdminInformationManagement /></AdminRoute>
+  if (path === '/admin/database-storage') return <AdminRoute permission="settings_manage"><DatabaseStorageInformation /></AdminRoute>
   if (path === '/admin/rural-visual') return <AdminRoute permission="settings_manage"><RuralVisualManagement /></AdminRoute>
   return null
 }
