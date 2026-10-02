@@ -1,8 +1,13 @@
 import { getHomepageSettings } from '../services/homepageService'
 
 const DEFAULT_AUTO_SCROLL_INTERVAL = 4000
+const DEFAULT_SCROLL_DURATION = 650
 const DEFAULT_USER_PAUSE_DURATION = 60000
-const AUTO_SCROLL_DURATION = 650
+
+const clamp = (value, min, max, fallback) => {
+  const n = Number(value)
+  return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : fallback
+}
 
 const isHorizontalScroller = (element) => {
   if (!(element instanceof HTMLElement)) return false
@@ -11,18 +16,46 @@ const isHorizontalScroller = (element) => {
   return overflowX === 'auto' || overflowX === 'scroll'
 }
 
-const getNextScrollPosition = (element) => {
+const getNextScrollPosition = (element, infiniteLoop) => {
   const current = element.scrollLeft
   const children = Array.from(element.children).filter((child) => child instanceof HTMLElement)
   const next = children.find((child) => child.offsetLeft > current + 8)
   if (next) return Math.min(next.offsetLeft, element.scrollWidth - element.clientWidth)
-  return 0
+  return infiniteLoop ? 0 : Math.max(0, element.scrollWidth - element.clientWidth)
 }
 
-const advanceScroller = (element) => {
+const easing = (progress, type) => {
+  if (type === 'linear') return progress
+  if (type === 'clock') return 1 - Math.cos((progress * Math.PI) / 2)
+  if (type === 'circle') return 1 - Math.sqrt(1 - Math.min(1, progress) ** 2)
+  return progress * progress * (3 - 2 * progress)
+}
+
+const animateScroll = (element, target, duration, type) => {
+  if (target === element.scrollLeft) return
+  if (duration <= 0 || type === 'instant') {
+    element.scrollLeft = target
+    return
+  }
+
+  const start = element.scrollLeft
+  const distance = target - start
+  const startedAt = performance.now()
+
+  const frame = (now) => {
+    const progress = Math.min(1, (now - startedAt) / duration)
+    element.scrollLeft = start + distance * easing(progress, type)
+    if (progress < 1) window.requestAnimationFrame(frame)
+  }
+
+  window.requestAnimationFrame(frame)
+}
+
+const advanceScroller = (element, options = {}) => {
   if (!isHorizontalScroller(element)) return
-  const nextPosition = getNextScrollPosition(element)
-  element.scrollTo({ left: nextPosition, behavior: 'smooth' })
+  const { duration = DEFAULT_SCROLL_DURATION, scrollType = 'smooth', infiniteLoop = true } = options
+  const nextPosition = getNextScrollPosition(element, infiniteLoop)
+  animateScroll(element, nextPosition, duration, scrollType)
 }
 
 const findScroller = (target, scrollers) => {
@@ -39,15 +72,21 @@ const initHorizontalAutoScroll = async () => {
   const timers = new Map()
   const pauseTimers = new Map()
   let interval = DEFAULT_AUTO_SCROLL_INTERVAL
+  let duration = DEFAULT_SCROLL_DURATION
   let pauseDuration = DEFAULT_USER_PAUSE_DURATION
+  let scrollType = 'smooth'
+  let infiniteLoop = true
   let enabled = true
 
   try {
     const settings = await getHomepageSettings()
     const config = settings?.horizontalAutoScroll || {}
     enabled = config.enabled !== false
-    interval = Math.max(1000, Math.min(60000, Number(config.intervalMs) || DEFAULT_AUTO_SCROLL_INTERVAL))
-    pauseDuration = Math.max(10000, Math.min(300000, Number(config.pauseAfterInteractionMs) || DEFAULT_USER_PAUSE_DURATION))
+    interval = clamp(config.intervalMs, 1000, 60000, DEFAULT_AUTO_SCROLL_INTERVAL)
+    duration = clamp(config.durationMs, 0, 10000, DEFAULT_SCROLL_DURATION)
+    pauseDuration = clamp(config.pauseAfterInteractionMs, 10000, 300000, DEFAULT_USER_PAUSE_DURATION)
+    scrollType = ['instant', 'linear', 'smooth', 'clock', 'circle'].includes(config.scrollType) ? config.scrollType : 'smooth'
+    infiniteLoop = config.infiniteLoop !== false
   } catch {
     // Keep safe defaults if DB settings cannot be read.
   }
@@ -60,7 +99,7 @@ const initHorizontalAutoScroll = async () => {
 
   const schedule = (element) => {
     if (!enabled || !isHorizontalScroller(element) || timers.has(element)) return
-    timers.set(element, window.setInterval(() => advanceScroller(element), interval))
+    timers.set(element, window.setInterval(() => advanceScroller(element, { duration, scrollType, infiniteLoop }), interval))
   }
 
   const pause = (element) => {
@@ -100,4 +139,4 @@ if (typeof window !== 'undefined') {
   window.addEventListener('load', initHorizontalAutoScroll, { once: true })
 }
 
-export { initHorizontalAutoScroll, advanceScroller, AUTO_SCROLL_DURATION }
+export { initHorizontalAutoScroll, advanceScroller }
