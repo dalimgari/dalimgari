@@ -65,7 +65,6 @@ export default function Dashboard() {
 
   return (
     <AdminLayout user={user} title="ড্যাশবোর্ড">
-      <p className="admin-intro">বর্তমান সিস্টেমের অনুমোদিত তথ্যের সংক্ষিপ্তসার।</p>
       <div className="content-grid admin-dashboard-grid">
         {CARDS.filter(([key]) => counts[key] !== null).map(([key, label]) => (
           <article className="content-card" key={key}>
