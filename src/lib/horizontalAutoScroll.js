@@ -37,25 +37,21 @@ const animateScroll = (element, target, duration, type) => {
     element.scrollLeft = target
     return
   }
-
   const start = element.scrollLeft
   const distance = target - start
   const startedAt = performance.now()
-
   const frame = (now) => {
     const progress = Math.min(1, (now - startedAt) / duration)
     element.scrollLeft = start + distance * easing(progress, type)
     if (progress < 1) window.requestAnimationFrame(frame)
   }
-
   window.requestAnimationFrame(frame)
 }
 
 const advanceScroller = (element, options = {}) => {
   if (!isHorizontalScroller(element)) return
   const { duration = DEFAULT_SCROLL_DURATION, scrollType = 'smooth', infiniteLoop = true } = options
-  const nextPosition = getNextScrollPosition(element, infiniteLoop)
-  animateScroll(element, nextPosition, duration, scrollType)
+  animateScroll(element, getNextScrollPosition(element, infiniteLoop), duration, scrollType)
 }
 
 const findScroller = (target, scrollers) => {
@@ -78,15 +74,18 @@ const initHorizontalAutoScroll = async () => {
   let infiniteLoop = true
   let enabled = true
 
-  try {
-    const settings = await getHomepageSettings()
-    const config = settings?.horizontalAutoScroll || {}
+  const applySettings = (config = {}) => {
     enabled = config.enabled !== false
     interval = clamp(config.intervalMs, 1000, 60000, DEFAULT_AUTO_SCROLL_INTERVAL)
     duration = clamp(config.durationMs, 0, 10000, DEFAULT_SCROLL_DURATION)
     pauseDuration = clamp(config.pauseAfterInteractionMs, 10000, 300000, DEFAULT_USER_PAUSE_DURATION)
     scrollType = ['instant', 'linear', 'smooth', 'clock', 'circle'].includes(config.scrollType) ? config.scrollType : 'smooth'
     infiniteLoop = config.infiniteLoop !== false
+  }
+
+  try {
+    const settings = await getHomepageSettings()
+    applySettings(settings?.horizontalAutoScroll || {})
   } catch {
     // Keep safe defaults if DB settings cannot be read.
   }
@@ -125,10 +124,17 @@ const initHorizontalAutoScroll = async () => {
     if (element) pause(element)
   }
 
+  const handleSettingsUpdate = (event) => {
+    applySettings(event.detail || {})
+    timers.forEach((_, element) => stopTimer(element))
+    if (enabled) scrollers.forEach(schedule)
+  }
+
   document.addEventListener('pointerdown', handleInteraction, { passive: true })
   document.addEventListener('pointermove', handleInteraction, { passive: true })
   document.addEventListener('touchstart', handleInteraction, { passive: true })
   document.addEventListener('wheel', handleInteraction, { passive: true })
+  window.addEventListener('dalimgari:auto-scroll-settings', handleSettingsUpdate)
 
   scan()
   const observer = new MutationObserver(scan)
