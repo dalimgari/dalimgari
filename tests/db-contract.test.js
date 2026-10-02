@@ -11,7 +11,7 @@ test('Supabase DB contract', async () => {
 
   const supabase = createClient(url, key)
   const expectedTables = [
-    'admin_information', 'albums', 'analytics_visits', 'audit_logs', 'global_ui_labels', 'icon_management',
+    'admin_information', 'albums', 'analytics_visits', 'audit_logs', 'global_ui_labels', 'icon_management', 'profile_avatar_settings',
     'homepage_settings', 'media', 'pages', 'permissions', 'post_media', 'posts', 'profiles',
     'role_permissions', 'roles', 'rural_visual_settings', 'sidebar_settings', 'theme_settings',
     'user_roles', 'website_information',
