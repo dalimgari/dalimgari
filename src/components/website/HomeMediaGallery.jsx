@@ -65,7 +65,7 @@ export default function HomeMediaGallery({ albums = [], media = [], title = 'গ
                   <figure className="media-card home-media-card" key={item.media_id}>
                     <MediaContent
                       media={item}
-                      title={item.file_name || 'ডালিমগাড়ীর ছবি বা ভিডিও'}
+                      title={item.file_name || 'ছবি বা ভিডিও'}
                       onImageOpen={setViewer}
                     />
                     <figcaption>
