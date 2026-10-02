@@ -43,8 +43,8 @@ export default function AdminLayout({ user, title, children }) {
         <div className="site-container">
           <nav className="admin-inline-nav" aria-label="অ্যাডমিন মডিউল">
             {visibleNav.map((item) => {
-              const currentPath = window.location.pathname.replace(/\\/$/, '') || '/'
-              const itemPath = appPath(item.path).replace(/\\/$/, '') || '/'
+                const currentPath = window.location.pathname.replace(/\/$/, '') || '/'
+                const itemPath = appPath(item.path).replace(/\/$/, '') || '/'
               const isActive = currentPath === itemPath
               return <a key={item.path} className={isActive ? 'is-active' : ''} href={appPath(item.path)} aria-current={isActive ? 'page' : undefined}>{item.label}</a>
             })}
