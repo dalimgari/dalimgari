@@ -17,14 +17,19 @@ function RuralIcon({ name }) {
   return <svg className="rural-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="var(--theme-icon-stroke-width,1.7)" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{ICONS[name] || ICONS.page}</svg>
 }
 
-const ENGLISH_LABELS = {
-  'হোম': 'Home',
-  'তথ্য': 'Information',
-  'পোস্ট': 'Posts',
-  'অ্যালবাম': 'Albums',
-  'সার্চ': 'Search',
-  'লগইন': 'Login',
-  'প্রোফাইল': 'Profile',
+function globalItemLabel(item, t) {
+  const href = item?.href || ''
+  const keys = {
+    '/': ['home', 'হোম', 'Home'],
+    '/information': ['information', 'তথ্য', 'Information'],
+    '/posts': ['posts', 'পোস্ট', 'Posts'],
+    '/albums': ['albums', 'অ্যালবাম', 'Albums'],
+    '/search': ['search', 'খোঁজ', 'Search'],
+    '/login': ['login', 'লগইন', 'Login'],
+    '/profile': ['profile', 'প্রোফাইল', 'Profile'],
+  }
+  const [key, bn, en] = keys[href] || []
+  return key ? t(key, bn, en) : item?.label
 }
 
 function iconKeyFor(item) {
@@ -43,7 +48,7 @@ export default function Sidebar({ items = [], open, onClose }) {
   const { theme, language, setThemePreference, setLanguagePreference } = usePreferences()
   const { t } = useGlobalLabels()
   const targetLanguageLabel = language === 'bng' ? 'English' : 'বাংলা'
-  const translatedItems = items.map((item) => ({ ...item, label: language === 'eng' ? (ENGLISH_LABELS[item.label] || item.label) : item.label }))
+  const translatedItems = items.map((item) => ({ ...item, label: globalItemLabel(item, t) }))
   const homeItem = translatedItems.find((item) => item.href === '/') || { label: t('home', 'হোম', 'Home'), href: '/' }
   const menuItems = translatedItems.filter((item) => item.href !== '/')
 
