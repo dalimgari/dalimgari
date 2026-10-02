@@ -24,6 +24,7 @@ import PageDetail from './pages/PageDetail'
 import PostDetail from './pages/PostDetail'
 import Information from './pages/Information'
 import NotFound from './pages/NotFound'
+import { useEffect, useState } from 'react'
 import AdminRoute from './components/auth/AdminRoute'
 import UserRoute from './components/auth/UserRoute'
 
@@ -52,7 +53,17 @@ function adminPage(path) {
   return null
 }
 export default function App() {
-  const path = getPath(); let page = <NotFound />
+  const [path, setPath] = useState(getPath)
+  useEffect(() => {
+    const sync = () => setPath(getPath())
+    window.addEventListener('popstate', sync)
+    window.addEventListener('app:navigate', sync)
+    return () => {
+      window.removeEventListener('popstate', sync)
+      window.removeEventListener('app:navigate', sync)
+    }
+  }, [])
+  let page = <NotFound />
   const pageMatch = path.match(/^\/pages\/([^/]+)$/); const albumMatch = path.match(/^\/albums\/([^/]+)$/); const postMatch = path.match(/^\/posts\/([^/]+)$/); const admin = path.startsWith('/admin') ? adminPage(path) : null
   if (admin) page = admin
   else if (pageMatch) page = <PageDetail slug={decodeURIComponent(pageMatch[1])} />
