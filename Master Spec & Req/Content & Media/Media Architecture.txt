@@ -1,0 +1,11 @@
+MEDIA ARCHITECTURE
+
+Media types: Image, Video।
+
+Possible source architecture: Supabase Storage, External URL বা existing/public URL; exact implementation source must be verified before being treated as CONFIRMED.
+
+Media data may include URL/path, type, title, description, album, creator, visibility, created/updated metadata where applicable.
+
+Long URLs, file URLs ও metadata must remain contained.
+
+Post → post_media → Media is the defined relationship model; Sheet-এর Post.media_url alone authoritative relationship হিসেবে ধরা যাবে না। Actual schema/code audit required.
