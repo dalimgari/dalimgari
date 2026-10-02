@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase'
 import { appPath } from '../../lib/routes'
 import { searchPublicContent } from '../../services/searchService'
 import ProfileAvatar from '../ui/ProfileAvatar'
+import { useGlobalLabels } from '../../context'
 
 const ICONS = {
   menu: <><path d="M4 7h16M4 12h16M4 17h16" /></>,
@@ -25,10 +26,8 @@ export default function Header({ pageTitle, onMenu, sidebarOpen, labels = {}, sh
   const [searchResults, setSearchResults] = useState([])
   const [searchStatus, setSearchStatus] = useState('idle')
 
-  const text = (key, fallbackBn, fallbackEn = fallbackBn) => {
-    const item = labels[key]
-    return language === 'eng' ? (item?.eng || fallbackEn) : (item?.bng || fallbackBn)
-  }
+  const { t } = useGlobalLabels()
+  const text = (key, fallbackBn, fallbackEn = fallbackBn) => t(key, fallbackBn, fallbackEn)
 
   const isRoleProfile = /^\/(admin|manager|editor|moderator|user)\/profile$/.test(canonicalPath)
   const isSecureArea = canonicalPath === '/profile' || canonicalPath === '/dashboard' || canonicalPath.startsWith('/admin') || canonicalPath.startsWith('/manage') || isRoleProfile
@@ -87,7 +86,7 @@ export default function Header({ pageTitle, onMenu, sidebarOpen, labels = {}, sh
 
   const menuLabel = sidebarOpen ? text('close', 'বন্ধ', 'Close') : text('menu', 'উঠান', 'Menu')
   const searchLabel = text('search', 'খোঁজ', 'Search')
-  const searchPlaceholder = text('searchPlaceholder', 'এখানে খুঁজুন', 'Search Here')
+  const searchPlaceholder = text('search_placeholder', 'এখানে খুঁজুন', 'Search Here')
   const loginLabel = user ? text('dashboard', 'ড্যাশবোর্ড', 'Dashboard') : text('login', 'লগইন', 'Login')
   const searchRightStyle = searchOpen ? { flex: '1 1 auto', minWidth: 0, marginLeft: 'auto' } : undefined
   const searchBoxStyle = searchOpen ? { width: '100%', maxWidth: '26rem', flex: '0 1 26rem' } : undefined
@@ -122,12 +121,12 @@ export default function Header({ pageTitle, onMenu, sidebarOpen, labels = {}, sh
               <div className="header-search__results" role="listbox" aria-label={text('search', 'খোঁজার ফলাফল', 'Search results')}>
                 {searchTerm.trim() ? (
                   <>
-                    {searchStatus === 'loading' ? <div className="header-search__state">খোঁজা হচ্ছে…</div> : null}
-                    {searchStatus === 'error' ? <div className="header-search__state">খোঁজার সময় সমস্যা হয়েছে।</div> : null}
-                    {searchStatus === 'ready' && !searchResults.length ? <div className="header-search__state">কোনো মিল পাওয়া যায়নি।</div> : null}
+                    {searchStatus === 'loading' ? <div className="header-search__state">{text('search_loading', 'খোঁজা হচ্ছে…', 'Searching…')}</div> : null}
+                    {searchStatus === 'error' ? <div className="header-search__state">{text('search_error', 'খোঁজার সময় সমস্যা হয়েছে।', 'Search failed.')}</div> : null}
+                    {searchStatus === 'ready' && !searchResults.length ? <div className="header-search__state">{text('search_no_results', 'কোনো মিল পাওয়া যায়নি।', 'No matches found.')}</div> : null}
                     {searchResults.map((result) => (
                       <a className="header-search__result" role="option" href={appPath(result.href)} key={result.type + '-' + result.id}>
-                        <span className="header-search__result-type">{result.type === 'page' ? 'পেজ' : 'পোস্ট'}</span>
+                        <span className="header-search__result-type">{result.type === 'page' ? text('page', 'পেজ', 'Page') : text('post', 'পোস্ট', 'Post')}</span>
                         <strong>{result.title}</strong>
                         {result.description ? <span>{String(result.description).replace(/\s+/g, ' ').trim().slice(0, 90)}{String(result.description).trim().length > 90 ? '…' : ''}</span> : null}
                       </a>
