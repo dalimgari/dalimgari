@@ -13,8 +13,8 @@ export default function Information({ information }) {
   if (!information) return null
 
   const items = LOCATION_FIELDS
-    .map(([key, label]) => [label, information[key]])
-    .filter(([, value]) => value !== null && value !== undefined && value !== '')
+    .map(([key, label]) => [key, label, information[key]])
+    .filter(([, , value]) => value !== null && value !== undefined && value !== '')
 
   const rawMapLocation = String(information.map_location || '').trim()
   const coordinateMatch = rawMapLocation.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/) || rawMapLocation.match(/[?&](?:q|query|ll)=(-?\d+(?:\.\d+)?)[,%20]+(-?\d+(?:\.\d+)?)/) || rawMapLocation.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/)
@@ -27,7 +27,7 @@ export default function Information({ information }) {
         <h2 id="village-information-title">সাধারণ তথ্য</h2>
         {items.length ? (
           <dl className="information-document">
-            {items.map(([label, value]) => (
+            {items.map(([key, label, value]) => (
               <div className="information-document__row" key={label}>
                 <dt>{label}</dt>
                 <dd>{key === 'map_location' ? <div className="information-map"><iframe className="information-map__frame" src={mapSrc} title="গ্রামের মানচিত্র" loading="lazy" referrerPolicy="no-referrer-when-downgrade" allowFullScreen /></div> : String(value)}</dd>
