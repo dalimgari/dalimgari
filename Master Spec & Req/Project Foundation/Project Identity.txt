@@ -1,0 +1,12 @@
+DALIMGARI WEBSITE — PROJECT IDENTITY
+
+Project Name: Dalimgari Website
+Bengali Name: ডালিমগাড়ী ওয়েবসাইট
+Project Type: Village Community Website
+Primary Users: সাধারণ গ্রামীণ মানুষ, বিশেষ করে কম technical knowledge থাকা ব্যবহারকারী।
+Identity: Bengali-first, village-focused, community-oriented, simple, clean, responsive, accessible, mobile-friendly এবং content-focused।
+Visual Identity: গ্রামীণ বাংলা, গ্রামের মানুষ, মাটি, ফসলের মাঠ, গাছপালা, পাখি, প্রকৃতি, জীববৈচিত্র্য ও পল্লীজীবনকেন্দ্রিক; অপ্রয়োজনীয় urban/corporate visual style নয়।
+Architecture Identity: Public Website, Admin Dashboard এবং User Area একই underlying architecture ব্যবহার করবে; visibility, permission, available actions ও accessible data অনুযায়ী UX আলাদা হবে।
+Backend Identity: Supabase ভিত্তিক database, authentication, RLS, RPC/functions ও storage।
+Integrity: Specification এবং actual implementation আলাদা; verification ছাড়া implementation fact CONFIRMED নয়।
+Status: CONFIRMED / DEFINED / SHEET INVENTORY / VERIFICATION REQUIRED।
