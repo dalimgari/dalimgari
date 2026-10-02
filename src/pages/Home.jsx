@@ -28,11 +28,18 @@ const TOPIC_ALIASES = [
   { label: 'ঐতিহ্য', words: ['ঐতিহ্য', 'সংস্কৃতি', 'heritage', 'culture'] },
 ]
 
+function pageExcerpt(content) {
+  return String(content || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 115)
+}
+
 function HomePageCards({ pages = [], config = {} }) {
   if (config.enabled === false) return null
   const selected = (config.items || []).map((item) => pages.find((page) => page.page_id === item.page_id)).filter((page) => page && page.status === 'published' && page.is_visible !== false).slice(0, config.limit || 8)
   if (!selected.length) return null
-  return <section className="home-section home-page-cards"><div className="site-container"><div className="section-heading"><h2>{config.title || 'আরও জানা যাক'}</h2></div><div className="home-page-cards__grid" role="list" aria-label={config.title || 'হোমপেজ পেজ কার্ড'}>{selected.map((page) => <a className="home-page-card" role="listitem" href={`/pages/${encodeURIComponent(page.page_slug)}`} key={page.page_id}><span className="home-page-card__icon" aria-hidden="true">❧</span><strong>{page.page_title}</strong><span>পেজটি দেখুন →</span></a>)}</div></div></section>
+  return <section className="home-section home-page-cards"><div className="site-container"><div className="section-heading"><div><p className="section-kicker">গ্রামের পরিচিতি</p><h2>{config.title || 'আরও জানা যাক'}</h2></div></div><div className="home-page-cards__grid" role="list" aria-label={config.title || 'হোমপেজ পেজ কার্ড'}>{selected.map((page) => <a className="home-page-card" role="listitem" href={`/pages/${encodeURIComponent(page.page_slug)}`} key={page.page_id}><span className="home-page-card__icon" aria-hidden="true">❧</span><strong>{page.page_title}</strong><span className="home-page-card__excerpt">{pageExcerpt(page.content)}{String(page.content || '').trim().length > 115 ? '…' : ''}</span><span>বিস্তারিত পড়ুন →</span></a>)}</div></div></section>
 }
 
 function findTopicPage(pages, words) {
