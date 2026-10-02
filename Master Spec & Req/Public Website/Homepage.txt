@@ -1,0 +1,17 @@
+PUBLIC HOMEPAGE
+
+Structure:
+Header → Hero/Banner → Homepage Tabs → Selected Tab Content → Supporting Sections → Gallery/Media → Footer.
+
+Homepage goals: village identity, information, community content ও easy navigation।
+
+Defined tabs:
+- গ্রামের তথ্য
+- প্রকৃতি
+- গ্রামবাসী
+- ইতিহাস/ঐতিহ্য
+- ছবি ও ভিডিও
+
+Tabs: active state, responsive/mobile-friendly behavior, প্রয়োজনমতো horizontal scrolling, এবং selected tab-এর content isolation বজায় রাখবে।
+
+Homepage content database-driven হবে।
