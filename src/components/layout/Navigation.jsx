@@ -1,8 +1,13 @@
-import { useEffect, useState } from 'react'
-import { appPath } from '../../lib/routes'\nimport { usePreferences } from '../../context/PreferencesContext'
+import { useState } from 'react'
+import { appPath } from '../../lib/routes'
+import { usePreferences } from '../../context/PreferencesContext'
 
 const LABELS = {
-  'হোম': 'Home', 'তথ্য': 'Information', 'পোস্ট': 'Posts', 'অ্যালবাম': 'Albums', 'সার্চ': 'Search',
+  'হোম': 'Home',
+  'তথ্য': 'Information',
+  'পোস্ট': 'Posts',
+  'অ্যালবাম': 'Albums',
+  'সার্চ': 'Search',
 }
 
 function RuralIcon({ name }) {
@@ -34,25 +39,17 @@ function iconFor(label, href) {
 
 export default function Navigation({ items = [] }) {
   const [open, setOpen] = useState(false)
-  const [theme, setTheme] = useState(() => localStorage.getItem('dalimgari-theme') || 'light')
-  const [language, setLanguage] = useState(() => localStorage.getItem('dalimgari-language') || 'bn')
+  const { theme, language, setThemePreference, setLanguagePreference } = usePreferences()
 
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme
-    localStorage.setItem('dalimgari-theme', theme)
-  }, [theme])
-
-  useEffect(() => {
-    document.documentElement.lang = language === 'bng' ? 'bn' : 'en'
-    localStorage.setItem('dalimgari-language', language)
-  }, [language])
-
-  const translatedItems = items.map((item) => ({ ...item, label: language === 'eng' ? (LABELS[item.label] || item.label) : item.label }))
+  const translatedItems = items.map((item) => ({
+    ...item,
+    label: language === 'eng' ? (LABELS[item.label] || item.label) : item.label,
+  }))
   const hasSearch = items.some((item) => item.href === '/search')
   const hasLogin = items.some((item) => item.href === '/login')
   const extra = [
-    ...(!hasSearch ? [{ label: language === 'en' ? 'Search' : 'সার্চ', href: '/search' }] : []),
-    ...(!hasLogin ? [{ label: language === 'en' ? 'Login' : 'লগইন', href: '/login' }] : []),
+    ...(!hasSearch ? [{ label: language === 'eng' ? 'Search' : 'সার্চ', href: '/search' }] : []),
+    ...(!hasLogin ? [{ label: language === 'eng' ? 'Login' : 'লগইন', href: '/login' }] : []),
   ]
 
   const link = (item) => (
@@ -63,7 +60,7 @@ export default function Navigation({ items = [] }) {
   )
 
   return (
-    <nav className="site-nav" aria-label={language === 'en' ? 'Main navigation' : 'প্রধান নেভিগেশন'}>
+    <nav className="site-nav" aria-label={language === 'eng' ? 'Main navigation' : 'প্রধান নেভিগেশন'}>
       <div className="site-container site-nav__inner">
         <button className="site-nav__toggle" type="button" aria-expanded={open} aria-controls="site-menu" onClick={() => setOpen((value) => !value)}>
           <RuralIcon name={open ? 'close' : 'menu'} />
@@ -73,14 +70,14 @@ export default function Navigation({ items = [] }) {
         <div id="site-menu" className={`site-nav__menu${open ? ' is-open' : ''}`}>
           {[...translatedItems, ...extra].map(link)}
           <a className="site-nav__link site-nav__profile" href={appPath('/profile')} onClick={() => setOpen(false)}>
-            <RuralIcon name="user" /><span>{language === 'en' ? 'Profile' : 'প্রোফাইল'}</span>
+            <RuralIcon name="user" /><span>{language === 'eng' ? 'Profile' : 'প্রোফাইল'}</span>
           </a>
           <button className="site-nav__control" type="button" onClick={() => setThemePreference(theme === 'dark' ? 'light' : 'dark')} aria-label="থিম পরিবর্তন">
             <RuralIcon name={theme === 'dark' ? 'sun' : 'moon'} />
             <span>{theme === 'dark' ? 'আলো' : 'রাত'}</span>
           </button>
           <button className="site-nav__control" type="button" onClick={() => setLanguagePreference(language === 'bng' ? 'eng' : 'bng')} aria-label="ভাষা পরিবর্তন">
-            <RuralIcon name="leaf" /><span>{language === 'bn' ? 'English' : 'বাংলা'}</span>
+            <RuralIcon name="leaf" /><span>{language === 'bng' ? 'English' : 'বাংলা'}</span>
           </button>
         </div>
       </div>
