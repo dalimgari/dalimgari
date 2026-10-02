@@ -6,153 +6,17 @@ const reversePairs = Object.fromEntries(Object.entries(BUILTIN_PAIRS).map(([bn,e
 const translationCache = new Map()
 const pendingTranslations = new Map()
 
-function normalize(value) {
-  return String(value ?? '').replace(/\s+/g, ' ').trim()
-}
+function normalize(value) { return String(value ?? '').replace(/\s+/g, ' ').trim() }
+function buildMaps(labels = {}) { const bnToEn={...BUILTIN_PAIRS}; const enToBn={...reversePairs}; Object.values(labels||{}).forEach((value)=>{const en=normalize(value?.eng);const bn=normalize(value?.bng);if(en&&bn){bnToEn[bn]=en;enToBn[en]=bn}});return {bnToEn,enToBn} }
+function cacheKey(text,source,target){return `${source}:${target}:${text}`}
+async function translateRemote(text,source,target){const clean=normalize(text);if(!clean||source===target)return clean;const key=cacheKey(clean,source,target);if(translationCache.has(key))return translationCache.get(key);if(pendingTranslations.has(key))return pendingTranslations.get(key);const promise=fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=${source}&tl=${target}&dt=t&q=${encodeURIComponent(clean)}`).then((response)=>response.ok?response.json():null).then((data)=>{const translated=Array.isArray(data?.[0])?data[0].map((part)=>part?.[0]||'').join(''):'';const result=normalize(translated)||clean;translationCache.set(key,result);return result}).catch(()=>clean).finally(()=>pendingTranslations.delete(key));pendingTranslations.set(key,promise);return promise}
+async function translateText(value,language,labels){const text=normalize(value);if(!text)return value;const maps=buildMaps(labels);const target=language==='eng'?'en':'bn';const exact=language==='eng'?maps.bnToEn[text]:maps.enToBn[text];if(exact)return exact;const source=language==='eng'?'bn':'en';return translateRemote(text,source,target)}
+function shouldSkipElement(node){return ['SCRIPT','STYLE','NOSCRIPT','PRE','CODE','TEXTAREA','OPTION'].includes(node.tagName)||node.isContentEditable||node.matches('[data-no-translate],.user-content')||node.closest('[data-no-translate],.user-content')}
 
-function buildMaps(labels = {}) {
-  const bnToEn = { ...BUILTIN_PAIRS }
-  const enToBn = { ...reversePairs }
-  Object.values(labels || {}).forEach((value) => {
-    const en = normalize(value?.eng)
-    const bn = normalize(value?.bng)
-    if (en && bn) {
-      bnToEn[bn] = en
-      enToBn[en] = bn
-    }
-  })
-  return { bnToEn, enToBn }
-}
+function markAndTranslateTextNode(node,language,labels){const parent=node.parentElement;if(!parent||shouldSkipElement(parent))return;const current=normalize(node.nodeValue);if(!current)return;const rendered=node.__dalimgariRendered||'';let source=node.__dalimgariSource||current;let sourceLanguage=node.__dalimgariSourceLanguage||(language==='eng'?'bn':'en');if(rendered&&current!==rendered){source=current;sourceLanguage=language==='eng'?'en':'bn'}node.__dalimgariSource=source;node.__dalimgariSourceLanguage=sourceLanguage;const target=language==='eng'?'en':'bn';if(sourceLanguage===target){if(normalize(node.nodeValue)!==source){node.nodeValue=source;node.__dalimgariRendered=source}return}translateText(source,language,labels).then((translated)=>{if(!node.isConnected)return;if(node.__dalimgariSource!==source||node.__dalimgariSourceLanguage!==sourceLanguage)return;const result=normalize(translated);if(!result||result===normalize(node.nodeValue))return;node.nodeValue=result;node.__dalimgariRendered=result})}
 
-function translateExact(value, map) {
-  const text = normalize(value)
-  return text && map[text] ? map[text] : null
-}
+function translateAttribute(node,attribute,language,labels){const value=node.getAttribute(attribute);if(!value)return;const marker=`__dalimgari_${attribute}`;const rendered=node[`${marker}Rendered`]||'';let source=node[`${marker}Source`]||value;let sourceLanguage=node[`${marker}SourceLanguage`]||(language==='eng'?'bn':'en');if(rendered&&value!==rendered){source=value;sourceLanguage=language==='eng'?'en':'bn'}node[`${marker}Source`]=source;node[`${marker}SourceLanguage`]=sourceLanguage;const target=language==='eng'?'en':'bn';if(sourceLanguage===target){if(value!==source)node.setAttribute(attribute,source);node[`${marker}Rendered`]=source;return}translateText(source,language,labels).then((translated)=>{if(!node.isConnected)return;if(node[`${marker}Source`]!==source||node[`${marker}SourceLanguage`]!==sourceLanguage)return;const result=normalize(translated);if(result&&result!==value){node.setAttribute(attribute,result);node[`${marker}Rendered`]=result}})}
 
-function cacheKey(text, source, target) {
-  return `${source}:${target}:${text}`
-}
-
-async function translateRemote(text, source, target) {
-  const clean = normalize(text)
-  if (!clean || source === target) return clean
-  const key = cacheKey(clean, source, target)
-  if (translationCache.has(key)) return translationCache.get(key)
-  if (pendingTranslations.has(key)) return pendingTranslations.get(key)
-  const promise = fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=${source}&tl=${target}&dt=t&q=${encodeURIComponent(clean)}`)
-    .then((response) => response.ok ? response.json() : null)
-    .then((data) => {
-      const translated = Array.isArray(data?.[0]) ? data[0].map((part) => part?.[0] || '').join('') : ''
-      const result = normalize(translated) || clean
-      translationCache.set(key, result)
-      return result
-    })
-    .catch(() => clean)
-    .finally(() => pendingTranslations.delete(key))
-  pendingTranslations.set(key, promise)
-  return promise
-}
-
-async function translateText(value, language, labels) {
-  const text = normalize(value)
-  if (!text) return value
-  const maps = buildMaps(labels)
-  const target = language === 'eng' ? 'en' : 'bn'
-  const exact = language === 'eng' ? maps.bnToEn[text] : maps.enToBn[text]
-  if (exact) return exact
-  const source = language === 'eng' ? 'bn' : 'en'
-  return translateRemote(text, source, target)
-}
-
-function shouldSkipElement(node) {
-  return ['SCRIPT','STYLE','NOSCRIPT','PRE','CODE','TEXTAREA','OPTION'].includes(node.tagName) || node.isContentEditable || node.matches('[data-no-translate],.user-content') || node.closest('[data-no-translate],.user-content')
-}
-
-function markAndTranslateTextNode(node, language, labels) {
-  const parent = node.parentElement
-  if (!parent || shouldSkipElement(parent)) return
-  const current = normalize(node.nodeValue)
-  if (!current) return
-
-  const rendered = node.__dalimgariRendered || ''
-  let source = node.__dalimgariSource || current
-  let sourceLanguage = node.__dalimgariSourceLanguage || (language === 'eng' ? 'bn' : 'en')
-  if (rendered && current !== rendered) {
-    source = current
-    sourceLanguage = language === 'eng' ? 'en' : 'bn'
-  }
-  node.__dalimgariSource = source
-  node.__dalimgariSourceLanguage = sourceLanguage
-
-  const target = language === 'eng' ? 'en' : 'bn'
-  if (sourceLanguage === target) return
-
-  translateText(source, language, labels).then((translated) => {
-    if (!node.isConnected) return
-    if (node.__dalimgariSource !== source || node.__dalimgariSourceLanguage !== sourceLanguage) return
-    const result = normalize(translated)
-    if (!result || result === normalize(node.nodeValue)) return
-    node.nodeValue = result
-    node.__dalimgariRendered = result
-  })
-}
-
-function translateAttribute(node, attribute, language, labels) {
-  const value = node.getAttribute(attribute)
-  if (!value) return
-  const marker = `__dalimgari_${attribute}`
-  const rendered = node[`${marker}Rendered`] || ''
-  let source = node[`${marker}Source`] || value
-  let sourceLanguage = node[`${marker}SourceLanguage`] || (language === 'eng' ? 'bn' : 'en')
-  if (rendered && value !== rendered) {
-    source = value
-    sourceLanguage = language === 'eng' ? 'en' : 'bn'
-  }
-  node[`${marker}Source`] = source
-  node[`${marker}SourceLanguage`] = sourceLanguage
-  const target = language === 'eng' ? 'en' : 'bn'
-  if (sourceLanguage === target) return
-  translateText(source, language, labels).then((translated) => {
-    if (!node.isConnected) return
-    if (node[`${marker}Source`] !== source || node[`${marker}SourceLanguage`] !== sourceLanguage) return
-    const result = normalize(translated)
-    if (result && result !== value) {
-      node.setAttribute(attribute, result)
-      node[`${marker}Rendered`] = result
-    }
-  })
-}
-
-function translateNode(node, language, labels) {
-  if (node.nodeType === Node.TEXT_NODE) {
-    markAndTranslateTextNode(node, language, labels)
-    return
-  }
-  if (node.nodeType !== Node.ELEMENT_NODE || shouldSkipElement(node)) return
-  for (const attribute of ['aria-label','title','placeholder','alt']) translateAttribute(node, attribute, language, labels)
-  node.childNodes.forEach((child) => translateNode(child, language, labels))
-}
-
-export function applyLanguageToDocument(language, labels = {}) {
-  if (typeof document === 'undefined') return
-  document.documentElement.lang = language === 'eng' ? 'en' : 'bn'
-  translateNode(document.body, language, labels)
-}
-
-export function observeLanguageDocument(language, labels = {}) {
-  if (typeof document === 'undefined') return () => {}
-  let scheduled = false
-  const run = () => {
-    scheduled = false
-    applyLanguageToDocument(language, labels)
-  }
-  const schedule = () => {
-    if (scheduled) return
-    scheduled = true
-    queueMicrotask(run)
-  }
-  const observer = new MutationObserver(schedule)
-  observer.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['aria-label','title','placeholder','alt'] })
-  run()
-  return () => observer.disconnect()
-}
+function translateNode(node,language,labels){if(node.nodeType===Node.TEXT_NODE){markAndTranslateTextNode(node,language,labels);return}if(node.nodeType!==Node.ELEMENT_NODE||shouldSkipElement(node))return;for(const attribute of ['aria-label','title','placeholder','alt'])translateAttribute(node,attribute,language,labels);node.childNodes.forEach((child)=>translateNode(child,language,labels))}
+export function applyLanguageToDocument(language,labels={}){if(typeof document==='undefined')return;document.documentElement.lang=language==='eng'?'en':'bn';translateNode(document.body,language,labels)}
+export function observeLanguageDocument(language,labels={}){if(typeof document==='undefined')return()=>{};let scheduled=false;const run=()=>{scheduled=false;applyLanguageToDocument(language,labels)};const schedule=()=>{if(scheduled)return;scheduled=true;queueMicrotask(run)};const observer=new MutationObserver(schedule);observer.observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['aria-label','title','placeholder','alt']});run();return()=>observer.disconnect()}
