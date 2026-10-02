@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import { applyTheme, getDeviceClass, getLanguagePreference, getThemePreference, resolveTheme, setLanguagePreference, setThemePreference, subscribeToSystemTheme } from '../services/devicePreferenceService'\nimport { enableBengaliNumerals } from '../services/bengaliLanguageService'
+import { applyTheme, getDeviceClass, getLanguagePreference, getThemePreference, resolveTheme, setLanguagePreference, setThemePreference, subscribeToSystemTheme } from '../services/devicePreferenceService'
+import { enableBengaliNumerals } from '../services/bengaliLanguageService'
 
 const PreferencesContext = createContext(null)
 
@@ -23,6 +24,11 @@ export function PreferencesProvider({ children }) {
     window.addEventListener('orientationchange', onResize, { passive: true })
     return () => { window.removeEventListener('resize', onResize); window.removeEventListener('orientationchange', onResize) }
   }, [])
+
+  useEffect(() => {
+    document.documentElement.lang = language === 'bng' ? 'bn' : 'en'
+    enableBengaliNumerals(language === 'bng')
+  }, [language])
 
   const changeTheme = useCallback((value) => {
     const next = setThemePreference(value)
