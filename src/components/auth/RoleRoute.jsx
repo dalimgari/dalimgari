@@ -2,10 +2,6 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../../context'
 import { appPath } from '../../lib/routes'
 import { dashboardPathForRole, getCurrentRole } from '../../services/roleService'
-import AdminRoute from './AdminRoute'
-import UserRoute from './UserRoute'
-import Profile from '../../pages/Profile'
-import Dashboard from '../../pages/admin/Dashboard'
 import Skeleton from '../ui/Skeleton'
 import { Layout } from '../layout'
 import { ErrorState } from '../ui'
@@ -46,18 +42,15 @@ export default function RoleRoute({ requestedRole = null }) {
   }, [status, user?.id, requestedRole])
 
   useEffect(() => {
-    if (state.status !== 'ready' || requestedRole) return
-    const target = appPath(`/dashboard/${state.role.key}`)
+    if (state.status !== 'ready') return
+    const target = appPath(dashboardPathForRole(state.role.key))
     const current = window.location.pathname.replace(/\/$/, '') || '/'
     if (current !== target) window.location.replace(target)
-  }, [state, requestedRole])
+  }, [state])
 
   if (status !== 'ready' || state.status === 'loading') return <Skeleton variant="page" />
   if (state.status === 'mismatch' || state.status === 'error') {
     return <Layout seoTitle="অ্যাক্সেস ত্রুটি"><section className="home-section"><div className="site-container"><ErrorState title="রোল মিলছে না" description={state.error} onRetry={() => window.location.replace(appPath('/dashboard'))} /></div></section></Layout>
   }
-  if (!state.role) return <Skeleton variant="page" />
-
-  if (state.role.key === 'admin') return <AdminRoute><Dashboard /></AdminRoute>
-  return <UserRoute><Profile /></UserRoute>
+  return <Skeleton variant="page" />
 }
