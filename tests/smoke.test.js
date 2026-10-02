@@ -40,7 +40,7 @@ describe('project smoke tests', () => {
   it('protects every management route with an explicit AdminRoute permission guard', async () => {
     const app = await read('src/App.jsx')
     assert.match(app, /import AdminRoute from ['"]\.\/components\/auth\/AdminRoute['"]/) 
-    assert.match(app, /if\(path==='\/dashboard'\)page=<RoleRoute\/>/)
+    assert.match(app, /if\s*\(path\s*===\s*['"]\/dashboard['"]\)\s*page\s*=\s*<RoleRoute\s*\/>/)
     assert.match(app, /else if \(management\) \{[\s\S]*AdminRoute/)
     for (const permission of ['content_manage', 'media_manage', 'user_manage', 'audit_view', 'settings_manage']) {
       assert.match(app, new RegExp(permission))
