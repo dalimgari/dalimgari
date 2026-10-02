@@ -1,0 +1,9 @@
+HERO / MAIN / FOOTER
+
+Hero/Banner: main visual introduction, primary information, prominent content, responsive sizing ও mobile-friendly hierarchy।
+
+Main Content: sections, headings, supporting text, cards, lists, information blocks, consistent spacing ও controlled content width।
+
+Content surface rule: functional units প্রয়োজনে card/surface ব্যবহার করবে; static information natural article/section/list/document layout ব্যবহার করবে।
+
+Footer: website information-এর অংশ। আলাদা Footer Management module থাকবে না। Editable copyright text থাকবে। Footer-এ village/site name automatically দেখানো হবে না। Default copyright: © 2026. All rights reserved.
