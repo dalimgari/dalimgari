@@ -59,7 +59,7 @@ describe('project smoke tests', () => {
   })
 
   it('keeps storage hardening reproducible in migrations', async () => {
-    const migration = await read('supabase/migrations/20261001200000_harden_media_storage_and_rbac_policies.sql')
+    const migration = await read('supabase/migrations/20261001201247_harden_media_storage_and_rbac_policies.sql')
     assert.match(migration, /file_size_limit = 52428800/)
     assert.match(migration, /allowed_mime_types/)
     assert.match(migration, /to authenticated/)
@@ -67,7 +67,7 @@ describe('project smoke tests', () => {
   })
 
   it('keeps the admin-access RPC reproducible in migrations', async () => {
-    const migration = await read('supabase/migrations/20261001200500_add_admin_access_guard_rpc.sql')
+    const migration = await read('supabase/migrations/20261001201305_add_admin_access_guard_rpc.sql')
     assert.match(migration, /current_user_has_admin_access/)
     assert.match(migration, /grant execute on function public\.current_user_has_admin_access\(\) to authenticated/)
   })
@@ -78,7 +78,7 @@ describe('project smoke tests', () => {
     const service = await read('src/services/securityTestService.js')
     const websiteScanner = await read('src/services/websiteScanService.js')
     const fn = await read('supabase/functions/admin-security-test/index.ts')
-    const migration = await read('supabase/migrations/20261002130000_admin_security_test_status.sql')
+    const migration = await read('supabase/migrations/20261002130844_admin_security_test_status.sql')
     assert.match(dashboard, /SecurityStatusCard/)
     assert.match(card, /runSecurityTest/)
     assert.match(service, /admin-security-test/)
