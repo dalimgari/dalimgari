@@ -37,6 +37,7 @@ export default function Analytics() {
     <p className="admin-intro">গত ৩০ দিনের ওয়েবসাইট ব্যবহারের সংক্ষিপ্ত তথ্য। কাঁচা IP ঠিকানা সংগ্রহ করা হয় না।</p>
     <div className="content-grid">
       <article className="content-card"><h3>পৃষ্ঠা দেখা</h3><p>{summary?.total ?? 0}</p></article>
+      <article className="content-card"><h3>সেশন</h3><p>{summary?.uniqueSessions ?? 0}</p></article>
       <article className="content-card"><h3>দেখা পৃষ্ঠা</h3><p>{summary?.byPath?.length ?? 0}</p></article>
     </div>
     <section className="admin-form" style={{ marginTop: '1rem' }}>
