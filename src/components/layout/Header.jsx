@@ -1,4 +1,5 @@
 import { useAuth } from '../../context'
+import { usePreferences } from '../../context/PreferencesContext'
 import { supabase } from '../../lib/supabase'
 import { appPath } from '../../lib/routes'
 
@@ -6,12 +7,17 @@ function RuralIcon({ name }) { const paths={back:<><path d="M19 12H5"/><path d="
 
 export default function Header({ pageTitle, onMenu, sidebarOpen, labels = {}, showSearch = false, canonicalPath = '/', showBrand = true }) {
   const { user, status } = useAuth()
-  const text=(key, fallback)=>labels[key]?.bng||labels[key]?.eng||fallback
+  const { language } = usePreferences()
+  const text=(key, fallbackBn, fallbackEn=fallbackBn)=>{
+    const item=labels[key]
+    return language==='eng' ? (item?.eng||fallbackEn) : (item?.bng||item?.eng||fallbackBn)
+  }
   const isSecureArea = canonicalPath === '/profile' || canonicalPath.startsWith('/admin')
   const showLogout = status === 'ready' && !!user && isSecureArea
   const loginHref = status === 'ready' && user ? appPath('/admin') : appPath('/login')
-  async function handleLogout() {
-    try { await supabase.auth.signOut() } catch {}
-  }
-  return <header className="site-header"><div className="site-container site-header__inner"><button className={`site-header__action site-header__menu${sidebarOpen?' is-open':''}`} type="button" onClick={onMenu} aria-label={sidebarOpen?text('close','বন্ধ'):text('menu','উঠান')} aria-expanded={sidebarOpen}><RuralIcon name={sidebarOpen?'close':'menu'}/><span>{sidebarOpen?text('close','বন্ধ'):text('menu','উঠান')}</span></button>{showBrand ? <div className="site-brand" aria-label={pageTitle || text('home','হোম')}><span className="site-brand__words"><span className="site-brand__name">{pageTitle || text('home','হোম')}</span></span></div> : <div className="site-brand" aria-hidden="true" />}<div className="site-header__right">{showSearch ? <a className="site-header__action" href={appPath('/search')} aria-label={text('search','খোঁজ')}><RuralIcon name="search"/><span>{text('search','খোঁজ')}</span></a> : null}{showLogout ? <button className="site-header__action" type="button" onClick={handleLogout} aria-label={text('logout','লগআউট')}><RuralIcon name="logout"/><span>{text('logout','লগআউট')}</span></button> : null}<a className="site-header__action" href={loginHref} aria-label={user ? text('dashboard','ড্যাশবোর্ড') : text('login','বাড়ি')}><RuralIcon name={user ? 'hut' : 'user'}/><span>{user ? text('dashboard','ড্যাশবোর্ড') : text('login','বাড়ি')}</span></a></div></div></header>
+  async function handleLogout() { try { await supabase.auth.signOut() } catch {} }
+  const menuLabel=sidebarOpen?text('close','বন্ধ','Close'):text('menu','উঠান','Menu')
+  const searchLabel=text('search','খোঁজ','Search')
+  const loginLabel=user?text('dashboard','ড্যাশবোর্ড','Dashboard'):text('login','বাড়ি','Login')
+  return <header className="site-header"><div className="site-container site-header__inner"><button className={`site-header__action site-header__menu${sidebarOpen?' is-open':''}`} type="button" onClick={onMenu} aria-label={menuLabel} aria-expanded={sidebarOpen}><RuralIcon name={sidebarOpen?'close':'menu'}/><span>{menuLabel}</span></button>{showBrand ? <div className="site-brand" aria-label={pageTitle || text('home','হোম','Home')}><span className="site-brand__words"><span className="site-brand__name">{pageTitle || text('home','হোম','Home')}</span></span></div> : <div className="site-brand" aria-hidden="true" />}<div className="site-header__right">{showSearch ? <a className="site-header__action" href={appPath('/search')} aria-label={searchLabel}><RuralIcon name="search"/><span>{searchLabel}</span></a> : null}{showLogout ? <button className="site-header__action" type="button" onClick={handleLogout} aria-label={text('logout','লগআউট','Logout')}><RuralIcon name="logout"/><span>{text('logout','লগআউট','Logout')}</span></button> : null}<a className="site-header__action" href={loginHref} aria-label={loginLabel}><RuralIcon name={user ? 'hut' : 'user'}/><span>{loginLabel}</span></a></div></div></header>
 }
