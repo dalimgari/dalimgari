@@ -61,3 +61,21 @@ test('Master Specification: media source matrix is covered end-to-end', () => {
   assert.match(albumPage, /<MediaContent/)
   assert.match(postPage, /<MediaContent/)
 })
+
+test('Key Label Management: search and edit are scoped to global_ui_labels', () => {
+  const page = read('src/pages/admin/KeyLabelManagement.jsx')
+  const service = read('src/services/globalLabelService.js')
+  const app = read('src/App.jsx')
+  const layout = read('src/components/admin/AdminLayout.jsx')
+
+  assert.match(page, /listGlobalLabels\(\)/)
+  assert.match(page, /row\.key/)
+  assert.match(page, /row\.eng/)
+  assert.match(page, /row\.bng/)
+  assert.match(page, /updateGlobalLabel\(/)
+  assert.match(page, /readOnly/)
+  assert.match(service, /from\('global_ui_labels'\)/)
+  assert.match(service, /select\('key,eng,bng'\)/)
+  assert.match(app, /\/admin\/key-labels/)
+  assert.match(layout, /Key Label Rename/)
+})
