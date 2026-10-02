@@ -27,8 +27,7 @@ function formatValue(value) {
   return String(value)
 }
 
-function ModuleData({ label, items, loading }) {
-  if (loading) return <div className="ui-loading"><div className="ui-loading__spinner" /><span>তথ্য লোড হচ্ছে…</span></div>
+function ModuleData({ label, items }) {
   if (!items.length) return <div className="ui-empty">এই মডিউলে বর্তমানে কোনো তথ্য নেই।</div>
 
   return (
@@ -59,7 +58,6 @@ export default function Dashboard() {
   const [allowedModules, setAllowedModules] = useState([])
   const [selectedKey, setSelectedKey] = useState(null)
   const [ready, setReady] = useState(false)
-  const [loadingModule, setLoadingModule] = useState(null)
   const [error, setError] = useState(null)
 
   useEffect(() => {
@@ -82,9 +80,7 @@ export default function Dashboard() {
       setSelectedKey(allowed[0]?.key || null)
       setReady(true)
 
-      const results = await Promise.allSettled(
-        allowed.map(async ({ key, loader }) => [key, await loader()])
-      )
+      const results = await Promise.allSettled(allowed.map(async ({ key, loader }) => [key, await loader()]))
       if (!active) return
       const next = { ...initial }
       results.forEach((result) => {
@@ -105,42 +101,27 @@ export default function Dashboard() {
     return () => { active = false }
   }, [status, user])
 
-  const selected = useMemo(
-    () => allowedModules.find(([key]) => key === selectedKey),
-    [allowedModules, selectedKey]
-  )
-
-  async function refreshModule(module) {
-    if (!module) return
-    const [key, , , loader] = module
-    setLoadingModule(key)
-    try {
-      const data = await loader()
-      setModuleData((current) => ({ ...current, [key]: Array.isArray(data) ? data : [] }))
-    } finally {
-      setLoadingModule(null)
-    }
-  }
+  const selected = useMemo(() => allowedModules.find(([key]) => key === selectedKey), [allowedModules, selectedKey])
+  const selectedLabel = selected?.[1] || 'মডিউল'
+  const selectedItems = moduleData[selectedKey] || []
 
   if (status === 'loading' || !ready) return <Loading />
   if (error) return <AdminLayout user={user} title="ড্যাশবোর্ড"><ErrorState description={error.message || 'ড্যাশবোর্ড লোড করা যায়নি।'} /></AdminLayout>
 
-  const selectedLabel = selected?.[1] || 'মডিউল'
-  const selectedItems = moduleData[selectedKey] || []
-
   return (
     <AdminLayout user={user} title="ড্যাশবোর্ড">
       <div className="admin-management" style={{ gap: '1rem' }}>
-        <div className="admin-dashboard-modules" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(9rem, 1fr))', gap: '.65rem' }}>
+        <div className="admin-dashboard-modules" role="tablist" aria-label="অ্যাডমিন মডিউল" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(9rem, 1fr))', gap: '.65rem' }}>
           {allowedModules.map(([key, label]) => {
             const active = key === selectedKey
             const count = moduleData[key]?.length ?? 0
             return (
               <button
                 type="button"
+                role="tab"
                 key={key}
                 className={`ui-button${active ? '' : ' ui-button--secondary'}`}
-                aria-pressed={active}
+                aria-selected={active}
                 onClick={() => setSelectedKey(key)}
                 style={{ minHeight: '4.2rem', display: 'grid', gap: '.15rem', justifyItems: 'center', alignContent: 'center' }}
               >
@@ -152,17 +133,14 @@ export default function Dashboard() {
         </div>
 
         {selected && (
-          <section className="ui-state" aria-live="polite">
+          <section className="ui-state" role="tabpanel" aria-live="polite">
             <div className="section-heading" style={{ marginBottom: '.8rem' }}>
               <div>
                 <p className="section-kicker">মডিউল তথ্য</p>
                 <h2>{selectedLabel}</h2>
               </div>
-              <button type="button" className="ui-button ui-button--ghost" onClick={() => refreshModule(selected)} disabled={loadingModule === selectedKey}>
-                {loadingModule === selectedKey ? 'লোড হচ্ছে…' : 'রিফ্রেশ'}
-              </button>
             </div>
-            <ModuleData label={selectedLabel} items={selectedItems} loading={loadingModule === selectedKey} />
+            <ModuleData label={selectedLabel} items={selectedItems} />
           </section>
         )}
       </div>
