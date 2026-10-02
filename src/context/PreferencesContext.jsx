@@ -27,7 +27,8 @@ export function PreferencesProvider({ children }) {
 
   useEffect(() => {
     document.documentElement.lang = language === 'bng' ? 'bn' : 'en'
-    enableBengaliNumerals(language === 'bng')
+    if (language !== 'bng') return undefined
+    return enableBengaliNumerals()
   }, [language])
 
   const changeTheme = useCallback((value) => {
@@ -40,7 +41,6 @@ export function PreferencesProvider({ children }) {
   const changeLanguage = useCallback((value) => {
     const next = setLanguagePreference(value)
     setLanguageState(next)
-    document.documentElement.lang = next === 'bng' ? 'bn' : 'en'
   }, [])
 
   const value = useMemo(() => ({ themePreference, theme, language, deviceClass, setThemePreference: changeTheme, setLanguagePreference: changeLanguage }), [themePreference, theme, language, deviceClass, changeTheme, changeLanguage])
