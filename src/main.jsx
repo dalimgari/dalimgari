@@ -5,6 +5,7 @@ import { AuthProvider } from './context'
 import { PreferencesProvider } from './context/PreferencesContext'
 import './styles/index.css'
 import './styles/enhancements.css'
+import './styles/local-cards-scroll.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
