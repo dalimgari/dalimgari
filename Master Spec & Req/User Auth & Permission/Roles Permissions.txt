@@ -1,0 +1,15 @@
+ROLES & PERMISSIONS
+
+Defined roles: Admin, Manager, Editor, Moderator।
+
+Conceptual relationship:
+User → Role → Permissions → Module + Action।
+
+Permission enforcement:
+UI Visibility + Application Authorization + Database/RLS Security।
+
+Permission checking must use the project's centralized permission mechanism where applicable।
+
+UI button hide করা security নয়। Supabase RLS/database policy protected operation enforce করবে।
+
+Actual role tables, relationships, permission values and policies must be verified from schema/code.
