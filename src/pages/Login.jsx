@@ -48,7 +48,7 @@ export default function Login() {
   const isRecovery = mode === 'new-password'
   return <Layout navigationItems={[{ label: 'হোম', href: '/' }, { label: 'তথ্য', href: '/information' }, { label: 'পোস্ট', href: '/posts' }, { label: 'অ্যালবাম', href: '/albums' }]}>
     <section className="login-page"><div className="site-container login-page__container"><div className="login-card">
-      {mode !== 'login' ? <h1>{mode === 'reset' ? 'পাসওয়ার্ড পরিবর্তন' : 'নতুন পাসওয়ার্ড সেট করুন'}</h1> : null}
+      <h1>{mode === 'reset' ? 'পাসওয়ার্ড পরিবর্তন' : isRecovery ? 'নতুন পাসওয়ার্ড সেট করুন' : 'লগইন'}</h1>
       <form className="admin-form" onSubmit={handleSubmit}>
         {mode === 'login' ? <a className="ui-button login-home-link" href={appPath('/')}>হোমে ফিরে যান</a> : null}
         {mode !== 'new-password' ? <><label htmlFor="admin-email">ইমেইল</label><input id="admin-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" /></> : null}
