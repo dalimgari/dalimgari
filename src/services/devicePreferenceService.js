@@ -29,8 +29,7 @@ export function resolveTheme(preference = getThemePreference()) {
 export function getLanguagePreference() {
   const saved = read(KEYS.language)
   if (saved === 'bng' || saved === 'eng') return saved
-  const browser = String(navigator.language || '').toLowerCase()
-  return browser.startsWith('bn') ? 'bng' : 'eng'
+  return 'bng'
 }
 
 export function setLanguagePreference(value) {
