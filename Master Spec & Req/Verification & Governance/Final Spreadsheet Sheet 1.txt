@@ -1,0 +1,158 @@
+FINAL SPREADSHEET — SHEET 1
+
+RULE: This inventory is final. No field/module/name/code/type/input method may be added, deleted, renamed, merged, split, recoded or retyped by assistant decision. It is SHEET INVENTORY, not automatically the actual database schema.
+
+Format: Module | Code | Field | Field Code | Type | Input Method
+
+Admin Information | admin_information | Bio | bio | textarea | Textarea
+Admin Information | admin_information | Email | email | email | Email Input
+Admin Information | admin_information | Link | link | text | Text Input
+Admin Information | admin_information | Name | name | text | Text Input
+Admin Information | admin_information | Phone | phone | number | Number Input
+Admin Information | admin_information | Profile Image | profile_image_url | file | File Upload
+
+Albums | albums | Created Date And Time | created_at | date + time | Date Picker + Time Picker
+Albums | albums | Creator | creator_id | select | Select / Dropdown
+Albums | albums | Description | description | textarea | Textarea
+Albums | albums | Slug | slug | text | Text Input
+Albums | albums | Title | title | text | Text Input
+Albums | albums | Updated Date And Time | updated_at | date + time | Date Picker + Time Picker
+Albums | albums | Visibility | visibility | select | Select / Dropdown
+
+Analytics | analytics | Admin Visit Count | admin_visit_count | number | Number Input
+Analytics | analytics | Browser | browser | text | Text Input
+Analytics | analytics | Date | date | date | Date Picker
+Analytics | analytics | Device | device | text | Text Input
+Analytics | analytics | IP Address | ip_address | text | Text Input
+Analytics | analytics | Location | location | text | Text Input
+Analytics | analytics | Operating System | operating_system | text | Text Input
+Analytics | analytics | Page Views | page_views | number | Number Input
+Analytics | analytics | Referrals | referrals | text | Text Input
+Analytics | analytics | Sessions | sessions | number | Number Input
+Analytics | analytics | Unique Visitors | unique_visitors | number | Number Input
+Analytics | analytics | User Visit Count | user_visit_count | number | Number Input
+
+Appearance | appearance | Website Favicon | website_favicon | file | File Upload
+Appearance | appearance | Website Logo | website_logo | file | File Upload
+Appearance | appearance | Website Name | website_name | text | Text Input
+
+Audit Logs | audit_logs | Action | action | select | Select / Dropdown
+Audit Logs | audit_logs | Details | details | textarea | Textarea
+Audit Logs | audit_logs | IP Address | ip_address | text | Text Input
+Audit Logs | audit_logs | Module | module | select | Select / Dropdown
+Audit Logs | audit_logs | Record | record_id | text | Text Input
+Audit Logs | audit_logs | Timestamp | created_at | date + time | Date Picker + Time Picker
+Audit Logs | audit_logs | User | user_id | select | Select / Dropdown
+
+Backups | backups | Backup File | file_url | file | File Upload
+Backups | backups | Backup Location | location | text | Text Input
+Backups | backups | Backup Name | name | text | Text Input
+Backups | backups | Backup Type | backup_type | select | Select / Dropdown
+Backups | backups | Created Date And Time | created_at | date + time | Date Picker + Time Picker
+Backups | backups | Creator | creator_id | select | Select / Dropdown
+Backups | backups | File Size | file_size | number | Number Input
+Backups | backups | Restore Status | restore_status | select | Select / Dropdown
+Backups | backups | Status | status | select | Select / Dropdown
+
+Contact Information | contact_information | Address | address | textarea | Textarea
+Contact Information | contact_information | Email | email | email | Email Input
+Contact Information | contact_information | Phone | phone | text | Text Input
+
+Image | image | Image | image_url | file | File Upload
+
+Link | link | Created Date And Time | created_at | date + time | Date Picker + Time Picker
+Link | link | Creator | creator_id | select | Select / Dropdown
+Link | link | Icon | icon | file | File Upload
+Link | link | Title | name | text | Text Input
+Link | link | Updated Date And Time | updated_at | date + time | Date Picker + Time Picker
+Link | link | URL | url | text | Text Input
+
+Pages | pages | Code | code | rich txt filr | Textarea
+Pages | pages | Created Date And Time | created_at | date + time | Date Picker + Time Picker
+Pages | pages | Creator | creator_id | select | Select / Dropdown
+Pages | pages | Description | description | textarea | Textarea
+Pages | pages | Slug | slug | text | Text Input
+Pages | pages | Title | title | text | Text Input
+Pages | pages | Updated Date And Time | updated_at | date + time | Date Picker + Time Picker
+Pages | pages | Visibility | visibility | select | Select / Dropdown
+
+Permissions | permissions | Action | action | select | Select / Dropdown
+Permissions | permissions | Description | description | textarea | Textarea
+Permissions | permissions | Module | module | select | Select / Dropdown
+Permissions | permissions | Permission Name | name | text | Text Input
+Permissions | permissions | Status | status | select | Select / Dropdown
+
+Image | image | Album | album_id | select | Select / Dropdown
+Image | image | Created Date And Time | created_at | date + time | Date Picker + Time Picker
+Image | image | Creator | creator_id | select | Select / Dropdown
+Image | image | Description | description | textarea | Textarea
+Image | image | Slug | slug | text | Text Input
+Image | image | Title | title | text | Text Input
+Image | image | Updated Date And Time | updated_at | date + time | Date Picker + Time Picker
+Image | image | Visibility | visibility | select | Select / Dropdown
+
+Post | post | Album | album_id | select | Select / Dropdown
+Post | post | Created Date And Time | created_at | date + time | Date Picker + Time Picker
+Post | post | Creator | creator_id | select | Select / Dropdown
+Post | post | Description | description | textarea | Textarea
+Post | post | Image/Video | media_url | file | File Upload
+Post | post | Slug | slug | text | Text Input
+Post | post | Title | title | text | Text Input
+Post | post | Updated Date And Time | updated_at | date + time | Date Picker + Time Picker
+Post | post | Visibility | visibility | select | Select / Dropdown
+
+Roles | roles | Created Date | created_at | date + time | Date Picker + Time Picker
+Roles | roles | Description | description | textarea | Textarea
+Roles | roles | Role Name | name | text | Text Input
+Roles | roles | Status | status | select | Select / Dropdown
+Roles | roles | Updated Date | updated_at | date + time | Date Picker + Time Picker
+
+System Settings | system_settings | Date Format | date_format | select | Select / Dropdown
+System Settings | system_settings | Email Settings | email_settings | textarea | Textarea
+System Settings | system_settings | Language | language | select | Select / Dropdown
+System Settings | system_settings | Maintenance Mode | maintenance_mode | checkbox | Checkbox
+System Settings | system_settings | Notification Settings | notification_settings | checkbox | Checkbox
+System Settings | system_settings | Security Settings | security_settings | checkbox | Checkbox
+System Settings | system_settings | Session Settings | session_settings | number | Number Input
+System Settings | system_settings | Time Format | time_format | select | Select / Dropdown
+System Settings | system_settings | Timezone | timezone | select | Select / Dropdown
+
+Users | users | Created Date | created_at | date + time | Date Picker + Time Picker
+Users | users | Email | email | email | Email Input
+Users | users | Last Login | last_login_at | date + time | Date Picker + Time Picker
+Users | users | Name | name | text | Text Input
+Users | users | Password | password | password | Password Input
+Users | users | Phone | phone | text | Text Input
+Users | users | Profile Image | profile_image_url | file | File Upload
+Users | users | Role | role_id | select | Select / Dropdown
+Users | users | Status | status | select | Select / Dropdown
+Users | users | Updated Date | updated_at | date + time | Date Picker + Time Picker
+
+Video | video | Album | album_id | select | Select / Dropdown
+Video | video | Created Date And Time | created_at | date + time | Date Picker + Time Picker
+Video | video | Creator | creator_id | select | Select / Dropdown
+Video | video | Description | description | textarea | Textarea
+Video | video | Image / Thumbnail | thumbnail_url | file | File Upload
+Video | video | Slug | slug | text | Text Input
+Video | video | Title | title | text | Text Input
+Video | video | Updated Date And Time | updated_at | date + time | Date Picker + Time Picker
+Video | video | Visibility | visibility | select | Select / Dropdown
+
+Village Information | village_information | District | district | text | Text Input
+Village Information | village_information | Division | division | text | Text Input
+Village Information | village_information | Established Date | established_date | date | Date Picker
+Village Information | village_information | Map Location | map_location | text | Text Input
+Village Information | village_information | Population | population | number | Number Input
+Village Information | village_information | Postal Code | postal_code | text | Text Input
+Village Information | village_information | Union | union_name | text | Text Input
+Village Information | village_information | Upazila | upazila_name | text | Text Input
+Village Information | village_information | Village Name | village_name | text | Text Input
+Village Information | village_information | Village Slogan | village_slogan | text | Text Input
+
+Website Appearance | website_appearance | Copyright Text | copyright_text | text | Text Input
+Website Appearance | website_appearance | Font | font_family | select | Select / Dropdown
+Website Appearance | website_appearance | Font Color | font_color | text | Text Input
+Website Appearance | website_appearance | Font Size | font_size | select | Select / Dropdown
+Website Appearance | website_appearance | Hero Banner | hero_banner | file | File Upload
+Website Appearance | website_appearance | Primary Color | primary_color | text | Text Input
+Website Appearance | website_appearance | Secondary Color | secondary_color | text | Text Input
