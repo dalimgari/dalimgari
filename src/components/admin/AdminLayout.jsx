@@ -18,6 +18,14 @@ const adminNavItems = [
   { label: 'পরিসংখ্যান', path: '/admin/analytics', permission: 'audit_view' },
 ]
 
+function navigate(path) {
+  const target = appPath(path)
+  const current = window.location.pathname
+  if (current === target) return
+  window.history.pushState({}, '', target)
+  window.dispatchEvent(new Event('app:navigate'))
+}
+
 export default function AdminLayout({ user, title, children }) {
   const [visibleNav, setVisibleNav] = useState([])
 
@@ -47,7 +55,17 @@ export default function AdminLayout({ user, title, children }) {
                 const currentPath = window.location.pathname.replace(/\/$/, '') || '/'
                 const itemPath = appPath(item.path).replace(/\/$/, '') || '/'
               const isActive = currentPath === itemPath
-              return <a key={item.path} className={isActive ? 'is-active' : ''} href={appPath(item.path)} aria-current={isActive ? 'page' : undefined}>{item.label}</a>
+              return <a
+                key={item.path}
+                className={isActive ? 'is-active' : ''}
+                href={appPath(item.path)}
+                aria-current={isActive ? 'page' : undefined}
+                onClick={(event) => {
+                  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+                  event.preventDefault()
+                  navigate(item.path)
+                }}
+              >{item.label}</a>
             })}
           </nav>
 
