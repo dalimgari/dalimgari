@@ -9,16 +9,9 @@ import { useGlobalLabels } from '../../context'
 import { getThemeSettings } from '../../services/themeService'
 import { trackPageView } from '../../services/analyticsService'
 
-const ROUTE_TITLES = {
-  '/': { bng: 'হোম', eng: 'Home' },
-  '/information': { bng: 'গ্রামের তথ্য', eng: 'Village Information' },
-  '/posts': { bng: 'পোস্ট', eng: 'Posts' },
-  '/albums': { bng: 'অ্যালবাম', eng: 'Albums' },
-  '/search': { bng: 'খুঁজুন', eng: 'Search' },
-  '/login': { bng: 'লগইন', eng: 'Login' },
-  '/signup': { bng: 'নতুন একাউন্ট', eng: 'Create Account' },
-  '/profile': { bng: 'প্রোফাইল', eng: 'Profile' },
-  '/dashboard': { bng: 'ড্যাশবোর্ড', eng: 'Dashboard' },
+const ROUTE_TITLE_KEYS = {
+  '/': 'home', '/information': 'villageInformation', '/posts': 'posts', '/albums': 'albums',
+  '/search': 'search', '/login': 'login', '/signup': 'signup', '/profile': 'profile', '/dashboard': 'dashboard',
 }
 
 function Seo({ siteName, title, description, canonicalPath }) {
@@ -144,8 +137,8 @@ export default function Layout({ children, siteName, navigationItems = [], copyr
     if (base !== '/' && pathname.startsWith(base)) return pathname.slice(base.length - 1) || '/'
     return pathname || '/'
   })()
-  const routeTitle = ROUTE_TITLES[canonicalPath]
-  const resolvedSeoTitle = seoTitle || routeTitle?.[language] || routeTitle?.bng || null
+  const routeTitleKey = ROUTE_TITLE_KEYS[canonicalPath]
+  const resolvedSeoTitle = seoTitle || (routeTitleKey ? t(routeTitleKey, '', '') : null)
 
   useEffect(() => {
     trackPageView({ path: canonicalPath, deviceClass, language, theme }).catch(() => {})
