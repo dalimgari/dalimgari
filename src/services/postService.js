@@ -35,11 +35,10 @@ export async function listPostMedia(postId) {
 export async function replacePostMedia(postId, mediaIds) {
   if (!supabase) throw new Error('Supabase is not configured')
   const ids = [...new Set((mediaIds ?? []).filter(Boolean))]
-  const { error: deleteError } = await supabase.from('post_media').delete().eq('post_id', postId)
-  if (deleteError) throw deleteError
-  if (!ids.length) return []
-  const rows = ids.map((mediaId, index) => ({ post_id: postId, media_id: mediaId, display_order: index }))
-  const { data, error } = await supabase.from('post_media').insert(rows).select('post_media_id, media_id, display_order, media(*)')
+  const { data, error } = await supabase.rpc('replace_post_media', {
+    p_post_id: postId,
+    p_media_ids: ids,
+  })
   if (error) throw error
   return data ?? []
 }
@@ -65,7 +64,8 @@ export async function createPost(values) {
 
 export async function updatePost(postId, values) {
   const userId = await currentUserId()
-  const { data: current } = await supabase.from('posts').select('published_at,status').eq('post_id',postId).maybeSingle()
+  const { data: current, error: currentError } = await supabase.from('posts').select('published_at,status').eq('post_id',postId).maybeSingle()
+  if (currentError) throw currentError
   const publishedAt = values.status === 'published' ? (current?.published_at || new Date().toISOString()) : null
   const { data, error } = await supabase.from('posts').update({
     post_key: values.post_key, title: values.title, description: values.description ?? null,
