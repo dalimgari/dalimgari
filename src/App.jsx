@@ -12,13 +12,13 @@ import AlbumsManagement from './pages/admin/AlbumsManagement'
 import MediaManagement from './pages/admin/MediaManagement'
 import UsersManagement from './pages/admin/UsersManagement'
 import AuditLogs from './pages/admin/AuditLogs'
+import Analytics from './pages/admin/Analytics'
 import HomepageManagement from './pages/admin/HomepageManagement'
 import SidebarManagement from './pages/admin/SidebarManagement'
 import PageDetail from './pages/PageDetail'
 import PostDetail from './pages/PostDetail'
 import Information from './pages/Information'
 import NotFound from './pages/NotFound'
-import Skeleton from './components/ui/Skeleton'
 import AdminRoute from './components/auth/AdminRoute'
 import UserRoute from './components/auth/UserRoute'
 
@@ -28,9 +28,7 @@ function getPath() {
   return window.location.pathname.replace(new RegExp(`^${escapedBase}`), '').replace(/\/$/, '') || '/'
 }
 
-function RouteView({ children }) {
-  return children
-}
+function RouteView({ children }) { return children }
 
 function adminPage(path) {
   if (path === '/admin') return <AdminRoute><Dashboard /></AdminRoute>
@@ -42,6 +40,7 @@ function adminPage(path) {
   if (path === '/admin/media') return <AdminRoute permission="media_manage"><MediaManagement /></AdminRoute>
   if (path === '/admin/users') return <AdminRoute permission="user_manage"><UsersManagement /></AdminRoute>
   if (path === '/admin/audit') return <AdminRoute permission="audit_view"><AuditLogs /></AdminRoute>
+  if (path === '/admin/analytics') return <AdminRoute permission="audit_view"><Analytics /></AdminRoute>
   if (path === '/admin/website-information') return <AdminRoute permission="settings_manage"><ControlPanel /></AdminRoute>
   return null
 }
