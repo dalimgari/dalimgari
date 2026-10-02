@@ -1,3 +1,4 @@
+
 -- Dalimgari authentication and authorization foundation
 -- Applied to Supabase project yopfogoyjxwxplnabqii on 2026-10-01.
 
@@ -168,12 +169,15 @@ for each row execute function public.handle_new_user();
 create or replace function public.set_updated_at()
 returns trigger language plpgsql set search_path=public
 as $$
-begin new.updated_at=now(); return new; end;
+begin new.updated_at=now(); return new;
+end;
 $$;
 
 drop trigger if exists roles_set_updated_at on public.roles;
 create trigger roles_set_updated_at before update on public.roles for each row execute function public.set_updated_at();
+
 drop trigger if exists permissions_set_updated_at on public.permissions;
 create trigger permissions_set_updated_at before update on public.permissions for each row execute function public.set_updated_at();
+
 drop trigger if exists profiles_set_updated_at on public.profiles;
 create trigger profiles_set_updated_at before update on public.profiles for each row execute function public.set_updated_at();

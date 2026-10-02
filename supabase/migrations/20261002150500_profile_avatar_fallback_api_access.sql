@@ -1,1 +1,0 @@
-grant select on public.profile_avatar_settings to anon, authenticated;
