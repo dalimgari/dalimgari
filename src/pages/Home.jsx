@@ -61,7 +61,7 @@ function resolvePageLink(item, pages) {
 
 function HomeTopicTabs({ pages = [], albums = [], items = null }) {
   const configured = Array.isArray(items) && items.length ? items.filter(item => item.enabled !== false) : null
-  const defaultItems = [{ label: 'গ্রামের তথ্য', href: '/information' }]
+  const defaultItems = [{ label: 'তথ্য', href: '/information' }]
 
   if (configured) {
     const links = configured.map((item) => resolvePageLink(item, pages)).filter(Boolean)
