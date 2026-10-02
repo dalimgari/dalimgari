@@ -30,7 +30,7 @@ export default function Information({ information }) {
             ))}
           </dl>
         ) : (
-          <p>এখনও গ্রামের তথ্য যোগ করা হয়নি।</p>
+          <p>এখনও তথ্য যোগ করা হয়নি।</p>
         )}
       </div>
     </section>
