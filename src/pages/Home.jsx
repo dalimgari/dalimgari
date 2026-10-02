@@ -13,6 +13,7 @@ import { listVisibleMedia } from '../services/mediaService'
 import { listPublishedPages } from '../services/pageService'
 import Skeleton from '../components/ui/Skeleton'
 import { getHomepageSettings } from '../services/homepageService'
+import { appPath } from '../lib/routes'
 
 const NAVIGATION_ITEMS = [
   { label: 'হোম', href: '/' },
