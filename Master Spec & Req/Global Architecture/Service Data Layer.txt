@@ -1,0 +1,14 @@
+SERVICE / DATA LAYER
+
+Centralized Supabase access ব্যবহার করতে হবে।
+
+Includes:
+- Supabase client
+- Website service
+- Admin services
+- User services
+- Database communication
+- Storage communication
+- RPC/function communication
+
+UI সরাসরি অপ্রয়োজনীয়ভাবে বিভিন্ন backend access pattern ব্যবহার করবে না; shared service/data layer consistency বজায় রাখবে।
