@@ -10,6 +10,12 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let active = true
 
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!active) return
+      setUser(session?.user ?? null)
+      setStatus('ready')
+    })
+
     async function initialize() {
       try {
         const { data: { session } } = await supabase.auth.getSession()
@@ -24,12 +30,6 @@ export function AuthProvider({ children }) {
     }
 
     initialize()
-
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!active) return
-      setUser(session?.user ?? null)
-      setStatus('ready')
-    })
 
     return () => {
       active = false
