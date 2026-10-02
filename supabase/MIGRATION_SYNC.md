@@ -1,22 +1,22 @@
 # Supabase migration sync
 
-## Current state — 2026-10-02
+## Current state — 2026-10-03
 
 The repository contains the authoritative forward migration chain under `supabase/migrations/`.
 
-Historical production migration timestamps/names differ from some repository filenames because earlier work was consolidated or superseded. That historical migration table is **not byte-for-byte identical** to Git history and must not be rewritten to pretend otherwise.
+The production database migration history has been reconciled with the repository chain: **46 repository migration files and 46 production migration-history records have exact timestamp/name parity**. No destructive production database reset was used for that reconciliation.
 
 ### Live environment verification
 
-- Production: 19 public application tables.
-- Development: 19 public application tables.
-- Production: 0 public application tables without RLS.
-- Development: 0 public application tables without RLS.
-- Content/media/RBAC foreign-key relationships are present.
-- Homepage, sidebar, rural visual, theme, global labels, analytics and website-information contracts are present in both environments.
-- Critical application RPCs are present in both environments.
-- Privileged analytics/backup cleanup RPCs are no longer executable by `anon` or `authenticated` roles.
-- Global-label creation is restricted to authenticated users with `settings_manage`; existing labels remain publicly readable.
+- Production: 23 public application base tables.
+- Production: 23/23 public base tables have RLS enabled.
+- Production: 80 public RLS policies were verified in the latest audit.
+- Production content/media/RBAC foreign-key integrity checks passed for the audited relationships.
+- Critical authorization RPCs and private-schema security-definer grants were audited.
+- Latest production security test run passed: 17/17 checks, 0 failures, 0 warnings.
+- Leaked Password Protection is intentionally treated as an accepted project exception and is not a release blocker.
+
+The development Supabase project is **not** a clean-room equivalent of production/repository history. Its current migration history contains 26 records with a different timestamp/name chain, and its live schema currently has 22 public base tables. It must not be reset destructively merely to make the history match.
 
 ### Reconciliation migrations
 
@@ -27,11 +27,14 @@ Historical production migration timestamps/names differ from some repository fil
 ### Repository policy
 
 1. New schema changes must be added as a new timestamped migration under `supabase/migrations/`.
-2. Existing migration files must not be rewritten to change production history.
+2. Existing migration files must not be rewritten to alter production history.
 3. No destructive reconciliation is performed automatically.
 4. DB contract tests must run against a configured Supabase environment.
-5. Before claiming full reproducibility, replay the complete repository migration directory in an isolated clean Supabase project and compare the resulting schema/RLS/RPC/storage contract with production.
+5. A **fresh isolated Supabase project/branch** must be used for a true clean-room replay of the complete repository migration directory. The existing development project is not suitable for this because its migration history is already divergent.
+6. After clean-room replay, compare schema, RLS/policies, RPC/function security, storage configuration, and relevant application contracts with production before claiming full reproducibility.
 
 ### Remaining verification gate
 
-The live production/development schemas are now reconciled at the application-contract level, but **clean-room migration replay has not yet been executed**. Therefore the project must not yet claim byte-for-byte migration reproducibility.
+**VERIFICATION REQUIRED:** clean-room migration replay has not yet been executed in a fresh isolated Supabase environment. This is the only remaining major migration-reproducibility verification gate identified in the current audit.
+
+The existing production environment is healthy and its migration history currently matches the repository chain exactly; the remaining gap is independent replay verification, not a known production runtime/data-integrity defect.
