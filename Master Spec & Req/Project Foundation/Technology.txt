@@ -1,0 +1,17 @@
+DALIMGARI WEBSITE — TECHNOLOGY
+
+Frontend: React + Vite + npm।
+Repository: GitHub।
+CI/CD: GitHub Actions।
+Hosting: GitHub Pages।
+Backend: Supabase।
+Authentication: Supabase Auth।
+Database Security: Supabase RLS।
+Server Logic: Supabase RPC/functions।
+File Storage: Supabase Storage।
+
+Firebase: নতুন build-এ ব্যবহার করা যাবে না; existing implementation-এ থাকলে audit করে remove করতে হবে।
+
+Engineering: package.json ও package-lock.json maintain করতে হবে; reproducible installation-এর জন্য npm ci যেখানে প্রযোজ্য; secrets source code-এ রাখা যাবে না।
+
+Deployment: Vite production base path, asset paths, SPA handling ও GitHub Pages deployment সঠিক রাখতে হবে।
