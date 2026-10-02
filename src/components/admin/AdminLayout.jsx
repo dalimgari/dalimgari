@@ -54,19 +54,6 @@ export default function AdminLayout({ user, title, children }) {
     <Layout seoTitle={title}>
       <section className="home-section admin-page-shell">
         <div className="site-container">
-          <div className="admin-page-toolbar">
-            <div>
-              {title ? <h1>{title}</h1> : null}
-              <p className="admin-intro">নিয়ন্ত্রণ প্যানেল</p>
-            </div>
-            <div className="admin-header__actions">
-              <a className="ui-button ui-button--secondary" href={appPath('/profile')}>প্রোফাইল</a>
-              <Button variant="secondary" disabled={loggingOut} onClick={handleLogout}>
-                {loggingOut ? 'লগআউট হচ্ছে…' : 'লগআউট'}
-              </Button>
-            </div>
-          </div>
-
           <nav className="admin-inline-nav" aria-label="অ্যাডমিন নেভিগেশন">
             {visibleNav.map((item) => (
               <a key={item.path} href={appPath(item.path)}>{item.label}</a>
