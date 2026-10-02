@@ -118,17 +118,13 @@ async function scanRoute(route) {
   }
 }
 
-async function checkSameOriginResponses(routes) {
-  const checks = []
-  for (const route of routes) {
-    try {
-      const response = await fetch(appUrl(route), { method: 'GET', cache: 'no-store' })
-      checks.push(statusCheck('http-' + route, 'HTTP response ' + route, response.ok ? 'passed' : 'failed', response.ok ? 'HTTP ' + response.status + ' পাওয়া গেছে।' : 'HTTP ' + response.status + ' response।', 'Availability'))
-    } catch (error) {
-      checks.push(statusCheck('http-' + route, 'HTTP response ' + route, 'failed', 'Request ব্যর্থ: ' + (error?.message || 'অজানা সমস্যা'), 'Availability'))
-    }
+async function checkSiteResponse() {
+  try {
+    const response = await fetch(appUrl('/'), { method: 'GET', cache: 'no-store' })
+    return statusCheck('http-home', 'Website root response', response.ok ? 'passed' : 'failed', response.ok ? 'Website root HTTP ' + response.status + ' response দিয়েছে।' : 'Website root HTTP ' + response.status + ' response দিয়েছে।', 'Availability')
+  } catch (error) {
+    return statusCheck('http-home', 'Website root response', 'failed', 'Website root request ব্যর্থ: ' + (error?.message || 'অজানা সমস্যা'), 'Availability')
   }
-  return checks
 }
 
 export async function runWebsiteScan() {
@@ -154,7 +150,7 @@ export async function runWebsiteScan() {
     checks.push(...result.checks)
   }
 
-  checks.push(...await checkSameOriginResponses([...routes].slice(0, MAX_DISCOVERED_ROUTES)))
+  checks.push(await checkSiteResponse())
 
   const summary = checks.reduce((acc, check) => {
     acc[check.status] = (acc[check.status] || 0) + 1
