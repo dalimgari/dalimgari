@@ -1,0 +1,18 @@
+GLOBAL ARCHITECTURE
+
+Public Website + Admin Dashboard + User Area = Same Underlying Architecture.
+
+Difference: Visibility + Permission + Available Actions + Accessible Data.
+
+Core layers:
+Identity → Navigation → Content → Management → User → System → Common UI.
+
+Core application flow:
+UI → Service/Data Layer → Supabase → Database/Storage/Auth.
+
+Public flow:
+Public UI → Supabase Data → Renderer.
+Admin flow:
+Admin UI → Service/Data Layer → Supabase.
+User flow:
+Authentication → User Area → Permission → Allowed Data/Action.
