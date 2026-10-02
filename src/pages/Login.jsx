@@ -49,6 +49,7 @@ export default function Login() {
   return <Layout navigationItems={[{ label: 'হোম', href: '/' }, { label: 'তথ্য', href: '/information' }, { label: 'পোস্ট', href: '/posts' }, { label: 'অ্যালবাম', href: '/albums' }]}>
     <section className="login-page"><div className="site-container login-page__container"><div className="login-card">
       <h1>{mode === 'reset' ? 'পাসওয়ার্ড পরিবর্তন' : isRecovery ? 'নতুন পাসওয়ার্ড সেট করুন' : 'লগইন'}</h1>
+      <a className="ui-button ui-button--secondary" href={appPath('/')}>হোমে ফিরে যান</a>
       <form className="admin-form" onSubmit={handleSubmit}>
         {mode !== 'new-password' ? <><label htmlFor="admin-email">ইমেইল</label><input id="admin-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" /></> : null}
         {mode !== 'reset' ? <><label htmlFor="admin-password">পাসওয়ার্ড</label><input id="admin-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} autoComplete={isRecovery ? 'new-password' : 'current-password'} /></> : null}
