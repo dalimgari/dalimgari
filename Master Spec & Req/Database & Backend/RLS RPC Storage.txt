@@ -1,0 +1,13 @@
+RLS / RPC / STORAGE
+
+RLS: protected data and operations must be enforced at database level।
+
+RPC/functions: centralized server-side permission/business logic where defined।
+
+Storage: media/file storage must follow authentication, permission, MIME/type, size and access rules where applicable।
+
+Public/private separation is mandatory.
+
+No secrets in source code.
+
+Actual policies, RPC names, storage buckets and constraints are CONFIRMED only from project audit.
