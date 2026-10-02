@@ -28,6 +28,7 @@ import NotFound from './pages/NotFound'
 import { useEffect, useState } from 'react'
 import AdminRoute from './components/auth/AdminRoute'
 import UserRoute from './components/auth/UserRoute'
+import RoleRoute from './components/auth/RoleRoute'
 
 function getPath() {
   const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
@@ -66,8 +67,9 @@ export default function App() {
     }
   }, [])
   let page = <NotFound />
-  const pageMatch = path.match(/^\/pages\/([^/]+)$/); const albumMatch = path.match(/^\/albums\/([^/]+)$/); const postMatch = path.match(/^\/posts\/([^/]+)$/); const admin = path.startsWith('/admin') ? adminPage(path) : null
-  if (admin) page = admin
+  const pageMatch = path.match(/^\/pages\/([^/]+)$/); const albumMatch = path.match(/^\/albums\/([^/]+)$/); const postMatch = path.match(/^\/posts\/([^/]+)$/); const dashboardMatch = path.match(/^\/dashboard(?:\/([^/]+))?$/); const admin = path.startsWith('/admin') ? adminPage(path) : null
+  if (dashboardMatch) page = <RoleRoute requestedRole={dashboardMatch[1] || null} />
+  else if (admin) page = admin
   else if (pageMatch) page = <PageDetail slug={decodeURIComponent(pageMatch[1])} />
   else if (albumMatch) page = <AlbumDetail albumKey={decodeURIComponent(albumMatch[1])} />
   else if (postMatch) page = <PostDetail postId={decodeURIComponent(postMatch[1])} />
