@@ -1,0 +1,15 @@
+DESIGN SYSTEM — VISUAL DESIGN
+
+Typography: Bengali-first, readable, clear hierarchy, suitable sizes ও line-height।
+
+Colors: Primary, Secondary/Accent, Background, Surface/Card, Text, Muted Text, Border, Success, Warning, Error।
+
+Spacing: page, section, heading, content, card, form, button, padding ও margin-এর common system।
+
+Cards: consistent layout, padding, border, radius, heading/supporting information, responsive width ও controlled overflow।
+
+Buttons: clear labels, consistent height/padding, touch-friendly, active ও disabled states।
+
+Theme: Light/Day + Dark/Night; dynamic switching ও consistent component appearance।
+
+Visual direction: rural Bengal/community identity; unnecessary urban/corporate styling নয়।
