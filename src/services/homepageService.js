@@ -16,6 +16,7 @@ export const DEFAULT_HOMEPAGE_CONFIG = {
   mediaGallery: { enabled: true, title: 'গ্যালারি', subtitle: 'ছবি ও ভিডিও', showAll: true, albumIds: [] },
   albums: { enabled: true, limit: 4, title: 'অ্যালবাম' },
   sidebar: { enabled: true, items: [], cards: [] },
+  horizontalAutoScroll: { enabled: true, intervalMs: 4000, pauseAfterInteractionMs: 60000 },
 }
 
 function mergeConfig(config) {
@@ -30,6 +31,7 @@ function mergeConfig(config) {
     mediaGallery: { ...DEFAULT_HOMEPAGE_CONFIG.mediaGallery, ...(config?.mediaGallery || {}) },
     albums: { ...DEFAULT_HOMEPAGE_CONFIG.albums, ...(config?.albums || {}) },
     sidebar: { ...DEFAULT_HOMEPAGE_CONFIG.sidebar, ...(config?.sidebar || {}) },
+    horizontalAutoScroll: { ...DEFAULT_HOMEPAGE_CONFIG.horizontalAutoScroll, ...(config?.horizontalAutoScroll || {}) },
   }
 }
 
