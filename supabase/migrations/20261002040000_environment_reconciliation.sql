@@ -1,0 +1,270 @@
+-- Dalimgari environment reconciliation.
+-- Additive, idempotent final-state guards for environments that were created
+-- from an older migration snapshot. This does not delete application data.
+
+begin;
+
+-- Required RBAC vocabulary used by the current application.
+insert into public.permissions (permission_key, permission_name, description, is_active)
+values
+  ('audit_view', 'Audit View', 'View audit and analytics information', true),
+  ('content_manage', 'Content Manage', 'Manage pages and posts', true),
+  ('homepage_manage', 'হোমপেজ ম্যানেজমেন্ট', 'হোমপেজের Hero, ট্যাব, সেকশন, কার্ড, গ্যালারি ও সাইডবার পরিচালনা', true),
+  ('media_manage', 'Media Manage', 'Manage media and albums', true),
+  ('settings_manage', 'Settings Manage', 'Manage website settings and visual configuration', true),
+  ('sidebar_manage', 'সাইডবার ম্যানেজমেন্ট', 'সাইডবার ম্যানেজমেন্ট', true),
+  ('user_manage', 'User Manage', 'Manage users and roles', true)
+on conflict (permission_key) do update set
+  permission_name = excluded.permission_name,
+  description = excluded.description,
+  is_active = true;
+
+insert into public.roles (role_key, role_name, description, is_active)
+values
+  ('admin', 'Admin', 'Full administrative access', true),
+  ('manager', 'ম্যানেজার', 'ওয়েবসাইটের কনটেন্ট, মিডিয়া, হোমপেজ ও সেটিংস পরিচালনা', true),
+  ('editor', 'এডিটর', 'পেজ, পোস্ট ও প্রকাশিত কনটেন্ট পরিচালনা', true),
+  ('moderator', 'মডারেটর', 'মিডিয়া ও কনটেন্ট পর্যালোচনা ও পরিচালনা', true)
+on conflict (role_key) do update set
+  role_name = excluded.role_name,
+  description = excluded.description,
+  is_active = true,
+  updated_at = now();
+
+insert into public.role_permissions (role_id, permission_id)
+select r.role_id, p.permission_id
+from public.roles r cross join public.permissions p
+where r.role_key = 'admin'
+on conflict do nothing;
+
+insert into public.role_permissions (role_id, permission_id)
+select r.role_id, p.permission_id
+from public.roles r join public.permissions p on p.permission_key in ('content_manage','homepage_manage','media_manage','settings_manage','sidebar_manage')
+where r.role_key = 'manager'
+on conflict do nothing;
+
+insert into public.role_permissions (role_id, permission_id)
+select r.role_id, p.permission_id
+from public.roles r join public.permissions p on p.permission_key = 'content_manage'
+where r.role_key = 'editor'
+on conflict do nothing;
+
+insert into public.role_permissions (role_id, permission_id)
+select r.role_id, p.permission_id
+from public.roles r join public.permissions p on p.permission_key in ('content_manage','media_manage')
+where r.role_key = 'moderator'
+on conflict do nothing;
+
+-- Analytics contract.
+create table if not exists public.analytics_visits (
+  visit_id uuid primary key default gen_random_uuid(),
+  path text not null,
+  referrer text,
+  user_agent text,
+  session_id text,
+  device_class text,
+  language text,
+  theme text,
+  created_at timestamptz not null default now()
+);
+create index if not exists analytics_visits_created_at_idx on public.analytics_visits(created_at desc);
+create index if not exists analytics_visits_path_idx on public.analytics_visits(path);
+alter table public.analytics_visits enable row level security;
+
+drop policy if exists analytics_visits_admin_read on public.analytics_visits;
+create policy analytics_visits_admin_read on public.analytics_visits
+for select to authenticated
+using (public.current_user_has_permission('audit_view'));
+
+create or replace function public.record_analytics_visit(
+  p_path text,
+  p_referrer text default null,
+  p_user_agent text default null,
+  p_session_id text default null,
+  p_device_class text default null,
+  p_language text default null,
+  p_theme text default null
+) returns uuid
+language plpgsql security definer set search_path = public, extensions
+as $$
+declare v_id uuid;
+begin
+  if coalesce(length(trim(p_path)), 0) = 0 then return null; end if;
+  insert into public.analytics_visits(path,referrer,user_agent,session_id,device_class,language,theme)
+  values(left(trim(p_path),500),left(p_referrer,1000),left(p_user_agent,1000),left(p_session_id,200),left(p_device_class,32),left(p_language,16),left(p_theme,16))
+  returning visit_id into v_id;
+  return v_id;
+end;
+$$;
+revoke all on function public.record_analytics_visit(text,text,text,text,text,text,text) from public;
+grant execute on function public.record_analytics_visit(text,text,text,text,text,text,text) to anon, authenticated;
+
+create or replace function public.cleanup_expired_analytics() returns integer
+language plpgsql security definer set search_path = public, extensions
+as $$ declare v_count integer; begin delete from public.analytics_visits where created_at < now() - interval '90 days'; get diagnostics v_count = row_count; return v_count; end; $$;
+create or replace function public.delete_expired_analytics_visits() returns bigint
+language plpgsql security definer set search_path = public, extensions
+as $$ declare v_count bigint; begin delete from public.analytics_visits where created_at < now() - interval '90 days'; get diagnostics v_count = row_count; return v_count; end; $$;
+create or replace function public.purge_expired_analytics() returns integer
+language plpgsql security definer set search_path = public, extensions
+as $$ declare v_count integer; begin delete from public.analytics_visits where created_at < now() - interval '90 days'; get diagnostics v_count = row_count; return v_count; end; $$;
+create or replace function public.restore_database_backup(p_backup_record_id uuid) returns boolean
+language plpgsql security definer set search_path = public, extensions
+as $$ begin return false; end; $$;
+revoke execute on function public.cleanup_expired_analytics() from public, anon, authenticated;
+revoke execute on function public.delete_expired_analytics_visits() from public, anon, authenticated;
+revoke execute on function public.purge_expired_analytics() from public, anon, authenticated;
+revoke execute on function public.restore_database_backup(uuid) from public, anon, authenticated;
+grant execute on function public.cleanup_expired_analytics() to service_role;
+grant execute on function public.delete_expired_analytics_visits() to service_role;
+grant execute on function public.purge_expired_analytics() to service_role;
+grant execute on function public.restore_database_backup(uuid) to service_role;
+
+-- Homepage/sidebar contracts.
+create table if not exists public.homepage_settings (
+  settings_id uuid primary key default gen_random_uuid(),
+  config jsonb not null default '{}'::jsonb,
+  updated_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create unique index if not exists homepage_settings_singleton_idx on public.homepage_settings ((true));
+alter table public.homepage_settings enable row level security;
+drop policy if exists homepage_settings_public_read on public.homepage_settings;
+create policy homepage_settings_public_read on public.homepage_settings for select to anon, authenticated using (true);
+drop policy if exists homepage_settings_manage on public.homepage_settings;
+create policy homepage_settings_manage on public.homepage_settings for all to authenticated
+using (public.current_user_has_permission('homepage_manage'))
+with check (public.current_user_has_permission('homepage_manage'));
+insert into public.homepage_settings(config)
+select '{"hero":{"enabled":true,"title":"","subtitle":"","showSlogan":true},"topicTabs":{"enabled":true,"items":[]},"information":{"enabled":true},"posts":{"enabled":true,"limit":6,"title":"গ্রামের খবর"},"mediaGallery":{"enabled":true,"title":"গ্যালারি","subtitle":"ছবি ও ভিডিও","showAll":true,"albumIds":[]},"albums":{"enabled":true,"limit":4,"title":"অ্যালবাম"},"sidebar":{"enabled":true,"items":[],"cards":[]}}'::jsonb
+where not exists(select 1 from public.homepage_settings);
+grant select on public.homepage_settings to anon, authenticated;
+grant insert,update,delete on public.homepage_settings to authenticated;
+
+create table if not exists public.sidebar_settings (
+  settings_id uuid primary key default gen_random_uuid(),
+  config jsonb not null default '{"enabled": true, "items": []}'::jsonb,
+  updated_by uuid references auth.users(id) on delete set null,
+  updated_at timestamptz not null default now(),
+  created_at timestamptz not null default now()
+);
+create unique index if not exists sidebar_settings_singleton_idx on public.sidebar_settings ((true));
+alter table public.sidebar_settings enable row level security;
+drop policy if exists "sidebar settings public read" on public.sidebar_settings;
+create policy "sidebar settings public read" on public.sidebar_settings for select to anon, authenticated using (true);
+drop policy if exists "sidebar settings manage" on public.sidebar_settings;
+create policy "sidebar settings manage" on public.sidebar_settings for all to authenticated
+using (public.current_user_has_permission('sidebar_manage'))
+with check (public.current_user_has_permission('sidebar_manage'));
+grant select on public.sidebar_settings to anon, authenticated;
+grant insert,update,delete on public.sidebar_settings to authenticated;
+
+-- Global labels.
+create table if not exists public.global_ui_labels (
+  key text primary key,
+  eng text not null,
+  bng text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+alter table public.global_ui_labels enable row level security;
+drop policy if exists global_ui_labels_public_read on public.global_ui_labels;
+create policy global_ui_labels_public_read on public.global_ui_labels for select to anon, authenticated using (true);
+drop policy if exists global_ui_labels_admin_write on public.global_ui_labels;
+create policy global_ui_labels_admin_write on public.global_ui_labels for all to authenticated
+using (public.current_user_has_permission('settings_manage'))
+with check (public.current_user_has_permission('settings_manage'));
+
+create or replace function public.set_global_ui_labels_updated_at() returns trigger
+language plpgsql set search_path = public
+as $$ begin new.updated_at = now(); return new; end; $$;
+drop trigger if exists trg_global_ui_labels_updated_at on public.global_ui_labels;
+create trigger trg_global_ui_labels_updated_at before update on public.global_ui_labels for each row execute function public.set_global_ui_labels_updated_at();
+
+grant select on public.global_ui_labels to anon, authenticated;
+grant insert,update,delete on public.global_ui_labels to authenticated;
+
+create or replace function public.ensure_global_ui_label(p_key text,p_eng text)
+returns public.global_ui_labels language plpgsql security definer set search_path = public
+as $$
+declare result public.global_ui_labels;
+begin
+  if p_key is null or btrim(p_key)='' or p_eng is null or btrim(p_eng)='' then raise exception 'key and English label are required'; end if;
+  select * into result from public.global_ui_labels where key=btrim(p_key);
+  if result.key is not null then return result; end if;
+  if not public.current_user_has_permission('settings_manage') then raise exception 'Permission denied'; end if;
+  insert into public.global_ui_labels(key,eng,bng) values(btrim(p_key),btrim(p_eng),null) on conflict(key) do nothing returning * into result;
+  if result.key is null then select * into result from public.global_ui_labels where key=btrim(p_key); end if;
+  return result;
+end;
+$$;
+revoke execute on function public.ensure_global_ui_label(text,text) from public, anon;
+grant execute on function public.ensure_global_ui_label(text,text) to authenticated, service_role;
+
+-- Rural visual settings.
+create table if not exists public.rural_visual_settings (
+  visual_settings_id uuid primary key default gen_random_uuid(),
+  settings_key text not null default 'global',
+  wallpaper_url text,
+  wallpaper_mobile_url text,
+  wallpaper_overlay text,
+  wallpaper_position text not null default 'center center',
+  wallpaper_size text not null default 'cover',
+  icon_set jsonb not null default '{}'::jsonb,
+  text_styles jsonb not null default '{}'::jsonb,
+  component_styles jsonb not null default '{}'::jsonb,
+  custom_css jsonb not null default '{}'::jsonb,
+  is_active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  wallpaper_day_url text,
+  wallpaper_day_mobile_url text,
+  wallpaper_night_url text,
+  wallpaper_night_mobile_url text
+);
+create unique index if not exists rural_visual_settings_settings_key_key on public.rural_visual_settings(settings_key);
+create index if not exists rural_visual_settings_active_idx on public.rural_visual_settings(is_active) where is_active=true;
+alter table public.rural_visual_settings enable row level security;
+drop policy if exists rural_visual_settings_public_read on public.rural_visual_settings;
+create policy rural_visual_settings_public_read on public.rural_visual_settings for select to anon, authenticated using(is_active=true);
+drop policy if exists rural_visual_settings_admin_insert on public.rural_visual_settings;
+create policy rural_visual_settings_admin_insert on public.rural_visual_settings for insert to authenticated with check(public.current_user_has_permission('settings_manage'));
+drop policy if exists rural_visual_settings_admin_update on public.rural_visual_settings;
+create policy rural_visual_settings_admin_update on public.rural_visual_settings for update to authenticated using(public.current_user_has_permission('settings_manage')) with check(public.current_user_has_permission('settings_manage'));
+drop policy if exists rural_visual_settings_admin_delete on public.rural_visual_settings;
+create policy rural_visual_settings_admin_delete on public.rural_visual_settings for delete to authenticated using(public.current_user_has_permission('settings_manage'));
+create or replace function public.set_rural_visual_settings_updated_at() returns trigger language plpgsql set search_path=public as $$ begin new.updated_at=now(); return new; end; $$;
+drop trigger if exists rural_visual_settings_updated_at on public.rural_visual_settings;
+create trigger rural_visual_settings_updated_at before update on public.rural_visual_settings for each row execute function public.set_rural_visual_settings_updated_at();
+grant select on public.rural_visual_settings to anon,authenticated;
+grant insert,update,delete on public.rural_visual_settings to authenticated;
+
+-- Day/night theme settings.
+create table if not exists public.theme_settings (
+  theme_settings_id uuid primary key default gen_random_uuid(),
+  settings_key text not null default 'global',
+  day jsonb not null default '{}'::jsonb,
+  night jsonb not null default '{}'::jsonb,
+  is_active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create unique index if not exists theme_settings_settings_key_key on public.theme_settings(settings_key);
+create index if not exists theme_settings_active_idx on public.theme_settings(is_active,updated_at desc);
+alter table public.theme_settings enable row level security;
+drop policy if exists theme_settings_public_read on public.theme_settings;
+create policy theme_settings_public_read on public.theme_settings for select to anon,authenticated using(is_active=true);
+drop policy if exists theme_settings_admin_write on public.theme_settings;
+create policy theme_settings_admin_write on public.theme_settings for all to authenticated using(public.current_user_has_permission('settings_manage')) with check(public.current_user_has_permission('settings_manage'));
+create or replace function public.set_updated_at() returns trigger language plpgsql set search_path=public as $$ begin new.updated_at=now(); return new; end; $$;
+drop trigger if exists theme_settings_set_updated_at on public.theme_settings;
+create trigger theme_settings_set_updated_at before update on public.theme_settings for each row execute function public.set_updated_at();
+grant select on public.theme_settings to anon,authenticated;
+grant insert,update,delete on public.theme_settings to authenticated;
+
+insert into public.homepage_settings(config) select '{}'::jsonb where false;
+insert into public.rural_visual_settings(settings_key) select 'global' where not exists(select 1 from public.rural_visual_settings where settings_key='global');
+insert into public.theme_settings(settings_key) select 'global' where not exists(select 1 from public.theme_settings where settings_key='global');
+
+commit;
