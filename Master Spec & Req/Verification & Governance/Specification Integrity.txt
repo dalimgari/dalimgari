@@ -1,0 +1,9 @@
+SPECIFICATION INTEGRITY
+
+Original information must not be removed.
+
+Final Spreadsheet fields/modules/names/codes/types/input methods must not be added, deleted, renamed, merged, split, recoded or retyped by assistant decision.
+
+Approved new architecture/functionality is additive only.
+
+Specification, actual implementation and spreadsheet inventory remain separate sources and must be classified correctly.
