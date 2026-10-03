@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AdminLayout } from '../../components/admin'
 import { Button, ErrorState, Loading } from '../../components/ui'
+import { SearchSuggestions } from '../../components/global components'
 import { createAuditLog } from '../../services/auditService'
 import { deleteTranslationOverride, listTranslationOverrides, saveTranslationOverride } from '../../services/translationOverrideService'
 import { useAuth } from '../../context'
@@ -166,14 +167,15 @@ export default function TranslationOverrideManagement() {
               <input id="translation-override-search" className="ui-input" type="search" value={query} onChange={(event) => startNewSearch(event.target.value)} placeholder="বাংলা বা English" autoComplete="off" aria-controls="translation-override-suggestions" aria-autocomplete="list" />
             </label>
             {normalize(query) && (
-              <div id="translation-override-suggestions" role="listbox" aria-label="মিল পাওয়া translation" style={{ display: 'grid', gap: '.45rem', marginTop: '.65rem' }}>
-                {suggestions.length ? suggestions.map((item) => (
-                  <button key={item.source_text} type="button" role="option" className="ui-button ui-button--secondary" onClick={() => selectSuggestion(item)} style={{ display: 'grid', gridTemplateColumns: 'minmax(7rem,1fr) minmax(7rem,1fr)', gap: '.65rem', textAlign: 'left', alignItems: 'center' }}>
-                    <span>{item.source_text}</span>
-                    <strong>{item.english_text}</strong>
-                  </button>
-                )) : <div className="ui-empty">কোনো matching translation পাওয়া যায়নি।</div>}
-              </div>
+              <SearchSuggestions
+                id="translation-override-suggestions"
+                label="মিল পাওয়া translation"
+                suggestions={suggestions}
+                emptyMessage="কোনো matching translation পাওয়া যায়নি।"
+                getKey={(item) => item.source_text}
+                onSelect={selectSuggestion}
+                renderOption={(item) => <><span>{item.source_text}</span><strong>{item.english_text}</strong></>}
+              />
             )}
           </div>
         </section>
