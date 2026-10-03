@@ -24,7 +24,10 @@ function normalizeVisualTheme(value) {
 
 function resolveThemeRow(row) {
   if (!row) return row
-  return { ...row, day: row.custom_day || row.default_day || row.day || {}, night: row.custom_night || row.default_night || row.night || {} }\n}\n\nexport async function getThemePresets() {
+  return { ...row, day: row.custom_day || row.default_day || row.day || {}, night: row.custom_night || row.default_night || row.night || {} }
+}
+
+export async function getThemePresets() {
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('theme_settings')
@@ -70,7 +73,10 @@ export async function resetThemeSettings(themeKey) {
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase.rpc('reset_theme_preset', { p_theme_key: normalizeVisualTheme(themeKey) })
   if (error) throw error
-  return resolveThemeRow(data)\n}\n\nexport async function updateThemeSettings(values) {
+  return resolveThemeRow(data)
+}
+
+export async function updateThemeSettings(values) {
   if (!supabase) throw new Error('Supabase is not configured')
   const themeKey = normalizeVisualTheme(values?.themeKey || values?.active_visual_theme)
   if (!values?.day || !values?.night) throw new Error('Theme day/night settings are required')
