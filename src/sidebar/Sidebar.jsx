@@ -1,6 +1,6 @@
-import { usePreferences } from '../../context/PreferencesContext'
-import { appPath } from '../../lib/routes'
-import { useGlobalLabels } from '../../context'
+import { usePreferences } from '../context/PreferencesContext'
+import { appPath } from '../lib/routes'
+import { useGlobalLabels } from '../context'
 
 const ICONS = {
   home: <><path d="M3 11.5 12 4l9 7.5" /><path d="M5.5 10.5V20h13v-9.5" /><path d="M9 20v-5h6v5" /></>,
