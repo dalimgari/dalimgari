@@ -1,4 +1,4 @@
-import { MEDIA_POLICY, isAllowedMediaType } from '../config/mediaPolicy'
+import { MEDIA_POLICY } from '../config/mediaPolicy'
 
 export function validateField(field = {}, value) {
   const errors = []
@@ -38,7 +38,7 @@ export function validateField(field = {}, value) {
 export function validateMediaFile(file, { maxSize = MEDIA_POLICY.maxSizeBytes, allowedTypes = MEDIA_POLICY.allowedMimePattern } = {}) {
   if (!file) return ['ফাইল নির্বাচন করুন']
   if (file.size <= 0 || file.size > maxSize) return ['ফাইলের আকার ৫০ MB-এর মধ্যে হতে হবে']
-  if (allowedTypes === MEDIA_POLICY.allowedMimePattern ? !isAllowedMediaType(file.type) : allowedTypes && !allowedTypes.test(file.type || '')) return ['এই ফাইলের ধরন অনুমোদিত নয়']
+  if (allowedTypes && !allowedTypes.test(file.type || '')) return ['এই ফাইলের ধরন অনুমোদিত নয়']
   return []
 }
 
