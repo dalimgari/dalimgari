@@ -8,7 +8,7 @@ import { listManagedMedia } from '../../services/mediaService'
 import { listManagedUsers } from '../../services/userService'
 import { listAuditLogs } from '../../services/auditService'
 import { AdminLayout } from '../../components/admin'
-import { Button, Loading, ErrorState } from '../../components/ui'
+import { Button, Loading, ErrorState, DisplayField } from '../../components/ui'
 import SecurityStatusCard from '../../components/admin/SecurityStatusCard'
 
 const MODULES = [
@@ -28,10 +28,6 @@ function formatValue(value) {
   return String(value)
 }
 
-function displayMode(key) {
-  return /content|description|details|bio|address|comment|note|message/i.test(String(key)) ? 'multi' : 'single'
-}
-
 function ModuleData({ label, items }) {
   if (!items.length) return <div className="ui-empty">এই মডিউলে বর্তমানে কোনো তথ্য নেই।</div>
 
@@ -46,7 +42,7 @@ function ModuleData({ label, items }) {
               {entries.map(([key, value]) => (
                 <div key={key} style={{ display: 'grid', gridTemplateColumns: 'minmax(7rem, 12rem) minmax(0, 1fr)', gap: '.5rem' }}>
                   <span style={{ color: 'var(--color-muted)' }}>{key}</span>
-                  <span className={`ui-display-field ui-display-field--${displayMode(key)}`} title={formatValue(value)}><span className="ui-display-field__content">{formatValue(value)}</span></span>
+                  <DisplayField label={key} value={value} />
                 </div>
               ))}
             </div>
