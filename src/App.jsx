@@ -67,7 +67,7 @@ function getRedirectTarget(path) {
   if (legacyPaths[path]) return legacyPaths[path]
   if (path === ROUTES.profile) return ROUTES.dashboard
   if (/^\/(admin|manager|editor|moderator|user)\/profile$/.test(path)) return ROUTES.dashboard
-  if (path.startsWith(ROUTES.dashboard + '/') && \/\/(admin|manager|editor|moderator|user)$/.test(path)) return ROUTES.dashboard
+  if (path.startsWith(ROUTES.dashboard + '/') && /\/(admin|manager|editor|moderator|user)$/.test(path)) return ROUTES.dashboard
   return null
 }
 
