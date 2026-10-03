@@ -1,4 +1,4 @@
-import { appPath } from '../../../lib/routes'
+import { appPath } from '../../lib/routes'
 
 export default function AlbumsSection({ albums = [] }) {
   return (
