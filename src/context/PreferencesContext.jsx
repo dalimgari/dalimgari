@@ -56,7 +56,7 @@ export function PreferencesProvider({ children }) {
 
   useEffect(() => {
     let active = true
-    getActiveVisualTheme().then((next) => { if (active) { setVisualTheme(next); applyVisualTheme(next) } }).catch(() => { applyVisualTheme('classic') })
+    getActiveVisualTheme().then((next) => { if (active) { setVisualTheme(next); applyVisualTheme(next); document.getElementById('root')?.style.removeProperty('visibility') } }).catch(() => { applyVisualTheme(visualTheme); document.getElementById('root')?.style.removeProperty('visibility') })
     getGlobalLabels().then((next) => { if (active) setLabels(next) }).catch(() => {})
     return () => { active = false }
   }, [])
