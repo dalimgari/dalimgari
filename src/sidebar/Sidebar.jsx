@@ -78,7 +78,7 @@ export default function Sidebar({ items = [], open, onClose }) {
         <div className="rural-sidebar__tools">
           <button type="button" onClick={toggleTheme}>
             <RuralIcon name={theme === THEMES.dark ? 'sun' : 'moon'} />
-            <span>{theme === 'dark' ? t('day', 'দিনের আলো', 'Day') : t('night', 'রাতের আবহ', 'Night')}</span>
+            <span>{theme === THEMES.dark ? t('day', 'দিনের আলো', 'Day') : t('night', 'রাতের আবহ', 'Night')}</span>
           </button>
           <button data-no-translate="true" type="button" aria-label={targetLanguageLabel} onClick={() => setLanguagePreference(language === LANGUAGES.bengali ? LANGUAGES.english : LANGUAGES.bengali)}>
             <RuralIcon name="leaf" />
