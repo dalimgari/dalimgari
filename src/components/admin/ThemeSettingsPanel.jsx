@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Button, Input, ErrorState } from '../ui'
-import { getThemePresets, getActiveVisualTheme, updateThemeSettings } from '../../services/themeService'
+import { getThemePresets, getActiveVisualTheme, updateThemeSettings, applyThemeSettings } from '../../services/themeService'
 import { createAuditLog } from '../../services/auditService'
 
 const THEMES = [
@@ -74,17 +74,31 @@ export default function ThemeSettingsPanel() {
     return () => { active = false }
   }, [])
 
+  function getPreviewMode() {
+    return document.documentElement.dataset.themeMode === 'night' ? 'night' : 'day'
+  }
+
+  function previewTheme(themeValues) {
+    applyThemeSettings(themeValues, getPreviewMode())
+  }
+
   function selectTheme(themeKey) {
     const preset = presets.find((row) => row.theme_key === themeKey)
     if (!preset) return
+    const nextValues = {day:normalize(preset.day),night:normalize(preset.night)}
     setSelectedTheme(themeKey)
-    setValues({day:normalize(preset.day),night:normalize(preset.night)})
+    setValues(nextValues)
+    previewTheme(nextValues)
     setStatus('idle')
     setError(null)
   }
 
   function change(mode,group,key,value) {
-    setValues((current) => ({...current,[mode]:{...current[mode],[group]:{...current[mode][group],[key]:value}}}))
+    setValues((current) => {
+      const next = {...current,[mode]:{...current[mode],[group]:{...current[mode][group],[key]:value}}}
+      if (mode === getPreviewMode()) previewTheme(next)
+      return next
+    })
     setStatus('idle')
     setError(null)
   }
@@ -119,7 +133,7 @@ export default function ThemeSettingsPanel() {
   return <form onSubmit={save}>
     <div className="admin-form__section">
       <h2>Theme Management</h2>
-      <p className="admin-intro">তিনটি স্থায়ী theme-এর যেকোনো একটি নির্বাচন করলে Database থেকে তার saved configuration নিচের ঘরগুলোতে স্বয়ংক্রিয়ভাবে দেখাবে। পরিবর্তন করে Save করলে নির্বাচিত theme-ই পুরো website-এর default ও active theme হবে।</p>
+      <p className="admin-intro">তিনটি স্থায়ী theme-এর যেকোনো একটি নির্বাচন করলে সেটি সঙ্গে সঙ্গে পুরো website-এ preview হবে। এই preview Save না করা পর্যন্ত Database-এর default বা active theme পরিবর্তন করবে না।</p>
       <div className="admin-form">
         <h3>Theme Preset</h3>
         <div className="content-grid">
@@ -130,7 +144,7 @@ export default function ThemeSettingsPanel() {
           ))}
         </div>
       </div>
-      <p className="admin-intro">নির্বাচিত theme-এর Day ও Night configuration এখানে edit করুন। Save করলে নির্বাচিত theme-এর data সংরক্ষণ হবে এবং একই সঙ্গে সেটিই system-wide default হবে।</p>
+      <p className="admin-intro">নির্বাচিত theme-এর Day ও Night configuration এখানে edit করুন। পরিবর্তন বর্তমান preview-তে সঙ্গে সঙ্গে দেখা যাবে। Save করলে কেবল তখনই নির্বাচিত theme-এর configuration সংরক্ষণ ও system-wide default করা হবে। Refresh করার আগে Save না করলে preview স্থায়ী হবে না।</p>
       <ThemeMode title="ডে থিম" values={values.day} onChange={(group,key,value)=>change('day',group,key,value)} disabled={status==='loading'} />
       <ThemeMode title="নাইট থিম" values={values.night} onChange={(group,key,value)=>change('night',group,key,value)} disabled={status==='loading'} />
       <div className="admin-form__actions">
