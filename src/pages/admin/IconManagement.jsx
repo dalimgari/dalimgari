@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AdminLayout } from '../../components/admin'
+import { SearchSuggestions } from '../../components/global components'
 import { ErrorState, Loading } from '../../components/ui'
 import { createAuditLog } from '../../services/auditService'
 import { listIconManagement, uploadIconForKey } from '../../services/iconManagementService'
@@ -87,14 +88,14 @@ export default function IconManagement() {
           <input id="icon-key-search" className="ui-input" type="search" value={query} onChange={(event) => startNewSearch(event.target.value)} placeholder="Key name" autoComplete="off" aria-controls="icon-key-suggestions" aria-autocomplete="list" />
         </label>
         {normalize(query) && !selected && (
-          <div id="icon-key-suggestions" role="listbox" aria-label="মিল পাওয়া key" style={{ display: 'grid', gap: '.45rem', marginTop: '.65rem' }}>
-            {suggestions.length ? suggestions.map((row) => (
-              <button key={row.key} type="button" role="option" className="ui-button ui-button--secondary" onClick={() => selectIcon(row)} style={{ display: 'grid', gridTemplateColumns: 'minmax(8rem,1fr) minmax(6rem,auto)', gap: '.65rem', textAlign: 'left', alignItems: 'center' }}>
-                <strong>{row.key}</strong>
-                <span>{row.status || 'pending'}</span>
-              </button>
-            )) : <div className="ui-empty">কোনো matching key পাওয়া যায়নি।</div>}
-          </div>
+          <SearchSuggestions
+            id="icon-key-suggestions"
+            label="মিল পাওয়া key"
+            suggestions={suggestions}
+            emptyMessage="কোনো matching key পাওয়া যায়নি।"
+            onSelect={selectIcon}
+            renderOption={(row) => <><strong>{row.key}</strong><span>{row.status || 'pending'}</span></>}
+          />
         )}
       </section>
 
