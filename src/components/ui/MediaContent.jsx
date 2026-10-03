@@ -1,1 +1,1 @@
-export { default, getResolvedMediaUrl } from '../../018-Media/MediaContent'
+export { default, getResolvedMediaUrl } from '../../Media/MediaContent'
