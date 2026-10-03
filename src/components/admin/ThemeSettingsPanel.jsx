@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Button, Input, ErrorState } from '../ui'
 import { getThemeSettings, updateThemeSettings } from '../../services/themeService'
 import { createAuditLog } from '../../services/auditService'
+import { usePreferences } from '../../context/PreferencesContext'
 
 const FIELDS = [
   ['typography','headingFont','শিরোনাম Font Style'],['typography','bodyFont','মূল লেখার Font Style'],['typography','headingSize','শিরোনামের আকার'],['typography','bodySize','মূল লেখার আকার'],['typography','headingWeight','শিরোনাম ওজন'],['typography','bodyWeight','মূল লেখা ওজন'],['typography','lineHeight','লাইন উচ্চতা'],['typography','letterSpacing','Letter Spacing'],
@@ -24,8 +25,8 @@ const emptyTheme = () => FIELDS.reduce((theme,[group,key]) => {
 }, {})
 
 function normalize(theme) {
-  const result = emptyTheme()
-  for (const [group,key] of FIELDS) result[group][key] = theme?.[group]?.[key] ?? ''
+  const result = structuredClone(theme || {})
+  for (const [group,key] of FIELDS) { result[group] ||= {}; result[group][key] = theme?.[group]?.[key] ?? '' }
   return result
 }
 
@@ -46,6 +47,7 @@ export default function ThemeSettingsPanel() {
   const [status,setStatus] = useState('idle')
   const [activeVisualTheme,setActiveVisualTheme] = useState('classic')
   const [error,setError] = useState(null)
+  const { setVisualTheme } = usePreferences()
 
   useEffect(() => {
     let active = true
@@ -75,7 +77,7 @@ export default function ThemeSettingsPanel() {
     setStatus('loading')
     setError(null)
     try {
-      const saved = await updateThemeSettings(values)
+      const saved = await updateThemeSettings({...values,active_visual_theme:activeVisualTheme})
       setValues({day:normalize(saved.day),night:normalize(saved.night)})
       setActiveVisualTheme(saved.active_visual_theme === 'glass' ? 'glass' : 'classic')
       await createAuditLog({actionKey:'update',module:'theme_settings',recordId:saved.theme_settings_id,details:{modes:['day','night'],fields:FIELDS.length+1}})
@@ -94,8 +96,8 @@ export default function ThemeSettingsPanel() {
       <div className="admin-form">
         <h3>Theme Preset</h3>
         <div className="content-grid">
-          <Button type="button" variant="secondary" disabled={status==='loading'} onClick={async()=>{try{await window.__dalimgariSetVisualTheme?.('classic')}catch{}}}>Classic Theme</Button>
-          <Button type="button" disabled={status==='loading'} onClick={async()=>{try{await window.__dalimgariSetVisualTheme?.('glass')}catch{}}}>Glass + Water-Drop Theme</Button>
+          <Button type="button" variant={activeVisualTheme==='classic'?'primary':'secondary'} disabled={status==='loading'} onClick={async()=>{try{const next=await setVisualTheme('classic');setActiveVisualTheme(next)}catch(error){setError(error)}}}>Classic Theme</Button>
+          <Button type="button" variant={activeVisualTheme==='glass'?'primary':'secondary'} disabled={status==='loading'} onClick={async()=>{try{const next=await setVisualTheme('glass');setActiveVisualTheme(next)}catch(error){setError(error)}}}>Glass + Water-Drop Theme</Button>
         </div>
       </div>
       <p className="admin-intro">ডে ও নাইটের প্রতিটি রঙ, ওয়ালপেপার, অবস্থা, ইন্টার‌্যাকশন, আকার, ছায়া, লেখা ও স্ক্রলবার আলাদাভাবে নিয়ন্ত্রণ করুন।</p>
