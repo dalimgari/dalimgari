@@ -89,7 +89,7 @@ export function PreferencesProvider({ children }) {
     setThemePreference: changeTheme,
     setVisualTheme: changeVisualTheme,
     setLanguagePreference: changeLanguage,
-  }), [themePreference, theme, language, deviceClass, labels, changeTheme, changeLanguage])
+  }), [themePreference, theme, language, deviceClass, labels, visualTheme, changeTheme, changeLanguage, changeVisualTheme])
 
   return <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>
 }
