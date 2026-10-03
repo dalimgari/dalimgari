@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import { applyTheme, getDeviceClass, getThemePreference, resolveTheme, setThemePreference, subscribeToSystemTheme } from '../services/devicePreferenceService'
+import { applyTheme, getDeviceClass, getLanguagePreference, getThemePreference, resolveTheme, setLanguagePreference as saveLanguagePreference, setThemePreference, subscribeToSystemTheme } from '../services/devicePreferenceService'
 import { getGlobalLabels } from '../services/globalLabelService'
 import { observeLanguageDocument } from '../services/languageRuntime'
 
@@ -9,7 +9,7 @@ const DEFAULT_LANGUAGE = 'bng'
 export function PreferencesProvider({ children }) {
   const [themePreference, setThemeState] = useState(() => getThemePreference())
   const [theme, setTheme] = useState(() => resolveTheme(themePreference))
-  const [language, setLanguage] = useState(DEFAULT_LANGUAGE)
+  const [language, setLanguage] = useState(() => getLanguagePreference() || DEFAULT_LANGUAGE)
   const [deviceClass, setDeviceClass] = useState(() => getDeviceClass())
   const [labels, setLabels] = useState({})
 
@@ -47,7 +47,7 @@ export function PreferencesProvider({ children }) {
   }, [])
 
   const changeLanguage = useCallback((value) => {
-    const next = value === 'eng' ? 'eng' : 'bng'
+    const next = saveLanguagePreference(value)
     setLanguage(next)
     return next
   }, [])
