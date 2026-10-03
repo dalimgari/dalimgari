@@ -1,7 +1,6 @@
-import { useRef } from 'react'
 import { useAuth } from '../../context'
 import { supabase } from '../../lib/supabase'
-import { appPath } from '../../lib/routes'
+import { ROUTES, appPath } from '../../lib/routes'
 import Search from '../search/Search'
 import ProfileAvatar from '../ui/ProfileAvatar'
 import { useGlobalLabels } from '../../context'
@@ -23,9 +22,9 @@ export default function Header({ pageTitle, onMenu, sidebarOpen, labels = {}, sh
   const text = (key, fallbackBn) => t(key, fallbackBn)
 
   const isRoleProfile = /^\/(admin|manager|editor|moderator|user)\/profile$/.test(canonicalPath)
-  const isSecureArea = canonicalPath === '/profile' || canonicalPath === '/dashboard' || canonicalPath.startsWith('/admin') || canonicalPath.startsWith('/manage') || isRoleProfile
+  const isSecureArea = canonicalPath === ROUTES.profile || canonicalPath === ROUTES.dashboard || canonicalPath.startsWith('/admin') || canonicalPath.startsWith('/manage') || isRoleProfile
   const showLogout = status === 'ready' && !!user && isSecureArea
-  const dashboardHref = status === 'ready' && user ? appPath('/dashboard') : appPath('/login')
+  const dashboardHref = status === 'ready' && user ? appPath(ROUTES.dashboard) : appPath(ROUTES.login)
 
   const menuLabel = sidebarOpen ? text('close', 'বন্ধ') : text('menu', 'উঠান')
     const loginLabel = user ? text('dashboard', 'ড্যাশবোর্ড') : text('login', 'লগইন')
@@ -59,3 +58,6 @@ export default function Header({ pageTitle, onMenu, sidebarOpen, labels = {}, sh
           </div>
         </div>
       </header>
+    </>
+  )
+}
