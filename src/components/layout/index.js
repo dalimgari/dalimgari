@@ -1,5 +1,5 @@
 export { default as Header } from '../../header/Header'
 export { default as Navigation } from './Navigation'
-export { default as Footer } from './Footer'
+export { default as Footer } from '../../footer/Footer'
 export { default as Layout } from './Layout'
 export { default as PublicPage } from './PublicPage'
