@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Layout } from '../../components/layout'
-import { ErrorState, Loading } from '../../components/ui'
-import { supabase } from '../../lib/supabase'
-import { signInWithPassword, signInWithOAuth, resetPasswordForEmail, updatePassword } from '../../services/authService'
-import { appPath } from '../../lib/routes'
-import { useAuth } from '../../context'
+import { Layout } from '../components/layout'
+import { ErrorState, Loading } from '../components/ui'
+import { supabase } from '../lib/supabase'
+import { signInWithPassword, signInWithOAuth, resetPasswordForEmail, updatePassword } from '../services/authService'
+import { appPath } from '../lib/routes'
+import { useAuth } from '../context'
 
 export default function Login() {
   const [email, setEmail] = useState('')
