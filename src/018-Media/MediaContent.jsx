@@ -1,4 +1,4 @@
-import { getMediaPublicUrl } from '../../services/mediaService'
+import { getMediaPublicUrl } from '../services/mediaService'
 
 function youtubeEmbed(url) {
   try {
