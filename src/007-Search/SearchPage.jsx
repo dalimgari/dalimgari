@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { Layout } from '../../components/layout'
-import { EmptyState, ErrorState, Loading } from '../../components/ui'
-import { searchPublicContent } from '../../services/searchService'
-import { appPath } from '../../lib/routes'
+import { Layout } from '../components/layout'
+import { EmptyState, ErrorState, Loading } from '../components/ui'
+import { searchPublicContent } from '../services/searchService'
+import { appPath } from '../lib/routes'
 
 const NAVIGATION_ITEMS = [
   { label: 'হোম', href: '/' }, { label: 'তথ্য', href: '/information' },
