@@ -2,6 +2,7 @@ import { DEVICE_BREAKPOINTS, DEVICE_PREFERENCE_KEYS, LANGUAGES, THEMES } from '.
 
 const KEYS = DEVICE_PREFERENCE_KEYS
 const VISUAL_THEME_KEY = 'dalimgari_visual_theme_preference_v1'
+const VISUAL_THEME_KEY = 'dalimgari_visual_theme_preference_v1'
 
 function read(key) {
   try { return window.localStorage.getItem(key) } catch { return null }
