@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getIconByKey } from '../../services/iconManagementService'
+import { getIconByKey } from '../../../services/iconManagementService'
 
 export default function KeyIcon({ iconKey, className = 'rural-icon', alt = '', ...props }) {
   const [icon, setIcon] = useState(null)

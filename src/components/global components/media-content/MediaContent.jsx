@@ -1,4 +1,4 @@
-import { getMediaPublicUrl } from '../../services/mediaService'
+import { getMediaPublicUrl } from '../../../services/mediaService'
 
 function youtubeEmbed(url) {
   try {
@@ -19,7 +19,7 @@ function youtubeEmbed(url) {
 function vimeoEmbed(url) {
   try {
     const parsed = new URL(url)
-    if (parsed.hostname.includes('vimeo.com') && /^\/\d+/.test(parsed.pathname)) {
+    if (parsed.hostname.includes('vimeo.com') && /^\\/\\d+/.test(parsed.pathname)) {
       return `https://player.vimeo.com/video/${parsed.pathname.slice(1).split('/')[0]}`
     }
   } catch {}
@@ -56,13 +56,7 @@ export default function MediaContent({ media, title = 'মিডিয়া', onIm
       : <video src={url} controls preload="metadata" aria-label={media.file_name || title} />
   }
 
-  if (kind === 'audio') {
-    return <audio src={url} controls preload="metadata" aria-label={media.file_name || title} />
-  }
-
-  if (kind === 'pdf') {
-    return <iframe src={url} title={media.file_name || title} loading="lazy" />
-  }
-
+  if (kind === 'audio') return <audio src={url} controls preload="metadata" aria-label={media.file_name || title} />
+  if (kind === 'pdf') return <iframe src={url} title={media.file_name || title} loading="lazy" />
   return <a href={url} target="_blank" rel="noreferrer" className="media-file-link">{media.file_name || 'মিডিয়া ফাইল খুলুন'}</a>
 }
