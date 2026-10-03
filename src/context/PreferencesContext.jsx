@@ -1,6 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { applyTheme, getDeviceClass, getLanguagePreference, getThemePreference, resolveTheme, setLanguagePreference as saveLanguagePreference, setThemePreference, subscribeToSystemTheme } from '../services/devicePreferenceService'
 import { getGlobalLabels } from '../services/globalLabelService'
+import { getActiveVisualTheme } from '../services/themeService'
+import { applyVisualTheme } from '../services/devicePreferenceService'
 import { observeLanguageDocument } from '../services/languageRuntime'
 import { LANGUAGES } from '../config/preferences'
 
@@ -13,6 +15,7 @@ export function PreferencesProvider({ children }) {
   const [language, setLanguage] = useState(() => getLanguagePreference() || DEFAULT_LANGUAGE)
   const [deviceClass, setDeviceClass] = useState(() => getDeviceClass())
   const [labels, setLabels] = useState({})
+  const [visualTheme, setVisualTheme] = useState('classic')
 
   useEffect(() => {
     const resolved = resolveTheme(themePreference)
@@ -31,6 +34,7 @@ export function PreferencesProvider({ children }) {
 
   useEffect(() => {
     let active = true
+    getActiveVisualTheme().then((next) => { if (active) { setVisualTheme(next); applyVisualTheme(next) } }).catch(() => { applyVisualTheme('classic') })
     getGlobalLabels().then((next) => { if (active) setLabels(next) }).catch(() => {})
     return () => { active = false }
   }, [])
@@ -59,6 +63,7 @@ export function PreferencesProvider({ children }) {
     language,
     deviceClass,
     labels,
+    visualTheme,
     setThemePreference: changeTheme,
     setLanguagePreference: changeLanguage,
   }), [themePreference, theme, language, deviceClass, labels, changeTheme, changeLanguage])
