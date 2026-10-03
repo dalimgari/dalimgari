@@ -3,7 +3,7 @@ import { useAuth } from '../../context'
 import { hasPermission } from '../../services/permissionService'
 import { supabase } from '../../lib/supabase'
 import { AdminLayout } from '../../components/admin'
-import { Loading, ErrorState, EmptyState } from '../../components/ui'
+import { Loading, ErrorState, EmptyState, DisplayField } from '../../components/ui'
 
 export default function AuditLogs() {
   const { user, status } = useAuth()
