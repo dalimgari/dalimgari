@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { getCurrentProfile } from '../../services/profileService'
-import { getProfileAvatarUrl, getDefaultProfileAvatarUrl } from '../../services/profileAvatarService'
+import { getCurrentProfile } from '../services/profileService'
+import { getProfileAvatarUrl, getDefaultProfileAvatarUrl } from '../services/profileAvatarService'
 
 const BUILTIN_FALLBACK_AVATAR = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Profile">' +
