@@ -22,11 +22,11 @@ function normalizeVisualTheme(value) {
   return VISUAL_THEMES.has(value) ? value : 'classic'
 }
 
-export async function getThemePresets() {
+function resolveThemeRow(row) {\n  if (!row) return row\n  return { ...row, day: row.custom_day || row.default_day || row.day || {}, night: row.custom_night || row.default_night || row.night || {} }\n}\n\nexport async function getThemePresets() {
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('theme_settings')
-    .select('theme_settings_id,settings_key,theme_key,day,night,is_active,active_visual_theme,updated_at')
+    .select('theme_settings_id,settings_key,theme_key,day,night,default_day,default_night,custom_day,custom_night,is_active,active_visual_theme,updated_at')
     .not('theme_key', 'is', null)
     .order('theme_key', { ascending: true })
   if (error) throw error
@@ -64,7 +64,7 @@ export async function setActiveVisualTheme(value) {
   return normalizeVisualTheme(data?.theme_key || data?.active_visual_theme || themeKey)
 }
 
-export async function updateThemeSettings(values) {
+export async function resetThemeSettings(themeKey) {\n  if (!supabase) throw new Error('Supabase is not configured')\n  const { data, error } = await supabase.rpc('reset_theme_preset', { p_theme_key: normalizeVisualTheme(themeKey) })\n  if (error) throw error\n  return resolveThemeRow(data)\n}\n\nexport async function updateThemeSettings(values) {
   if (!supabase) throw new Error('Supabase is not configured')
   const themeKey = normalizeVisualTheme(values?.themeKey || values?.active_visual_theme)
   if (!values?.day || !values?.night) throw new Error('Theme day/night settings are required')
