@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AdminLayout } from '../../components/admin'
+import { SearchSuggestions } from '../../components/global components'
 import { ErrorState, Loading } from '../../components/ui'
 import { createAuditLog } from '../../services/auditService'
 import { listGlobalLabels, updateGlobalLabel } from '../../services/globalLabelService'
@@ -143,23 +144,14 @@ export default function KeyLabelManagement() {
           </label>
 
           {normalize(query) && !selected && (
-            <div id="key-label-suggestions" role="listbox" aria-label="মিল পাওয়া লেবেল" style={{ display: 'grid', gap: '.45rem', marginTop: '.65rem' }}>
-              {suggestions.length ? suggestions.map((row) => (
-                <button
-                  key={row.key}
-                  type="button"
-                  role="option"
-                  className="ui-button ui-button--secondary"
-                  onClick={() => selectLabel(row)}
-                  style={{ display: 'grid', gridTemplateColumns: 'minmax(7rem, .9fr) minmax(7rem, 1fr) minmax(7rem, 1fr)', gap: '.65rem', textAlign: 'left', alignItems: 'center' }}
-                >
-                  <strong>{row.key}</strong>
-                  <span>{row.bng || 'লেবেল মিসিং'}</span>
-                </button>
-              )) : (
-                <div className="ui-empty">কোনো মিল পাওয়া কী পাওয়া যায়নি।</div>
-              )}
-            </div>
+            <SearchSuggestions
+              id="key-label-suggestions"
+              label="মিল পাওয়া লেবেল"
+              suggestions={suggestions}
+              emptyMessage="কোনো মিল পাওয়া কী পাওয়া যায়নি।"
+              onSelect={selectLabel}
+              renderOption={(row) => <><strong>{row.key}</strong><span>{row.bng || 'লেবেল মিসিং'}</span></>}
+            />
           )}
         </section>
 
