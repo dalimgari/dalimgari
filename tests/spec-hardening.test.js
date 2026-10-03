@@ -89,8 +89,8 @@ test('Key Label Management: search and edit are scoped to global_ui_labels', () 
 
 test('Language switch: Bengali remains canonical and English is runtime translation only', () => {
   const preferences = read('src/context/PreferencesContext.jsx')
-  const header = read('src/components/layout/Header.jsx')
-  const sidebar = read('src/components/layout/Sidebar.jsx')
+  const header = read('src/header/Header.jsx')
+  const sidebar = read('src/sidebar/Sidebar.jsx')
   const runtime = read('src/services/languageRuntime.js')
   const labelsService = read('src/services/globalLabelService.js')
   const banner = read('src/components/website/Banner.jsx')
