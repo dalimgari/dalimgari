@@ -1,4 +1,4 @@
-import PROJECT_PATHS from '../src/config/projectPaths.js'
+import PROJECT_PATHS, { projectPathBasename } from '../src/config/projectPaths.js'
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
