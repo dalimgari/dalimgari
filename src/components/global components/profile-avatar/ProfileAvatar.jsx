@@ -10,23 +10,35 @@ const BUILTIN_FALLBACK_AVATAR = 'data:image/svg+xml;charset=UTF-8,' + encodeURIC
   '</svg>'
 )
 
-export default function ProfileAvatar({ user, profile = null, className = 'site-header__profile-avatar', alt = 'Profile' }) {
+export default function ProfileAvatar({
+  user,
+  profile = null,
+  className = 'site-header__profile-avatar',
+  alt = 'Profile',
+}) {
   const [avatarUrl, setAvatarUrl] = useState(BUILTIN_FALLBACK_AVATAR)
   const [fallbackUrl, setFallbackUrl] = useState(BUILTIN_FALLBACK_AVATAR)
 
   useEffect(() => {
     let active = true
+
     async function load() {
       let fallback = BUILTIN_FALLBACK_AVATAR
+
       try {
         const defaultAvatar = await getDefaultProfileAvatarUrl()
         if (defaultAvatar) fallback = defaultAvatar
-      } catch {}
+      } catch {
+        // Built-in fallback remains available when the DB avatar cannot load.
+      }
+
       if (!active) return
       setFallbackUrl(fallback)
+
       try {
         const resolvedProfile = profile || (user ? await getCurrentProfile() : null)
         const resolvedAvatar = await getProfileAvatarUrl(resolvedProfile)
+
         if (!active) return
         setAvatarUrl(resolvedAvatar || fallback)
       } catch {
@@ -34,8 +46,11 @@ export default function ProfileAvatar({ user, profile = null, className = 'site-
         setAvatarUrl(fallback)
       }
     }
+
     load()
-    return () => { active = false }
+    return () => {
+      active = false
+    }
   }, [user?.id, profile?.profile_id, profile?.profile_image_url])
 
   return (
