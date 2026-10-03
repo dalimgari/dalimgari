@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { useGlobalLabels } from '../../context'
-import { appPath } from '../../lib/routes'
-import { searchPublicContent } from '../../services/searchService'
+import { useGlobalLabels } from '../context'
+import { appPath } from '../lib/routes'
+import { searchPublicContent } from '../services/searchService'
 
 const ICONS = {
   search: <><circle cx="10.5" cy="10.5" r="6" /><path d="m15 15 5 5" /></>,
