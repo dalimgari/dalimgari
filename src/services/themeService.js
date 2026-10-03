@@ -10,55 +10,72 @@ const DEFAULT_THEME = {
   shadow: {},
   typography: {},
   scrollbar: {},
+  effects: {},
+  components: {},
+  background: {},
+  spacing: {},
 }
 
-const VISUAL_THEMES = new Set(['classic', 'glass'])
+const VISUAL_THEMES = new Set(['classic', 'glass', 'nature'])
 
 function normalizeVisualTheme(value) {
   return VISUAL_THEMES.has(value) ? value : 'classic'
 }
 
-export async function getThemeSettings() {
+export async function getThemePresets() {
   if (!supabase) throw new Error('Supabase is not configured')
-  const { data, error } = await supabase.from('theme_settings').select('theme_settings_id,settings_key,day,night,is_active,active_visual_theme,updated_at').eq('is_active', true).order('updated_at', { ascending: false }).limit(1).maybeSingle()
+  const { data, error } = await supabase
+    .from('theme_settings')
+    .select('theme_settings_id,settings_key,theme_key,day,night,is_active,active_visual_theme,updated_at')
+    .not('theme_key', 'is', null)
+    .order('theme_key', { ascending: true })
+  if (error) throw error
+  return data || []
+}
+
+export async function getThemeSettings(themeKey = null) {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const query = supabase
+    .from('theme_settings')
+    .select('theme_settings_id,settings_key,theme_key,day,night,is_active,active_visual_theme,updated_at')
+
+  const { data, error } = themeKey
+    ? await query.eq('theme_key', normalizeVisualTheme(themeKey)).maybeSingle()
+    : await query.eq('is_active', true).maybeSingle()
+
   if (error) throw error
   return data
 }
 
 export async function getActiveVisualTheme() {
-  if (!supabase) throw new Error('Supabase is not configured')
-  const { data, error } = await supabase.from('theme_settings').select('active_visual_theme').eq('settings_key', 'global').eq('is_active', true).maybeSingle()
-  if (error) throw error
-  return normalizeVisualTheme(data?.active_visual_theme)
+  const active = await getThemeSettings()
+  return normalizeVisualTheme(active?.theme_key || active?.active_visual_theme)
 }
 
 export async function setActiveVisualTheme(value) {
   if (!supabase) throw new Error('Supabase is not configured')
-  const activeVisualTheme = normalizeVisualTheme(value)
-  const { data, error } = await supabase.from('theme_settings').update({ active_visual_theme: activeVisualTheme, is_active: true }).eq('settings_key', 'global').select('theme_settings_id,active_visual_theme,is_active,updated_at').single()
+  const themeKey = normalizeVisualTheme(value)
+  const { data, error } = await supabase.rpc('save_theme_preset', {
+    p_theme_key: themeKey,
+    p_day: null,
+    p_night: null,
+  })
   if (error) throw error
-  return normalizeVisualTheme(data.active_visual_theme)
+  return normalizeVisualTheme(data?.theme_key || data?.active_visual_theme || themeKey)
 }
 
 export async function updateThemeSettings(values) {
   if (!supabase) throw new Error('Supabase is not configured')
-  const { data: current, error: currentError } = await supabase.from('theme_settings').select('theme_settings_id,active_visual_theme').eq('settings_key', 'global').maybeSingle()
-  if (currentError) throw currentError
+  const themeKey = normalizeVisualTheme(values?.themeKey || values?.active_visual_theme)
+  if (!values?.day || !values?.night) throw new Error('Theme day/night settings are required')
 
   const payload = {
-    settings_key: 'global',
-    day: { ...DEFAULT_THEME, ...(values.day || {}) },
-    night: { ...DEFAULT_THEME, ...(values.night || {}) },
-    active_visual_theme: normalizeVisualTheme(values.active_visual_theme ?? current?.active_visual_theme),
-    is_active: values.is_active !== false,
+    p_theme_key: themeKey,
+    p_day: { ...DEFAULT_THEME, ...(values.day || {}) },
+    p_night: { ...DEFAULT_THEME, ...(values.night || {}) },
   }
 
-  if (!current?.theme_settings_id) {
-    const { data, error } = await supabase.from('theme_settings').insert(payload).select('*').single()
-    if (error) throw error
-    return data
-  }
-  const { data, error } = await supabase.from('theme_settings').update(payload).eq('theme_settings_id', current.theme_settings_id).select('*').single()
+  const { data, error } = await supabase.rpc('save_theme_preset', payload)
   if (error) throw error
   return data
 }
@@ -89,12 +106,18 @@ export function applyThemeSettings(theme, mode = 'day') {
     border: '--theme-border', focus: '--theme-focus', hover: '--theme-hover',
   }
   Object.entries(colorMap).forEach(([key, variable]) => setRootVariable(variable, colors[key]))
-  if (colors.primary) setRootVariable('--theme-leaf', colors.primary)
-  if (colors.primary) setRootVariable('--color-leaf', colors.primary)
-  if (colors.secondary) setRootVariable('--theme-earth', colors.secondary)
-  if (colors.secondary) setRootVariable('--color-earth', colors.secondary)
-  if (colors.accent) setRootVariable('--theme-sun', colors.accent)
-  if (colors.accent) setRootVariable('--color-sun', colors.accent)
+  if (colors.primary) {
+    setRootVariable('--theme-leaf', colors.primary)
+    setRootVariable('--color-leaf', colors.primary)
+  }
+  if (colors.secondary) {
+    setRootVariable('--theme-earth', colors.secondary)
+    setRootVariable('--color-earth', colors.secondary)
+  }
+  if (colors.accent) {
+    setRootVariable('--theme-sun', colors.accent)
+    setRootVariable('--color-sun', colors.accent)
+  }
 
   Object.entries(states).forEach(([key, value]) => setRootVariable(`--color-${key}`, value))
   setRootVariable('--rural-heading-font', typography.headingFont)
