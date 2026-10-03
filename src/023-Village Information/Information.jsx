@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Layout } from '../../components/layout'
-import { Loading, EmptyState, ErrorState } from '../../components/ui'
-import { getWebsiteInformation } from '../../services/websiteService'
+import { Layout } from '../components/layout'
+import { Loading, EmptyState, ErrorState } from '../components/ui'
+import { getWebsiteInformation } from '../services/websiteService'
 
 const FIELDS = [['village_name','গ্রামের নাম'],['slogan','স্লোগান'],['division','বিভাগ'],['district','জেলা'],['upazila_name','উপজেলা'],['union_name','ইউনিয়ন'],['postal_code','পোস্ট কোড'],['population','জনসংখ্যা'],['established_date','প্রতিষ্ঠার তারিখ'],['map_location','মানচিত্রের অবস্থান']]
 
