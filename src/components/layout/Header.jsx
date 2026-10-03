@@ -116,17 +116,6 @@ export default function Header({ pageTitle, onMenu, sidebarOpen, labels = {}, sh
                       autoComplete="off"
                       autoFocus
                     />
-                    {searchResults.length > 0 ? (
-                      <div className="header-search__results" role="listbox" aria-label={text('search', 'খোঁজার ফলাফল')}>
-                        {searchResults.map((result) => (
-                          <a className="header-search__result" role="option" href={appPath(result.href)} key={result.type + '-' + result.id}>
-                            <span className="header-search__result-type">{result.type === 'page' ? text('page', 'পেজ') : text('post', 'পোস্ট')}</span>
-                            <strong>{result.title}</strong>
-                            {result.description ? <span>{String(result.description).replace(/\\s+/g, ' ').trim().slice(0, 90)}{String(result.description).trim().length > 90 ? '…' : ''}</span> : null}
-                          </a>
-                        ))}
-                      </div>
-                    ) : null}
                   </div>
                 ) : null}
                 <button className="site-header__action header-search__button" type="button" onClick={toggleSearch} aria-label={searchOpen ? text('close', 'বন্ধ') : searchLabel} aria-expanded={searchOpen}>
@@ -148,6 +137,20 @@ export default function Header({ pageTitle, onMenu, sidebarOpen, labels = {}, sh
           </div>
         </div>
       </header>
+
+      {searchOpen && searchResults.length > 0 ? (
+        <div className="header-search-suggestions" role="listbox" aria-label={text('search', 'খোঁজার ফলাফল')}>
+          <div className="site-container header-search-suggestions__inner">
+            {searchResults.map((result) => (
+              <a className="header-search__result" role="option" href={appPath(result.href)} key={result.type + '-' + result.id}>
+                <span className="header-search__result-type">{result.type === 'page' ? text('page', 'পেজ') : text('post', 'পোস্ট')}</span>
+                <strong>{result.title}</strong>
+                {result.description ? <span>{String(result.description).replace(/\\s+/g, ' ').trim().slice(0, 90)}{String(result.description).trim().length > 90 ? '…' : ''}</span> : null}
+              </a>
+            ))}
+          </div>
+        </div>
+      ) : null}
     </>
   )
 }
