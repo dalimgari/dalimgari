@@ -1,4 +1,5 @@
 import PROJECT_PATHS from '../src/config/projectPaths.js'
+import { ROUTES, PERMISSIONS } from '../src/lib/routes'
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
@@ -12,6 +13,15 @@ async function read(relativePath) {
 }
 
 describe('project smoke tests', () => {
+  it('keeps application routes and permissions centralized', async () => {
+    const routes = await read('src/lib/routes.js')
+    assert.match(routes, /export const ROUTES/)
+    assert.match(routes, /export const PERMISSIONS/)
+    assert.equal(ROUTES.search, '/search')
+    assert.equal(ROUTES.manage.media, '/manage/media')
+    assert.equal(PERMISSIONS.mediaManage, 'media_manage')
+  })
+
   it('keeps the build and test scripts defined', async () => {
     const pkg = JSON.parse(await read(PROJECT_PATHS.package))
     assert.equal(typeof pkg.scripts.build, 'string')
