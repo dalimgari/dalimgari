@@ -19,6 +19,7 @@ import RuralVisualManagement from './pages/admin/RuralVisualManagement'
 import AdminInformationManagement from './pages/admin/AdminInformationManagement'
 import DatabaseStorageInformation from './pages/admin/DatabaseStorageInformation'
 import KeyLabelManagement from './pages/admin/KeyLabelManagement'
+import TranslationOverrideManagement from './pages/admin/TranslationOverrideManagement'
 import IconManagement from './pages/admin/IconManagement'
 import PageDetail from './pages/PageDetail'
 import PostDetail from './pages/PostDetail'
@@ -59,6 +60,7 @@ const managementPages = {
   '/manage/database-storage': [DatabaseStorageInformation, 'settings_manage'],
   '/manage/rural-visual': [RuralVisualManagement, 'settings_manage'],
   '/manage/key-labels': [KeyLabelManagement, 'settings_manage'],
+  '/manage/translation-overrides': [TranslationOverrideManagement, 'settings_manage'],
   '/manage/icons': [IconManagement, 'settings_manage'],
 }
 
@@ -79,6 +81,7 @@ const legacyPaths = {
   '/admin/database-storage': '/manage/database-storage',
   '/admin/rural-visual': '/manage/rural-visual',
   '/admin/key-labels': '/manage/key-labels',
+  '/admin/translation-overrides': '/manage/translation-overrides',
   '/admin/icons': '/manage/icons',
 }
 
