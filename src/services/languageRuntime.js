@@ -141,7 +141,7 @@ async function translateElementAttributes(element) {
     if (previous?.translated === current) continue
 
     const source = previous?.source && previous.translated !== current ? current : (previous?.source || current)
-    const translated = await translateText(source, 'bn', 'en')
+    const translated = await translateWithOverrides(source)
     if (normalize(element.getAttribute(name)) !== source) continue
 
     record.set(name, { source, translated })
