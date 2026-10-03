@@ -4,9 +4,9 @@ import { getThemePresets, getActiveVisualTheme, updateThemeSettings } from '../.
 import { createAuditLog } from '../../services/auditService'
 
 const THEMES = [
-  ['classic', 'Classic Theme'],
-  ['glass', 'Glass + Water-Drop Theme'],
-  ['nature', 'Nature / Rural Theme'],
+  ['classic', 'ক্লাসিক'],
+  ['glass', 'Glass'],
+  ['village', 'Village'],
 ]
 
 const FIELDS = [
@@ -119,7 +119,7 @@ export default function ThemeSettingsPanel() {
   return <form onSubmit={save}>
     <div className="admin-form__section">
       <h2>Theme Management</h2>
-      <p className="admin-intro">তিনটি built-in theme-এর যেকোনো একটি নির্বাচন করলে তার saved configuration নিচের ঘরগুলোতে স্বয়ংক্রিয়ভাবে দেখাবে। পরিবর্তন করে Save করলে সেই theme-ই active হবে।</p>
+      <p className="admin-intro">তিনটি স্থায়ী theme-এর যেকোনো একটি নির্বাচন করলে Database থেকে তার saved configuration নিচের ঘরগুলোতে স্বয়ংক্রিয়ভাবে দেখাবে। পরিবর্তন করে Save করলে নির্বাচিত theme-ই পুরো website-এর default ও active theme হবে।</p>
       <div className="admin-form">
         <h3>Theme Preset</h3>
         <div className="content-grid">
@@ -130,12 +130,12 @@ export default function ThemeSettingsPanel() {
           ))}
         </div>
       </div>
-      <p className="admin-intro">নির্বাচিত theme-এর Day ও Night configuration এখানে edit করুন। Save করলে শুধু নির্বাচিত theme-এর data পরিবর্তন হবে; অন্য দুইটি theme অপরিবর্তিত থাকবে।</p>
+      <p className="admin-intro">নির্বাচিত theme-এর Day ও Night configuration এখানে edit করুন। Save করলে নির্বাচিত theme-এর data সংরক্ষণ হবে এবং একই সঙ্গে সেটিই system-wide default হবে।</p>
       <ThemeMode title="ডে থিম" values={values.day} onChange={(group,key,value)=>change('day',group,key,value)} disabled={status==='loading'} />
       <ThemeMode title="নাইট থিম" values={values.night} onChange={(group,key,value)=>change('night',group,key,value)} disabled={status==='loading'} />
       <div className="admin-form__actions">
         <Button type="submit" disabled={status==='loading'}>{status==='loading'?'সংরক্ষণ হচ্ছে…':'থিম সংরক্ষণ করুন'}</Button>
-        {status==='success'?<span className="admin-success">নির্বাচিত theme সংরক্ষণ ও active করা হয়েছে।</span>:null}
+        {status==='success'?<span className="admin-success">নির্বাচিত theme সংরক্ষণ ও পুরো website-এর default করা হয়েছে।</span>:null}
       </div>
       {status==='error'&&error?<ErrorState description={error.message||'থিম সংরক্ষণ করা যায়নি।'} />:null}
     </div>
