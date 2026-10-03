@@ -15,6 +15,6 @@ export const DEVICE_PREFERENCE_KEYS = Object.freeze({
 })
 
 export const DEVICE_BREAKPOINTS = Object.freeze({
-  mobileMax: 767,
-  tabletMax: 1023,
+  mobileBreakpoint: 768,
+  tabletBreakpoint: 1024,
 })
