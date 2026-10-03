@@ -1,4 +1,5 @@
 import { loadTranslationOverrides } from './translationOverrideService'
+import { LANGUAGES } from '../config/preferences'
 const translationCache = new Map()
 const pendingTranslations = new Map()
 const translatedNodes = new WeakMap()
@@ -205,9 +206,9 @@ function restoreDocument(root = document.body) {
   }
 }
 
-export function applyLanguageToDocument(language = 'bng') {
+export function applyLanguageToDocument(language = LANGUAGES.bengali) {
   if (typeof document === 'undefined') return Promise.resolve()
-  const isEnglish = language === 'eng'
+  const isEnglish = language === LANGUAGES.english
   document.documentElement.lang = isEnglish ? 'en' : 'bn'
   if (!isEnglish) {
     restoreDocument(document.body)
@@ -216,11 +217,11 @@ export function applyLanguageToDocument(language = 'bng') {
   return translateDocument(document.body)
 }
 
-export function observeLanguageDocument(language = 'bng') {
+export function observeLanguageDocument(language = LANGUAGES.bengali) {
   if (typeof document === 'undefined') return () => {}
   let active = true
   const observer = new MutationObserver((mutations) => {
-    if (!active || language !== 'eng') return
+    if (!active || language !== LANGUAGES.english) return
     const textNodes = []
     const elements = []
 
@@ -248,7 +249,7 @@ export function observeLanguageDocument(language = 'bng') {
     Promise.all(uniqueElements.map(translateElementAttributes))
   })
 
-  document.documentElement.lang = language === 'eng' ? 'en' : 'bn'
+  document.documentElement.lang = language === LANGUAGES.english ? 'en' : 'bn'
   observer.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['placeholder', 'title', 'aria-label', 'alt'] })
 
   if (language === 'eng') translateDocument(document.body)
