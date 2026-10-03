@@ -71,7 +71,7 @@ export async function getThemePresets() {
     .not('theme_key', 'is', null)
     .order('theme_key', { ascending: true })
   if (error) throw error
-  return (data || []).map(resolveThemeRow)
+  return data || []
 }
 
 export async function getThemeSettings(themeKey = null) {
@@ -85,7 +85,9 @@ export async function getThemeSettings(themeKey = null) {
     : await query.eq('is_active', true).maybeSingle()
 
   if (error) throw error
-  return resolveThemeRow(data)
+  if (!data) return data
+  const rows = await getThemePresets()
+  return { ...data, day: resolveThemeFromPresets(data.theme_key, 'day', rows), night: resolveThemeFromPresets(data.theme_key, 'night', rows) }
 }
 
 export async function getActiveVisualTheme() {
