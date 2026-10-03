@@ -21,7 +21,7 @@ describe('project smoke tests', () => {
     assert.equal(ROUTES.search, '/search')
     assert.equal(ROUTES.manage.media, '/manage/media')
     assert.equal(PERMISSIONS.mediaManage, 'media_manage')
-    assert.equal(MANAGEMENT_ROUTE_DEFINITIONS.length, 17)
+    assert.equal(MANAGEMENT_ROUTE_DEFINITIONS.length, 18)
     assert.ok(MANAGEMENT_ROUTE_DEFINITIONS.every((definition) => definition.path && definition.permission && definition.labelKey))
   })
 
