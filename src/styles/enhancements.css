@@ -32,8 +32,10 @@ html { scroll-behavior:smooth; }
 .ui-button:disabled { cursor:not-allowed; opacity:.6; }
 .ui-field { display:grid; gap:.35rem; margin-bottom:1rem; }
 .ui-field label,.ui-label { color:var(--theme-earthDark,var(--color-earth-dark)); font-family:var(--rural-heading-font,"Noto Serif Bengali",Georgia,serif); font-weight:650; }
-.ui-field input,.ui-field textarea,.ui-field select,.ui-input,.ui-textarea,.ui-select { width:100%; min-height:2.75rem; padding:.65rem .75rem; border:1px solid var(--theme-border,var(--color-border)); border-radius:.3rem; background:var(--theme-surface,var(--color-surface)); color:var(--theme-text,var(--color-text)); }
-.ui-field textarea,.ui-textarea { min-height:7rem; resize:vertical; }
+:root { --rural-field-single-height:2.75rem; --rural-field-multi-height:7rem; }
+.ui-field input,.ui-field textarea,.ui-field select,.ui-input,.ui-textarea,.ui-select { width:100%; height:var(--rural-field-single-height); min-height:var(--rural-field-single-height); padding:.65rem .75rem; border:1px solid var(--theme-border,var(--color-border)); border-radius:.3rem; background:var(--theme-surface,var(--color-surface)); color:var(--theme-text,var(--color-text)); }
+.ui-field textarea,.ui-textarea { height:var(--rural-field-multi-height); min-height:var(--rural-field-multi-height); max-height:var(--rural-field-multi-height); resize:none; overflow-y:auto; }
+@media(max-width:760px){ :root { --rural-field-single-height:2.65rem; --rural-field-multi-height:6.5rem; } }
 .ui-check,.ui-radio { display:inline-flex; align-items:center; gap:.55rem; min-height:2.5rem; color:var(--theme-text,var(--color-text)); cursor:pointer; }
 .ui-check input,.ui-radio input { appearance:none; width:1.15rem; height:1.15rem; margin:0; border:1.5px solid var(--theme-earth,var(--color-earth)); background:var(--theme-surface,var(--color-surface)); display:grid; place-items:center; }
 .ui-check input { border-radius:.2rem; }.ui-radio input { border-radius:50%; }.ui-check input:checked,.ui-radio input:checked { background:var(--theme-leaf,var(--color-leaf)); border-color:var(--theme-leaf,var(--color-leaf)); }.ui-check input:checked::after { content:"✓"; color:#fffaf0; font-size:.8rem; }.ui-radio input:checked::after { content:""; width:.42rem; height:.42rem; border-radius:50%; background:#fffaf0; }
