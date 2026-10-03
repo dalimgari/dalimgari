@@ -86,3 +86,22 @@ test('Key Label Management: search and edit are scoped to global_ui_labels', () 
   assert.match(read(`supabase/migrations/${singleLanguageMigration}`), /drop column if exists eng/)
   assert.match(read(`supabase/migrations/${labelsMigration}`), /global_ui_labels/)
 })
+
+
+test('Language switch: Bengali remains canonical and English is runtime translation only', () => {
+  const preferences = read('src/context/PreferencesContext.jsx')
+  const header = read('src/components/layout/Header.jsx')
+  const runtime = read('src/services/languageRuntime.js')
+  const labelsService = read('src/services/globalLabelService.js')
+
+  assert.match(preferences, /DEFAULT_LANGUAGE = 'bng'/)
+  assert.match(preferences, /value === 'eng' \? 'eng' : 'bng'/)
+  assert.match(header, /language === 'bng' \? 'English' : 'বাংলা'/)
+  assert.match(header, /data-language-switch/)
+  assert.match(header, /setLanguagePreference\(language === 'bng' \? 'eng' : 'bng'\)/)
+  assert.match(runtime, /translateText\(source, 'bn', 'en'\)/)
+  assert.match(runtime, /document\.documentElement\.lang = isEnglish \? 'en' : 'bn'/)
+  assert.match(runtime, /restoreDocument\(document\.body\)/)
+  assert.match(labelsService, /select\('key,bng'\)/)
+  assert.doesNotMatch(labelsService, /select\('key,eng,bng'\)/)
+})
