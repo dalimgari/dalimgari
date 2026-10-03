@@ -1,7 +1,7 @@
 /* Global theme runtime tokens. Feature behavior remains independent from visual theme. */
 :root {
-  --theme-heading-size: inherit;
-  --theme-body-size: inherit;
+  --theme-heading-size: revert;
+  --theme-body-size: revert;
   --theme-body-weight: 400;
   --theme-line-height: normal;
   --theme-letter-spacing: normal;
