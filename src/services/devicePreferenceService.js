@@ -72,6 +72,17 @@ export function setSavedVisualTheme(theme) {
   return next
 }
 
+export function getSavedVisualTheme() {
+  const saved = read(VISUAL_THEME_KEY)
+  return saved === 'classic' || saved === 'glass' || saved === 'village' ? saved : null
+}
+
+export function setSavedVisualTheme(theme) {
+  const next = theme === 'classic' || theme === 'glass' || theme === 'village' ? theme : null
+  if (next) write(VISUAL_THEME_KEY, next)
+  return next
+}
+
 export function applyVisualTheme(theme) {
   document.documentElement.dataset.visualTheme = theme
 }
