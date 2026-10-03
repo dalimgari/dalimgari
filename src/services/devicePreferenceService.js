@@ -26,6 +26,15 @@ export function resolveTheme(preference = getThemePreference()) {
   return preference === 'system' ? detectDeviceTheme() : preference
 }
 
+// Language is intentionally fixed to the project's single canonical language.
+export function getLanguagePreference() {
+  return 'bng'
+}
+
+export function setLanguagePreference() {
+  return 'bng'
+}
+
 export function getDeviceClass() {
   const width = window.innerWidth
   if (width < 768) return 'mobile'
