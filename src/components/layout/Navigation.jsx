@@ -1,17 +1,17 @@
 import { useState } from 'react'
-import { appPath } from '../../lib/routes'
+import { ROUTES, appPath } from '../../lib/routes'
 import { usePreferences } from '../../context/PreferencesContext'
 import KeyIcon from '../ui/KeyIcon'
 import { useGlobalLabels } from '../../context'
 
 function iconKeyFor(label, href) {
-  if (href === '/') return 'home'
-  if (href === '/information') return 'information'
-  if (href === '/posts') return 'posts'
-  if (href === '/albums') return 'albums'
-  if (href === '/search') return 'search'
-  if (href === '/profile') return 'profile'
-  if (href === '/login') return 'login'
+  if (href === ROUTES.home) return 'home'
+  if (href === ROUTES.information) return 'information'
+  if (href === ROUTES.posts) return 'posts'
+  if (href === ROUTES.albums) return 'albums'
+  if (href === ROUTES.search) return 'search'
+  if (href === ROUTES.profile) return 'profile'
+  if (href === ROUTES.login) return 'login'
   return null
 }
 
@@ -23,16 +23,16 @@ export default function Navigation({ items = [] }) {
   const translatedItems = items.map((item) => ({
     ...item,
     label: (() => {
-      const keys = { '/': 'home', '/information': 'information', '/posts': 'posts', '/albums': 'albums', '/search': 'search', '/profile': 'profile', '/login': 'login' }
+      const keys = { ROUTES.home: 'home', ROUTES.information: 'information', ROUTES.posts: 'posts', ROUTES.albums: 'albums', ROUTES.search: 'search', ROUTES.profile: 'profile', ROUTES.login: 'login' }
       const key = keys[item.href]
       return key ? t(key, item.label, item.label) : item.label
     })(),
   }))
-  const hasSearch = items.some((item) => item.href === '/search')
-  const hasLogin = items.some((item) => item.href === '/login')
+  const hasSearch = items.some((item) => item.href === ROUTES.search)
+  const hasLogin = items.some((item) => item.href === ROUTES.login)
   const extra = [
-    ...(!hasSearch ? [{ label: t('search', 'খুঁজুন', 'Search'), href: '/search' }] : []),
-    ...(!hasLogin ? [{ label: t('login', 'লগইন', 'Login'), href: '/login' }] : []),
+    ...(!hasSearch ? [{ label: t('search', 'খুঁজুন', 'Search'), href: ROUTES.search }] : []),
+    ...(!hasLogin ? [{ label: t('login', 'লগইন', 'Login'), href: ROUTES.login }] : []),
   ]
 
   const link = (item) => (
@@ -52,7 +52,7 @@ export default function Navigation({ items = [] }) {
         </button>
         <div id="site-menu" className={`site-nav__menu${open ? ' is-open' : ''}`}>
           {[...translatedItems, ...extra].map(link)}
-          <a className="site-nav__link site-nav__profile" href={appPath('/profile')} onClick={() => setOpen(false)}>
+          <a className="site-nav__link site-nav__profile" href={appPath(ROUTES.profile)} onClick={() => setOpen(false)}>
             <KeyIcon iconKey="profile" /><span>{t('profile', 'প্রোফাইল', 'Profile')}</span>
           </a>
           <button className="site-nav__control" type="button" onClick={() => setThemePreference(theme === 'dark' ? 'light' : 'dark')} aria-label={t('theme', 'থিম পরিবর্তন', 'Change theme')}>
