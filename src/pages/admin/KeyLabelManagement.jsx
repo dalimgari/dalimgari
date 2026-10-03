@@ -110,7 +110,7 @@ export default function KeyLabelManagement() {
 
   if (loading) return <AdminLayout user={user} title="লেবেল ব্যবস্থাপনা"><Loading /></AdminLayout>
   if (error && !labels.length) {
-    return <AdminLayout user={user} title="Key Label Management"><ErrorState description={error.message || 'লেবেল তথ্য লোড করা যায়নি।'} /></AdminLayout>
+    return <AdminLayout user={user} title="লেবেল ব্যবস্থাপনা"><ErrorState description={error.message || 'লেবেল তথ্য লোড করা যায়নি।'} /></AdminLayout>
   }
 
   return (
@@ -119,10 +119,10 @@ export default function KeyLabelManagement() {
         <section className="ui-state">
           <div className="section-heading" style={{ marginBottom: '.8rem' }}>
             <div>
-              <p className="section-kicker">Label Management</p>
+              <p className="section-kicker">লেবেল ব্যবস্থাপনা</p>
               <h1>কী লেবেল</h1>
               <p style={{ margin: '.35rem 0 0', color: 'var(--color-muted)' }}>
-                Key name, English label বা বাংলা label দিয়ে খুঁজুন। এখানে শুধু লেবেল ব্যবস্থাপনা ডেটাবেজ-এর তথ্য দেখানো হয়।
+                কী বা সংরক্ষিত লেবেল দিয়ে খুঁজুন। একটি কী-এর জন্য একটি লেবেলই রাখা হয়।
               </p>
             </div>
           </div>
@@ -181,10 +181,6 @@ export default function KeyLabelManagement() {
               <label style={{ display: 'grid', gap: '.4rem' }}>
                 <span>লেবেল</span>
                 <input className="ui-input" value={label} onChange={(event) => setLabel(event.target.value)} required />
-              </label>
-
-              <label style={{ display: 'grid', gap: '.4rem' }}>
-                
               </label>
 
               {error && <div className="ui-state" role="alert">{error.message || 'লেবেল সংরক্ষণ করা যায়নি।'}</div>}
