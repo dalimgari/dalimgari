@@ -21,6 +21,7 @@ import DatabaseStorageInformation from './pages/admin/DatabaseStorageInformation
 import KeyLabelManagement from './pages/admin/KeyLabelManagement'
 import TranslationOverrideManagement from './pages/admin/TranslationOverrideManagement'
 import IconManagement from './pages/admin/IconManagement'
+import ThemeManagement from './pages/admin/ThemeManagement'
 import PageDetail from './pages/PageDetail'
 import PostDetail from './pages/PostDetail'
 import Information from './pages/Information'
@@ -58,6 +59,7 @@ const managementComponents = {
   keyLabels: KeyLabelManagement,
   translationOverrides: TranslationOverrideManagement,
   icons: IconManagement,
+  theme: ThemeManagement,
 }
 
 const legacyPaths = ROUTES.legacy
