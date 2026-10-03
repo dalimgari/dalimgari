@@ -93,7 +93,13 @@ export async function getThemeSettings(themeKey = null) {
 
 export async function getActiveVisualTheme() {
   const active = await getThemeSettings()
-  return normalizeVisualTheme(active?.theme_key || active?.active_visual_theme)
+  const next = normalizeVisualTheme(active?.theme_key || active?.active_visual_theme)
+  setSavedVisualTheme(next)
+  return next
+}
+
+export function getInitialVisualTheme() {
+  return getSavedVisualTheme() || 'classic'
 }
 
 export async function setActiveVisualTheme(value) {
