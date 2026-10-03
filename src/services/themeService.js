@@ -23,6 +23,41 @@ function normalizeVisualTheme(value) {
   return VISUAL_THEMES.has(value) ? value : 'classic'
 }
 
+function isMissingThemeValue(value) {
+  return value === undefined || value === null || (typeof value === 'string' && value.trim() === '')
+}
+
+function mergeThemeLayers(base, layer) {
+  if (!layer || typeof layer !== 'object' || Array.isArray(layer)) return base
+  const result = { ...(base || {}) }
+  Object.entries(layer).forEach(([key, value]) => {
+    if (value && typeof value === 'object' && !Array.isArray(value) && result[key] && typeof result[key] === 'object' && !Array.isArray(result[key])) {
+      result[key] = mergeThemeLayers(result[key], value)
+    } else if (!isMissingThemeValue(value)) {
+      result[key] = value
+    }
+  })
+  return result
+}
+
+function themeLayers(row, mode) {
+  if (!row) return []
+  const custom = row[mode === 'night' ? 'custom_night' : 'custom_day']
+  const defaultConfig = row[mode === 'night' ? 'default_night' : 'default_day']
+  const legacy = row[mode]
+  return [custom, defaultConfig, legacy].filter((value) => value && typeof value === 'object')
+}
+
+export function resolveThemeFromPresets(themeKey, mode = 'day', rows = []) {
+  const selected = normalizeVisualTheme(themeKey)
+  const ordered = [selected, ...THEME_FALLBACK_ORDER.filter((key) => key !== selected)]
+  return ordered.reduce((resolved, key) => {
+    const row = rows.find((item) => item?.theme_key === key)
+    return themeLayers(row, mode).reduce((result, layer) => mergeThemeLayers(result, layer), resolved)
+  }, {})
+}
+
+
 function resolveThemeRow(row) {
   if (!row) return row
   return { ...row, day: row.custom_day || row.default_day || row.day || {}, night: row.custom_night || row.default_night || row.night || {} }
