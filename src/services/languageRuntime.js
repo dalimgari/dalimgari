@@ -42,7 +42,7 @@ function sortedOverrides() {
   return [...translationOverrides.entries()].sort((a, b) => b[0].length - a[0].length)
 }
 
-async function translateWithOverrides(value, allowAutomatic = true) {
+async function translateWithOverrides(value) {
   const sourceText = String(value ?? '')
   const normalizedSource = normalize(sourceText)
   if (!normalizedSource) return normalizedSource
@@ -51,7 +51,7 @@ async function translateWithOverrides(value, allowAutomatic = true) {
   if (exact) return exact
 
   const entries = sortedOverrides()
-  if (!entries.length) return allowAutomatic ? translateText(sourceText, 'bn', 'en') : normalizedSource
+  if (!entries.length) return translateText(sourceText, 'bn', 'en')
 
   const chunks = []
   let cursor = 0
@@ -75,8 +75,8 @@ async function translateWithOverrides(value, allowAutomatic = true) {
     index += 1
   }
 
-  if (cursor === 0) return allowAutomatic ? translateText(sourceText, 'bn', 'en') : normalizedSource
-  if (cursor < sourceText.length) chunks.push(allowAutomatic ? translateText(sourceText.slice(cursor), 'bn', 'en') : Promise.resolve(sourceText.slice(cursor)))
+  if (cursor === 0) return translateText(sourceText, 'bn', 'en')
+  if (cursor < sourceText.length) chunks.push(translateText(sourceText.slice(cursor), 'bn', 'en'))
   return (await Promise.all(chunks)).join('')
 }
 
@@ -84,14 +84,10 @@ function shouldSkipElement(element) {
   if (!element || element.nodeType !== Node.ELEMENT_NODE) return true
   return Boolean(
     element.closest('[data-language-switch]') ||
-    element.closest('[data-no-translate]') ||
     element.closest('script,style,noscript,code,pre,textarea')
   )
 }
 
-function isOverrideOnlyElement(element) {
-  return Boolean(element?.closest?.('[data-translation-override-only]'))
-}
 
 function shouldSkipTextNode(node) {
   if (!node?.parentElement) return true
@@ -120,7 +116,7 @@ async function translateNode(node) {
   if (previous && previous.translated === current) return
 
   const source = previous && previous.source !== current ? current : (previous?.source || current)
-  const translated = await translateWithOverrides(source, !isOverrideOnlyElement(node.parentElement))
+  const translated = await translateWithOverrides(source)
   if (normalize(node.nodeValue) !== source) return
 
   translatedNodes.set(node, { source, translated })
