@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Button, Input, ErrorState } from '../ui'
-import { getThemePresets, getActiveVisualTheme, updateThemeSettings, resetThemeSettings, applyThemeSettings } from '../../services/themeService'
+import { getThemePresets, getActiveVisualTheme, updateThemeSettings, resetThemeSettings, applyThemeSettings, resolveThemeFromPresets } from '../../services/themeService'
 import { createAuditLog } from '../../services/auditService'
 import { applyVisualTheme } from '../../services/devicePreferenceService'
 
@@ -87,7 +87,7 @@ export default function ThemeSettingsPanel() {
   function selectTheme(themeKey) {
     const preset = presets.find((row) => row.theme_key === themeKey)
     if (!preset) return
-    const nextValues = {day:normalize(preset.day),night:normalize(preset.night)}
+    const nextValues = {day:normalize(resolveThemeFromPresets(themeKey, 'day', presets)),night:normalize(resolveThemeFromPresets(themeKey, 'night', presets))}
     setSelectedTheme(themeKey)
     setValues(nextValues)
     previewTheme(themeKey, nextValues)
