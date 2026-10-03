@@ -51,6 +51,26 @@ export const UI_SSOT = {
     },
   },
 
+  adminLabels: {
+    dashboard: { bng: 'ড্যাশবোর্ড', eng: 'Dashboard' },
+    homepage_management: { bng: 'হোমপেজ ম্যানেজমেন্ট', eng: 'Homepage Management' },
+    sidebar_management: { bng: 'সাইডবার ম্যানেজমেন্ট', eng: 'Sidebar Management' },
+    website_information: { bng: 'ওয়েবসাইট তথ্য', eng: 'Website Information' },
+    key_label_rename: { bng: 'কী লেবেল', eng: 'Key Labels' },
+    translation_overrides: { bng: 'অনুবাদ ব্যবস্থাপনা', eng: 'Translation Overrides' },
+    icon_management: { bng: 'আইকন ব্যবস্থাপনা', eng: 'Icon Management' },
+    pages: { bng: 'পেজসমূহ', eng: 'Pages' },
+    posts: { bng: 'পোস্ট', eng: 'Posts' },
+    albums: { bng: 'অ্যালবাম', eng: 'Albums' },
+    media: { bng: 'মিডিয়া', eng: 'Media' },
+    database_storage: { bng: 'ডাটাবেজ ও স্টোরেজ', eng: 'Database & Storage' },
+    users: { bng: 'ইউজার', eng: 'Users' },
+    access: { bng: 'অ্যাক্সেস', eng: 'Access' },
+    audit: { bng: 'অডিট', eng: 'Audit Logs' },
+    analytics: { bng: 'পরিসংখ্যান', eng: 'Analytics' },
+    management_modules: { bng: 'ম্যানেজমেন্ট মডিউল', eng: 'Management modules' },
+  },
+
   navigationLabels: {
     home: { bng: 'হোম', eng: 'Home' },
     information: { bng: 'তথ্য', eng: 'Information' },
