@@ -37,9 +37,9 @@ export default function SearchPage() {
         <div className="search-form__row"><input id="public-search" type="search" value={term} onChange={(e) => setTerm(e.target.value)} placeholder={t('search_placeholder', 'পোস্ট বা পেজের নাম লিখুন')} autoComplete="off" /><button type="submit">{t('search', 'খুঁজুন')}</button></div>
       </form>
       {status === 'loading' ? <Loading /> : null}
-      {status === 'error' ? <ErrorState description={error?.message || t('search_error', 'খোঁজার সময় সমস্যা হয়েছে।')} /> : null}
-      {status === 'ready' && !results.length ? <EmptyState description={t('search_no_results', 'কোনো ফলাফল পাওয়া যায়নি।')} /> : null}
-      {status === 'ready' && results.length ? <div className="content-grid">{results.map((result) => <article className="content-card" key={result.type + '-' + result.id}><p className="eyebrow">{result.type === 'page' ? t('page', 'পেজ') : t('post', 'পোস্ট')}</p><h2>{result.title}</h2>{result.description ? <p>{result.description}</p> : null}<a href={appPath(result.href)}>{t('details', 'বিস্তারিত দেখুন')}</a></article>)}</div> : null}
+      {status === 'error' ? <ErrorState description={error?.message || t('searchError', 'খোঁজার সময় সমস্যা হয়েছে।')} /> : null}
+      {status === 'ready' && !results.length ? <EmptyState description={t('searchNoResults', 'কোনো ফলাফল পাওয়া যায়নি।')} /> : null}
+      {status === 'ready' && results.length ? <div className="content-grid">{results.map((result) => <article className="content-card" key={result.type + '-' + result.id}><p className="eyebrow">{result.type === 'page' ? t('page', 'পেজ') : t('post', 'পোস্ট')}</p><h2>{result.title}</h2>{result.description ? <p>{result.description}</p> : null}<a href={appPath(result.href)}>{t('details', 'বিস্তারিত')}</a></article>)}</div> : null}
     </div></section>
   </Layout>
 }
