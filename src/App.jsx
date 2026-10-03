@@ -30,6 +30,7 @@ import NotFound from './pages/NotFound'
 import RoleRoute from './components/auth/RoleRoute'
 import AdminRoute from './components/auth/AdminRoute'
 import { useEffect, useState } from 'react'
+import { ROUTES, PERMISSIONS, appPath } from './lib/routes'
 
 function getPath() {
   const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
@@ -38,34 +39,29 @@ function getPath() {
   return path.replace(/\/$/, '') || '/'
 }
 
-function appPath(path = '/') {
-  const base = import.meta.env.BASE_URL || '/'
-  const b = base.endsWith('/') ? base.slice(0, -1) : base
-  const p = path.startsWith('/') ? path : '/' + path
-  return b + p || '/'
-}
-
 const managementPages = {
-  '/manage/homepage': [HomepageManagement, 'homepage_manage'],
-  '/manage/sidebar': [SidebarManagement, 'sidebar_manage'],
-  '/manage/pages': [PagesManagement, 'content_manage'],
-  '/manage/posts': [PostsManagement, 'content_manage'],
-  '/manage/albums': [AlbumsManagement, 'media_manage'],
-  '/manage/media': [MediaManagement, 'media_manage'],
-  '/manage/users': [UsersManagement, 'user_manage'],
-  '/manage/access': [AccessManagement, 'user_manage'],
-  '/manage/audit': [AuditLogs, 'audit_view'],
-  '/manage/analytics': [Analytics, 'audit_view'],
-  '/manage/website-information': [ControlPanel, 'settings_manage'],
-  '/manage/admin-information': [AdminInformationManagement, 'settings_manage'],
-  '/manage/database-storage': [DatabaseStorageInformation, 'settings_manage'],
-  '/manage/rural-visual': [RuralVisualManagement, 'settings_manage'],
-  '/manage/key-labels': [KeyLabelManagement, 'settings_manage'],
-  '/manage/translation-overrides': [TranslationOverrideManagement, 'settings_manage'],
-  '/manage/icons': [IconManagement, 'settings_manage'],
+  [ROUTES.manage.homepage]: [HomepageManagement, PERMISSIONS.homepageManage],
+  [ROUTES.manage.sidebar]: [SidebarManagement, PERMISSIONS.sidebarManage],
+  [ROUTES.manage.pages]: [PagesManagement, PERMISSIONS.contentManage],
+  [ROUTES.manage.posts]: [PostsManagement, PERMISSIONS.contentManage],
+  [ROUTES.manage.albums]: [AlbumsManagement, PERMISSIONS.mediaManage],
+  [ROUTES.manage.media]: [MediaManagement, PERMISSIONS.mediaManage],
+  [ROUTES.manage.users]: [UsersManagement, PERMISSIONS.userManage],
+  [ROUTES.manage.access]: [AccessManagement, PERMISSIONS.userManage],
+  [ROUTES.manage.audit]: [AuditLogs, PERMISSIONS.auditView],
+  [ROUTES.manage.analytics]: [Analytics, PERMISSIONS.auditView],
+  [ROUTES.manage.websiteInformation]: [ControlPanel, PERMISSIONS.settingsManage],
+  [ROUTES.manage.adminInformation]: [AdminInformationManagement, PERMISSIONS.settingsManage],
+  [ROUTES.manage.databaseStorage]: [DatabaseStorageInformation, PERMISSIONS.settingsManage],
+  [ROUTES.manage.ruralVisual]: [RuralVisualManagement, PERMISSIONS.settingsManage],
+  [ROUTES.manage.keyLabels]: [KeyLabelManagement, PERMISSIONS.settingsManage],
+  [ROUTES.manage.translationOverrides]: [TranslationOverrideManagement, PERMISSIONS.settingsManage],
+  [ROUTES.manage.icons]: [IconManagement, PERMISSIONS.settingsManage],
 }
 
-const legacyPaths = {
+const legacyPaths = ROUTES.legacy
+
+/* const legacyPaths = {
   '/admin': '/dashboard',
   '/admin/homepage': '/manage/homepage',
   '/admin/sidebar': '/manage/sidebar',
@@ -84,11 +80,11 @@ const legacyPaths = {
   '/admin/key-labels': '/manage/key-labels',
   '/admin/translation-overrides': '/manage/translation-overrides',
   '/admin/icons': '/manage/icons',
-}
+} */
 
 function getRedirectTarget(path) {
   if (legacyPaths[path]) return legacyPaths[path]
-  if (path === '/profile') return '/dashboard'
+  if (path === ROUTES.profile) return ROUTES.dashboard
   if (/^\/(admin|manager|editor|moderator|user)\/profile$/.test(path)) return '/dashboard'
   if (/^\/dashboard\/(admin|manager|editor|moderator|user)$/.test(path)) return '/dashboard'
   return null
@@ -121,26 +117,26 @@ export default function App() {
   if (redirectTarget && redirectTarget !== path) return null
 
   let page = <NotFound />
-  const pageMatch = path.match(/^\/pages\/([^/]+)$/)
-  const albumMatch = path.match(/^\/albums\/([^/]+)$/)
-  const postMatch = path.match(/^\/posts\/([^/]+)$/)
+  const pageMatch = path.match(new RegExp(`^${ROUTES.pageDetailPrefix}/([^/]+)$`))
+  const albumMatch = path.match(new RegExp(`^${ROUTES.albumDetailPrefix}/([^/]+)$`))
+  const postMatch = path.match(new RegExp(`^${ROUTES.postDetailPrefix}/([^/]+)$`))
   const management = managementPages[path]
 
-  if (path === '/dashboard') page = <RoleRoute />
+  if (path === ROUTES.dashboard) page = <RoleRoute />
   else if (management) {
     const Component = management[0]
     page = <AdminRoute permission={management[1]} routePath={path}><Component /></AdminRoute>
-  } else if (path === '/access-denied') page = <AccessDenied />
+  } else if (path === ROUTES.accessDenied) page = <AccessDenied />
   else if (pageMatch) page = <PageDetail slug={decodeURIComponent(pageMatch[1])} />
   else if (albumMatch) page = <AlbumDetail albumKey={decodeURIComponent(albumMatch[1])} />
   else if (postMatch) page = <PostDetail postId={decodeURIComponent(postMatch[1])} />
-  else if (path === '/') page = <Home />
-  else if (path === '/posts') page = <Posts />
-  else if (path === '/albums') page = <Albums />
-  else if (path === '/information') page = <Information />
-  else if (path === '/search') page = <SearchPage />
-  else if (path === '/login') page = <Login />
-  else if (path === '/signup') page = <Signup />
+  else if (path === ROUTES.home) page = <Home />
+  else if (path === ROUTES.posts) page = <Posts />
+  else if (path === ROUTES.albums) page = <Albums />
+  else if (path === ROUTES.information) page = <Information />
+  else if (path === ROUTES.search) page = <SearchPage />
+  else if (path === ROUTES.login) page = <Login />
+  else if (path === ROUTES.signup) page = <Signup />
   else if (/^\/[^/]+$/.test(path)) page = <PageDetail slug={decodeURIComponent(path.slice(1))} />
 
   return page
