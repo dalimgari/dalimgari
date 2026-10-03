@@ -73,7 +73,8 @@ export default function Header({ pageTitle, onMenu, sidebarOpen, labels = {}, sh
       const rect = searchInputRef.current?.getBoundingClientRect()
       if (!rect) return
       setSearchSuggestionStyle({
-        '--search-suggestion-left': `${rect.left + window.scrollX}px`,
+        '--search-suggestion-left': `${rect.left}px`,
+        '--search-suggestion-top': `${rect.bottom}px`,
         '--search-suggestion-width': `${rect.width}px`,
       })
     }
