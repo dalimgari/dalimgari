@@ -5,8 +5,19 @@ import { createAuditLog } from '../../services/auditService'
 import { deleteTranslationOverride, listTranslationOverrides, saveTranslationOverride } from '../../services/translationOverrideService'
 import { useAuth } from '../../context'
 
+const MAX_SUGGESTIONS = 12
+
 function normalize(value) {
   return String(value ?? '').replace(/\s+/g, ' ').trim()
+}
+
+function rankMatch(item, query) {
+  const needle = normalize(query).toLocaleLowerCase()
+  const fields = [normalize(item.source_text), normalize(item.english_text)].map((field) => field.toLocaleLowerCase())
+  if (fields.some((field) => field === needle)) return 0
+  if (fields.some((field) => field.startsWith(needle))) return 1
+  if (fields.some((field) => field.includes(needle))) return 2
+  return 99
 }
 
 export default function TranslationOverrideManagement() {
@@ -37,6 +48,29 @@ export default function TranslationOverrideManagement() {
       [item.source_text, item.english_text].some((value) => normalize(value).toLocaleLowerCase().includes(needle))
     )
   }, [items, query])
+
+  const suggestions = useMemo(() => {
+    const needle = normalize(query)
+    if (!needle) return []
+    return items
+      .map((item) => ({ ...item, rank: rankMatch(item, needle) }))
+      .filter((item) => item.rank < 99)
+      .sort((a, b) => a.rank - b.rank || a.source_text.localeCompare(b.source_text))
+      .slice(0, MAX_SUGGESTIONS)
+  }, [items, query])
+
+  function startNewSearch(value) {
+    setQuery(value)
+    setEditing(null)
+    setSource('')
+    setEnglish('')
+    setNotice('')
+    setError(null)
+  }
+
+  function selectSuggestion(item) {
+    editItem(item)
+  }
 
   function resetForm() {
     setEditing(null)
@@ -126,60 +160,21 @@ export default function TranslationOverrideManagement() {
             </div>
           </div>
 
-          <div style={{ position: 'relative' }}>
+          <div>
             <label htmlFor="translation-override-search" style={{ display: 'grid', gap: '.4rem' }}>
               <span>খোঁজ</span>
-              <input id="translation-override-search" className="ui-input" type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="বাংলা বা English" autoComplete="off" />
+              <input id="translation-override-search" className="ui-input" type="search" value={query} onChange={(event) => startNewSearch(event.target.value)} placeholder="বাংলা বা English" autoComplete="off" aria-controls="translation-override-suggestions" aria-autocomplete="list" />
             </label>
-            {normalize(query) && filtered.length ? (
-              <div
-                role="listbox"
-                aria-label="মিল পাওয়া translation"
-                style={{
-                  position: 'absolute',
-                  zIndex: 10,
-                  left: 0,
-                  right: 0,
-                  top: '100%',
-                  marginTop: '.25rem',
-                  display: 'grid',
-                  gap: '.25rem',
-                  maxHeight: '18rem',
-                  overflowY: 'auto',
-                  padding: '.35rem',
-                  border: '1px solid var(--theme-border,var(--color-border))',
-                  borderRadius: 'var(--theme-buttonRadius,.35rem)',
-                  background: 'var(--theme-surface,var(--color-surface))',
-                  boxShadow: 'var(--theme-shadow,0 6px 18px rgba(0,0,0,.12))',
-                }}
-              >
-                {filtered.map((item) => (
-                  <button
-                    key={item.source_text}
-                    type="button"
-                    role="option"
-                    aria-selected="false"
-                    onClick={() => setQuery(item.source_text)}
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)',
-                      gap: '.65rem',
-                      width: '100%',
-                      padding: '.55rem .65rem',
-                      border: 0,
-                      borderRadius: 'var(--theme-buttonRadius,.35rem)',
-                      background: 'transparent',
-                      color: 'inherit',
-                      textAlign: 'left',
-                      cursor: 'pointer',
-                    }}
-                  >
+            {normalize(query) && (
+              <div id="translation-override-suggestions" role="listbox" aria-label="মিল পাওয়া translation" style={{ display: 'grid', gap: '.45rem', marginTop: '.65rem' }}>
+                {suggestions.length ? suggestions.map((item) => (
+                  <button key={item.source_text} type="button" role="option" className="ui-button ui-button--secondary" onClick={() => selectSuggestion(item)} style={{ display: 'grid', gridTemplateColumns: 'minmax(7rem,1fr) minmax(7rem,1fr)', gap: '.65rem', textAlign: 'left', alignItems: 'center' }}>
                     <span>{item.source_text}</span>
                     <strong>{item.english_text}</strong>
                   </button>
-                ))}
+                )) : <div className="ui-empty">কোনো matching translation পাওয়া যায়নি।</div>}
               </div>
-            ) : null}
+            )}
           </div>
         </section>
 
