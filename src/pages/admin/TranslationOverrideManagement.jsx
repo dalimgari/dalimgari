@@ -126,10 +126,61 @@ export default function TranslationOverrideManagement() {
             </div>
           </div>
 
-          <label htmlFor="translation-override-search" style={{ display: 'grid', gap: '.4rem' }}>
-            <span>খোঁজ</span>
-            <input id="translation-override-search" className="ui-input" type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="বাংলা বা English" autoComplete="off" />
-          </label>
+          <div style={{ position: 'relative' }}>
+            <label htmlFor="translation-override-search" style={{ display: 'grid', gap: '.4rem' }}>
+              <span>খোঁজ</span>
+              <input id="translation-override-search" className="ui-input" type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="বাংলা বা English" autoComplete="off" />
+            </label>
+            {normalize(query) && filtered.length ? (
+              <div
+                role="listbox"
+                aria-label="মিল পাওয়া translation"
+                style={{
+                  position: 'absolute',
+                  zIndex: 10,
+                  left: 0,
+                  right: 0,
+                  top: '100%',
+                  marginTop: '.25rem',
+                  display: 'grid',
+                  gap: '.25rem',
+                  maxHeight: '18rem',
+                  overflowY: 'auto',
+                  padding: '.35rem',
+                  border: '1px solid var(--theme-border,var(--color-border))',
+                  borderRadius: 'var(--theme-buttonRadius,.35rem)',
+                  background: 'var(--theme-surface,var(--color-surface))',
+                  boxShadow: 'var(--theme-shadow,0 6px 18px rgba(0,0,0,.12))',
+                }}
+              >
+                {filtered.map((item) => (
+                  <button
+                    key={item.source_text}
+                    type="button"
+                    role="option"
+                    aria-selected="false"
+                    onClick={() => setQuery(item.source_text)}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)',
+                      gap: '.65rem',
+                      width: '100%',
+                      padding: '.55rem .65rem',
+                      border: 0,
+                      borderRadius: 'var(--theme-buttonRadius,.35rem)',
+                      background: 'transparent',
+                      color: 'inherit',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <span>{item.source_text}</span>
+                    <strong>{item.english_text}</strong>
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
         </section>
 
         <section className="ui-state">
