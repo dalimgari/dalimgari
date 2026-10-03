@@ -1,14 +1,15 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { applyTheme, getDeviceClass, getThemePreference, resolveTheme, setThemePreference, subscribeToSystemTheme } from '../services/devicePreferenceService'
 import { getGlobalLabels } from '../services/globalLabelService'
+import { observeLanguageDocument } from '../services/languageRuntime'
 
 const PreferencesContext = createContext(null)
-const SINGLE_LANGUAGE = 'bng'
+const DEFAULT_LANGUAGE = 'bng'
 
 export function PreferencesProvider({ children }) {
   const [themePreference, setThemeState] = useState(() => getThemePreference())
   const [theme, setTheme] = useState(() => resolveTheme(themePreference))
-  const [language] = useState(SINGLE_LANGUAGE)
+  const [language, setLanguage] = useState(DEFAULT_LANGUAGE)
   const [deviceClass, setDeviceClass] = useState(() => getDeviceClass())
   const [labels, setLabels] = useState({})
 
@@ -34,14 +35,21 @@ export function PreferencesProvider({ children }) {
   }, [])
 
   useEffect(() => {
-    document.documentElement.lang = 'bn'
-  }, [])
+    const stop = observeLanguageDocument(language)
+    return stop
+  }, [language])
 
   const changeTheme = useCallback((value) => {
     const next = setThemePreference(value)
     setThemeState(next)
     setTheme(resolveTheme(next))
     applyTheme(resolveTheme(next))
+  }, [])
+
+  const changeLanguage = useCallback((value) => {
+    const next = value === 'eng' ? 'eng' : 'bng'
+    setLanguage(next)
+    return next
   }, [])
 
   const value = useMemo(() => ({
@@ -51,8 +59,8 @@ export function PreferencesProvider({ children }) {
     deviceClass,
     labels,
     setThemePreference: changeTheme,
-    setLanguagePreference: () => SINGLE_LANGUAGE,
-  }), [themePreference, theme, language, deviceClass, labels, changeTheme])
+    setLanguagePreference: changeLanguage,
+  }), [themePreference, theme, language, deviceClass, labels, changeTheme, changeLanguage])
 
   return <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>
 }
