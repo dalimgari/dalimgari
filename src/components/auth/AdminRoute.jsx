@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../context'
 import { hasPermission, canAccessRoute, hasAdminAccess } from '../../services/permissionService'
-import { appPath } from '../../lib/routes'
+import { ROUTES, PERMISSIONS, appPath } from '../../lib/routes'
 import Skeleton from '../ui/Skeleton'
 
 function currentNextPath() {
@@ -34,7 +34,7 @@ export default function AdminRoute({ permission, routePath, children }) {
         if (!permitted) {
           if (routePath) permitted = await canAccessRoute(routePath)
           if (!permitted && permission) permitted = await hasPermission(permission)
-          if (!permitted && !routePath && !permission) permitted = await hasPermission('dashboard_view')
+          if (!permitted && !routePath && !permission) permitted = await hasPermission(PERMISSIONS.dashboardView)
         }
       } catch {
         permitted = false
@@ -52,10 +52,10 @@ export default function AdminRoute({ permission, routePath, children }) {
     if (status !== 'ready' || checking) return
     if (!user) {
       const base = import.meta.env.BASE_URL || '/'
-      window.location.replace(base + 'login?next=' + encodeURIComponent(currentNextPath()))
+      window.location.replace(base + ROUTES.login.slice(1) + '?next=' + encodeURIComponent(currentNextPath()))
       return
     }
-    if (!allowed) window.location.replace(appPath('/access-denied'))
+    if (!allowed) window.location.replace(appPath(ROUTES.accessDenied))
   }, [allowed, checking, status, user])
 
   if (status !== 'ready' || checking || !user || !allowed) return <Skeleton variant="page" />
