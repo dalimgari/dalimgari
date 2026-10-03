@@ -111,7 +111,9 @@ export async function setActiveVisualTheme(value) {
     p_night: null,
   })
   if (error) throw error
-  return normalizeVisualTheme(data?.theme_key || data?.active_visual_theme || themeKey)
+  const next = normalizeVisualTheme(data?.theme_key || data?.active_visual_theme || themeKey)
+  setSavedVisualTheme(next)
+  return next
 }
 
 export async function resetThemeSettings(themeKey) {
