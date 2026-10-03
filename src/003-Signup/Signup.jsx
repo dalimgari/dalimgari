@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Layout } from '../../components/layout'
-import { Button, ErrorState, Loading } from '../../components/ui'
-import { signUpWithPassword } from '../../services/authService'
-import { appPath } from '../../lib/routes'
-import { useAuth } from '../../context'
+import { Layout } from '../components/layout'
+import { Button, ErrorState, Loading } from '../components/ui'
+import { signUpWithPassword } from '../services/authService'
+import { appPath } from '../lib/routes'
+import { useAuth } from '../context'
 
 function friendlySignupError(error) {
   const message = String(error?.message || '')
