@@ -1,1 +1,1 @@
-export { default } from '../007-Search/Search'
+export { default } from '../Search/Search'
