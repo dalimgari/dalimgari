@@ -111,12 +111,14 @@ test('Language switch: Bengali remains canonical and English is runtime translat
   assert.match(runtime, /loadTranslationOverrides/)
   assert.match(runtime, /translationOverrides\.get\(normalizedSource\)/)
   assert.match(runtime, /element\.closest\('\[data-no-translate\]'\)/)
+  assert.match(runtime, /data-translation-override-only/)
+  assert.match(runtime, /allowAutomatic = true/
   assert.match(runtime, /document\.documentElement\.lang = isEnglish \? 'en' : 'bn'/)
   assert.match(runtime, /restoreDocument\(document\.body\)/)
   assert.match(labelsService, /select\('key,bng'\)/)
   assert.doesNotMatch(labelsService, /select\('key,eng,bng'\)/)
-  assert.match(banner, /data-no-translate="true"/)
-  assert.match(information, /key === 'village_name'/)
+  assert.match(banner, /data-translation-override-only="true"/
+  assert.match(information, /data-translation-override-only=.*village_name/)
   const overrideService = read('src/services/translationOverrideService.js')
   const overridePage = read('src/pages/admin/TranslationOverrideManagement.jsx')
   const app = read('src/App.jsx')
