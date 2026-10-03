@@ -1,4 +1,4 @@
-import { ROUTES, PERMISSIONS } from '../lib/routes'
+import { ROUTES, PERMISSIONS } from '../lib/routes.js'
 
 export const MANAGEMENT_ROUTE_DEFINITIONS = Object.freeze([
   { key: 'homepage', path: ROUTES.manage.homepage, permission: PERMISSIONS.homepageManage, labelKey: 'homepage_management' },
