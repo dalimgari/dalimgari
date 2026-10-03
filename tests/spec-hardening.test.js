@@ -1,3 +1,4 @@
+import PROJECT_PATHS from '../src/config/projectPaths.js'
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
@@ -7,7 +8,7 @@ const root = process.cwd()
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8')
 
 test('Master Specification: no Firebase dependency or source reference', () => {
-  const packageJson = read('package.json')
+  const packageJson = read(PROJECT_PATHS.package)
   assert.doesNotMatch(packageJson, /firebase/i)
 })
 
@@ -15,14 +16,14 @@ test('Master Specification: media storage restrictions are reproducible', () => 
   const migrations = fs.readdirSync(path.join(root, 'supabase/migrations'))
   const hardening = migrations.find((name) => name === '20261001201247_harden_media_storage_and_rbac_policies.sql')
   assert.ok(hardening)
-  const sql = read(`supabase/migrations/${hardening}`)
+  const sql = read(PROJECT_PATHS.migrations.mediaHardening)
   assert.match(sql, /file_size_limit = 52428800/)
   assert.match(sql, /allowed_mime_types/)
   assert.match(sql, /current_user_has_permission\('media_manage'\)/)
 })
 
 test('Master Specification: production workflow uses Node 22 and Pages fallback', () => {
-  const workflow = read('.github/workflows/deploy.yml')
+  const workflow = read(PROJECT_PATHS.workflows.deploy)
   assert.match(workflow, /node-version:\s*['\"]?22/i)
   assert.match(workflow, /cp dist\/index\.html dist\/404\.html/)
 })
@@ -35,11 +36,11 @@ test('Master Specification: migration directory contains no known invalid schema
 })
 
 test('Master Specification: media source matrix is covered end-to-end', () => {
-  const management = read('src/pages/admin/MediaManagement.jsx')
-  const service = read('src/services/mediaService.js')
-  const renderer = read('src/components/ui/MediaContent.jsx')
-  const albumPage = read('src/pages/Albums.jsx')
-  const postPage = read('src/pages/PostDetail.jsx')
+  const management = read(PROJECT_PATHS.pages.mediaManagement)
+  const service = read(PROJECT_PATHS.services.media)
+  const renderer = read(PROJECT_PATHS.components.ui.mediaContent)
+  const albumPage = read(PROJECT_PATHS.pages.albums)
+  const postPage = read(PROJECT_PATHS.pages.postDetail)
 
   assert.match(management, /type="file"/)
   assert.match(management, /image\/\*,video\/\*,audio\/\*,application\/pdf/)
@@ -63,9 +64,9 @@ test('Master Specification: media source matrix is covered end-to-end', () => {
 })
 
 test('Key Label Management: search and edit are scoped to global_ui_labels', () => {
-  const page = read('src/pages/admin/KeyLabelManagement.jsx')
-  const service = read('src/services/globalLabelService.js')
-  const app = read('src/App.jsx')
+  const page = read(PROJECT_PATHS.pages.keyLabelManagement)
+  const service = read(PROJECT_PATHS.services.globalLabel)
+  const app = read(PROJECT_PATHS.app.entry)
   const migrations = fs.readdirSync(path.join(root, 'supabase/migrations'))
   const labelsMigration = migrations.find((name) => name === '20261001220445_create_global_ui_labels.sql')
 
@@ -82,22 +83,22 @@ test('Key Label Management: search and edit are scoped to global_ui_labels', () 
   assert.ok(labelsMigration)
   const singleLanguageMigration = migrations.find((name) => name === '20261003110000_single_language_global_ui_labels.sql')
   assert.ok(singleLanguageMigration)
-  assert.match(read(`supabase/migrations/${singleLanguageMigration}`), /drop column if exists eng/)
-  assert.match(read(`supabase/migrations/${labelsMigration}`), /global_ui_labels/)
+  assert.match(read(PROJECT_PATHS.migrations.singleLanguageGlobalUiLabels), /drop column if exists eng/)
+  assert.match(read(PROJECT_PATHS.migrations.globalUiLabels), /global_ui_labels/)
 })
 
 
 test('Language switch: Bengali remains canonical and English is runtime translation only', () => {
-  const preferences = read('src/context/PreferencesContext.jsx')
-  const header = read('src/header/Header.jsx')
-  const sidebar = read('src/sidebar/Sidebar.jsx')
-  const runtime = read('src/services/languageRuntime.js')
-  const labelsService = read('src/services/globalLabelService.js')
-  const banner = read('src/components/website/Banner.jsx')
-  const information = read('src/pages/Information.jsx')
+  const preferences = read(PROJECT_PATHS.context.preferences)
+  const header = read(PROJECT_PATHS.header.component)
+  const sidebar = read(PROJECT_PATHS.sidebar.component)
+  const runtime = read(PROJECT_PATHS.services.languageRuntime)
+  const labelsService = read(PROJECT_PATHS.services.globalLabel)
+  const banner = read(PROJECT_PATHS.components.website.banner)
+  const information = read(PROJECT_PATHS.pages.information)
 
   assert.match(preferences, /DEFAULT_LANGUAGE = 'bng'/)
-  const devicePreferences = read('src/services/devicePreferenceService.js')
+  const devicePreferences = read(PROJECT_PATHS.services.devicePreference)
   assert.match(preferences, /getLanguagePreference\(\)/)
   assert.match(preferences, /saveLanguagePreference\(value\)/)
   assert.match(devicePreferences, /dalimgari_language_preference/)
@@ -119,10 +120,10 @@ test('Language switch: Bengali remains canonical and English is runtime translat
   assert.doesNotMatch(labelsService, /select\('key,eng,bng'\)/)
   assert.doesNotMatch(banner, /data-translation-override-only/)
   assert.doesNotMatch(information, /data-translation-override-only/)
-  const overrideService = read('src/services/translationOverrideService.js')
-  const overridePage = read('src/pages/admin/TranslationOverrideManagement.jsx')
-  const app = read('src/App.jsx')
-  const adminLayout = read('src/components/admin/AdminLayout.jsx')
+  const overrideService = read(PROJECT_PATHS.services.translationOverride)
+  const overridePage = read(PROJECT_PATHS.pages.translationOverrideManagement)
+  const app = read(PROJECT_PATHS.app.entry)
+  const adminLayout = read(PROJECT_PATHS.components.admin.adminLayout)
   assert.match(overrideService, /from\('translation_overrides'\)/)
   assert.match(overrideService, /upsert/)
   assert.match(overridePage, /বাংলা source/)
@@ -131,10 +132,10 @@ test('Language switch: Bengali remains canonical and English is runtime translat
   assert.match(adminLayout, /translation_overrides/)
   const overrideMigration = fs.readdirSync(path.join(root, 'supabase/migrations')).find((name) => name === '20261003123000_create_translation_overrides.sql')
   assert.ok(overrideMigration)
-  assert.match(read(`supabase/migrations/${overrideMigration}`), /translation_overrides/)
+  assert.match(read(PROJECT_PATHS.migrations.translationOverrides), /translation_overrides/)
   const publicOverrideMigration = fs.readdirSync(path.join(root, 'supabase/migrations')).find((name) => name === '20261003140000_make_translation_overrides_public_equal.sql')
   assert.ok(publicOverrideMigration)
-  const publicOverrideSql = read(`supabase/migrations/${publicOverrideMigration}`)
+  const publicOverrideSql = read(PROJECT_PATHS.migrations.publicTranslationOverrides)
   assert.match(publicOverrideSql, /for select/i)
   assert.match(publicOverrideSql, /for insert/i)
   assert.match(publicOverrideSql, /for update/i)
