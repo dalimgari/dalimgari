@@ -119,7 +119,7 @@ export default function Dashboard({ verifiedRole = null }) {
     <AdminLayout user={user} title="ড্যাশবোর্ড">
       <div className="admin-management" style={{ gap: '1rem' }}>
         <SecurityStatusCard />
-        <div className="admin-dashboard-modules" role="tablist" aria-label="অ্যাডমিন মডিউল" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'flex-start', gap: '.65rem' }}>
+        <div className="admin-dashboard-modules" role="tablist" aria-label="অ্যাডমিন মডিউল" style={{ display: 'flex', flexWrap: 'nowrap', alignItems: 'center', justifyContent: 'flex-start', gap: '.65rem', overflowX: 'auto', overflowY: 'hidden', paddingBottom: '.25rem' }}>
           {allowedModules.map(({ key, label }) => {
             const active = key === selectedKey
             const count = moduleData[key]?.length ?? 0
