@@ -24,6 +24,7 @@ import IconManagement from './pages/admin/IconManagement'
 import PageDetail from './pages/PageDetail'
 import PostDetail from './pages/PostDetail'
 import Information from './pages/Information'
+import SearchPage from './search/SearchPage'
 import AccessDenied from './pages/AccessDenied'
 import NotFound from './pages/NotFound'
 import RoleRoute from './components/auth/RoleRoute'
@@ -137,6 +138,7 @@ export default function App() {
   else if (path === '/posts') page = <Posts />
   else if (path === '/albums') page = <Albums />
   else if (path === '/information') page = <Information />
+  else if (path === '/search') page = <SearchPage />
   else if (path === '/login') page = <Login />
   else if (path === '/signup') page = <Signup />
   else if (/^\/[^/]+$/.test(path)) page = <PageDetail slug={decodeURIComponent(path.slice(1))} />
