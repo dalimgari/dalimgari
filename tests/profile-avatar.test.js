@@ -11,7 +11,7 @@ async function read(relativePath) {
 }
 
 test('global profile avatar fallback is centralized', async () => {
-  const component = await read('src/components/ui/ProfileAvatar.jsx')
+  const component = await read('src/Profile Avatar/ProfileAvatar.jsx')
   const service = await read('src/services/profileAvatarService.js')
   const migration = await read('supabase/migrations/20261002155207_profile_avatar_fallback.sql')
 
