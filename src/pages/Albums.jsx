@@ -1,1 +1,1 @@
-export { default } from '../015-Albums/Albums'
+export { default } from '../Albums/Albums'
