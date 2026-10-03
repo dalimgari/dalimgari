@@ -20,7 +20,7 @@ export default function Search() {
   const [searchStatus, setSearchStatus] = useState('idle')
   const searchInputRef = useRef(null)
 
-  const searchLabel = t('search', 'খোঁজ')
+  const searchLabel = t('search', 'খুঁজুন')
   const searchPlaceholder = t('search_placeholder', 'এখানে খুঁজুন')
 
   useEffect(() => {
