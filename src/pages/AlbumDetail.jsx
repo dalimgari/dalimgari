@@ -1,1 +1,1 @@
-export { default } from '../016-Album Detail/AlbumDetail'
+export { default } from '../Album Detail/AlbumDetail'
