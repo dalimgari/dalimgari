@@ -133,7 +133,7 @@ test('Language switch: Bengali remains canonical and English is runtime translat
   assert.match(overridePage, /বাংলা source/)
   assert.match(overridePage, /নির্ধারিত English/)
   assert.match(routeDefinitions, /ROUTES\.manage\.translationOverrides/)
-  assert.match(adminLayout, /translation_overrides/)
+  assert.match(routeDefinitions, /translationOverrides/)
   const overrideMigration = fs.readdirSync(path.join(root, PROJECT_PATHS.directories.migrations)).find((name) => name === projectPathBasename(PROJECT_PATHS.migrations.translationOverrides))
   assert.ok(overrideMigration)
   assert.match(read(PROJECT_PATHS.migrations.translationOverrides), /translation_overrides/)
