@@ -17,6 +17,13 @@ export const PROJECT_PATHS = Object.freeze({
   app: {
     entry: 'src/App.jsx',
     routes: 'src/lib/routes.js',
+    routeDefinitions: 'src/config/routeDefinitions.js',
+  },
+
+  config: {
+    uiSSOT: 'src/config/uiSSOT.js',
+    mediaPolicy: 'src/config/mediaPolicy.js',
+    preferences: 'src/config/preferences.js',
   },
 
   header: {
