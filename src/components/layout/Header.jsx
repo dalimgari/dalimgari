@@ -86,67 +86,72 @@ export default function Header({ pageTitle, onMenu, sidebarOpen, labels = {}, sh
   const searchLabel = text('search', 'খোঁজ')
   const searchPlaceholder = text('search_placeholder', 'এখানে খুঁজুন')
   const loginLabel = user ? text('dashboard', 'ড্যাশবোর্ড') : text('login', 'লগইন')
-  const searchRightStyle = searchOpen ? { flex: '1 1 auto', minWidth: 0, marginLeft: 'auto' } : undefined
-  const searchBoxStyle = searchOpen ? { width: '100%', maxWidth: '26rem', flex: '0 1 26rem' } : undefined
-
   return (
-    <header className={'site-header' + (searchOpen ? ' search-mode' : '')}>
-      <div className="site-container site-header__inner">
-        <button className={'site-header__action site-header__menu' + (sidebarOpen ? ' is-open' : '')} type="button" onClick={onMenu} aria-label={menuLabel} aria-expanded={sidebarOpen}>
-          <RuralIcon name={sidebarOpen ? 'close' : 'menu'} />
-          <span>{menuLabel}</span>
-        </button>
+    <>
+      <header className="site-header">
+        <div className="site-container site-header__inner">
+          <button className={'site-header__action site-header__menu' + (sidebarOpen ? ' is-open' : '')} type="button" onClick={onMenu} aria-label={menuLabel} aria-expanded={sidebarOpen}>
+            <RuralIcon name={sidebarOpen ? 'close' : 'menu'} />
+            <span>{menuLabel}</span>
+          </button>
 
-        {showBrand ? (
-          <div className={'site-brand' + (searchOpen ? ' is-search-hidden' : '')} aria-label={pageTitle || text('home', 'হোম')}>
-            <span className="site-brand__words"><span className="site-brand__name">{pageTitle || text('home', 'হোম')}</span></span>
-          </div>
-        ) : <div className="site-brand" aria-hidden="true" />}
+          {showBrand ? (
+            <div className="site-brand" aria-label={pageTitle || text('home', 'হোম')}>
+              <span className="site-brand__words"><span className="site-brand__name">{pageTitle || text('home', 'হোম')}</span></span>
+            </div>
+          ) : <div className="site-brand" aria-hidden="true" />}
 
-        <div className={'site-header__right' + (searchOpen ? ' search-expanded' : '')} style={searchRightStyle}>
-          <div className={'header-search' + (searchOpen ? ' is-open' : '')} style={searchBoxStyle}>
-            <div className="header-search__control">
-              {searchOpen ? (
-                <input className="header-search__input" type="search" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder={searchPlaceholder} aria-label={searchLabel} autoComplete="off" autoFocus />
-              ) : null}
+          <div className="site-header__right">
+            {showSearch ? (
               <button className="site-header__action header-search__button" type="button" onClick={toggleSearch} aria-label={searchOpen ? text('close', 'বন্ধ') : searchLabel} aria-expanded={searchOpen}>
                 <RuralIcon name={searchOpen ? 'close' : 'search'} />
                 <span>{searchOpen ? text('close', 'বন্ধ') : searchLabel}</span>
               </button>
+            ) : null}
+
+            {showLogout ? (
+              <button className="site-header__action" type="button" onClick={() => supabase.auth.signOut().catch(() => {})} aria-label={text('logout', 'লগআউট')}>
+                <RuralIcon name="logout" /><span>{text('logout', 'লগআউট')}</span>
+              </button>
+            ) : null}
+
+            <a className="site-header__action site-header__profile-action" href={dashboardHref} aria-label={loginLabel} title={loginLabel}>
+              <ProfileAvatar user={user} />
+            </a>
+          </div>
+        </div>
+      </header>
+
+      {searchOpen ? (
+        <div className="header-search-panel" role="search">
+          <div className="site-container">
+            <div className="header-search-panel__bar">
+              <input
+                className="header-search__input"
+                type="search"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder={searchPlaceholder}
+                aria-label={searchLabel}
+                autoComplete="off"
+                autoFocus
+              />
             </div>
 
-            {searchOpen ? (
+            {searchResults.length > 0 ? (
               <div className="header-search__results" role="listbox" aria-label={text('search', 'খোঁজার ফলাফল')}>
-                {searchTerm.trim() ? (
-                  <>
-                    {searchStatus === 'loading' ? <div className="header-search__state">{text('search_loading', 'খোঁজা হচ্ছে…')}</div> : null}
-                    {searchStatus === 'error' ? <div className="header-search__state">{text('search_error', 'খোঁজার সময় সমস্যা হয়েছে।')}</div> : null}
-                    {searchStatus === 'ready' && !searchResults.length ? <div className="header-search__state">{text('search_no_results', 'কোনো মিল পাওয়া যায়নি।')}</div> : null}
-                    {searchResults.map((result) => (
-                      <a className="header-search__result" role="option" href={appPath(result.href)} key={result.type + '-' + result.id}>
-                        <span className="header-search__result-type">{result.type === 'page' ? text('page', 'পেজ') : text('post', 'পোস্ট')}</span>
-                        <strong>{result.title}</strong>
-                        {result.description ? <span>{String(result.description).replace(/\s+/g, ' ').trim().slice(0, 90)}{String(result.description).trim().length > 90 ? '…' : ''}</span> : null}
-                      </a>
-                    ))}
-                  </>
-                ) : null}
+                {searchResults.map((result) => (
+                  <a className="header-search__result" role="option" href={appPath(result.href)} key={result.type + '-' + result.id}>
+                    <span className="header-search__result-type">{result.type === 'page' ? text('page', 'পেজ') : text('post', 'পোস্ট')}</span>
+                    <strong>{result.title}</strong>
+                    {result.description ? <span>{String(result.description).replace(/\\s+/g, ' ').trim().slice(0, 90)}{String(result.description).trim().length > 90 ? '…' : ''}</span> : null}
+                  </a>
+                ))}
               </div>
             ) : null}
           </div>
-
-
-          {showLogout ? (
-            <button className="site-header__action" type="button" onClick={() => supabase.auth.signOut().catch(() => {})} aria-label={text('logout', 'লগআউট')}>
-              <RuralIcon name="logout" /><span>{text('logout', 'লগআউট')}</span>
-            </button>
-          ) : null}
-
-          <a className="site-header__action site-header__profile-action" href={dashboardHref} aria-label={loginLabel} title={loginLabel}>
-            <ProfileAvatar user={user} />
-          </a>
         </div>
-      </div>
-    </header>
+      ) : null}
+    </>
   )
 }
