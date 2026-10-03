@@ -1,9 +1,9 @@
 /* Global Glass + Water-Drop visual system
    Feature owns behavior. Context owns placement. Global System owns visual primitives. */
 :root {
-  --glass-surface: rgb(255 255 255 / .16);
-  --glass-surface-strong: rgb(255 255 255 / .22);
-  --glass-surface-soft: rgb(255 255 255 / .11);
+  --glass-surface: rgb(255 255 255 / var(--theme-glass-transparency, .16));
+  --glass-surface-strong: rgb(255 255 255 / var(--theme-glass-transparency-strong, .22));
+  --glass-surface-soft: rgb(255 255 255 / var(--theme-glass-transparency-soft, .11));
   --glass-border: rgb(255 255 255 / .38);
   --glass-highlight: rgb(255 255 255 / .52);
   --glass-shadow: 0 10px 34px rgb(20 30 28 / .14);
@@ -91,7 +91,7 @@
   background: radial-gradient(ellipse at center, rgb(255 255 255 / .22), transparent 68%);
   filter: blur(5px);
   pointer-events: none;
-  opacity: .75;
+  opacity: var(--glass-drop-opacity, .75);
 }
 .content-card:hover,
 .info-card:hover,
