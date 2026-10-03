@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Layout } from '../../components/layout'
-import { Loading, EmptyState, ErrorState, MediaContent } from '../../components/ui'
-import { getPublishedPostById } from '../../services/postService'
-import { appPath } from '../../lib/routes'
-import MediaViewer from '../../components/ui/MediaViewer'
+import { Layout } from '../components/layout'
+import { Loading, EmptyState, ErrorState, MediaContent } from '../components/ui'
+import { getPublishedPostById } from '../services/postService'
+import { appPath } from '../lib/routes'
+import MediaViewer from '../components/ui/MediaViewer'
 
 export default function PostDetail({ postId }) {
   const [post, setPost] = useState(null)
