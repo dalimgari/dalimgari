@@ -1,8 +1,6 @@
 import { supabase } from '../lib/supabase'
+import { MEDIA_POLICY, isAllowedMediaType } from '../config/mediaPolicy'
 
-const MEDIA_BUCKET = 'media'
-const MAX_MEDIA_SIZE = 50 * 1024 * 1024
-const ALLOWED_MEDIA_TYPES = /^(image\/(jpeg|png|gif|webp|avif)|video\/(mp4|webm|ogg)|audio\/(mpeg|wav|ogg|mp4)|application\/(pdf|msword|vnd\.openxmlformats-officedocument\.wordprocessingml\.document|vnd\.ms-excel|vnd\.openxmlformats-officedocument\.spreadsheetml\.sheet|vnd\.ms-powerpoint|vnd\.openxmlformats-officedocument\.presentationml\.presentation)|text\/(plain|csv))$/i
 
 export async function listVisibleMedia({ albumId } = {}) {
   if (!supabase) throw new Error('Supabase is not configured')
@@ -21,16 +19,16 @@ export async function listManagedMedia() {
 }
 
 export function getMediaPublicUrl(storagePath, mediaUrl = null) {
-  if (storagePath && supabase) return supabase.storage.from(MEDIA_BUCKET).getPublicUrl(storagePath).data.publicUrl
+  if (storagePath && supabase) return supabase.storage.from(MEDIA_POLICY.bucket).getPublicUrl(storagePath).data.publicUrl
   return mediaUrl || null
 }
 
 export async function uploadMediaObject(path, file, options = {}) {
   if (!supabase) throw new Error('Supabase is not configured')
   if (!file || !(file instanceof File)) throw new Error('Valid media file is required')
-  if (file.size <= 0 || file.size > MAX_MEDIA_SIZE) throw new Error('Media file must be between 1 byte and 50 MB')
-  if (!ALLOWED_MEDIA_TYPES.test(file.type || '')) throw new Error('This file type is not allowed')
-  if (!path || path.length > 500 || path.includes('..')) throw new Error('Invalid storage path')
+  if (file.size <= 0 || file.size > MEDIA_POLICY.maxSizeBytes) throw new Error('Media file must be between 1 byte and 50 MB')
+  if (!isAllowedMediaType(file.type)) throw new Error('This file type is not allowed')
+  if (!path || path.length > MEDIA_POLICY.storagePath.maxLength || path.includes('..')) throw new Error('Invalid storage path')
   const { data, error } = await supabase.storage.from(MEDIA_BUCKET).upload(path, file, {
     ...options,
     contentType: file.type,
@@ -42,7 +40,7 @@ export async function uploadMediaObject(path, file, options = {}) {
 
 export async function deleteMediaObjects(paths) {
   if (!supabase) throw new Error('Supabase is not configured')
-  const safePaths = (paths || []).filter((path) => typeof path === 'string' && path.length > 0 && path.length <= 500 && !path.includes('..'))
+  const safePaths = (paths || []).filter((path) => typeof path === 'string' && path.length > 0 && path.length <= MEDIA_POLICY.storagePath.maxLength && !path.includes('..'))
   if (!safePaths.length) return []
   const { data, error } = await supabase.storage.from(MEDIA_BUCKET).remove(safePaths)
   if (error) throw error
