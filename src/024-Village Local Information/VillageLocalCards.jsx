@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { usePreferences } from '../../context/PreferencesContext'
-import { getVillageWeather } from '../../services/villageLocalInfoService'
+import { usePreferences } from '../context/PreferencesContext'
+import { getVillageWeather } from '../services/villageLocalInfoService'
 
 const WEATHER_BN = {
   0: 'পরিষ্কার আকাশ', 1: 'মূলত পরিষ্কার', 2: 'আংশিক মেঘলা', 3: 'মেঘলা',
