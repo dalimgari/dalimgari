@@ -20,13 +20,13 @@ function RuralIcon({ name }) {
 function globalItemLabel(item, t) {
   const href = item?.href || ''
   const keys = {
-    ROUTES.home: ['home', 'হোম', 'Home'],
-    ROUTES.information: ['information', 'তথ্য', 'Information'],
-    ROUTES.posts: ['posts', 'পোস্ট', 'Posts'],
-    ROUTES.albums: ['albums', 'অ্যালবাম', 'Albums'],
-    ROUTES.search: ['search', 'খোঁজ', 'Search'],
-    ROUTES.login: ['login', 'লগইন', 'Login'],
-    ROUTES.profile: ['profile', 'প্রোফাইল', 'Profile'],
+    [ROUTES.home]: ['home', 'হোম', 'Home'],
+    [ROUTES.information]: ['information', 'তথ্য', 'Information'],
+    [ROUTES.posts]: ['posts', 'পোস্ট', 'Posts'],
+    [ROUTES.albums]: ['albums', 'অ্যালবাম', 'Albums'],
+    [ROUTES.search]: ['search', 'খোঁজ', 'Search'],
+    [ROUTES.login]: ['login', 'লগইন', 'Login'],
+    [ROUTES.profile]: ['profile', 'প্রোফাইল', 'Profile'],
   }
   const [key, bn, en] = keys[href] || []
   return key ? t(key, bn, en) : item?.label
