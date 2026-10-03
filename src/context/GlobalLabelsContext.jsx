@@ -1,12 +1,11 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { GLOBAL_LABEL_DEFAULTS, getGlobalLabels } from '../services/globalLabelService'
 import { UI_SSOT, flattenUiSsot } from '../config/uiSSOT'
-import { usePreferences } from './PreferencesContext'
 
 const GlobalLabelsContext = createContext(null)
+const MISSING_LABEL = 'Label Missing'
 
 export function GlobalLabelsProvider({ children }) {
-  const { language } = usePreferences()
   const [labels, setLabels] = useState({})
   const [status, setStatus] = useState('loading')
 
@@ -27,20 +26,17 @@ export function GlobalLabelsProvider({ children }) {
 
   const value = useMemo(() => {
     const ssotLabels = flattenUiSsot(UI_SSOT)
-    const t = (key, fallbackBn, fallbackEn) => {
+    const t = (key, fallbackBn) => {
       const item = labels[key] || ssotLabels[key]
-      if (language === 'eng') return item?.eng || fallbackEn || GLOBAL_LABEL_DEFAULTS[key] || key
-      return item?.bng || fallbackBn || item?.eng || GLOBAL_LABEL_DEFAULTS[key] || key
+      return item?.bng || fallbackBn || GLOBAL_LABEL_DEFAULTS[key] || MISSING_LABEL
     }
-    const getLabel = (section, key, fallbackBn, fallbackEn) => {
+    const getLabel = (section, key, fallbackBn) => {
       const sectionValue = UI_SSOT?.[section]
       const item = sectionValue?.[key] || sectionValue?.canonicalTerms?.[key]
-      return language === 'eng'
-        ? item?.eng || fallbackEn || key
-        : item?.bng || fallbackBn || item?.eng || key
+      return item?.bng || fallbackBn || MISSING_LABEL
     }
     return { labels, ssot: UI_SSOT, status, reloadLabels: load, t, getLabel }
-  }, [labels, status, load, language])
+  }, [labels, status, load])
 
   return <GlobalLabelsContext.Provider value={value}>{children}</GlobalLabelsContext.Provider>
 }
