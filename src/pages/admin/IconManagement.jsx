@@ -5,7 +5,18 @@ import { createAuditLog } from '../../services/auditService'
 import { listIconManagement, uploadIconForKey } from '../../services/iconManagementService'
 import { useAuth } from '../../context'
 
+const MAX_SUGGESTIONS = 12
+
 function normalize(value) { return String(value ?? '').replace(/\s+/g, ' ').trim() }
+
+function rankMatch(row, query) {
+  const needle = normalize(query).toLocaleLowerCase()
+  const field = normalize(row.key).toLocaleLowerCase()
+  if (field === needle) return 0
+  if (field.startsWith(needle)) return 1
+  if (field.includes(needle)) return 2
+  return 99
+}
 
 export default function IconManagement() {
   const { user } = useAuth()
@@ -25,12 +36,29 @@ export default function IconManagement() {
   }, [])
 
   const suggestions = useMemo(() => {
-    const needle = normalize(query).toLocaleLowerCase()
+    const needle = normalize(query)
     if (!needle) return []
-    return icons.filter((row) => normalize(row.key).toLocaleLowerCase().includes(needle)).slice(0, 20)
+    return icons
+      .map((row) => ({ ...row, rank: rankMatch(row, needle) }))
+      .filter((row) => row.rank < 99)
+      .sort((a, b) => a.rank - b.rank || a.key.localeCompare(b.key))
+      .slice(0, MAX_SUGGESTIONS)
   }, [icons, query])
 
-  function selectIcon(row) { setSelected(row); setQuery(row.key); setFile(null); setNotice(''); setError(null) }
+  function selectIcon(row) {
+    setSelected(row)
+    setQuery(row.key)
+    setFile(null)
+    setNotice('')
+    setError(null)
+  }
+
+  function startNewSearch(value) {
+    setQuery(value)
+    setSelected(null)
+    setNotice('')
+    setError(null)
+  }
 
   async function handleUpload(event) {
     event.preventDefault()
@@ -54,8 +82,20 @@ export default function IconManagement() {
     <div className="admin-management" style={{ display: 'grid', gap: '1rem' }}>
       <section className="ui-state">
         <div className="section-heading" style={{ marginBottom: '.8rem' }}><div><p className="section-kicker">Icon Management</p><h1>Key অনুযায়ী Icon Upload</h1><p style={{ margin: '.35rem 0 0', color: 'var(--color-muted)' }}>Key Management-এর মতো key খুঁজে নির্বাচন করুন, তারপর সেই key-এর জন্য SVG/PNG/WebP icon আপলোড করুন।</p></div></div>
-        <label htmlFor="icon-key-search" style={{ display: 'grid', gap: '.4rem' }}><span>Key খোঁজ</span><input id="icon-key-search" className="ui-input" type="search" value={query} onChange={(e) => { setQuery(e.target.value); setSelected(null); setNotice(''); setError(null) }} placeholder="Key name" autoComplete="off" /></label>
-        {normalize(query) && !selected && <div style={{ display: 'grid', gap: '.45rem', marginTop: '.65rem' }}>{suggestions.length ? suggestions.map((row) => <button key={row.key} type="button" className="ui-button ui-button--secondary" onClick={() => selectIcon(row)} style={{ display: 'grid', gridTemplateColumns: 'minmax(8rem,1fr) minmax(6rem,auto)', gap: '.65rem', textAlign: 'left', alignItems: 'center' }}><strong>{row.key}</strong><span>{row.status || 'pending'}</span></button>) : <div className="ui-empty">কোনো matching key পাওয়া যায়নি।</div>}</div>}
+        <label htmlFor="icon-key-search" style={{ display: 'grid', gap: '.4rem' }}>
+          <span>Key খোঁজ</span>
+          <input id="icon-key-search" className="ui-input" type="search" value={query} onChange={(event) => startNewSearch(event.target.value)} placeholder="Key name" autoComplete="off" aria-controls="icon-key-suggestions" aria-autocomplete="list" />
+        </label>
+        {normalize(query) && !selected && (
+          <div id="icon-key-suggestions" role="listbox" aria-label="মিল পাওয়া key" style={{ display: 'grid', gap: '.45rem', marginTop: '.65rem' }}>
+            {suggestions.length ? suggestions.map((row) => (
+              <button key={row.key} type="button" role="option" className="ui-button ui-button--secondary" onClick={() => selectIcon(row)} style={{ display: 'grid', gridTemplateColumns: 'minmax(8rem,1fr) minmax(6rem,auto)', gap: '.65rem', textAlign: 'left', alignItems: 'center' }}>
+                <strong>{row.key}</strong>
+                <span>{row.status || 'pending'}</span>
+              </button>
+            )) : <div className="ui-empty">কোনো matching key পাওয়া যায়নি।</div>}
+          </div>
+        )}
       </section>
 
       {selected && <section className="ui-state"><div className="section-heading" style={{ marginBottom: '.8rem' }}><div><p className="section-kicker">Selected Key</p><h2>{selected.key}</h2></div></div>
