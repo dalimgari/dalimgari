@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ROUTES, appPath } from '../../lib/routes'
 import { usePreferences } from '../../context/PreferencesContext'
+import { LANGUAGES, THEMES } from '../../config/preferences'
 import KeyIcon from '../ui/KeyIcon'
 import { useGlobalLabels } from '../../context'
 
@@ -55,12 +56,12 @@ export default function Navigation({ items = [] }) {
           <a className="site-nav__link site-nav__profile" href={appPath(ROUTES.profile)} onClick={() => setOpen(false)}>
             <KeyIcon iconKey="profile" /><span>{t('profile', 'প্রোফাইল', 'Profile')}</span>
           </a>
-          <button className="site-nav__control" type="button" onClick={() => setThemePreference(theme === 'dark' ? 'light' : 'dark')} aria-label={t('theme', 'থিম পরিবর্তন', 'Change theme')}>
+          <button className="site-nav__control" type="button" onClick={() => setThemePreference(theme === THEMES.dark ? THEMES.light : THEMES.dark)} aria-label={t('theme', 'থিম পরিবর্তন', 'Change theme')}>
             <KeyIcon iconKey="theme" />
-            <span>{theme === 'dark' ? t('day', 'আলো', 'Day') : t('night', 'রাত', 'Night')}</span>
+            <span>{theme === THEMES.dark ? t('day', 'আলো', 'Day') : t('night', 'রাত', 'Night')}</span>
           </button>
-          <button className="site-nav__control" type="button" onClick={() => setLanguagePreference(language === 'bng' ? 'eng' : 'bng')} aria-label={t('language', 'ভাষা পরিবর্তন', 'Change language')}>
-            <KeyIcon iconKey="language" /><span>{language === 'bng' ? t('english', 'English', 'English') : t('bengali', 'বাংলা', 'Bengali')}</span>
+          <button className="site-nav__control" type="button" onClick={() => setLanguagePreference(language === LANGUAGES.bengali ? LANGUAGES.english : LANGUAGES.bengali)} aria-label={t('language', 'ভাষা পরিবর্তন', 'Change language')}>
+            <KeyIcon iconKey="language" /><span>{language === LANGUAGES.bengali ? t('english', 'English', 'English') : t('bengali', 'বাংলা', 'Bengali')}</span>
           </button>
         </div>
       </div>
