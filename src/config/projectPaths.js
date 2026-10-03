@@ -40,8 +40,8 @@ export const PROJECT_PATHS = Object.freeze({
 
   components: {
     ui: {
-      profileAvatar: 'src/components/ui/ProfileAvatar.jsx',
-      mediaContent: 'src/components/ui/MediaContent.jsx',
+      profileAvatar: 'src/components/global components/profile-avatar/ProfileAvatar.jsx',
+      mediaContent: 'src/components/global components/media-content/MediaContent.jsx',
     },
     auth: {
       adminRoute: 'src/components/auth/AdminRoute.jsx',
