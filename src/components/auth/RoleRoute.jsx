@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { ROUTES, appPath } from '../../lib/routes'
 import { useAuth } from '../../context'
 import { getCurrentRole } from '../../services/roleService'
 import Skeleton from '../ui/Skeleton'
@@ -15,7 +16,7 @@ export default function RoleRoute() {
     if (status !== 'ready') return undefined
 
     if (!user) {
-      window.location.replace((import.meta.env.BASE_URL || '/') + 'login')
+      window.location.replace(appPath(ROUTES.login))
       return undefined
     }
 
