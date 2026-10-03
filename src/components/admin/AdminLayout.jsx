@@ -11,6 +11,7 @@ const adminNavItems = [
   { key: 'sidebar_management', path: '/manage/sidebar', permission: 'sidebar_manage' },
   { key: 'website_information', path: '/manage/website-information', permission: 'settings_manage' },
   { key: 'key_label_rename', path: '/manage/key-labels', permission: 'settings_manage' },
+  { key: 'translation_overrides', path: '/manage/translation-overrides', permission: 'settings_manage' },
   { key: 'icon_management', path: '/manage/icons', permission: 'settings_manage' },
   { key: 'pages', path: '/manage/pages', permission: 'content_manage' },
   { key: 'posts', path: '/manage/posts', permission: 'content_manage' },
@@ -24,7 +25,7 @@ const adminNavItems = [
 ]
 
 const ADMIN_LABELS = {
-  dashboard: ['ড্যাশবোর্ড', 'Dashboard'], homepage_management: ['হোমপেজ ম্যানেজমেন্ট', 'Homepage Management'], sidebar_management: ['সাইডবার ম্যানেজমেন্ট', 'Sidebar Management'], website_information: ['ওয়েবসাইট তথ্য', 'Website Information'], key_label_rename: ['Key Label Rename', 'Key Label Rename'], icon_management: ['আইকন ব্যবস্থাপনা', 'Icon Management'], pages: ['পেজসমূহ', 'Pages'], posts: ['পোস্ট', 'Posts'], albums: ['অ্যালবাম', 'Albums'], media: ['মিডিয়া', 'Media'], database_storage: ['ডাটাবেজ ও স্টোরেজ', 'Database & Storage'], users: ['ইউজার', 'Users'], access: ['অ্যাক্সেস', 'Access'], audit: ['অডিট', 'Audit Logs'], analytics: ['পরিসংখ্যান', 'Analytics'],
+  dashboard: ['ড্যাশবোর্ড', 'Dashboard'], homepage_management: ['হোমপেজ ম্যানেজমেন্ট', 'Homepage Management'], sidebar_management: ['সাইডবার ম্যানেজমেন্ট', 'Sidebar Management'], website_information: ['ওয়েবসাইট তথ্য', 'Website Information'], key_label_rename: ['কী লেবেল', 'Key Labels'], translation_overrides: ['অনুবাদ ব্যবস্থাপনা', 'Translation Overrides'], icon_management: ['আইকন ব্যবস্থাপনা', 'Icon Management'], pages: ['পেজসমূহ', 'Pages'], posts: ['পোস্ট', 'Posts'], albums: ['অ্যালবাম', 'Albums'], media: ['মিডিয়া', 'Media'], database_storage: ['ডাটাবেজ ও স্টোরেজ', 'Database & Storage'], users: ['ইউজার', 'Users'], access: ['অ্যাক্সেস', 'Access'], audit: ['অডিট', 'Audit Logs'], analytics: ['পরিসংখ্যান', 'Analytics'],
 }
 function navigate(path) { const target=appPath(path); if(window.location.pathname===target)return; window.history.pushState({},'',target); window.dispatchEvent(new Event('app:navigate')) }
 export default function AdminLayout({ user, title, children }) {

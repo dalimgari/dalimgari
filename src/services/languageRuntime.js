@@ -1,9 +1,11 @@
+import { loadTranslationOverrides } from './translationOverrideService'
 const translationCache = new Map()
 const pendingTranslations = new Map()
 const translatedNodes = new WeakMap()
 const translatedAttributes = new WeakMap()
 let originalDocumentTitle = null
 let translatedDocumentTitle = null
+let translationOverrides = new Map()
 
 function normalize(value) {
   return String(value ?? '').replace(/\s+/g, ' ').trim()
@@ -33,6 +35,49 @@ export async function translateText(value, source, target) {
 
   pendingTranslations.set(key, promise)
   return promise
+}
+
+
+function sortedOverrides() {
+  return [...translationOverrides.entries()].sort((a, b) => b[0].length - a[0].length)
+}
+
+async function translateWithOverrides(value) {
+  const sourceText = String(value ?? '')
+  const normalizedSource = normalize(sourceText)
+  if (!normalizedSource) return normalizedSource
+
+  const exact = translationOverrides.get(normalizedSource)
+  if (exact) return exact
+
+  const entries = sortedOverrides()
+  if (!entries.length) return translateText(sourceText, 'bn', 'en')
+
+  const chunks = []
+  let cursor = 0
+  let index = 0
+
+  while (index < sourceText.length) {
+    let match = null
+    for (const [source, english] of entries) {
+      if (sourceText.startsWith(source, index)) {
+        match = { source, english }
+        break
+      }
+    }
+    if (match) {
+      if (index > cursor) chunks.push(translateText(sourceText.slice(cursor, index), 'bn', 'en'))
+      chunks.push(Promise.resolve(match.english))
+      index += match.source.length
+      cursor = index
+      continue
+    }
+    index += 1
+  }
+
+  if (cursor === 0) return translateText(sourceText, 'bn', 'en')
+  if (cursor < sourceText.length) chunks.push(translateText(sourceText.slice(cursor), 'bn', 'en'))
+  return (await Promise.all(chunks)).join('')
 }
 
 function shouldSkipElement(element) {
@@ -71,7 +116,7 @@ async function translateNode(node) {
   if (previous && previous.translated === current) return
 
   const source = previous && previous.source !== current ? current : (previous?.source || current)
-  const translated = await translateText(source, 'bn', 'en')
+  const translated = await translateWithOverrides(source)
   if (normalize(node.nodeValue) !== source) return
 
   translatedNodes.set(node, { source, translated })
@@ -96,7 +141,7 @@ async function translateElementAttributes(element) {
     if (previous?.translated === current) continue
 
     const source = previous?.source && previous.translated !== current ? current : (previous?.source || current)
-    const translated = await translateText(source, 'bn', 'en')
+    const translated = await translateWithOverrides(source)
     if (normalize(element.getAttribute(name)) !== source) continue
 
     record.set(name, { source, translated })
@@ -106,6 +151,12 @@ async function translateElementAttributes(element) {
 
 async function translateDocument(root = document.body) {
   if (!root) return
+  try {
+    translationOverrides = await loadTranslationOverrides()
+  } catch {
+    translationOverrides = new Map()
+  }
+
   const nodes = getTextNodes(root)
   const elements = [root, ...root.querySelectorAll?.('*') || []]
   const uniqueElements = elements.filter((element) => !shouldSkipElement(element))
@@ -121,7 +172,7 @@ async function translateDocument(root = document.body) {
     const title = normalize(document.title)
     if (title && !originalDocumentTitle) originalDocumentTitle = title
     if (title && title !== translatedDocumentTitle) {
-      const translated = await translateText(title, 'bn', 'en')
+      const translated = await translateWithOverrides(title)
       if (normalize(document.title) === title) {
         translatedDocumentTitle = translated
         document.title = translated
