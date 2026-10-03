@@ -1,7 +1,7 @@
 import { appPath } from '../../lib/routes'
 import { useMemo, useState } from 'react'
 import { MediaContent } from '../ui'
-import MediaViewer from '../ui/MediaViewer'
+import MediaViewer from '../global components/media-viewer/MediaViewer'
 
 function mediaKind(media) {
   if (media?.mime_type?.startsWith('image/') || media?.media_type === 'image') return 'image'
