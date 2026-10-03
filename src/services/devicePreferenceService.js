@@ -41,8 +41,8 @@ export function setLanguagePreference(value) {
 
 export function getDeviceClass() {
   const width = window.innerWidth
-  if (width <= DEVICE_BREAKPOINTS.mobileMax) return 'mobile'
-  if (width <= DEVICE_BREAKPOINTS.tabletMax) return 'tablet'
+  if (width < DEVICE_BREAKPOINTS.mobileBreakpoint) return 'mobile'
+  if (width < DEVICE_BREAKPOINTS.tabletBreakpoint) return 'tablet'
   return 'desktop'
 }
 
