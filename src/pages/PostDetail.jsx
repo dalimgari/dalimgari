@@ -3,7 +3,7 @@ import { Layout } from '../components/layout'
 import { Loading, EmptyState, ErrorState, MediaContent } from '../components/ui'
 import { getPublishedPostById } from '../services/postService'
 import { appPath } from '../lib/routes'
-import MediaViewer from '../components/ui/MediaViewer'
+import MediaViewer from '../components/global components/media-viewer/MediaViewer'
 
 export default function PostDetail({ postId }) {
   const [post, setPost] = useState(null)
