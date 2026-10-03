@@ -4,18 +4,17 @@ import { getThemeSettings, updateThemeSettings } from '../../services/themeServi
 import { createAuditLog } from '../../services/auditService'
 
 const FIELDS = [
-  ['icons','set','আইকন সেট'],['icons','color','আইকনের রঙ'],['icons','size','আইকনের আকার'],['icons','strokeWidth','আইকনের রেখার পুরুত্ব'],['icons','opacity','আইকনের স্বচ্ছতা'],
-  ['colors','earth','মাটি'],['colors','earthDark','গাঢ় মাটি'],['colors','leaf','পাতা'],['colors','leafDark','গাঢ় পাতা'],
-  ['colors','paddy','ধান'],['colors','field','মাঠ'],['colors','water','পানি'],['colors','clay','কাদা'],['colors','sun','রোদ'],
-  ['colors','surface','কার্ড/পৃষ্ঠ'],['colors','surfaceSoft','হালকা পৃষ্ঠ'],['colors','text','লেখা'],['colors','muted','ম্লান লেখা'],
-  ['colors','border','সীমানা'],['colors','focus','ফোকাস'],['colors','shadow','সাধারণ ছায়া'],['colors','header','হেডার'],
-  ['colors','footer','ফুটার'],['colors','input','ইনপুট'],['colors','hover','হোভার'],
+  ['typography','headingFont','শিরোনাম Font Style'],['typography','bodyFont','মূল লেখার Font Style'],['typography','headingSize','শিরোনামের আকার'],['typography','bodySize','মূল লেখার আকার'],['typography','headingWeight','শিরোনাম ওজন'],['typography','bodyWeight','মূল লেখা ওজন'],['typography','lineHeight','লাইন উচ্চতা'],['typography','letterSpacing','Letter Spacing'],
+  ['colors','primary','Primary Color'],['colors','secondary','Secondary Color'],['colors','accent','Accent Color'],['colors','text','Font Color'],['colors','heading','Heading Font Color'],['colors','muted','Muted Font Color'],['colors','background','Background Color'],['colors','surface','Surface Color'],['colors','surfaceSoft','Soft Surface Color'],['colors','border','Border Color'],['colors','focus','Focus Color'],['colors','hover','Hover Color'],
   ['states','success','সফল'],['states','warning','সতর্কতা'],['states','error','ত্রুটি'],['states','info','তথ্য'],
-  ['interaction','hoverOpacity','হোভার স্বচ্ছতা'],['interaction','activeOpacity','অ্যাক্টিভ স্বচ্ছতা'],['interaction','disabledOpacity','নিষ্ক্রিয় স্বচ্ছতা'],
-  ['shape','radius','সাধারণ কোণা'],['shape','buttonRadius','বাটন কোণা'],['shape','borderWidth','সীমানার পুরুত্ব'],
-  ['shadow','card','কার্ড ছায়া'],['shadow','dropdown','ড্রপডাউন ছায়া'],['shadow','modal','মডাল ছায়া'],
-  ['typography','headingWeight','শিরোনাম ওজন'],['typography','bodyWeight','মূল লেখা ওজন'],['typography','lineHeight','লাইন উচ্চতা'],
-  ['scrollbar','thumb','স্ক্রলবার অংশ'],['scrollbar','track','স্ক্রলবার পটভূমি']
+  ['shape','radius','Border Radius'],['shape','buttonRadius','Button Radius'],['shape','borderWidth','Border Width'],
+  ['shadow','card','Card Shadow'],['shadow','dropdown','Dropdown Shadow'],['shadow','modal','Modal Shadow'],['shadow','strength','Shadow Strength'],
+  ['effects','transparency','Transparency'],['effects','blur','Blur'],['effects','waterDrop','Water-Drop Effect'],['effects','waterDropOpacity','Water-Drop Opacity'],['effects','hover','Hover Effect'],['effects','transition','Transition/Animation'],
+  ['components','button','Button Style'],['components','input','Input Style'],['components','card','Card Style'],['components','navigation','Navigation Style'],
+  ['background','wallpaper','Wallpaper / Background'],['background','position','Background Position'],['background','size','Background Size'],['background','overlay','Background Overlay'],
+  ['icons','set','Icon Style / Set'],['icons','color','Icon Color'],['icons','size','Icon Size'],['icons','strokeWidth','Icon Stroke Width'],['icons','opacity','Icon Opacity'],
+  ['spacing','density','Spacing Density'],
+  ['scrollbar','thumb','Scrollbar Thumb'],['scrollbar','track','Scrollbar Track'],
 ]
 
 const emptyTheme = () => FIELDS.reduce((theme,[group,key]) => {
@@ -27,7 +26,6 @@ const emptyTheme = () => FIELDS.reduce((theme,[group,key]) => {
 function normalize(theme) {
   const result = emptyTheme()
   for (const [group,key] of FIELDS) result[group][key] = theme?.[group]?.[key] ?? ''
-  result.wallpaper = theme?.wallpaper ?? ''
   return result
 }
 
@@ -35,7 +33,6 @@ function ThemeMode({ title, values, onChange, disabled }) {
   return <section className="admin-form">
     <h3>{title}</h3>
     <div className="content-grid">
-      <Input id={title+'-wallpaper'} label="ওয়ালপেপার" name="wallpaper" type="url" value={values.wallpaper ?? ''} onChange={(event) => onChange('wallpaper',event.target.value)} disabled={disabled} placeholder="/assets/rural-bengal-wallpaper.svg" />
       {FIELDS.map(([group,key,label]) => (
         <Input key={group+'-'+key} id={title+'-'+group+'-'+key} label={label} name={key} value={values[group]?.[key] ?? ''} onChange={(event) => onChange(group,key,event.target.value)} disabled={disabled} />
       ))}
@@ -47,6 +44,7 @@ export default function ThemeSettingsPanel() {
   const [values,setValues] = useState({day:emptyTheme(),night:emptyTheme()})
   const [ready,setReady] = useState(false)
   const [status,setStatus] = useState('idle')
+  const [activeVisualTheme,setActiveVisualTheme] = useState('classic')
   const [error,setError] = useState(null)
 
   useEffect(() => {
@@ -54,6 +52,7 @@ export default function ThemeSettingsPanel() {
     getThemeSettings().then((data) => {
       if (!active) return
       setValues({day:normalize(data?.day),night:normalize(data?.night)})
+      setActiveVisualTheme(data?.active_visual_theme === 'glass' ? 'glass' : 'classic')
       setReady(true)
     }).catch((requestError) => { if (active) { setError(requestError); setReady(true) } })
     return () => { active = false }
@@ -78,6 +77,7 @@ export default function ThemeSettingsPanel() {
     try {
       const saved = await updateThemeSettings(values)
       setValues({day:normalize(saved.day),night:normalize(saved.night)})
+      setActiveVisualTheme(saved.active_visual_theme === 'glass' ? 'glass' : 'classic')
       await createAuditLog({actionKey:'update',module:'theme_settings',recordId:saved.theme_settings_id,details:{modes:['day','night'],fields:FIELDS.length+1}})
       setStatus('success')
     } catch (requestError) {
@@ -89,7 +89,15 @@ export default function ThemeSettingsPanel() {
   if (!ready) return null
   return <form onSubmit={save}>
     <div className="admin-form__section">
-      <h2>থিমের সাজ</h2>
+      <h2>Theme Management</h2>
+      <p className="admin-intro">সক্রিয় visual theme নির্বাচন করুন এবং প্রতিটি theme-এর typography, color, component, effect, background, icon ও spacing token কেন্দ্রীয়ভাবে নিয়ন্ত্রণ করুন।</p>
+      <div className="admin-form">
+        <h3>Theme Preset</h3>
+        <div className="content-grid">
+          <Button type="button" variant="secondary" disabled={status==='loading'} onClick={async()=>{try{await window.__dalimgariSetVisualTheme?.('classic')}catch{}}}>Classic Theme</Button>
+          <Button type="button" disabled={status==='loading'} onClick={async()=>{try{await window.__dalimgariSetVisualTheme?.('glass')}catch{}}}>Glass + Water-Drop Theme</Button>
+        </div>
+      </div>
       <p className="admin-intro">ডে ও নাইটের প্রতিটি রঙ, ওয়ালপেপার, অবস্থা, ইন্টার‌্যাকশন, আকার, ছায়া, লেখা ও স্ক্রলবার আলাদাভাবে নিয়ন্ত্রণ করুন।</p>
       <ThemeMode title="ডে থিম" values={values.day} onChange={(group,key,value)=>group==='wallpaper'?changeWallpaper('day',key):change('day',group,key,value)} disabled={status==='loading'} />
       <ThemeMode title="নাইট থিম" values={values.night} onChange={(group,key,value)=>group==='wallpaper'?changeWallpaper('night',key):change('night',group,key,value)} disabled={status==='loading'} />
