@@ -11,7 +11,7 @@ export default function Banner({ siteName, slogan, imageUrl = HERO_BANNER_URL })
   return (
     <section className="home-banner" aria-labelledby="home-banner-title" style={bannerStyle}>
       <div className="site-container home-banner__content">
-        {siteName ? <h1 id="home-banner-title" data-translation-override-only="true">{siteName}</h1> : null}
+        {siteName ? <h1 id="home-banner-title">{siteName}</h1> : null}
         {slogan ? <p>{slogan}</p> : null}
       </div>
     </section>
