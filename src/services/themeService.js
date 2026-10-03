@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase'
 import { getSavedVisualTheme, setSavedVisualTheme } from './devicePreferenceService'
+import { getSavedVisualTheme, setSavedVisualTheme } from './devicePreferenceService'
 
 const DEFAULT_THEME = {
   wallpaper: '',
