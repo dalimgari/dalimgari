@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Layout } from '../../components/layout'
-import { Loading, EmptyState, ErrorState, MediaContent } from '../../components/ui'
-import { listVisibleAlbums } from '../../services/albumService'
-import { listVisibleMedia } from '../../services/mediaService'
-import MediaViewer from '../../components/ui/MediaViewer'
+import { Layout } from '../components/layout'
+import { Loading, EmptyState, ErrorState, MediaContent } from '../components/ui'
+import { listVisibleAlbums } from '../services/albumService'
+import { listVisibleMedia } from '../services/mediaService'
+import MediaViewer from '../components/ui/MediaViewer'
 
 export default function Albums() {
   const [albums, setAlbums] = useState([])
