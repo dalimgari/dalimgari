@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Layout } from '../../components/layout'
-import { Loading, EmptyState, ErrorState } from '../../components/ui'
-import { getPublishedPageBySlug } from '../../services/pageService'
-import { appPath } from '../../lib/routes'
+import { Layout } from '../components/layout'
+import { Loading, EmptyState, ErrorState } from '../components/ui'
+import { getPublishedPageBySlug } from '../services/pageService'
+import { appPath } from '../lib/routes'
 
 function ContentBlocks({ content }) {
   const blocks = String(content || '')
