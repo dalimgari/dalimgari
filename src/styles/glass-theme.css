@@ -1,0 +1,215 @@
+/* Global Glass + Water-Drop visual system
+   Feature owns behavior. Context owns placement. Global System owns visual primitives. */
+:root {
+  --glass-surface: rgb(255 255 255 / .16);
+  --glass-surface-strong: rgb(255 255 255 / .22);
+  --glass-surface-soft: rgb(255 255 255 / .11);
+  --glass-border: rgb(255 255 255 / .38);
+  --glass-highlight: rgb(255 255 255 / .52);
+  --glass-shadow: 0 10px 34px rgb(20 30 28 / .14);
+  --glass-shadow-soft: 0 5px 20px rgb(20 30 28 / .10);
+  --glass-blur: 18px;
+  --glass-saturation: 135%;
+  --glass-radius: 1rem;
+  --glass-drop-radius: 1.35rem;
+  --glass-transition: background .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+:root[data-theme=dark] {
+  --glass-surface: rgb(20 28 24 / .30);
+  --glass-surface-strong: rgb(25 35 30 / .42);
+  --glass-surface-soft: rgb(20 28 24 / .22);
+  --glass-border: rgb(255 255 255 / .18);
+  --glass-highlight: rgb(255 255 255 / .24);
+  --glass-shadow: 0 12px 38px rgb(0 0 0 / .30);
+  --glass-shadow-soft: 0 6px 22px rgb(0 0 0 / .22);
+}
+
+/* Shared glass surfaces. */
+.site-header,
+.rural-sidebar,
+.admin-header,
+.admin-sidebar,
+.content-card,
+.info-card,
+.admin-form,
+.ui-card,
+.ui-state,
+.ui-display-field,
+.login-card,
+.media-card,
+.gallery-empty,
+.rural-sidebar__card,
+.admin-dashboard-module,
+.home-page-card,
+.search-feature__suggestions,
+.header-search__results,
+.site-footer {
+  background:
+    linear-gradient(135deg, rgb(255 255 255 / .10), transparent 42%),
+    var(--glass-surface);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-shadow-soft);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+}
+
+/* Liquid/water-drop highlight: a restrained curved specular layer. */
+.content-card,
+.info-card,
+.ui-card,
+.ui-state,
+.login-card,
+.media-card,
+.home-page-card,
+.admin-dashboard-module,
+.rural-sidebar__card {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--glass-radius);
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    inset 0 -1px 0 rgb(255 255 255 / .08),
+    var(--glass-shadow-soft);
+  transition: var(--glass-transition);
+}
+.content-card::after,
+.info-card::after,
+.ui-card::after,
+.ui-state::after,
+.login-card::after,
+.media-card::after,
+.home-page-card::after,
+.admin-dashboard-module::after,
+.rural-sidebar__card::after {
+  content: "";
+  position: absolute;
+  width: 8rem;
+  height: 3.5rem;
+  top: -.9rem;
+  right: 8%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgb(255 255 255 / .22), transparent 68%);
+  filter: blur(5px);
+  pointer-events: none;
+  opacity: .75;
+}
+.content-card:hover,
+.info-card:hover,
+.ui-card:hover,
+.home-page-card:hover,
+.admin-dashboard-module:hover,
+.rural-sidebar__card:hover {
+  border-color: rgb(255 255 255 / .48);
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    0 14px 40px rgb(20 30 28 / .17);
+}
+
+/* Glass controls. */
+button:not(.media-card__button),
+.ui-button,
+.site-header__action,
+.site-nav__toggle,
+.site-nav__control,
+.admin-sidebar-toggle,
+.rural-sidebar__home,
+.home-topic-tab,
+.gallery-tab,
+.drag-reorder__item,
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+select,
+textarea,
+.ui-display-field {
+  background:
+    linear-gradient(135deg, rgb(255 255 255 / .12), transparent 55%),
+    var(--glass-surface-soft);
+  border-color: var(--glass-border);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .28), var(--glass-shadow-soft);
+  backdrop-filter: blur(14px) saturate(130%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+  transition: var(--glass-transition);
+}
+.ui-button {
+  background:
+    linear-gradient(135deg, rgb(255 255 255 / .18), transparent 55%),
+    var(--glass-surface-strong);
+  color: var(--ui-control-text-primary, #fffaf0);
+}
+.ui-button--secondary,
+.ui-button--ghost {
+  color: var(--ui-control-text, var(--theme-earthDark, var(--color-earth-dark)));
+}
+button:not(.media-card__button):hover:not(:disabled),
+.site-header__action:hover,
+.ui-button--secondary:hover:not(:disabled),
+.ui-button--ghost:hover:not(:disabled),
+.home-topic-tab:hover,
+.gallery-tab:hover,
+.drag-reorder__item:hover {
+  background:
+    linear-gradient(135deg, rgb(255 255 255 / .20), transparent 55%),
+    var(--glass-surface-strong);
+  border-color: rgb(255 255 255 / .48);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .34), 0 8px 24px rgb(20 30 28 / .14);
+}
+
+/* Header/sidebar retain their placement and layering while adopting the glass shell. */
+.site-header,
+.admin-header {
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / .18), transparent),
+    var(--glass-surface-strong);
+  box-shadow: 0 8px 30px rgb(20 30 28 / .12);
+}
+.rural-sidebar,
+.admin-sidebar {
+  background:
+    linear-gradient(135deg, rgb(255 255 255 / .14), transparent 55%),
+    var(--glass-surface-strong);
+}
+
+/* Keep inputs legible and prevent the glass layer from becoming visually noisy. */
+input::placeholder,
+textarea::placeholder { opacity: .72; }
+.ui-field input:focus,
+.ui-field textarea:focus,
+.ui-field select:focus,
+.ui-input:focus,
+.ui-textarea:focus,
+.ui-select:focus {
+  background:
+    linear-gradient(135deg, rgb(255 255 255 / .18), transparent 55%),
+    var(--glass-surface-strong);
+  border-color: var(--theme-focus, var(--color-focus));
+}
+
+/* Native backdrop-filter fallback: retain translucency without blur. */
+@supports not ((backdrop-filter: blur(1px))) {
+  .site-header,.rural-sidebar,.admin-header,.admin-sidebar,
+  .content-card,.info-card,.admin-form,.ui-card,.ui-state,
+  .ui-display-field,.login-card,.media-card,.gallery-empty,
+  .rural-sidebar__card,.admin-dashboard-module,.home-page-card,
+  .search-feature__suggestions,.header-search__results,.site-footer,
+  button:not(.media-card__button),.ui-button,.site-header__action,
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,textarea { background: var(--glass-surface-strong); }
+}
+
+@media (max-width: 760px) {
+  :root { --glass-blur: 13px; }
+  .content-card::after,
+  .info-card::after,
+  .ui-card::after,
+  .ui-state::after,
+  .login-card::after,
+  .media-card::after,
+  .home-page-card::after,
+  .admin-dashboard-module::after,
+  .rural-sidebar__card::after { opacity: .55; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content-card,.info-card,.ui-card,.ui-state,.login-card,.media-card,
+  .home-page-card,.admin-dashboard-module,.rural-sidebar__card,
+  button:not(.media-card__button),.ui-button,.site-header__action { transition: none; }
+}
