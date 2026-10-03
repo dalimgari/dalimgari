@@ -1,1 +1,1 @@
-export { default } from '../023-Village Information/Information'
+export { default } from '../Village Information/Information'
