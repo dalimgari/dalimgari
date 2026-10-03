@@ -2,9 +2,10 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { applyTheme, getDeviceClass, getLanguagePreference, getThemePreference, resolveTheme, setLanguagePreference as saveLanguagePreference, setThemePreference, subscribeToSystemTheme } from '../services/devicePreferenceService'
 import { getGlobalLabels } from '../services/globalLabelService'
 import { observeLanguageDocument } from '../services/languageRuntime'
+import { LANGUAGES } from '../config/preferences'
 
 const PreferencesContext = createContext(null)
-const DEFAULT_LANGUAGE = 'bng'
+const DEFAULT_LANGUAGE = LANGUAGES.bengali
 
 export function PreferencesProvider({ children }) {
   const [themePreference, setThemeState] = useState(() => getThemePreference())
