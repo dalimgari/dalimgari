@@ -66,7 +66,7 @@ describe('project smoke tests', () => {
     assert.match(guard, /hasPermission\(permission\)/)
     assert.match(permissionService, /current_user_has_permission/)
     assert.match(permissionService, /current_user_has_admin_access/)
-    assert.match(guard, /window\.location\.replace\(appPath\('\/access-denied'\)\)/)
+    assert.match(guard, /window\.location\.replace\(appPath\(ROUTES\.accessDenied\)\)/)
   })
 
   it('keeps storage hardening reproducible in migrations', async () => {
