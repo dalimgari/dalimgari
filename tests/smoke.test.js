@@ -1,5 +1,6 @@
 import PROJECT_PATHS from '../src/config/projectPaths.js'
 import { ROUTES, PERMISSIONS } from '../src/lib/routes.js'
+import { MANAGEMENT_ROUTE_DEFINITIONS } from '../src/config/routeDefinitions.js'
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
@@ -20,6 +21,8 @@ describe('project smoke tests', () => {
     assert.equal(ROUTES.search, '/search')
     assert.equal(ROUTES.manage.media, '/manage/media')
     assert.equal(PERMISSIONS.mediaManage, 'media_manage')
+    assert.ok(MANAGEMENT_ROUTE_DEFINITIONS.length > 0)
+    assert.ok(MANAGEMENT_ROUTE_DEFINITIONS.every((definition) => definition.path && definition.permission && definition.labelKey))
   })
 
   it('keeps the build and test scripts defined', async () => {
@@ -53,8 +56,11 @@ describe('project smoke tests', () => {
     assert.match(app, /import AdminRoute from ['"]\.\/components\/auth\/AdminRoute['"]/) 
     assert.match(app, /if\s*\(path\s*===\s*ROUTES\.dashboard\)\s*page\s*=\s*<RoleRoute\s*\/>/)
     assert.match(app, /else if \(management\) \{[\s\S]*AdminRoute/)
-    for (const permission of ['contentManage', 'mediaManage', 'userManage', 'auditView', 'settingsManage']) {
-      assert.match(app, new RegExp(`PERMISSIONS\\.${permission}`))
+    const definitions = await read(PROJECT_PATHS.app.routeDefinitions)
+    assert.match(definitions, /MANAGEMENT_ROUTE_DEFINITIONS/)
+    for (const definition of MANAGEMENT_ROUTE_DEFINITIONS) {
+      assert.ok(definition.permission)
+      assert.ok(definition.path)
     }
   })
 
