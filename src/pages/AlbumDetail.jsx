@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Layout } from '../components/layout'
 import { Loading, EmptyState, ErrorState, MediaContent } from '../components/ui'
-import MediaViewer from '../components/ui/MediaViewer'
+import MediaViewer from '../components/global components/media-viewer/MediaViewer'
 import { getVisibleAlbumByKey } from '../services/albumService'
 import { listVisibleMedia } from '../services/mediaService'
 import { appPath } from '../lib/routes'
