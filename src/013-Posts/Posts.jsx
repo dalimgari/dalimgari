@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Layout } from '../../components/layout'
-import { Loading, EmptyState, ErrorState } from '../../components/ui'
-import { listPublishedPosts } from '../../services/postService'
-import { appPath } from '../../lib/routes'
+import { Layout } from '../components/layout'
+import { Loading, EmptyState, ErrorState } from '../components/ui'
+import { listPublishedPosts } from '../services/postService'
+import { appPath } from '../lib/routes'
 
 export default function Posts() {
   const [posts, setPosts] = useState([])
