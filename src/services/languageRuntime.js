@@ -2,6 +2,8 @@ const translationCache = new Map()
 const pendingTranslations = new Map()
 const translatedNodes = new WeakMap()
 const translatedAttributes = new WeakMap()
+let originalDocumentTitle = null
+let translatedDocumentTitle = null
 
 function normalize(value) {
   return String(value ?? '').replace(/\s+/g, ' ').trim()
@@ -117,9 +119,13 @@ async function translateDocument(root = document.body) {
 
   if (root === document.body) {
     const title = normalize(document.title)
-    if (title && !document.title.__dalimgariTranslated) {
+    if (title && !originalDocumentTitle) originalDocumentTitle = title
+    if (title && title !== translatedDocumentTitle) {
       const translated = await translateText(title, 'bn', 'en')
-      document.title = translated
+      if (normalize(document.title) === title) {
+        translatedDocumentTitle = translated
+        document.title = translated
+      }
     }
   }
 }
@@ -140,6 +146,12 @@ function restoreDocument(root = document.body) {
       if (normalize(element.getAttribute(name)) === translated) element.setAttribute(name, source)
     })
   })
+
+  if (root === document.body && originalDocumentTitle) {
+    if (normalize(document.title) === translatedDocumentTitle) document.title = originalDocumentTitle
+    translatedDocumentTitle = null
+    originalDocumentTitle = null
+  }
 }
 
 export function applyLanguageToDocument(language = 'bng') {
