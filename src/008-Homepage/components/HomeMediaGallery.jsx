@@ -1,6 +1,6 @@
-import { appPath } from '../../../lib/routes'
+import { appPath } from '../../lib/routes'
 import { useMemo, useState } from 'react'
-import { MediaContent } from '../../../components/ui'
+import { MediaContent } from '../../components/ui'
 import MediaViewer from '../ui/MediaViewer'
 
 function mediaKind(media) {
