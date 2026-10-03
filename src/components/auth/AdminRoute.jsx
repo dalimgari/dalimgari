@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../../context'
 import { hasPermission, canAccessRoute, hasAdminAccess } from '../../services/permissionService'
 import { ROUTES, PERMISSIONS, appPath } from '../../lib/routes'
-import Skeleton from '../ui/Skeleton'
+import Skeleton from '../global components/skeleton/Skeleton'
 
 function currentNextPath() {
   return window.location.pathname + (window.location.search || '') + (window.location.hash || '')
