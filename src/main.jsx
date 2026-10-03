@@ -13,7 +13,10 @@ import { initHorizontalAutoScroll } from './lib/horizontalAutoScroll.js'
 
 initHorizontalAutoScroll()
 
-createRoot(document.getElementById('root')).render(
+const rootElement = document.getElementById('root')
+if (rootElement) rootElement.style.visibility = 'hidden'
+
+createRoot(rootElement).render(
   <StrictMode>
     <AuthProvider>
       <PreferencesProvider>
