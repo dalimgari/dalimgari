@@ -20,14 +20,14 @@ function RuralIcon({ name }) {
 
 export default function Header({ pageTitle, onMenu, sidebarOpen, labels = {}, showSearch = true, canonicalPath = '/', showBrand = true }) {
   const { user, status } = useAuth()
-  const { language } = usePreferences()
+  const { language, setLanguagePreference } = usePreferences()
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [searchResults, setSearchResults] = useState([])
   const [searchStatus, setSearchStatus] = useState('idle')
 
   const { t } = useGlobalLabels()
-  const text = (key, fallbackBn, fallbackEn = fallbackBn) => t(key, fallbackBn, fallbackEn)
+  const text = (key, fallbackBn) => t(key, fallbackBn)
 
   const isRoleProfile = /^\/(admin|manager|editor|moderator|user)\/profile$/.test(canonicalPath)
   const isSecureArea = canonicalPath === '/profile' || canonicalPath === '/dashboard' || canonicalPath.startsWith('/admin') || canonicalPath.startsWith('/manage') || isRoleProfile
@@ -84,10 +84,11 @@ export default function Header({ pageTitle, onMenu, sidebarOpen, labels = {}, sh
     })
   }
 
-  const menuLabel = sidebarOpen ? text('close', 'বন্ধ', 'Close') : text('menu', 'উঠান', 'Menu')
-  const searchLabel = text('search', 'খোঁজ', 'Search')
-  const searchPlaceholder = text('search_placeholder', 'এখানে খুঁজুন', 'Search Here')
-  const loginLabel = user ? text('dashboard', 'ড্যাশবোর্ড', 'Dashboard') : text('login', 'লগইন', 'Login')
+  const menuLabel = sidebarOpen ? text('close', 'বন্ধ') : text('menu', 'উঠান')
+  const searchLabel = text('search', 'খোঁজ')
+  const searchPlaceholder = text('search_placeholder', 'এখানে খুঁজুন')
+  const loginLabel = user ? text('dashboard', 'ড্যাশবোর্ড') : text('login', 'লগইন')
+  const languageSwitchLabel = language === 'bng' ? 'English' : 'বাংলা'
   const searchRightStyle = searchOpen ? { flex: '1 1 auto', minWidth: 0, marginLeft: 'auto' } : undefined
   const searchBoxStyle = searchOpen ? { width: '100%', maxWidth: '26rem', flex: '0 1 26rem' } : undefined
 
@@ -100,8 +101,8 @@ export default function Header({ pageTitle, onMenu, sidebarOpen, labels = {}, sh
         </button>
 
         {showBrand ? (
-          <div className={'site-brand' + (searchOpen ? ' is-search-hidden' : '')} aria-label={pageTitle || text('home', 'হোম', 'Home')}>
-            <span className="site-brand__words"><span className="site-brand__name">{pageTitle || text('home', 'হোম', 'Home')}</span></span>
+          <div className={'site-brand' + (searchOpen ? ' is-search-hidden' : '')} aria-label={pageTitle || text('home', 'হোম')}>
+            <span className="site-brand__words"><span className="site-brand__name">{pageTitle || text('home', 'হোম')}</span></span>
           </div>
         ) : <div className="site-brand" aria-hidden="true" />}
 
@@ -111,22 +112,22 @@ export default function Header({ pageTitle, onMenu, sidebarOpen, labels = {}, sh
               {searchOpen ? (
                 <input className="header-search__input" type="search" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder={searchPlaceholder} aria-label={searchLabel} autoComplete="off" autoFocus />
               ) : null}
-              <button className="site-header__action header-search__button" type="button" onClick={toggleSearch} aria-label={searchOpen ? text('close', 'বন্ধ', 'Close') : searchLabel} aria-expanded={searchOpen}>
+              <button className="site-header__action header-search__button" type="button" onClick={toggleSearch} aria-label={searchOpen ? text('close', 'বন্ধ') : searchLabel} aria-expanded={searchOpen}>
                 <RuralIcon name={searchOpen ? 'close' : 'search'} />
-                <span>{searchOpen ? text('close', 'বন্ধ', 'Close') : searchLabel}</span>
+                <span>{searchOpen ? text('close', 'বন্ধ') : searchLabel}</span>
               </button>
             </div>
 
             {searchOpen ? (
-              <div className="header-search__results" role="listbox" aria-label={text('search', 'খোঁজার ফলাফল', 'Search results')}>
+              <div className="header-search__results" role="listbox" aria-label={text('search', 'খোঁজার ফলাফল')}>
                 {searchTerm.trim() ? (
                   <>
-                    {searchStatus === 'loading' ? <div className="header-search__state">{text('search_loading', 'খোঁজা হচ্ছে…', 'Searching…')}</div> : null}
-                    {searchStatus === 'error' ? <div className="header-search__state">{text('search_error', 'খোঁজার সময় সমস্যা হয়েছে।', 'Search failed.')}</div> : null}
-                    {searchStatus === 'ready' && !searchResults.length ? <div className="header-search__state">{text('search_no_results', 'কোনো মিল পাওয়া যায়নি।', 'No matches found.')}</div> : null}
+                    {searchStatus === 'loading' ? <div className="header-search__state">{text('search_loading', 'খোঁজা হচ্ছে…')}</div> : null}
+                    {searchStatus === 'error' ? <div className="header-search__state">{text('search_error', 'খোঁজার সময় সমস্যা হয়েছে।')}</div> : null}
+                    {searchStatus === 'ready' && !searchResults.length ? <div className="header-search__state">{text('search_no_results', 'কোনো মিল পাওয়া যায়নি।')}</div> : null}
                     {searchResults.map((result) => (
                       <a className="header-search__result" role="option" href={appPath(result.href)} key={result.type + '-' + result.id}>
-                        <span className="header-search__result-type">{result.type === 'page' ? text('page', 'পেজ', 'Page') : text('post', 'পোস্ট', 'Post')}</span>
+                        <span className="header-search__result-type">{result.type === 'page' ? text('page', 'পেজ') : text('post', 'পোস্ট')}</span>
                         <strong>{result.title}</strong>
                         {result.description ? <span>{String(result.description).replace(/\s+/g, ' ').trim().slice(0, 90)}{String(result.description).trim().length > 90 ? '…' : ''}</span> : null}
                       </a>
@@ -137,9 +138,20 @@ export default function Header({ pageTitle, onMenu, sidebarOpen, labels = {}, sh
             ) : null}
           </div>
 
+          <button
+            className="site-header__action site-header__language-switch"
+            type="button"
+            data-language-switch
+            onClick={() => setLanguagePreference(language === 'bng' ? 'eng' : 'bng')}
+            aria-label={languageSwitchLabel}
+            title={languageSwitchLabel}
+          >
+            <span>{languageSwitchLabel}</span>
+          </button>
+
           {showLogout ? (
-            <button className="site-header__action" type="button" onClick={() => supabase.auth.signOut().catch(() => {})} aria-label={text('logout', 'লগআউট', 'Logout')}>
-              <RuralIcon name="logout" /><span>{text('logout', 'লগআউট', 'Logout')}</span>
+            <button className="site-header__action" type="button" onClick={() => supabase.auth.signOut().catch(() => {})} aria-label={text('logout', 'লগআউট')}>
+              <RuralIcon name="logout" /><span>{text('logout', 'লগআউট')}</span>
             </button>
           ) : null}
 
