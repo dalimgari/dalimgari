@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../../context'
 import { supabase } from '../../lib/supabase'
 import { appPath } from '../../lib/routes'
@@ -23,6 +23,8 @@ export default function Header({ pageTitle, onMenu, sidebarOpen, labels = {}, sh
   const [searchTerm, setSearchTerm] = useState('')
   const [searchResults, setSearchResults] = useState([])
   const [searchStatus, setSearchStatus] = useState('idle')
+  const searchInputRef = useRef(null)
+  const [searchSuggestionStyle, setSearchSuggestionStyle] = useState({})
 
   const { t } = useGlobalLabels()
   const text = (key, fallbackBn) => t(key, fallbackBn)
@@ -61,6 +63,28 @@ export default function Header({ pageTitle, onMenu, sidebarOpen, labels = {}, sh
       window.clearTimeout(timer)
     }
   }, [searchTerm, searchOpen, showSearch])
+
+  useEffect(() => {
+    if (!searchOpen || !searchInputRef.current) {
+      setSearchSuggestionStyle({})
+      return undefined
+    }
+    const updateSearchSuggestionPosition = () => {
+      const rect = searchInputRef.current?.getBoundingClientRect()
+      if (!rect) return
+      setSearchSuggestionStyle({
+        '--search-suggestion-left': `${rect.left + window.scrollX}px`,
+        '--search-suggestion-width': `${rect.width}px`,
+      })
+    }
+    updateSearchSuggestionPosition()
+    window.addEventListener('resize', updateSearchSuggestionPosition)
+    window.addEventListener('scroll', updateSearchSuggestionPosition, { passive: true })
+    return () => {
+      window.removeEventListener('resize', updateSearchSuggestionPosition)
+      window.removeEventListener('scroll', updateSearchSuggestionPosition)
+    }
+  }, [searchOpen, searchTerm])
 
   useEffect(() => {
     if (!showSearch) {
@@ -107,6 +131,7 @@ export default function Header({ pageTitle, onMenu, sidebarOpen, labels = {}, sh
                 {searchOpen ? (
                   <div className="header-search__input-wrap">
                     <input
+                      ref={searchInputRef}
                       className="header-search__input"
                       type="search"
                       value={searchTerm}
@@ -139,7 +164,7 @@ export default function Header({ pageTitle, onMenu, sidebarOpen, labels = {}, sh
       </header>
 
       {searchOpen && searchResults.length > 0 ? (
-        <div className="header-search-suggestions" role="listbox" aria-label={text('search', 'খোঁজার ফলাফল')}>
+        <div className="header-search-suggestions" style={searchSuggestionStyle} role="listbox" aria-label={text('search', 'খোঁজার ফলাফল')}>
           <div className="site-container header-search-suggestions__inner">
             {searchResults.map((result) => (
               <a className="header-search__result" role="option" href={appPath(result.href)} key={result.type + '-' + result.id}>
