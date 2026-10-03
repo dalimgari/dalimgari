@@ -1,13 +1,14 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import { applyTheme, getDeviceClass, getLanguagePreference, getThemePreference, resolveTheme, setLanguagePreference, setThemePreference, subscribeToSystemTheme } from '../services/devicePreferenceService'
+import { applyTheme, getDeviceClass, getThemePreference, resolveTheme, setThemePreference, subscribeToSystemTheme } from '../services/devicePreferenceService'
 import { getGlobalLabels } from '../services/globalLabelService'
 
 const PreferencesContext = createContext(null)
+const SINGLE_LANGUAGE = 'bng'
 
 export function PreferencesProvider({ children }) {
   const [themePreference, setThemeState] = useState(() => getThemePreference())
   const [theme, setTheme] = useState(() => resolveTheme(themePreference))
-  const [language, setLanguageState] = useState(() => getLanguagePreference())
+  const [language] = useState(SINGLE_LANGUAGE)
   const [deviceClass, setDeviceClass] = useState(() => getDeviceClass())
   const [labels, setLabels] = useState({})
 
@@ -33,8 +34,8 @@ export function PreferencesProvider({ children }) {
   }, [])
 
   useEffect(() => {
-    document.documentElement.lang = language === 'bng' ? 'bn' : 'en'
-  }, [language])
+    document.documentElement.lang = 'bn'
+  }, [])
 
   const changeTheme = useCallback((value) => {
     const next = setThemePreference(value)
@@ -43,12 +44,16 @@ export function PreferencesProvider({ children }) {
     applyTheme(resolveTheme(next))
   }, [])
 
-  const changeLanguage = useCallback((value) => {
-    const next = setLanguagePreference(value)
-    setLanguageState(next)
-  }, [])
+  const value = useMemo(() => ({
+    themePreference,
+    theme,
+    language,
+    deviceClass,
+    labels,
+    setThemePreference: changeTheme,
+    setLanguagePreference: () => SINGLE_LANGUAGE,
+  }), [themePreference, theme, language, deviceClass, labels, changeTheme])
 
-  const value = useMemo(() => ({ themePreference, theme, language, deviceClass, labels, setThemePreference: changeTheme, setLanguagePreference: changeLanguage }), [themePreference, theme, language, deviceClass, labels, changeTheme, changeLanguage])
   return <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>
 }
 
