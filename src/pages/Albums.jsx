@@ -3,7 +3,7 @@ import { Layout } from '../components/layout'
 import { Loading, EmptyState, ErrorState, MediaContent } from '../components/ui'
 import { listVisibleAlbums } from '../services/albumService'
 import { listVisibleMedia } from '../services/mediaService'
-import MediaViewer from '../components/ui/MediaViewer'
+import MediaViewer from '../components/global components/media-viewer/MediaViewer'
 
 export default function Albums() {
   const [albums, setAlbums] = useState([])
