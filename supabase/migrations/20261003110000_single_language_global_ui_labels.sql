@@ -1,7 +1,7 @@
 -- Make global UI labels single-language and remove automatic bilingual fallback.
 -- Canonical user-facing label is stored in bng; key is the stable identifier.
 
-create or replace function public.ensure_global_ui_label(p_key text, p_label text)
+drop function if exists public.ensure_global_ui_label(text, text);\n\ncreate function public.ensure_global_ui_label(p_key text, p_label text)
 returns public.global_ui_labels
 language plpgsql
 security definer
