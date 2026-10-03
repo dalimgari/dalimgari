@@ -26,7 +26,7 @@ export function getMediaPublicUrl(storagePath, mediaUrl = null) {
 export async function uploadMediaObject(path, file, options = {}) {
   if (!supabase) throw new Error('Supabase is not configured')
   if (!file || !(file instanceof File)) throw new Error('Valid media file is required')
-  if (file.size <= 0 || file.size > MEDIA_POLICY.maxSizeBytes) throw new Error('Media file must be between 1 byte and 50 MB')
+  if (file.size <= 0 || file.size > MEDIA_POLICY.maxSizeBytes) throw new Error('Media file must be between 1 byte and ' + MEDIA_POLICY.maxSizeLabel)
   if (!isAllowedMediaType(file.type)) throw new Error('This file type is not allowed')
   if (!path || path.length > MEDIA_POLICY.storagePath.maxLength || path.includes('..')) throw new Error('Invalid storage path')
   const { data, error } = await supabase.storage.from(MEDIA_POLICY.bucket).upload(path, file, {
