@@ -5,7 +5,7 @@ const cache = new Map()
 export const GLOBAL_LABEL_DEFAULTS = Object.fromEntries(
   Object.entries(flattenUiSsot(UI_SSOT)).map(([key, value]) => [key, value?.bng || ''])
 )
-const MISSING_LABEL = 'Label Missing'
+const MISSING_LABEL = 'লেবেল মিসিং'
 
 export async function getGlobalLabels() {
   if (!supabase) return {}
