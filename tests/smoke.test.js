@@ -1,3 +1,4 @@
+import PROJECT_PATHS from '../src/config/projectPaths.js'
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
@@ -12,13 +13,13 @@ async function read(relativePath) {
 
 describe('project smoke tests', () => {
   it('keeps the build and test scripts defined', async () => {
-    const pkg = JSON.parse(await read('package.json'))
+    const pkg = JSON.parse(await read(PROJECT_PATHS.package))
     assert.equal(typeof pkg.scripts.build, 'string')
     assert.equal(pkg.scripts.test, 'node --test tests/*.test.js')
   })
 
   it('keeps production deployment on main and Pages fallback enabled', async () => {
-    const workflow = await read('.github/workflows/deploy.yml')
+    const workflow = await read(PROJECT_PATHS.workflows.deploy)
     assert.match(workflow, /branches: \[main\]/)
     assert.match(workflow, /npm test/)
     assert.match(workflow, /cp dist\/index\.html dist\/404\.html/)
@@ -27,18 +28,18 @@ describe('project smoke tests', () => {
   })
 
   it('keeps the dedicated automated-test workflow on Node 22', async () => {
-    const workflow = await read('.github/workflows/tests.yml')
+    const workflow = await read(PROJECT_PATHS.workflows.tests)
     assert.match(workflow, /node-version: 22/)
     assert.match(workflow, /run: npm test/)
   })
 
   it('keeps the application route helper present', async () => {
-    const routes = await read('src/lib/routes.js')
+    const routes = await read(PROJECT_PATHS.app.routes)
     assert.match(routes, /export function appPath/)
   })
 
   it('protects every management route with an explicit AdminRoute permission guard', async () => {
-    const app = await read('src/App.jsx')
+    const app = await read(PROJECT_PATHS.app.entry)
     assert.match(app, /import AdminRoute from ['"]\.\/components\/auth\/AdminRoute['"]/) 
     assert.match(app, /if\s*\(path\s*===\s*['"]\/dashboard['"]\)\s*page\s*=\s*<RoleRoute\s*\/>/)
     assert.match(app, /else if \(management\) \{[\s\S]*AdminRoute/)
@@ -48,8 +49,8 @@ describe('project smoke tests', () => {
   })
 
   it('keeps the admin guard backed by Supabase permission RPCs', async () => {
-    const guard = await read('src/components/auth/AdminRoute.jsx')
-    const permissionService = await read('src/services/permissionService.js')
+    const guard = await read(PROJECT_PATHS.components.auth.adminRoute)
+    const permissionService = await read(PROJECT_PATHS.services.permission)
     assert.match(guard, /hasPermission, canAccessRoute/)
     assert.match(guard, /canAccessRoute\(routePath\)/)
     assert.match(guard, /hasPermission\(permission\)/)
@@ -59,7 +60,7 @@ describe('project smoke tests', () => {
   })
 
   it('keeps storage hardening reproducible in migrations', async () => {
-    const migration = await read('supabase/migrations/20261001201247_harden_media_storage_and_rbac_policies.sql')
+    const migration = await read(PROJECT_PATHS.migrations.mediaHardening)
     assert.match(migration, /file_size_limit = 52428800/)
     assert.match(migration, /allowed_mime_types/)
     assert.match(migration, /to authenticated/)
@@ -67,18 +68,18 @@ describe('project smoke tests', () => {
   })
 
   it('keeps the admin-access RPC reproducible in migrations', async () => {
-    const migration = await read('supabase/migrations/20261001201305_add_admin_access_guard_rpc.sql')
+    const migration = await read(PROJECT_PATHS.migrations.adminAccessGuard)
     assert.match(migration, /current_user_has_admin_access/)
     assert.match(migration, /grant execute on function public\.current_user_has_admin_access\(\) to authenticated/)
   })
 
   it('keeps the admin security monitor wired end-to-end', async () => {
-    const dashboard = await read('src/pages/admin/Dashboard.jsx')
-    const card = await read('src/components/admin/SecurityStatusCard.jsx')
-    const service = await read('src/services/securityTestService.js')
-    const websiteScanner = await read('src/services/websiteScanService.js')
-    const fn = await read('supabase/functions/admin-security-test/index.ts')
-    const migration = await read('supabase/migrations/20261002130844_admin_security_test_status.sql')
+    const dashboard = await read(PROJECT_PATHS.pages.dashboard)
+    const card = await read(PROJECT_PATHS.components.admin.securityStatusCard)
+    const service = await read(PROJECT_PATHS.services.securityTest)
+    const websiteScanner = await read(PROJECT_PATHS.services.websiteScan)
+    const fn = await read(PROJECT_PATHS.functions.adminSecurityTest)
+    const migration = await read(PROJECT_PATHS.migrations.adminSecurityTestStatus)
     assert.match(dashboard, /SecurityStatusCard/)
     assert.match(card, /runSecurityTest/)
     assert.match(service, /admin-security-test/)
