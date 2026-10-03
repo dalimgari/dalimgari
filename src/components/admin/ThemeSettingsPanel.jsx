@@ -81,6 +81,7 @@ export default function ThemeSettingsPanel() {
       setValues({day:normalize(saved.day),night:normalize(saved.night)})
       setActiveVisualTheme(saved.active_visual_theme === 'glass' ? 'glass' : 'classic')
       await createAuditLog({actionKey:'update',module:'theme_settings',recordId:saved.theme_settings_id,details:{modes:['day','night'],fields:FIELDS.length+1}})
+      window.dispatchEvent(new CustomEvent('dalimgari:theme-settings-updated'))
       setStatus('success')
     } catch (requestError) {
       setError(requestError)
