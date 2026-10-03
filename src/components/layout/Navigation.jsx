@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { ROUTES, appPath } from '../../lib/routes'
 import { usePreferences } from '../../context/PreferencesContext'
 import { LANGUAGES, THEMES } from '../../config/preferences'
-import KeyIcon from '../ui/KeyIcon'
+import KeyIcon from '../global components/key-icon/KeyIcon'
 import { useGlobalLabels } from '../../context'
 
 function iconKeyFor(label, href) {
