@@ -17,6 +17,7 @@ const DEFAULT_THEME = {
 }
 
 const VISUAL_THEMES = new Set(['classic', 'glass', 'village'])
+const THEME_FALLBACK_ORDER = ['classic', 'glass', 'village']
 
 function normalizeVisualTheme(value) {
   return VISUAL_THEMES.has(value) ? value : 'classic'
