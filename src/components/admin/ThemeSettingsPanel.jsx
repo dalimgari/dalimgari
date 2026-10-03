@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Button, Input, ErrorState } from '../ui'
 import { getThemePresets, getActiveVisualTheme, updateThemeSettings, applyThemeSettings } from '../../services/themeService'
 import { createAuditLog } from '../../services/auditService'
+import { applyVisualTheme } from '../../services/devicePreferenceService'
 
 const THEMES = [
   ['classic', 'ক্লাসিক'],
@@ -78,7 +79,8 @@ export default function ThemeSettingsPanel() {
     return document.documentElement.dataset.themeMode === 'night' ? 'night' : 'day'
   }
 
-  function previewTheme(themeValues) {
+  function previewTheme(themeKey, themeValues) {
+    applyVisualTheme(themeKey)
     applyThemeSettings(themeValues, getPreviewMode())
   }
 
@@ -88,7 +90,7 @@ export default function ThemeSettingsPanel() {
     const nextValues = {day:normalize(preset.day),night:normalize(preset.night)}
     setSelectedTheme(themeKey)
     setValues(nextValues)
-    previewTheme(nextValues)
+    previewTheme(themeKey, nextValues)
     setStatus('idle')
     setError(null)
   }
@@ -96,7 +98,7 @@ export default function ThemeSettingsPanel() {
   function change(mode,group,key,value) {
     setValues((current) => {
       const next = {...current,[mode]:{...current[mode],[group]:{...current[mode][group],[key]:value}}}
-      if (mode === getPreviewMode()) previewTheme(next)
+      if (mode === getPreviewMode()) previewTheme(selectedTheme, next)
       return next
     })
     setStatus('idle')
