@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Button, Input, ErrorState } from '../ui'
-import { getThemePresets, getActiveVisualTheme, updateThemeSettings, applyThemeSettings } from '../../services/themeService'
+import { getThemePresets, getActiveVisualTheme, updateThemeSettings, resetThemeSettings, applyThemeSettings } from '../../services/themeService'
 import { createAuditLog } from '../../services/auditService'
 import { applyVisualTheme } from '../../services/devicePreferenceService'
 
@@ -105,7 +105,7 @@ export default function ThemeSettingsPanel() {
     setError(null)
   }
 
-  async function save(event) {
+  async function resetTheme(themeKey) {\n    setStatus('loading')\n    setError(null)\n    try {\n      const reset = await resetThemeSettings(themeKey)\n      const normalizedReset = {day:normalize(reset.day),night:normalize(reset.night)}\n      setValues(normalizedReset)\n      setSelectedTheme(themeKey)\n      setPresets((current) => current.map((preset) => preset.theme_key === themeKey\n        ? {...preset,...reset,day:normalizedReset.day,night:normalizedReset.night,is_active:true,custom_day:null,custom_night:null}\n        : {...preset,is_active:false}))\n      previewTheme(themeKey, normalizedReset)\n      await createAuditLog({\n        actionKey:'reset',\n        module:'theme_settings',\n        recordId:reset.theme_settings_id,\n        details:{theme:themeKey,modes:['day','night'],resetToDefault:true},\n      })\n      window.dispatchEvent(new CustomEvent('dalimgari:theme-settings-updated'))\n      setStatus('success')\n    } catch (requestError) {\n      setError(requestError)\n      setStatus('error')\n    }\n  }\n\n  async function save(event) {
     event.preventDefault()
     setStatus('loading')
     setError(null)
@@ -140,9 +140,14 @@ export default function ThemeSettingsPanel() {
         <h3>Theme Preset</h3>
         <div className="content-grid">
           {THEMES.map(([themeKey,label]) => (
-            <Button key={themeKey} type="button" variant={selectedTheme===themeKey ? 'primary' : 'secondary'} disabled={status==='loading'} onClick={() => selectTheme(themeKey)}>
-              {label}
-            </Button>
+            <div key={themeKey} className="admin-form__actions">
+              <Button type="button" variant={selectedTheme===themeKey ? 'primary' : 'secondary'} disabled={status==='loading'} onClick={() => selectTheme(themeKey)}>
+                {label}
+              </Button>
+              <Button type="button" variant="secondary" disabled={status==='loading'} onClick={() => resetTheme(themeKey)}>
+                ডিফল্টে রিসেট
+              </Button>
+            </div>
           ))}
         </div>
       </div>
