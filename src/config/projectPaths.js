@@ -99,7 +99,7 @@ export const PROJECT_PATHS = Object.freeze({
     singleLanguageGlobalUiLabels: 'supabase/migrations/20261003110000_single_language_global_ui_labels.sql',
     translationOverrides: 'supabase/migrations/20261003123000_create_translation_overrides.sql',
     publicTranslationOverrides: 'supabase/migrations/20261003140000_make_translation_overrides_public_equal.sql',
-    managementRouteRegistry: 'supabase/migrations/20261003150000_align_management_route_registry.sql',
+    managementRouteRegistry: 'supabase/migrations/20261003180918_align_management_route_registry.sql',
   },
 })
 
