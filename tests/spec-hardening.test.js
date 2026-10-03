@@ -104,7 +104,7 @@ test('Language switch: Bengali remains canonical and English is runtime translat
   const devicePreferences = read(PROJECT_PATHS.services.devicePreference)
   assert.match(preferences, /getLanguagePreference\(\)/)
   assert.match(preferences, /saveLanguagePreference\(value\)/)
-  assert.match(devicePreferences, /dalimgari_language_preference/)
+  assert.match(preferenceConfig, /language: 'dalimgari_language_preference'/)
   assert.match(devicePreferences, /LANGUAGES\.english/)
   assert.match(devicePreferences, /localStorage\.setItem/)
   assert.doesNotMatch(header, /data-language-switch/)
