@@ -124,15 +124,18 @@ export default function Dashboard({ verifiedRole = null }) {
             const active = key === selectedKey
             const count = moduleData[key]?.length ?? 0
             return (
-              <Button
-                type="button"
-                variant={active ? 'primary' : 'secondary'}
-                role="tab"
-                aria-selected={active}
-                onClick={() => setSelectedKey(key)}
-              >
-                <span>{label} ({count})</span>
-              </Button>
+              <div key={key} style={{ flex: '0 0 auto' }}>
+                <Button
+                  type="button"
+                  variant={active ? 'primary' : 'secondary'}
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setSelectedKey(key)}
+                  style={{ whiteSpace: 'nowrap' }}
+                >
+                  <span>{label} ({count})</span>
+                </Button>
+              </div>
             )
           })}
         </div>
