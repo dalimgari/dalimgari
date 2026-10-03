@@ -9,7 +9,7 @@ import { useGlobalLabels } from '../../context'
 
 const adminNavItems = [
   { key: 'dashboard', path: ROUTES.dashboard, permission: PERMISSIONS.dashboardView, labelKey: 'dashboard' },
-  ...MANAGEMENT_ROUTE_DEFINITIONS,
+  ...MANAGEMENT_ROUTE_DEFINITIONS.filter((definition) => definition.navigation !== false),
 ]
 
 function navigate(path) { const target=appPath(path); if(window.location.pathname===target)return; window.history.pushState({},'',target); window.dispatchEvent(new Event('app:navigate')) }
