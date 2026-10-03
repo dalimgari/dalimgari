@@ -1,5 +1,5 @@
 import PROJECT_PATHS from '../src/config/projectPaths.js'
-import { ROUTES, PERMISSIONS } from '../src/lib/routes'
+import { ROUTES, PERMISSIONS } from '../src/lib/routes.js'
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
@@ -51,10 +51,10 @@ describe('project smoke tests', () => {
   it('protects every management route with an explicit AdminRoute permission guard', async () => {
     const app = await read(PROJECT_PATHS.app.entry)
     assert.match(app, /import AdminRoute from ['"]\.\/components\/auth\/AdminRoute['"]/) 
-    assert.match(app, /if\s*\(path\s*===\s*['"]\/dashboard['"]\)\s*page\s*=\s*<RoleRoute\s*\/>/)
+    assert.match(app, /if\s*\(path\s*===\s*ROUTES\.dashboard\)\s*page\s*=\s*<RoleRoute\s*\/>/)
     assert.match(app, /else if \(management\) \{[\s\S]*AdminRoute/)
-    for (const permission of ['content_manage', 'media_manage', 'user_manage', 'audit_view', 'settings_manage']) {
-      assert.match(app, new RegExp(permission))
+    for (const permission of ['contentManage', 'mediaManage', 'userManage', 'auditView', 'settingsManage']) {
+      assert.match(app, new RegExp(`PERMISSIONS\\.${permission}`))
     }
   })
 
