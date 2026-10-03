@@ -2,7 +2,7 @@ import { useRef } from 'react'
 import { useAuth } from '../../context'
 import { supabase } from '../../lib/supabase'
 import { appPath } from '../../lib/routes'
-import Search from '../search/Search'
+import Search from '../007-Search/Search'
 import ProfileAvatar from '../ui/ProfileAvatar'
 import { useGlobalLabels } from '../../context'
 
