@@ -19,7 +19,6 @@ function RuralIcon({ name }) {
 
 export default function Header({ pageTitle, onMenu, sidebarOpen, labels = {}, showSearch = true, canonicalPath = '/', showBrand = true }) {
   const { user, status } = useAuth()
-  const headerRef = useRef(null)
   const { t } = useGlobalLabels()
   const text = (key, fallbackBn) => t(key, fallbackBn)
 
@@ -32,7 +31,7 @@ export default function Header({ pageTitle, onMenu, sidebarOpen, labels = {}, sh
     const loginLabel = user ? text('dashboard', 'ড্যাশবোর্ড') : text('login', 'লগইন')
   return (
     <>
-      <header ref={headerRef} className="site-header">
+      <header className="site-header">
         <div className="site-container site-header__inner">
           <button className={'site-header__action site-header__menu' + (sidebarOpen ? ' is-open' : '')} type="button" onClick={onMenu} aria-label={menuLabel} aria-expanded={sidebarOpen}>
             <RuralIcon name={sidebarOpen ? 'close' : 'menu'} />
@@ -46,7 +45,7 @@ export default function Header({ pageTitle, onMenu, sidebarOpen, labels = {}, sh
           ) : <div className="site-brand" aria-hidden="true" />}
 
           <div className="site-header__right">
-            {showSearch ? <Search headerRef={headerRef} /> : null}
+            {showSearch ? <Search /> : null}
 
             {showLogout ? (
               <button className="site-header__action" type="button" onClick={() => supabase.auth.signOut().catch(() => {})} aria-label={text('logout', 'লগআউট')}>
