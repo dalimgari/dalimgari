@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { applyTheme, getDeviceClass, getLanguagePreference, getThemePreference, resolveTheme, setLanguagePreference as saveLanguagePreference, setThemePreference, subscribeToSystemTheme } from '../services/devicePreferenceService'
 import { getGlobalLabels } from '../services/globalLabelService'
-import { getActiveVisualTheme, setActiveVisualTheme } from '../services/themeService'
+import { getActiveVisualTheme, getThemeSettings, setActiveVisualTheme, applyThemeSettings } from '../services/themeService'
 import { applyVisualTheme } from '../services/devicePreferenceService'
 import { observeLanguageDocument } from '../services/languageRuntime'
 import { LANGUAGES } from '../config/preferences'
@@ -24,6 +24,21 @@ export function PreferencesProvider({ children }) {
     if (themePreference !== 'system') return undefined
     return subscribeToSystemTheme((next) => { setTheme(next); applyTheme(next) })
   }, [themePreference])
+
+  useEffect(() => {
+    let active = true
+    const loadThemeSettings = () => getThemeSettings().then((settings) => {
+      if (!active) return
+      applyThemeSettings(settings, theme)
+    }).catch(() => {})
+    loadThemeSettings()
+    const onThemeUpdate = () => loadThemeSettings()
+    window.addEventListener('dalimgari:theme-settings-updated', onThemeUpdate)
+    return () => {
+      active = false
+      window.removeEventListener('dalimgari:theme-settings-updated', onThemeUpdate)
+    }
+  }, [theme])
 
   useEffect(() => {
     const onResize = () => setDeviceClass(getDeviceClass())
