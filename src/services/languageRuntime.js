@@ -120,7 +120,8 @@ async function translateNode(node) {
   if (previous && previous.translated === current) return
 
   const source = previous && previous.source !== current ? current : (previous?.source || current)
-  const translated = await translateWithOverrides(source, !isOverrideOnlyElement(node.parentElement))  if (normalize(node.nodeValue) !== source) return
+  const translated = await translateWithOverrides(source, !isOverrideOnlyElement(node.parentElement))
+  if (normalize(node.nodeValue) !== source) return
 
   translatedNodes.set(node, { source, translated })
   node.nodeValue = translated
