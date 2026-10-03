@@ -105,7 +105,33 @@ export default function ThemeSettingsPanel() {
     setError(null)
   }
 
-  async function resetTheme(themeKey) {\n    setStatus('loading')\n    setError(null)\n    try {\n      const reset = await resetThemeSettings(themeKey)\n      const normalizedReset = {day:normalize(reset.day),night:normalize(reset.night)}\n      setValues(normalizedReset)\n      setSelectedTheme(themeKey)\n      setPresets((current) => current.map((preset) => preset.theme_key === themeKey\n        ? {...preset,...reset,day:normalizedReset.day,night:normalizedReset.night,is_active:true,custom_day:null,custom_night:null}\n        : {...preset,is_active:false}))\n      previewTheme(themeKey, normalizedReset)\n      await createAuditLog({\n        actionKey:'reset',\n        module:'theme_settings',\n        recordId:reset.theme_settings_id,\n        details:{theme:themeKey,modes:['day','night'],resetToDefault:true},\n      })\n      window.dispatchEvent(new CustomEvent('dalimgari:theme-settings-updated'))\n      setStatus('success')\n    } catch (requestError) {\n      setError(requestError)\n      setStatus('error')\n    }\n  }\n\n  async function save(event) {
+  async function resetTheme(themeKey) {
+    setStatus('loading')
+    setError(null)
+    try {
+      const reset = await resetThemeSettings(themeKey)
+      const normalizedReset = {day:normalize(reset.day),night:normalize(reset.night)}
+      setValues(normalizedReset)
+      setSelectedTheme(themeKey)
+      setPresets((current) => current.map((preset) => preset.theme_key === themeKey
+        ? {...preset,...reset,day:normalizedReset.day,night:normalizedReset.night,is_active:true,custom_day:null,custom_night:null}
+        : {...preset,is_active:false}))
+      previewTheme(themeKey, normalizedReset)
+      await createAuditLog({
+        actionKey:'reset',
+        module:'theme_settings',
+        recordId:reset.theme_settings_id,
+        details:{theme:themeKey,modes:['day','night'],resetToDefault:true},
+      })
+      window.dispatchEvent(new CustomEvent('dalimgari:theme-settings-updated'))
+      setStatus('success')
+    } catch (requestError) {
+      setError(requestError)
+      setStatus('error')
+    }
+  }
+
+  async function save(event) {
     event.preventDefault()
     setStatus('loading')
     setError(null)
