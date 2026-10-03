@@ -4,6 +4,7 @@ export const MANAGEMENT_ROUTE_DEFINITIONS = Object.freeze([
   { key: 'homepage', path: ROUTES.manage.homepage, permission: PERMISSIONS.homepageManage, labelKey: 'homepage_management' },
   { key: 'sidebar', path: ROUTES.manage.sidebar, permission: PERMISSIONS.sidebarManage, labelKey: 'sidebar_management' },
   { key: 'ruralVisual', path: ROUTES.manage.ruralVisual, permission: PERMISSIONS.settingsManage, labelKey: 'rural_visual_management', navigation: false },
+  { key: 'theme', path: ROUTES.manage.theme, permission: PERMISSIONS.settingsManage, labelKey: 'theme_management' },
   { key: 'websiteInformation', path: ROUTES.manage.websiteInformation, permission: PERMISSIONS.settingsManage, labelKey: 'website_information' },
   { key: 'keyLabels', path: ROUTES.manage.keyLabels, permission: PERMISSIONS.settingsManage, labelKey: 'key_label_rename' },
   { key: 'translationOverrides', path: ROUTES.manage.translationOverrides, permission: PERMISSIONS.settingsManage, labelKey: 'translation_overrides' },
