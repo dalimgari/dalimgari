@@ -1,4 +1,5 @@
 import { usePreferences } from '../context/PreferencesContext'
+import { LANGUAGES, THEMES } from '../config/preferences'
 import { ROUTES, appPath } from '../lib/routes'
 import { useGlobalLabels } from '../context'
 
@@ -47,13 +48,13 @@ function iconKeyFor(item) {
 export default function Sidebar({ items = [], open, onClose }) {
   const { theme, language, setThemePreference, setLanguagePreference } = usePreferences()
   const { t } = useGlobalLabels()
-  const targetLanguageLabel = language === 'bng' ? 'English' : 'বাংলা'
+  const targetLanguageLabel = language === LANGUAGES.bengali ? 'English' : 'বাংলা'
   const translatedItems = items.map((item) => ({ ...item, label: globalItemLabel(item, t) }))
   const homeItem = translatedItems.find((item) => item.href === ROUTES.home) || { label: t('home', 'হোম', 'Home'), href: ROUTES.home }
   const menuItems = translatedItems.filter((item) => item.href !== ROUTES.home)
 
   function toggleTheme() {
-    setThemePreference(theme === 'dark' ? 'light' : 'dark')
+    setThemePreference(theme === THEMES.dark ? THEMES.light : THEMES.dark)
   }
 
   return (
@@ -76,10 +77,10 @@ export default function Sidebar({ items = [], open, onClose }) {
 
         <div className="rural-sidebar__tools">
           <button type="button" onClick={toggleTheme}>
-            <RuralIcon name={theme === 'dark' ? 'sun' : 'moon'} />
+            <RuralIcon name={theme === THEMES.dark ? 'sun' : 'moon'} />
             <span>{theme === 'dark' ? t('day', 'দিনের আলো', 'Day') : t('night', 'রাতের আবহ', 'Night')}</span>
           </button>
-          <button data-no-translate="true" type="button" aria-label={targetLanguageLabel} onClick={() => setLanguagePreference(language === 'bng' ? 'eng' : 'bng')}>
+          <button data-no-translate="true" type="button" aria-label={targetLanguageLabel} onClick={() => setLanguagePreference(language === LANGUAGES.bengali ? LANGUAGES.english : LANGUAGES.bengali)}>
             <RuralIcon name="leaf" />
             <span>{targetLanguageLabel}</span>
           </button>
