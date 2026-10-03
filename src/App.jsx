@@ -61,26 +61,6 @@ const managementPages = {
 
 const legacyPaths = ROUTES.legacy
 
-/* const legacyPaths = {
-  '/admin': '/dashboard',
-  '/admin/homepage': '/manage/homepage',
-  '/admin/sidebar': '/manage/sidebar',
-  '/admin/pages': '/manage/pages',
-  '/admin/posts': '/manage/posts',
-  '/admin/albums': '/manage/albums',
-  '/admin/media': '/manage/media',
-  '/admin/users': '/manage/users',
-  '/admin/access': '/manage/access',
-  '/admin/audit': '/manage/audit',
-  '/admin/analytics': '/manage/analytics',
-  '/admin/website-information': '/manage/website-information',
-  '/admin/admin-information': '/manage/admin-information',
-  '/admin/database-storage': '/manage/database-storage',
-  '/admin/rural-visual': '/manage/rural-visual',
-  '/admin/key-labels': '/manage/key-labels',
-  '/admin/translation-overrides': '/manage/translation-overrides',
-  '/admin/icons': '/manage/icons',
-} */
 
 function getRedirectTarget(path) {
   if (legacyPaths[path]) return legacyPaths[path]
