@@ -37,9 +37,9 @@ test('Master Specification: migration directory contains no known invalid schema
 test('Master Specification: media source matrix is covered end-to-end', () => {
   const management = read('src/pages/admin/MediaManagement.jsx')
   const service = read('src/services/mediaService.js')
-  const renderer = read('src/components/ui/MediaContent.jsx')
-  const albumPage = read('src/pages/Albums.jsx')
-  const postPage = read('src/pages/PostDetail.jsx')
+  const renderer = read('src/018-Media/MediaContent.jsx')
+  const albumPage = read('src/015-Albums/Albums.jsx')
+  const postPage = read('src/013-Posts/PostDetail.jsx')
 
   assert.match(management, /type="file"/)
   assert.match(management, /image\/\*,video\/\*,audio\/\*,application\/pdf/)
@@ -89,12 +89,12 @@ test('Key Label Management: search and edit are scoped to global_ui_labels', () 
 
 test('Language switch: Bengali remains canonical and English is runtime translation only', () => {
   const preferences = read('src/context/PreferencesContext.jsx')
-  const header = read('src/components/layout/Header.jsx')
-  const sidebar = read('src/components/layout/Sidebar.jsx')
+  const header = read('src/header/Header.jsx')
+  const sidebar = read('src/sidebar/Sidebar.jsx')
   const runtime = read('src/services/languageRuntime.js')
   const labelsService = read('src/services/globalLabelService.js')
-  const banner = read('src/components/website/Banner.jsx')
-  const information = read('src/pages/Information.jsx')
+  const banner = read('src/008-Homepage/components/Banner.jsx')
+  const information = read('src/023-Village Information/Information.jsx')
 
   assert.match(preferences, /DEFAULT_LANGUAGE = 'bng'/)
   const devicePreferences = read('src/services/devicePreferenceService.js')
