@@ -2,7 +2,7 @@ import { useAuth } from '../context'
 import { supabase } from '../lib/supabase'
 import { ROUTES, appPath } from '../lib/routes'
 import Search from '../search/Search'
-import ProfileAvatar from '../ui/ProfileAvatar'
+import ProfileAvatar from '../components/ui/ProfileAvatar'
 import { useGlobalLabels } from '../../context'
 
 const ICONS = {
