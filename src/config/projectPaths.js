@@ -79,6 +79,10 @@ export const PROJECT_PATHS = Object.freeze({
     tests: '.github/workflows/tests.yml',
   },
 
+  directories: {
+    migrations: 'supabase/migrations',
+  },
+
   migrations: {
     mediaHardening: 'supabase/migrations/20261001201247_harden_media_storage_and_rbac_policies.sql',
     adminAccessGuard: 'supabase/migrations/20261001201305_add_admin_access_guard_rpc.sql',
