@@ -7,7 +7,7 @@ export const UI_SSOT = {
     header: {
       menu: { bng: 'উঠান', eng: 'Menu' },
       close: { bng: 'বন্ধ', eng: 'Close' },
-      search: { bng: 'খোঁজ', eng: 'Search' },
+      search: { bng: 'খুঁজুন', eng: 'Search' },
       searchPlaceholder: { bng: 'এখানে খুঁজুন', eng: 'Search Here' },
       login: { bng: 'লগইন', eng: 'Login' },
       dashboard: { bng: 'ড্যাশবোর্ড', eng: 'Dashboard' },
