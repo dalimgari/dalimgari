@@ -1,5 +1,5 @@
 import { usePreferences } from '../context/PreferencesContext'
-import { appPath } from '../lib/routes'
+import { ROUTES, appPath } from '../lib/routes'
 import { useGlobalLabels } from '../context'
 
 const ICONS = {
@@ -20,13 +20,13 @@ function RuralIcon({ name }) {
 function globalItemLabel(item, t) {
   const href = item?.href || ''
   const keys = {
-    '/': ['home', 'হোম', 'Home'],
-    '/information': ['information', 'তথ্য', 'Information'],
-    '/posts': ['posts', 'পোস্ট', 'Posts'],
-    '/albums': ['albums', 'অ্যালবাম', 'Albums'],
-    '/search': ['search', 'খোঁজ', 'Search'],
-    '/login': ['login', 'লগইন', 'Login'],
-    '/profile': ['profile', 'প্রোফাইল', 'Profile'],
+    ROUTES.home: ['home', 'হোম', 'Home'],
+    ROUTES.information: ['information', 'তথ্য', 'Information'],
+    ROUTES.posts: ['posts', 'পোস্ট', 'Posts'],
+    ROUTES.albums: ['albums', 'অ্যালবাম', 'Albums'],
+    ROUTES.search: ['search', 'খোঁজ', 'Search'],
+    ROUTES.login: ['login', 'লগইন', 'Login'],
+    ROUTES.profile: ['profile', 'প্রোফাইল', 'Profile'],
   }
   const [key, bn, en] = keys[href] || []
   return key ? t(key, bn, en) : item?.label
@@ -34,13 +34,13 @@ function globalItemLabel(item, t) {
 
 function iconKeyFor(item) {
   const href = item?.href || ''
-  if (href === '/') return 'home'
-  if (href === '/information') return 'info'
-  if (href === '/posts') return 'post'
-  if (href === '/albums') return 'album'
-  if (href === '/search') return 'search'
-  if (href === '/login') return 'login'
-  if (href === '/profile') return 'profile'
+  if (href === ROUTES.home) return 'home'
+  if (href === ROUTES.information) return 'info'
+  if (href === ROUTES.posts) return 'post'
+  if (href === ROUTES.albums) return 'album'
+  if (href === ROUTES.search) return 'search'
+  if (href === ROUTES.login) return 'login'
+  if (href === ROUTES.profile) return 'profile'
   return 'page'
 }
 
@@ -49,8 +49,8 @@ export default function Sidebar({ items = [], open, onClose }) {
   const { t } = useGlobalLabels()
   const targetLanguageLabel = language === 'bng' ? 'English' : 'বাংলা'
   const translatedItems = items.map((item) => ({ ...item, label: globalItemLabel(item, t) }))
-  const homeItem = translatedItems.find((item) => item.href === '/') || { label: t('home', 'হোম', 'Home'), href: '/' }
-  const menuItems = translatedItems.filter((item) => item.href !== '/')
+  const homeItem = translatedItems.find((item) => item.href === ROUTES.home) || { label: t('home', 'হোম', 'Home'), href: ROUTES.home }
+  const menuItems = translatedItems.filter((item) => item.href !== ROUTES.home)
 
   function toggleTheme() {
     setThemePreference(theme === 'dark' ? 'light' : 'dark')
@@ -60,7 +60,7 @@ export default function Sidebar({ items = [], open, onClose }) {
     <>
       <button data-no-translate="true" className={'rural-sidebar__backdrop' + (open ? ' is-visible' : '')} aria-label={t('close_village_menu', 'উঠান বন্ধ করুন', 'Close village menu')} onClick={onClose} />
       <aside className={'rural-sidebar' + (open ? ' is-open' : '')} aria-label={t('village_menu', 'গ্রামের উঠান', 'Village menu')}>
-        <a className="rural-sidebar__home" href={appPath(homeItem.href)} onClick={onClose} aria-current={window.location.pathname.endsWith('/') ? 'page' : undefined}>
+        <a className="rural-sidebar__home" href={appPath(homeItem.href)} onClick={onClose} aria-current={window.location.pathname.endsWith(ROUTES.home) ? 'page' : undefined}>
           <RuralIcon name="home" />
           <span>{homeItem.label}</span>
         </a>
