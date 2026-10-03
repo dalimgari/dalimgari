@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { applyTheme, getDeviceClass, getLanguagePreference, getThemePreference, resolveTheme, setLanguagePreference as saveLanguagePreference, setThemePreference, subscribeToSystemTheme } from '../services/devicePreferenceService'
 import { getGlobalLabels } from '../services/globalLabelService'
-import { getActiveVisualTheme } from '../services/themeService'
+import { getActiveVisualTheme, setActiveVisualTheme } from '../services/themeService'
 import { applyVisualTheme } from '../services/devicePreferenceService'
 import { observeLanguageDocument } from '../services/languageRuntime'
 import { LANGUAGES } from '../config/preferences'
@@ -51,6 +51,13 @@ export function PreferencesProvider({ children }) {
     applyTheme(resolveTheme(next))
   }, [])
 
+  const changeVisualTheme = useCallback(async (value) => {
+    const next = await setActiveVisualTheme(value)
+    setVisualTheme(next)
+    applyVisualTheme(next)
+    return next
+  }, [])
+
   const changeLanguage = useCallback((value) => {
     const next = saveLanguagePreference(value)
     setLanguage(next)
@@ -65,6 +72,7 @@ export function PreferencesProvider({ children }) {
     labels,
     visualTheme,
     setThemePreference: changeTheme,
+    setVisualTheme: changeVisualTheme,
     setLanguagePreference: changeLanguage,
   }), [themePreference, theme, language, deviceClass, labels, changeTheme, changeLanguage])
 
