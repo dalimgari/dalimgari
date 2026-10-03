@@ -23,7 +23,7 @@ export default function Navigation({ items = [] }) {
   const translatedItems = items.map((item) => ({
     ...item,
     label: (() => {
-      const keys = { ROUTES.home: 'home', ROUTES.information: 'information', ROUTES.posts: 'posts', ROUTES.albums: 'albums', ROUTES.search: 'search', ROUTES.profile: 'profile', ROUTES.login: 'login' }
+      const keys = { [ROUTES.home]: 'home', [ROUTES.information]: 'information', [ROUTES.posts]: 'posts', [ROUTES.albums]: 'albums', [ROUTES.search]: 'search', [ROUTES.profile]: 'profile', [ROUTES.login]: 'login' }
       const key = keys[item.href]
       return key ? t(key, item.label, item.label) : item.label
     })(),
