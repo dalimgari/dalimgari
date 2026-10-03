@@ -15,7 +15,14 @@ export function PreferencesProvider({ children }) {
   const [language, setLanguage] = useState(() => getLanguagePreference() || DEFAULT_LANGUAGE)
   const [deviceClass, setDeviceClass] = useState(() => getDeviceClass())
   const [labels, setLabels] = useState({})
-  const [visualTheme, setVisualTheme] = useState('classic')
+  const [visualTheme, setVisualTheme] = useState(() => {
+    try {
+      const saved = window.localStorage.getItem('dalimgari_visual_theme_preference_v1')
+      return saved === 'classic' || saved === 'glass' || saved === 'village' ? saved : 'classic'
+    } catch {
+      return 'classic'
+    }
+  })
 
   useEffect(() => {
     const resolved = resolveTheme(themePreference)
