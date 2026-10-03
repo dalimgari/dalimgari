@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useAuth } from '../../context'
 import { appPath } from '../../lib/routes'
-import Skeleton from '../ui/Skeleton'
+import Skeleton from '../global components/skeleton/Skeleton'
 
 export default function UserRoute({ children }) {
   const { user, status } = useAuth()
