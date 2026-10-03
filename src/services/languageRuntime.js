@@ -39,8 +39,8 @@ function shouldSkipElement(element) {
   if (!element || element.nodeType !== Node.ELEMENT_NODE) return true
   return Boolean(
     element.closest('[data-language-switch]') ||
-    element.closest('script,style,noscript,code,pre,textarea') ||
-    element.hasAttribute('data-no-translate')
+    element.closest('[data-no-translate]') ||
+    element.closest('script,style,noscript,code,pre,textarea')
   )
 }
 
