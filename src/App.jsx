@@ -30,7 +30,8 @@ import NotFound from './pages/NotFound'
 import RoleRoute from './components/auth/RoleRoute'
 import AdminRoute from './components/auth/AdminRoute'
 import { useEffect, useState } from 'react'
-import { ROUTES, PERMISSIONS, appPath } from './lib/routes'
+import { ROUTES, appPath } from './lib/routes'
+import { MANAGEMENT_ROUTE_BY_PATH } from './config/routeDefinitions'
 
 function getPath() {
   const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
@@ -39,24 +40,24 @@ function getPath() {
   return path.replace(/\/$/, '') || '/'
 }
 
-const managementPages = {
-  [ROUTES.manage.homepage]: [HomepageManagement, PERMISSIONS.homepageManage],
-  [ROUTES.manage.sidebar]: [SidebarManagement, PERMISSIONS.sidebarManage],
-  [ROUTES.manage.pages]: [PagesManagement, PERMISSIONS.contentManage],
-  [ROUTES.manage.posts]: [PostsManagement, PERMISSIONS.contentManage],
-  [ROUTES.manage.albums]: [AlbumsManagement, PERMISSIONS.mediaManage],
-  [ROUTES.manage.media]: [MediaManagement, PERMISSIONS.mediaManage],
-  [ROUTES.manage.users]: [UsersManagement, PERMISSIONS.userManage],
-  [ROUTES.manage.access]: [AccessManagement, PERMISSIONS.userManage],
-  [ROUTES.manage.audit]: [AuditLogs, PERMISSIONS.auditView],
-  [ROUTES.manage.analytics]: [Analytics, PERMISSIONS.auditView],
-  [ROUTES.manage.websiteInformation]: [ControlPanel, PERMISSIONS.settingsManage],
-  [ROUTES.manage.adminInformation]: [AdminInformationManagement, PERMISSIONS.settingsManage],
-  [ROUTES.manage.databaseStorage]: [DatabaseStorageInformation, PERMISSIONS.settingsManage],
-  [ROUTES.manage.ruralVisual]: [RuralVisualManagement, PERMISSIONS.settingsManage],
-  [ROUTES.manage.keyLabels]: [KeyLabelManagement, PERMISSIONS.settingsManage],
-  [ROUTES.manage.translationOverrides]: [TranslationOverrideManagement, PERMISSIONS.settingsManage],
-  [ROUTES.manage.icons]: [IconManagement, PERMISSIONS.settingsManage],
+const managementComponents = {
+  homepage: HomepageManagement,
+  sidebar: SidebarManagement,
+  pages: PagesManagement,
+  posts: PostsManagement,
+  albums: AlbumsManagement,
+  media: MediaManagement,
+  users: UsersManagement,
+  access: AccessManagement,
+  audit: AuditLogs,
+  analytics: Analytics,
+  websiteInformation: ControlPanel,
+  adminInformation: AdminInformationManagement,
+  databaseStorage: DatabaseStorageInformation,
+  ruralVisual: RuralVisualManagement,
+  keyLabels: KeyLabelManagement,
+  translationOverrides: TranslationOverrideManagement,
+  icons: IconManagement,
 }
 
 const legacyPaths = ROUTES.legacy
@@ -100,12 +101,12 @@ export default function App() {
   const pageMatch = path.match(new RegExp(`^${ROUTES.pageDetailPrefix}/([^/]+)$`))
   const albumMatch = path.match(new RegExp(`^${ROUTES.albumDetailPrefix}/([^/]+)$`))
   const postMatch = path.match(new RegExp(`^${ROUTES.postDetailPrefix}/([^/]+)$`))
-  const management = managementPages[path]
+  const management = MANAGEMENT_ROUTE_BY_PATH[path]
 
   if (path === ROUTES.dashboard) page = <RoleRoute />
   else if (management) {
-    const Component = management[0]
-    page = <AdminRoute permission={management[1]} routePath={path}><Component /></AdminRoute>
+    const Component = managementComponents[management.key]
+    page = Component ? <AdminRoute permission={management.permission} routePath={path}><Component /></AdminRoute> : <NotFound />
   } else if (path === ROUTES.accessDenied) page = <AccessDenied />
   else if (pageMatch) page = <PageDetail slug={decodeURIComponent(pageMatch[1])} />
   else if (albumMatch) page = <AlbumDetail albumKey={decodeURIComponent(albumMatch[1])} />
