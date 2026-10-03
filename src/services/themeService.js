@@ -16,7 +16,7 @@ const DEFAULT_THEME = {
   spacing: {},
 }
 
-const VISUAL_THEMES = new Set(['classic', 'glass', 'nature'])
+const VISUAL_THEMES = new Set(['classic', 'glass', 'village'])
 
 function normalizeVisualTheme(value) {
   return VISUAL_THEMES.has(value) ? value : 'classic'
