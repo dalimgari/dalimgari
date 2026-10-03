@@ -15,7 +15,7 @@ export function detectDeviceTheme() {
 
 export function getThemePreference() {
   const saved = read(KEYS.theme)
-  return saved === THEMES.light || saved === THEMES.dark || saved === THEMES.system ? saved : 'system'
+  return saved === THEMES.light || saved === THEMES.dark || saved === THEMES.system ? saved : THEMES.system
 }
 
 export function setThemePreference(value) {
@@ -30,7 +30,7 @@ export function resolveTheme(preference = getThemePreference()) {
 
 export function getLanguagePreference() {
   const saved = read(KEYS.language)
-  return saved === LANGUAGES.english || saved === LANGUAGES.bengali ? saved : 'bng'
+  return saved === LANGUAGES.english || saved === LANGUAGES.bengali ? saved : LANGUAGES.bengali
 }
 
 export function setLanguagePreference(value) {
