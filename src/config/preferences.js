@@ -9,6 +9,11 @@ export const THEMES = Object.freeze({
   system: 'system',
 })
 
+export const VISUAL_THEMES = Object.freeze({
+  classic: 'classic',
+  glass: 'glass',
+})
+
 export const DEVICE_PREFERENCE_KEYS = Object.freeze({
   theme: 'dalimgari_theme_preference',
   language: 'dalimgari_language_preference',
