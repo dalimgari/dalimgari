@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../context'
-import { usePreferences } from '../../context/PreferencesContext'
 import { supabase } from '../../lib/supabase'
 import { appPath } from '../../lib/routes'
 import { searchPublicContent } from '../../services/searchService'
@@ -20,7 +19,6 @@ function RuralIcon({ name }) {
 
 export default function Header({ pageTitle, onMenu, sidebarOpen, labels = {}, showSearch = true, canonicalPath = '/', showBrand = true }) {
   const { user, status } = useAuth()
-  const { language, setLanguagePreference } = usePreferences()
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [searchResults, setSearchResults] = useState([])
@@ -88,7 +86,6 @@ export default function Header({ pageTitle, onMenu, sidebarOpen, labels = {}, sh
   const searchLabel = text('search', 'খোঁজ')
   const searchPlaceholder = text('search_placeholder', 'এখানে খুঁজুন')
   const loginLabel = user ? text('dashboard', 'ড্যাশবোর্ড') : text('login', 'লগইন')
-  const languageSwitchLabel = language === 'bng' ? 'English' : 'বাংলা'
   const searchRightStyle = searchOpen ? { flex: '1 1 auto', minWidth: 0, marginLeft: 'auto' } : undefined
   const searchBoxStyle = searchOpen ? { width: '100%', maxWidth: '26rem', flex: '0 1 26rem' } : undefined
 
@@ -138,16 +135,6 @@ export default function Header({ pageTitle, onMenu, sidebarOpen, labels = {}, sh
             ) : null}
           </div>
 
-          <button
-            className="site-header__action site-header__language-switch"
-            type="button"
-            data-language-switch
-            onClick={() => setLanguagePreference(language === 'bng' ? 'eng' : 'bng')}
-            aria-label={languageSwitchLabel}
-            title={languageSwitchLabel}
-          >
-            <span>{languageSwitchLabel}</span>
-          </button>
 
           {showLogout ? (
             <button className="site-header__action" type="button" onClick={() => supabase.auth.signOut().catch(() => {})} aria-label={text('logout', 'লগআউট')}>
