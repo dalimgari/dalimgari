@@ -1,3 +1,4 @@
+import PROJECT_PATHS from '../src/config/projectPaths.js'
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { createClient } from '@supabase/supabase-js'
