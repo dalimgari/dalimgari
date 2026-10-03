@@ -1,27 +1,27 @@
 import { useEffect, useState } from 'react'
 import { hasPermission } from '../../services/permissionService'
-import { appPath } from '../../lib/routes'
+import { ROUTES, PERMISSIONS, appPath } from '../../lib/routes'
 import { Button } from '../ui'
 import { Layout } from '../layout'
 import { useGlobalLabels } from '../../context'
 
 const adminNavItems = [
-  { key: 'dashboard', path: '/dashboard', permission: 'dashboard_view' },
-  { key: 'homepage_management', path: '/manage/homepage', permission: 'homepage_manage' },
-  { key: 'sidebar_management', path: '/manage/sidebar', permission: 'sidebar_manage' },
-  { key: 'website_information', path: '/manage/website-information', permission: 'settings_manage' },
-  { key: 'key_label_rename', path: '/manage/key-labels', permission: 'settings_manage' },
-  { key: 'translation_overrides', path: '/manage/translation-overrides', permission: 'settings_manage' },
-  { key: 'icon_management', path: '/manage/icons', permission: 'settings_manage' },
-  { key: 'pages', path: '/manage/pages', permission: 'content_manage' },
-  { key: 'posts', path: '/manage/posts', permission: 'content_manage' },
-  { key: 'albums', path: '/manage/albums', permission: 'media_manage' },
-  { key: 'media', path: '/manage/media', permission: 'media_manage' },
-  { key: 'database_storage', path: '/manage/database-storage', permission: 'settings_manage' },
-  { key: 'users', path: '/manage/users', permission: 'user_manage' },
-  { key: 'access', path: '/manage/access', permission: 'user_manage' },
-  { key: 'audit', path: '/manage/audit', permission: 'audit_view' },
-  { key: 'analytics', path: '/manage/analytics', permission: 'audit_view' },
+  { key: 'dashboard', path: ROUTES.dashboard, permission: PERMISSIONS.dashboardView },
+  { key: 'homepage_management', path: ROUTES.manage.homepage, permission: PERMISSIONS.homepageManage },
+  { key: 'sidebar_management', path: ROUTES.manage.sidebar, permission: PERMISSIONS.sidebarManage },
+  { key: 'website_information', path: ROUTES.manage.websiteInformation, permission: PERMISSIONS.settingsManage },
+  { key: 'key_label_rename', path: ROUTES.manage.keyLabels, permission: PERMISSIONS.settingsManage },
+  { key: 'translation_overrides', path: ROUTES.manage.translationOverrides, permission: PERMISSIONS.settingsManage },
+  { key: 'icon_management', path: ROUTES.manage.icons, permission: PERMISSIONS.settingsManage },
+  { key: 'pages', path: ROUTES.manage.pages, permission: PERMISSIONS.contentManage },
+  { key: 'posts', path: ROUTES.manage.posts, permission: PERMISSIONS.contentManage },
+  { key: 'albums', path: ROUTES.manage.albums, permission: PERMISSIONS.mediaManage },
+  { key: 'media', path: ROUTES.manage.media, permission: PERMISSIONS.mediaManage },
+  { key: 'database_storage', path: ROUTES.manage.databaseStorage, permission: PERMISSIONS.settingsManage },
+  { key: 'users', path: ROUTES.manage.users, permission: PERMISSIONS.userManage },
+  { key: 'access', path: ROUTES.manage.access, permission: PERMISSIONS.userManage },
+  { key: 'audit', path: ROUTES.manage.audit, permission: PERMISSIONS.auditView },
+  { key: 'analytics', path: ROUTES.manage.analytics, permission: PERMISSIONS.auditView },
 ]
 
 const ADMIN_LABELS = {
