@@ -24,6 +24,7 @@ export default function Header({ pageTitle, onMenu, sidebarOpen, labels = {}, sh
   const [searchResults, setSearchResults] = useState([])
   const [searchStatus, setSearchStatus] = useState('idle')
   const searchInputRef = useRef(null)
+  const headerRef = useRef(null)
   const [searchSuggestionStyle, setSearchSuggestionStyle] = useState({})
 
   const { t } = useGlobalLabels()
@@ -70,12 +71,13 @@ export default function Header({ pageTitle, onMenu, sidebarOpen, labels = {}, sh
       return undefined
     }
     const updateSearchSuggestionPosition = () => {
-      const rect = searchInputRef.current?.getBoundingClientRect()
-      if (!rect) return
+      const inputRect = searchInputRef.current?.getBoundingClientRect()
+      const headerRect = headerRef.current?.getBoundingClientRect()
+      if (!inputRect || !headerRect) return
       setSearchSuggestionStyle({
-        '--search-suggestion-left': `${rect.left}px`,
-        '--search-suggestion-top': `${rect.bottom}px`,
-        '--search-suggestion-width': `${rect.width}px`,
+        '--search-suggestion-left': `${inputRect.left}px`,
+        '--search-suggestion-top': `${headerRect.bottom}px`,
+        '--search-suggestion-width': `${inputRect.width}px`,
       })
     }
     updateSearchSuggestionPosition()
@@ -113,7 +115,7 @@ export default function Header({ pageTitle, onMenu, sidebarOpen, labels = {}, sh
   const loginLabel = user ? text('dashboard', 'ড্যাশবোর্ড') : text('login', 'লগইন')
   return (
     <>
-      <header className="site-header">
+      <header ref={headerRef} className="site-header">
         <div className="site-container site-header__inner">
           <button className={'site-header__action site-header__menu' + (sidebarOpen ? ' is-open' : '')} type="button" onClick={onMenu} aria-label={menuLabel} aria-expanded={sidebarOpen}>
             <RuralIcon name={sidebarOpen ? 'close' : 'menu'} />
