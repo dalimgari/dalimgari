@@ -3,6 +3,7 @@ import { DEVICE_BREAKPOINTS, DEVICE_PREFERENCE_KEYS, LANGUAGES, THEMES } from '.
 const KEYS = DEVICE_PREFERENCE_KEYS
 const VISUAL_THEME_KEY = 'dalimgari_visual_theme_preference_v1'
 const VISUAL_THEME_KEY = 'dalimgari_visual_theme_preference_v1'
+const VISUAL_THEME_KEY = 'dalimgari_visual_theme_preference_v1'
 
 function read(key) {
   try { return window.localStorage.getItem(key) } catch { return null }
@@ -59,6 +60,17 @@ export function subscribeToSystemTheme(callback) {
 export function applyTheme(theme) {
   document.documentElement.dataset.theme = theme
   document.documentElement.style.colorScheme = theme
+}
+
+export function getSavedVisualTheme() {
+  const saved = read(VISUAL_THEME_KEY)
+  return saved === 'classic' || saved === 'glass' || saved === 'village' ? saved : null
+}
+
+export function setSavedVisualTheme(theme) {
+  const next = theme === 'classic' || theme === 'glass' || theme === 'village' ? theme : null
+  if (next) write(VISUAL_THEME_KEY, next)
+  return next
 }
 
 export function getSavedVisualTheme() {
