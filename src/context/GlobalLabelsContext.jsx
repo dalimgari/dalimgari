@@ -3,7 +3,7 @@ import { GLOBAL_LABEL_DEFAULTS, getGlobalLabels } from '../services/globalLabelS
 import { UI_SSOT, flattenUiSsot } from '../config/uiSSOT'
 
 const GlobalLabelsContext = createContext(null)
-const MISSING_LABEL = 'Label Missing'
+const MISSING_LABEL = 'লেবেল মিসিং'
 
 export function GlobalLabelsProvider({ children }) {
   const [labels, setLabels] = useState({})
