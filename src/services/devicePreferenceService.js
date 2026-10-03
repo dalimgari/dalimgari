@@ -1,4 +1,7 @@
-const KEYS = { theme: 'dalimgari_theme_preference' }
+const KEYS = {
+  theme: 'dalimgari_theme_preference',
+  language: 'dalimgari_language_preference',
+}
 
 function read(key) {
   try { return window.localStorage.getItem(key) } catch { return null }
@@ -26,13 +29,15 @@ export function resolveTheme(preference = getThemePreference()) {
   return preference === 'system' ? detectDeviceTheme() : preference
 }
 
-// Language is intentionally fixed to the project's single canonical language.
 export function getLanguagePreference() {
-  return 'bng'
+  const saved = read(KEYS.language)
+  return saved === 'eng' || saved === 'bng' ? saved : 'bng'
 }
 
-export function setLanguagePreference() {
-  return 'bng'
+export function setLanguagePreference(value) {
+  const next = value === 'eng' ? 'eng' : 'bng'
+  write(KEYS.language, next)
+  return next
 }
 
 export function getDeviceClass() {
