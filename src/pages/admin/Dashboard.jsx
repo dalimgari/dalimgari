@@ -28,6 +28,10 @@ function formatValue(value) {
   return String(value)
 }
 
+function displayMode(key) {
+  return /content|description|details|bio|address|comment|note|message/i.test(String(key)) ? 'multi' : 'single'
+}
+
 function ModuleData({ label, items }) {
   if (!items.length) return <div className="ui-empty">এই মডিউলে বর্তমানে কোনো তথ্য নেই।</div>
 
@@ -42,7 +46,7 @@ function ModuleData({ label, items }) {
               {entries.map(([key, value]) => (
                 <div key={key} style={{ display: 'grid', gridTemplateColumns: 'minmax(7rem, 12rem) minmax(0, 1fr)', gap: '.5rem' }}>
                   <span style={{ color: 'var(--color-muted)' }}>{key}</span>
-                  <span className={`ui-display-field ui-display-field--single${typeof value === 'object' || String(formatValue(value)).length > 120 ? ' ui-display-field--multi' : ''}`} title={formatValue(value)}><span className="ui-display-field__content">{formatValue(value)}</span></span>
+                  <span className={`ui-display-field ui-display-field--${displayMode(key)}`} title={formatValue(value)}><span className="ui-display-field__content">{formatValue(value)}</span></span>
                 </div>
               ))}
             </div>
