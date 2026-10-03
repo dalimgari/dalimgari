@@ -37,9 +37,9 @@ test('Master Specification: migration directory contains no known invalid schema
 test('Master Specification: media source matrix is covered end-to-end', () => {
   const management = read('src/pages/admin/MediaManagement.jsx')
   const service = read('src/services/mediaService.js')
-  const renderer = read('src/018-Media/MediaContent.jsx')
-  const albumPage = read('src/015-Albums/Albums.jsx')
-  const postPage = read('src/013-Posts/PostDetail.jsx')
+  const renderer = read('src/Media/MediaContent.jsx')
+  const albumPage = read('src/Albums/Albums.jsx')
+  const postPage = read('src/Posts/PostDetail.jsx')
 
   assert.match(management, /type="file"/)
   assert.match(management, /image\/\*,video\/\*,audio\/\*,application\/pdf/)
@@ -93,8 +93,8 @@ test('Language switch: Bengali remains canonical and English is runtime translat
   const sidebar = read('src/sidebar/Sidebar.jsx')
   const runtime = read('src/services/languageRuntime.js')
   const labelsService = read('src/services/globalLabelService.js')
-  const banner = read('src/008-Homepage/components/Banner.jsx')
-  const information = read('src/023-Village Information/Information.jsx')
+  const banner = read('src/Homepage/components/Banner.jsx')
+  const information = read('src/Village Information/Information.jsx')
 
   assert.match(preferences, /DEFAULT_LANGUAGE = 'bng'/)
   const devicePreferences = read('src/services/devicePreferenceService.js')
