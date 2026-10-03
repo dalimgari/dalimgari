@@ -91,4 +91,6 @@ export const PROJECT_PATHS = Object.freeze({
   },
 })
 
+export const projectPathBasename = (projectPath) => projectPath.split('/').pop()
+
 export default PROJECT_PATHS
