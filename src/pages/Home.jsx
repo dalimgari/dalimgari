@@ -11,7 +11,7 @@ import { listPublishedPosts } from '../services/postService'
 import { listVisibleAlbums } from '../services/albumService'
 import { listVisibleMedia } from '../services/mediaService'
 import { listPublishedPages } from '../services/pageService'
-import Skeleton from '../components/ui/Skeleton'
+import Skeleton from '../components/global components/skeleton/Skeleton'
 import { getHomepageSettings } from '../services/homepageService'
 import { appPath } from '../lib/routes'
 
