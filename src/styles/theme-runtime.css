@@ -1,0 +1,21 @@
+/* Global theme runtime tokens. Feature behavior remains independent from visual theme. */
+:root {
+  --theme-heading-size: inherit;
+  --theme-body-size: inherit;
+  --theme-body-weight: 400;
+  --theme-line-height: normal;
+  --theme-letter-spacing: normal;
+  --theme-border-width: 1px;
+}
+body {
+  font-size: var(--theme-body-size);
+  font-weight: var(--theme-body-weight);
+  line-height: var(--theme-line-height);
+  letter-spacing: var(--theme-letter-spacing);
+}
+h1,h2,h3,h4 {
+  font-size: var(--theme-heading-size);
+}
+input,textarea,select,button {
+  border-width: var(--theme-border-width);
+}
