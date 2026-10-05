@@ -13,20 +13,23 @@
     header {
       height: 60px;
       background: #000;
+      display: flex;
+      align-items: center;
     }
 
     button {
       padding: 8px 12px;
+      margin-left: 10px;
     }
 
-    aside {
+    #sidebar {
       width: 250px;
-      height: 100vh;
+      height: calc(100vh - 60px);
       background: #000;
       display: none;
     }
 
-    aside.open {
+    #sidebar.open {
       display: block;
     }
   </style>
