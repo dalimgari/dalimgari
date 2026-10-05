@@ -22,6 +22,42 @@
       border-bottom: 1px solid #d8dee6;
     }
 
+    .header-left,
+    .header-right {
+      display: flex;
+      align-items: center;
+    }
+
+    .site-name {
+      margin-left: 15px;
+      font-weight: bold;
+    }
+
+    .header-link,
+    .search-button,
+    .notification-button {
+      margin-left: 10px;
+      padding: 8px 10px;
+      border: 1px solid #c7d0da;
+      border-radius: 4px;
+      background: #fff;
+      text-decoration: none;
+      color: #263238;
+      cursor: pointer;
+    }
+
+    .search-box {
+      display: none;
+      margin-left: 10px;
+      padding: 8px;
+      border: 1px solid #c7d0da;
+      border-radius: 4px;
+    }
+
+    .search-box.open {
+      display: block;
+    }
+
     button {
       padding: 8px 12px;
       margin-left: 10px;
@@ -61,13 +97,30 @@
 <body>
 
   <header>
-    <button type="button" id="menu-button">Menu</button>
-    <a href="login.html"><img class="profile-avatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23c7d0da'/%3E%3Ccircle cx='50' cy='38' r='17' fill='%23607080'/%3E%3Cpath d='M20 85c5-20 18-30 30-30s25 10 30 30' fill='%23607080'/%3E%3C/svg%3E" alt="Profile"></a>
+    <div class="header-left">
+      <button type="button" id="menu-button">Menu</button>
+      <span class="site-name">ডালিমগাড়ী</span>
+      <a href="index.html" class="header-link">Home</a>
+    </div>
+
+    <div class="header-right">
+      <button type="button" class="search-button" id="search-button">Search</button>
+      <input type="search" class="search-box" id="search-box" placeholder="Search">
+      <button type="button" class="notification-button" id="notification-button">Notification</button>
+      <a href="login.html"><img class="profile-avatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23c7d0da'/%3E%3Ccircle cx='50' cy='38' r='17' fill='%23607080'/%3E%3Cpath d='M20 85c5-20 18-30 30-30s25 10 30 30' fill='%23607080'/%3E%3C/svg%3E" alt="Profile"></a>
   </header>
 
   <aside id="sidebar"></aside>
 
   <script>
+    document.getElementById("search-button").onclick = function () {
+      document.getElementById("search-box").classList.toggle("open");
+    };
+
+    document.getElementById("notification-button").onclick = function () {
+      alert("কোনো নতুন Notification নেই।");
+    };
+
     document.getElementById("menu-button").onclick = function () {
       document.getElementById("sidebar").classList.toggle("open");
     };
