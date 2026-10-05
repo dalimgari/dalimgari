@@ -3,34 +3,58 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title></title>
+  <title>Dalimgari</title>
 
   <style>
     body {
       margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f7f9fc;
+      color: #263238;
     }
 
     header {
       height: 60px;
-      background: #e8eef5;
+      background: #f0f0f0;
       display: flex;
       align-items: center;
+      border-bottom: 1px solid #d8dee6;
     }
 
     button {
       padding: 8px 12px;
       margin-left: 10px;
+      border: 1px solid #c7d0da;
+      border-radius: 4px;
+      background: #ffffff;
+      cursor: pointer;
     }
 
     #sidebar {
       width: 180px;
-      height: calc(100vh - 60px);
-      background: #f0f0f0;
+      height: calc(100vh - 61px);
+      background: #e8eef5;
+      border-right: 1px solid #d0d9e2;
       display: none;
     }
 
     #sidebar.open {
       display: block;
+    }
+
+    main {
+      padding: 30px 20px;
+      text-align: center;
+    }
+
+    main h1 {
+      margin: 0 0 10px;
+      font-size: 28px;
+    }
+
+    main p {
+      margin: 0;
+      color: #607080;
     }
   </style>
 </head>
@@ -41,6 +65,11 @@
   </header>
 
   <aside id="sidebar"></aside>
+
+  <main>
+    <h1>দলিমগাড়ি</h1>
+    <p>আমাদের গ্রামের ওয়েবসাইট</p>
+  </main>
 
   <script>
     document.getElementById("menu-button").onclick = function () {
