@@ -11,17 +11,21 @@
   <div id="sidebar"></div>
 
   <script>
-    Promise.all([
-      fetch("components/header/header.html").then(response => response.text()),
-      fetch("components/sidebar/sidebar.html").then(response => response.text())
-    ]).then(([header, sidebar]) => {
-      document.getElementById("header").innerHTML = header;
-      document.getElementById("sidebar").innerHTML = sidebar;
+    fetch("components/header/header.html")
+      .then(response => response.text())
+      .then(header => {
+        document.getElementById("header").innerHTML = header;
 
-      document.getElementById("menu-button").onclick = function () {
-        document.querySelector("#sidebar aside").classList.toggle("open");
-      };
-    });
+        return fetch("components/sidebar/sidebar.html");
+      })
+      .then(response => response.text())
+      .then(sidebar => {
+        document.getElementById("sidebar").innerHTML = sidebar;
+
+        document.getElementById("menu-button").onclick = function () {
+          document.querySelector("#sidebar aside").classList.toggle("open");
+        };
+      });
   </script>
 </body>
 </html>
