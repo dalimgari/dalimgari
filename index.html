@@ -8,13 +8,19 @@
 </head>
 <body>
   <div id="header"></div>
-  <aside></aside>
+  <div id="sidebar"></div>
 
   <script>
     fetch("components/header/header.html")
       .then(response => response.text())
       .then(html => {
         document.getElementById("header").innerHTML = html;
+      });
+
+    fetch("components/sidebar/sidebar.html")
+      .then(response => response.text())
+      .then(html => {
+        document.getElementById("sidebar").innerHTML = html;
       });
   </script>
 </body>
