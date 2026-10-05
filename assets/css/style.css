@@ -8,6 +8,7 @@ aside {
   top: 0;
   width: 250px;
   height: 100vh;
+  background: #000;
   transform: translateX(-100%);
   transition: transform 0.2s ease;
 }
