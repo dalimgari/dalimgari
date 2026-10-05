@@ -2,17 +2,18 @@ body {
   margin: 0;
 }
 
+header {
+  height: 60px;
+  background: #000;
+}
+
 aside {
-  position: fixed;
-  left: 0;
-  top: 0;
   width: 250px;
   height: 100vh;
   background: #000;
-  transform: translateX(-100%);
-  transition: transform 0.2s ease;
+  display: none;
 }
 
 aside.open {
-  transform: translateX(0);
+  display: block;
 }
