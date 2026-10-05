@@ -4,9 +4,15 @@
     }
   </style>
 
-  <button type="button" class="button">
+  <button type="button" class="button" id="menu-button">
     মেনু
   </button>
 
-  <link rel="stylesheet" href="../../components/button/button.css">
+  <link rel="stylesheet" href="components/button/button.css">
+
+  <script>
+    document.getElementById("menu-button").addEventListener("click", () => {
+      document.querySelector("aside").classList.toggle("open");
+    });
+  </script>
 </header>
