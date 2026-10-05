@@ -7,7 +7,15 @@
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
-  <header></header>
+  <div id="header"></div>
   <aside></aside>
+
+  <script>
+    fetch("components/header/header.html")
+      .then(response => response.text())
+      .then(html => {
+        document.getElementById("header").innerHTML = html;
+      });
+  </script>
 </body>
 </html>
