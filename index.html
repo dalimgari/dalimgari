@@ -4,28 +4,46 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title></title>
-  <link rel="stylesheet" href="assets/css/style.css">
+
+  <style>
+    body {
+      margin: 0;
+    }
+
+    header {
+      height: 60px;
+      background: #000;
+    }
+
+    button {
+      padding: 8px 12px;
+    }
+
+    aside {
+      width: 250px;
+      height: 100vh;
+      background: #000;
+      display: none;
+    }
+
+    aside.open {
+      display: block;
+    }
+  </style>
 </head>
 <body>
-  <div id="header"></div>
-  <div id="sidebar"></div>
+
+  <header>
+    <button type="button" id="menu-button">Menu</button>
+  </header>
+
+  <aside id="sidebar"></aside>
 
   <script>
-    fetch("components/header/header.html")
-      .then(response => response.text())
-      .then(header => {
-        document.getElementById("header").innerHTML = header;
-
-        return fetch("components/sidebar/sidebar.html");
-      })
-      .then(response => response.text())
-      .then(sidebar => {
-        document.getElementById("sidebar").innerHTML = sidebar;
-
-        document.getElementById("menu-button").onclick = function () {
-          document.querySelector("#sidebar aside").classList.toggle("open");
-        };
-      });
+    document.getElementById("menu-button").onclick = function () {
+      document.getElementById("sidebar").classList.toggle("open");
+    };
   </script>
+
 </body>
 </html>
