@@ -18,9 +18,9 @@
       document.getElementById("header").innerHTML = header;
       document.getElementById("sidebar").innerHTML = sidebar;
 
-      document.getElementById("menu-button").addEventListener("click", () => {
+      document.getElementById("menu-button").onclick = function () {
         document.querySelector("#sidebar aside").classList.toggle("open");
-      });
+      };
     });
   </script>
 </body>
