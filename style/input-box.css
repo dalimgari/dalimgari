@@ -1,4 +1,4 @@
-input,
+input:not([type="checkbox"]):not([type="radio"]),
 textarea,
 select {
   box-sizing: border-box;
@@ -8,21 +8,33 @@ select {
   color: var(--global-color-text);
   font-size: 14px;
   font-weight: 400;
-  line-height: 1.2;
+  line-height: 1.4;
 }
 
-input,
-textarea,
+input:not([type="checkbox"]):not([type="radio"]),
 select {
   display: block;
-  width: 100%;
-  min-height: 40px;
+  width: var(--global-control-one-line-width);
+  min-height: var(--global-control-one-line-height);
   padding: 10px 12px;
 }
 
 textarea {
-  min-height: 96px;
+  display: block;
+  width: var(--global-control-multi-line-width);
+  min-height: var(--global-control-multi-line-height);
+  max-height: var(--global-control-multi-line-max-height);
+  padding: 10px 12px;
   resize: vertical;
+  overflow: auto;
+  overflow-wrap: anywhere;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  width: auto;
+  min-height: auto;
+  padding: 0;
 }
 
 input::placeholder,
