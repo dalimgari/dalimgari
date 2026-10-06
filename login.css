@@ -1,0 +1,33 @@
+main {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: var(--global-spacing-lg);
+}
+
+main form {
+  width: min(100%, 400px);
+}
+
+main form > input,
+main form > button {
+  width: 100%;
+}
+
+main form > input + input {
+  margin-top: var(--global-spacing-sm);
+}
+
+main form > button {
+  margin-top: var(--global-spacing-sm);
+}
+
+main form > div {
+  display: flex;
+  gap: var(--global-spacing-sm);
+  margin-top: var(--global-spacing-sm);
+}
+
+main form > div > button {
+  width: 50%;
+}
