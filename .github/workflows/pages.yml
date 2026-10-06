@@ -24,16 +24,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Auto-apply global loader to pages
-        shell: bash
-        run: |
-          set -e
-          while IFS= read -r -d '' file; do
-            if ! grep -q 'global/loader/loader.js' "$file"; then
-              sed -i 's#</body>#  <script src="global/loader/loader.js"></script>\n</body>#' "$file"
-            fi
-          done < <(find . -type f -name '*.html' -not -path './global/components/*' -print0)
-
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
