@@ -1,9 +1,9 @@
 const menuSlot = document.querySelector('[data-context-slot="menu"]');
 
-if (menuSlot && !menuSlot.querySelector(".menu-button")) {
+if (menuSlot && !menuSlot.querySelector("button")) {
   const button = document.createElement("button");
-  button.className = "global-button menu-button";
   button.type = "button";
+  button.dataset.size = "small";
   button.setAttribute("aria-label", "সাইডবার খুলুন");
   button.setAttribute("aria-expanded", "false");
   button.textContent = "Menu";
