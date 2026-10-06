@@ -1,0 +1,6 @@
+:root {
+  --global-spacing-xs: 4px;
+  --global-spacing-sm: 8px;
+  --global-spacing-md: 16px;
+  --global-spacing-lg: 24px;
+}
