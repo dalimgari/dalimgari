@@ -11,7 +11,7 @@ function setBusy(action){actionState.busy=Boolean(action);actionState.action=act
 function isBusy(){return actionState.busy;}
 function client(){return window.Dalimgari?.supabase||null;}
 function accessError(message,cause=null){return{error:{message,cause}};}
-async function profile(){const c=client();if(!c)return accessError("Database service is unavailable.");const{data:u,error:ue}=await c.auth.getUser();if(ue||!u?.user)return accessError("You must be signed in.");const{data,error}=await c.from("profiles").select("id,email,display_name,is_admin,is_active,avatar_url,created_at,updated_at").eq("id",u.user.id).single();if(error)return accessError(error.message,error);if(!data.is_active)return accessError("This account is disabled.");return{data};}
+async function profile(){const c=client();if(!c)return accessError("Database service is unavailable.");const{data:u,error:ue}=await c.auth.getUser();if(ue||!u?.user)return accessError("You must be signed in.");let{data,error}=await c.from("profiles").select("id,email,display_name,is_admin,is_active,avatar_url,created_at,updated_at").eq("id",u.user.id).single();if(error?.code==="PGRST116"){const created=await c.from("profiles").insert({id:u.user.id,email:u.user.email||u.user.phone||null,display_name:u.user.user_metadata?.full_name||u.user.user_metadata?.name||null}).select("id,email,display_name,is_admin,is_active,avatar_url,created_at,updated_at").single();data=created.data;error=created.error;}if(error)return accessError(error.message,error);if(!data.is_active)return accessError("This account is disabled.");return{data};}
 async function saveAvatar(dataUrl){
   const me=await profile();
   if(me.error)return me;
