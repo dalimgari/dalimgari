@@ -10,11 +10,14 @@ function dispatch(action, payload = {}) {
 }
 
 function setDefinition(id) {
+  if (!id || currentDefinition === id) return;
   currentDefinition = id;
   dispatch("definition-change", { id });
 }
 
-function getDefinition() { return currentDefinition; }
+function getDefinition() {
+  return currentDefinition;
+}
 
 function subscribe(listener) {
   if (typeof listener !== "function") return () => {};
@@ -24,16 +27,45 @@ function subscribe(listener) {
 
 async function handleAction(action, payload = {}) {
   const auth = window.Dalimgari?.auth;
+
   if (action === "forgot-password") return setDefinition("reset-password");
   if (action === "create-account") return setDefinition("register");
   if (action === "back-login") return setDefinition("login");
+
   if (!auth) return { error: { message: "Authentication service is unavailable." } };
-  if (action === "login") return auth.login(payload.identifier || "", payload.password || "");
-  if (action === "register") return auth.register(payload.email || "", payload.password || "");
-  if (action === "reset-password") return auth.resetPassword(payload.email || "");
-  if (action === "logout") return auth.logout();
+
+  let result;
+
+  if (action === "login") {
+    result = await auth.login(payload.identifier || "", payload.password || "");
+    if (!result?.error) setDefinition("home");
+    return result;
+  }
+
+  if (action === "register") {
+    result = await auth.register(payload.email || "", payload.password || "");
+    if (!result?.error && result.data?.session) setDefinition("home");
+    return result;
+  }
+
+  if (action === "reset-password") {
+    return auth.resetPassword(payload.email || "");
+  }
+
+  if (action === "logout") {
+    result = await auth.logout();
+    if (!result?.error) setDefinition("login");
+    return result;
+  }
+
   return { error: { message: `Unknown action: ${action}` } };
 }
 
 window.Dalimgari = window.Dalimgari || {};
-window.Dalimgari.controller = { dispatch, setDefinition, getDefinition, subscribe, handleAction };
+window.Dalimgari.controller = {
+  dispatch,
+  setDefinition,
+  getDefinition,
+  subscribe,
+  handleAction
+};
