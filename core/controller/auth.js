@@ -38,6 +38,12 @@ async function resetPassword(email) {
   });
 }
 
+async function getSession() {
+  const client = getClient();
+  if (!client) return authError("Authentication service is unavailable.");
+  return client.auth.getSession();
+}
+
 async function logout() {
   const client = getClient();
   if (!client) return authError("Authentication service is unavailable.");
@@ -53,7 +59,7 @@ async function initializeAuth() {
     window.Dalimgari.controller?.dispatch("auth-state-change", { session });
   });
 
-  const { data, error } = await client.auth.getSession();
+  const { data, error } = await getSession();
 
   if (error) {
     window.Dalimgari.controller?.dispatch("auth-state-change", {
@@ -74,5 +80,6 @@ window.Dalimgari.auth = {
   register,
   resetPassword,
   logout,
+  getSession,
   initialize: initializeAuth
 };
