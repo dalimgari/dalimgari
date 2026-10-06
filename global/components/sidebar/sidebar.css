@@ -9,9 +9,12 @@
 
 .site-sidebar {
   width: max-content;
-  min-width: 0;
+  min-width: 220px;
+  max-width: 360px;
   height: 100%;
   box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
   background-color: #e8edf3;
   color: #1f2937;
   border-right: 1px solid #cbd5e1;
