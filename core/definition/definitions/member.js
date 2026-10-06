@@ -1,0 +1,1 @@
+const memberDefinition={id:"member",type:"content",elements:[{type:"heading",level:1,text:"Member Dashboard"},{type:"output",name:"email",value:""},{type:"output",name:"role",value:"Member"},{type:"output",name:"message",value:""}]};window.Dalimgari=window.Dalimgari||{};window.Dalimgari.definition?.register("member",memberDefinition);
