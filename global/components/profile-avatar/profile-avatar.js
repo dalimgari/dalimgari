@@ -8,5 +8,5 @@ if (headerContent && menuButton && !headerContent.querySelector(".profile-avatar
   avatar.setAttribute("aria-label", "প্রোফাইল");
   avatar.innerHTML = '<span class="profile-avatar-icon" aria-hidden="true"></span>';
 
-  menuButton.insertAdjacentElement("afterend", avatar);
+  menuButton.insertAdjacentElement("beforebegin", avatar);
 }
