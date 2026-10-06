@@ -2,8 +2,8 @@ const loaderScript = document.currentScript;
 const loaderBase = new URL("../../", loaderScript.src);
 
 const components = [
-  { id: "header-component", path: "global/components/header", name: "header" },
-  { id: "sidebar-component", path: "global/components/sidebar", name: "sidebar" }
+  { id: "header-component", path: "global/components/header", name: "header", script: true },
+  { id: "sidebar-component", path: "global/components/sidebar", name: "sidebar", script: false }
 ];
 
 function createFloatingLayer() {
@@ -33,9 +33,11 @@ async function loadComponent(component, layer) {
   style.href = new URL(component.name + ".css", directory);
   document.head.appendChild(style);
 
-  const script = document.createElement("script");
-  script.src = new URL(component.name + ".js", directory);
-  document.body.appendChild(script);
+  if (component.script) {
+    const script = document.createElement("script");
+    script.src = new URL(component.name + ".js", directory);
+    document.body.appendChild(script);
+  }
 }
 
 async function loadGlobalComponents() {
