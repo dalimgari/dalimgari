@@ -1,1 +1,11 @@
-/* Button component styles */
+.global-button {
+  min-height: 46px;
+  padding: 0 18px;
+  border: 1px solid #cfd6de;
+  border-radius: 6px;
+  background: #f0f0f0;
+  color: #222;
+  font-size: 15px;
+  cursor: pointer;
+  box-sizing: border-box;
+}
