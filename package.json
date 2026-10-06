@@ -10,7 +10,8 @@
     "android:sync": "npm run build:android && npx cap sync android && node scripts/configure-android-deeplink.mjs",
     "android:open": "npx cap open android",
     "android:run": "npm run android:sync && npx cap run android",
-    "android:build": "npm run android:sync && npx cap build android --androidreleasetype APK"
+    "android:build": "npm run android:sync && npx cap build android --androidreleasetype APK",
+    "build:web": "node scripts/build-web.mjs"
   },
   "dependencies": {
     "@capacitor/core": "8.5.2",
