@@ -11,7 +11,27 @@ function setBusy(action){actionState.busy=Boolean(action);actionState.action=act
 function isBusy(){return actionState.busy;}
 function client(){return window.Dalimgari?.supabase||null;}
 function accessError(message,cause=null){return{error:{message,cause}};}
-async function profile(){const c=client();if(!c)return accessError("Database service is unavailable.");const{data:u,error:ue}=await c.auth.getUser();if(ue||!u?.user)return accessError("You must be signed in.");const{data,error}=await c.from("profiles").select("id,email,display_name,is_admin,is_active,created_at,updated_at").eq("id",u.user.id).single();if(error)return accessError(error.message,error);if(!data.is_active)return accessError("This account is disabled.");return{data};}
+async function profile(){const c=client();if(!c)return accessError("Database service is unavailable.");const{data:u,error:ue}=await c.auth.getUser();if(ue||!u?.user)return accessError("You must be signed in.");const{data,error}=await c.from("profiles").select("id,email,display_name,is_admin,is_active,avatar_url,created_at,updated_at").eq("id",u.user.id).single();if(error)return accessError(error.message,error);if(!data.is_active)return accessError("This account is disabled.");return{data};}
+async function saveAvatar(dataUrl){
+  const me=await profile();
+  if(me.error)return me;
+  if(!/^data:image\\/(png|jpeg|jpg|webp|gif);base64,/.test(dataUrl||""))return accessError("Invalid profile image.");
+  if((dataUrl||"").length>1400000)return accessError("Profile image is too large.");
+  const {data,error}=await client().from("profiles").update({avatar_url:dataUrl}).eq("id",me.data.id);
+  return error?accessError(error.message,error):{data};
+}
+async function createPost(content){
+  const me=await profile();
+  if(me.error)return me;
+  const text=String(content||"").trim();
+  if(!text)return accessError("Post content is required.");
+  const {data,error}=await client().from("posts").insert({user_id:me.data.id,content:text}).select("id,user_id,content,image_url,created_at,updated_at").single();
+  return error?accessError(error.message,error):{data};
+}
+async function getPosts(){
+  const {data,error}=await client().from("posts").select("id,user_id,content,image_url,created_at,profiles(display_name,email,avatar_url)").order("created_at",{ascending:false}).limit(30);
+  return error?accessError(error.message,error):{data};
+}
 async function isAdmin(){const p=await profile();return Boolean(p.data?.is_admin&&p.data?.is_active);}
 async function can(permissionKey){if(!permissionKey)return false;const c=client();if(!c)return false;const{data,error}=await c.rpc("has_permission",{requested_key:permissionKey});return !error&&data===true;}
 async function adminData(){if(!await isAdmin())return accessError("Admin access required.");const c=client();const [m,r,p,ur,up,s,pc]=await Promise.all([c.from("profiles").select("id,email,display_name,is_admin,is_active,created_at").order("created_at",{ascending:false}),c.from("roles").select("id,name,description,created_at").order("name"),c.from("permissions").select("id,key,description,created_at").order("key"),c.from("user_roles").select("user_id,role_id,roles(name)"),c.from("user_permissions").select("user_id,permission_id,allowed,permissions(key)"),c.from("site_settings").select("key,value,is_public,updated_at,updated_by").order("key"),c.from("public_sections").select("id,slug,title,content,sort_order,is_published,created_at,updated_at").order("sort_order")]);for(const x of[m,r,p,ur,up,s,pc])if(x.error)return accessError(x.error.message,x.error);return{data:{members:m.data,roles:r.data,permissions:p.data,userRoles:ur.data,userPermissions:up.data,settings:s.data,sections:pc.data}};}
@@ -52,7 +72,7 @@ async function handleAction(action,payload={}) {
   try {
     if(action==="login") {
       result=await auth.login(payload.identifier||"",payload.password||"");
-      if(!result?.error) { const p=await profile(); if(p.data?.is_admin) setDefinition("admin",{replace:true}); else if(p.data) setDefinition("member",{replace:true}); }
+      if(!result?.error) { const p=await profile(); if(p.data) setDefinition("profile",{replace:true}); }
     } else if(action==="register") {
       result=await auth.register(payload.email||"",payload.password||"");
       if(!result?.error && result.data?.session) setDefinition("home",{replace:true});
@@ -75,4 +95,4 @@ async function handleAction(action,payload={}) {
     setBusy(null);
   }
 }
-window.Dalimgari=window.Dalimgari||{};window.Dalimgari.controller={dispatch,setDefinition,getDefinition,subscribe,isBusy,handleAction};window.Dalimgari.access={profile,isAdmin,can,adminData,adminCreateRole,adminDeleteRole,adminCreatePermission,adminDeletePermission,adminSetRole,adminSetRolePermission,adminSetPermission,adminRemovePermission,adminSetMemberActive,adminSaveSetting,adminDeleteSetting,adminSaveSection,adminDeleteSection,getPublicContent};
+window.Dalimgari=window.Dalimgari||{};window.Dalimgari.controller={dispatch,setDefinition,getDefinition,subscribe,isBusy,handleAction};window.Dalimgari.access={profile,saveAvatar,createPost,getPosts,isAdmin,can,adminData,adminCreateRole,adminDeleteRole,adminCreatePermission,adminDeletePermission,adminSetRole,adminSetRolePermission,adminSetPermission,adminRemovePermission,adminSetMemberActive,adminSaveSetting,adminDeleteSetting,adminSaveSection,adminDeleteSection,getPublicContent};
