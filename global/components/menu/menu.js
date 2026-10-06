@@ -1,21 +1,26 @@
-function toggleSidebar(menuButton) {
-  const sidebar = document.getElementById("sidebar-component");
-  if (!sidebar) return;
+const menuSlot = document.querySelector('[data-context-slot="menu"]');
 
-  const isOpen = sidebar.dataset.open === "true";
-  sidebar.dataset.open = String(!isOpen);
-  sidebar.style.display = isOpen ? "none" : "block";
+if (menuSlot && !menuSlot.querySelector(".menu-button")) {
+  const button = document.createElement("button");
+  button.className = "global-button menu-button";
+  button.type = "button";
+  button.setAttribute("aria-label", "সাইডবার খুলুন");
+  button.setAttribute("aria-expanded", "false");
+  button.textContent = "Menu";
 
-  menuButton.setAttribute("aria-expanded", String(!isOpen));
-  menuButton.setAttribute(
-    "aria-label",
-    isOpen ? "সাইডবার খুলুন" : "সাইডবার বন্ধ করুন"
-  );
+  button.addEventListener("click", () => {
+    const sidebar = window.Dalimgari?.sidebar;
+    if (!sidebar) return;
+
+    const isOpen = sidebar.isOpen();
+    sidebar.setOpen(!isOpen);
+
+    button.setAttribute("aria-expanded", String(!isOpen));
+    button.setAttribute(
+      "aria-label",
+      isOpen ? "সাইডবার খুলুন" : "সাইডবার বন্ধ করুন"
+    );
+  });
+
+  menuSlot.appendChild(button);
 }
-
-document.addEventListener("click", (event) => {
-  const menuButton = event.target.closest(".menu-button");
-  if (!menuButton) return;
-
-  toggleSidebar(menuButton);
-});
