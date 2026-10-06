@@ -1,0 +1,7 @@
+.site-header {
+  width: 100%;
+  min-height: var(--global-header-height);
+  background: var(--global-color-surface);
+  color: var(--global-color-text);
+  border-bottom: 1px solid var(--global-color-border);
+}
