@@ -1,0 +1,15 @@
+output {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  min-height: 40px;
+  padding: 10px 12px;
+  border: 1px solid var(--global-color-border);
+  border-radius: var(--global-radius-md);
+  background: var(--global-color-surface-alt);
+  color: var(--global-color-text);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
