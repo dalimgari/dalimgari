@@ -1,1 +1,4 @@
-/* Sidebar component styles */
+.site-sidebar {
+  background-color: #e8edf3;
+  color: #1f2937;
+}
