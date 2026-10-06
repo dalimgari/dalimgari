@@ -1,33 +1,56 @@
-main {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: var(--global-spacing-lg);
-}
-
-main form {
+.content > form[data-definition="login"],
+.content > form[data-definition="register"],
+.content > form[data-definition="reset-password"],
+.content > form[data-definition="update-password"] {
   width: min(100%, 400px);
+  margin: 0 auto;
 }
 
-main form > input,
-main form > button {
+.content > form[data-definition="login"] > input,
+.content > form[data-definition="login"] > button,
+.content > form[data-definition="register"] > input,
+.content > form[data-definition="register"] > button,
+.content > form[data-definition="reset-password"] > input,
+.content > form[data-definition="reset-password"] > button,
+.content > form[data-definition="update-password"] > input,
+.content > form[data-definition="update-password"] > button {
   width: 100%;
 }
 
-main form > input + input {
+.content > form[data-definition="login"] > input + input,
+.content > form[data-definition="register"] > input + input,
+.content > form[data-definition="reset-password"] > input + input,
+.content > form[data-definition="update-password"] > input + input {
   margin-top: var(--global-spacing-sm);
 }
 
-main form > button {
+.content > form[data-definition="login"] > button,
+.content > form[data-definition="register"] > button,
+.content > form[data-definition="reset-password"] > button,
+.content > form[data-definition="update-password"] > button {
   margin-top: var(--global-spacing-sm);
 }
 
-main form > div {
+.content > form[data-definition="login"] > div,
+.content > form[data-definition="register"] > div,
+.content > form[data-definition="reset-password"] > div,
+.content > form[data-definition="update-password"] > div {
   display: flex;
   gap: var(--global-spacing-sm);
   margin-top: var(--global-spacing-sm);
+  flex-wrap: wrap;
 }
 
-main form > div > button {
-  width: 50%;
+.content > form[data-definition="login"] > div > button,
+.content > form[data-definition="register"] > div > button,
+.content > form[data-definition="reset-password"] > div > button,
+.content > form[data-definition="update-password"] > div > button {
+  flex: 1 1 140px;
+  width: auto;
+}
+
+@media (max-width: 480px) {
+  .content {
+    padding: var(--global-spacing-sm);
+  }
 }
