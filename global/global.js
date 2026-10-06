@@ -2,53 +2,14 @@ const loaderScript = document.currentScript;
 const globalBase = new URL("./", loaderScript.src);
 
 const globalFeatures = [
-  {
-    name: "global-style",
-    selector: null,
-    css: "global-style/global-style.css"
-  },
-  {
-    name: "button",
-    selector: "button",
-    css: "button/button.css"
-  },
-  {
-    name: "input-box",
-    selector: "input, textarea, select",
-    css: "input-box/input-box.css"
-  },
-  {
-    name: "output-box",
-    selector: "output",
-    css: "output-box/output-box.css"
-  },
-  {
-    name: "avatar",
-    selector: '[data-component="profile-avatar"]',
-    css: "avatar/avatar.css"
-  },
-  {
-    name: "header",
-    selector: '[data-context="header"]',
-    css: "header/header.css"
-  },
-  {
-    name: "sidebar",
-    selector: '[data-context="sidebar"]',
-    css: "sidebar/sidebar.css"
-  }
-];
-
-const globalContexts = [
-  { name: "header", html: "contexts/header/header.html", css: "contexts/header/header.css" },
-  { name: "sidebar", html: "contexts/sidebar/sidebar.html", css: "contexts/sidebar/sidebar.css" }
-];
-
-const globalComponents = [
-  "components/header/header.js",
-  "components/menu/menu.js",
-  "components/profile-avatar/profile-avatar.js",
-  "components/sidebar/sidebar.js"
+  { name: "global-style", selector: null, css: "global-style/global-style.css" },
+  { name: "button", selector: "button", css: "button/button.css" },
+  { name: "input-box", selector: "input, textarea, select", css: "input-box/input-box.css" },
+  { name: "output-box", selector: "output", css: "output-box/output-box.css" },
+  { name: "avatar", selector: '[data-component="profile-avatar"]', css: "avatar/avatar.css", js: "avatar/avatar.js" },
+  { name: "header", selector: '[data-context="header"]', css: "header/header.css", html: "header/header.html", js: "header/header.js" },
+  { name: "menu", selector: '[data-context-slot="menu"]', js: "menu/menu.js" },
+  { name: "sidebar", selector: '[data-context="sidebar"]', css: "sidebar/sidebar.css", html: "sidebar/sidebar.html", js: "sidebar/sidebar.js" }
 ];
 
 function loadCss(path) {
@@ -58,50 +19,43 @@ function loadCss(path) {
   document.head.appendChild(style);
 }
 
-async function loadContext(context) {
-  const response = await fetch(new URL(context.html, globalBase));
-  if (!response.ok) throw new Error("Failed to load context: " + context.name);
-
-  const target = document.createElement("div");
-  target.id = context.name + "-context";
-  target.innerHTML = await response.text();
-  document.body.appendChild(target);
-
-  if (context.css) loadCss(context.css);
-}
-
-function loadComponent(path) {
+function loadJs(path) {
   return new Promise((resolve, reject) => {
     const script = document.createElement("script");
     script.src = new URL(path, globalBase);
     script.onload = resolve;
-    script.onerror = () => reject(new Error("Failed to load component: " + path));
+    script.onerror = () => reject(new Error("Failed to load feature: " + path));
     document.body.appendChild(script);
   });
+}
+
+async function loadHtml(feature) {
+  const response = await fetch(new URL(feature.html, globalBase));
+  if (!response.ok) throw new Error("Failed to load feature context: " + feature.name);
+
+  const target = document.createElement("div");
+  target.id = feature.name + "-context";
+  target.innerHTML = await response.text();
+  document.body.appendChild(target);
 }
 
 function featureIsPresent(feature) {
   return !feature.selector || document.querySelector(feature.selector);
 }
 
-function applyGlobalFeatures() {
-  for (const feature of globalFeatures) {
-    if (featureIsPresent(feature) && feature.css) {
-      loadCss(feature.css);
-    }
-  }
-}
-
 async function loadGlobalSystem() {
-  for (const context of globalContexts) {
-    await loadContext(context);
+  const globalStyle = globalFeatures.find(feature => feature.name === "global-style");
+  loadCss(globalStyle.css);
+
+  for (const feature of globalFeatures.filter(feature => feature.html)) {
+    await loadHtml(feature);
   }
 
-  for (const component of globalComponents) {
-    await loadComponent(component);
+  for (const feature of globalFeatures) {
+    if (!featureIsPresent(feature)) continue;
+    if (feature.css) loadCss(feature.css);
+    if (feature.js) await loadJs(feature.js);
   }
-
-  applyGlobalFeatures();
 }
 
 loadGlobalSystem().catch(console.error);
