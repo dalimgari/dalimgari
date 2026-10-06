@@ -17,22 +17,7 @@ if (avatarSlot && !avatarSlot.querySelector('[data-component="profile-avatar"]')
 
   avatar.addEventListener("click", event => {
     event.preventDefault();
-
-    const definition = window.Dalimgari.controller;
-    if (!definition) return;
-
-    const session = window.Dalimgari.supabase
-      ? window.Dalimgari.supabase.auth.getSession()
-      : null;
-
-    if (session && typeof session.then === "function") {
-      session.then(({ data }) => {
-        definition.setDefinition(data.session ? "profile" : "login");
-      });
-      return;
-    }
-
-    definition.setDefinition("login");
+    window.Dalimgari.controller?.handleAction("profile");
   });
 
   window.Dalimgari.controller?.subscribe((action, payload) => {
@@ -41,7 +26,7 @@ if (avatarSlot && !avatarSlot.querySelector('[data-component="profile-avatar"]')
     }
   });
 
-  window.Dalimgari.supabase?.auth.getSession().then(({ data }) => {
+  window.Dalimgari.auth?.getSession().then(({ data }) => {
     updateTarget(data.session);
   });
 
