@@ -1,47 +1,55 @@
 const loaderScript = document.currentScript;
 const loaderBase = new URL("../", loaderScript.src);
 
-async function loadComponent(id, path) {
+async function loadText(path) {
   const response = await fetch(new URL(path, loaderBase));
-  document.getElementById(id).innerHTML = await response.text();
+  if (!response.ok) throw new Error("Failed to load: " + path);
+  return response.text();
 }
 
-async function loadComponents() {
-  if (!document.getElementById("header-component")) {
-    const header = document.createElement("div");
-    header.id = "header-component";
-    document.body.prepend(header);
-  }
-
-  if (!document.getElementById("sidebar-component")) {
-    const sidebar = document.createElement("div");
-    sidebar.id = "sidebar-component";
-    document.body.appendChild(sidebar);
-  }
-
-  await loadComponent("header-component", "components/header/header.html");
-  await loadComponent("sidebar-component", "components/sidebar/sidebar.html");
-
-  const headerCss = document.createElement("link");
-  headerCss.rel = "stylesheet";
-  headerCss.href = new URL("components/header/header.css", loaderBase);
-  document.head.appendChild(headerCss);
-
-  const sidebarCss = document.createElement("link");
-  sidebarCss.rel = "stylesheet";
-  sidebarCss.href = new URL("components/sidebar/sidebar.css", loaderBase);
-  document.head.appendChild(sidebarCss);
-
-  const headerJs = document.createElement("script");
-  headerJs.src = new URL("components/header/header.js", loaderBase);
-  document.body.appendChild(headerJs);
-
-  const sidebarJs = document.createElement("script");
-  sidebarJs.src = new URL("components/sidebar/sidebar.js", loaderBase);
-  sidebarJs.onload = function () {
-    initSidebar();
-  };
-  document.body.appendChild(sidebarJs);
+async function loadStyle(path) {
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = new URL(path, loaderBase);
+  document.head.appendChild(link);
 }
 
-loadComponents();
+async function loadScript(path) {
+  const script = document.createElement("script");
+  script.src = new URL(path, loaderBase);
+  document.body.appendChild(script);
+  return new Promise((resolve, reject) => {
+    script.onload = resolve;
+    script.onerror = reject;
+  });
+}
+
+async function loadGlobalComponents() {
+  const components = [
+    { id: "header-component", path: "components/header", name: "header" },
+    { id: "sidebar-component", path: "components/sidebar", name: "sidebar" },
+    { id: "menu-component", path: "components/menu", name: "menu" }
+  ];
+
+  for (const component of components) {
+    let target = document.getElementById(component.id);
+
+    if (!target) {
+      target = document.createElement("div");
+      target.id = component.id;
+      document.body.prepend(target);
+    }
+
+    target.innerHTML = await loadText(component.path + "/" + component.name + ".html");
+    await loadStyle(component.path + "/" + component.name + ".css");
+
+    if (component.name === "sidebar") {
+      await loadScript(component.path + "/" + component.name + ".js");
+      if (typeof initSidebar === "function") initSidebar();
+    } else {
+      await loadScript(component.path + "/" + component.name + ".js");
+    }
+  }
+}
+
+loadGlobalComponents().catch(console.error);
