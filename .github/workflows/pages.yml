@@ -23,6 +23,21 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Add global loader to all pages
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          loader = '<script src="global/loader/loader.js"></script>'
+
+          for path in Path('.').rglob('*.html'):
+              if '.git' in path.parts or 'global/components' in path.as_posix():
+                  continue
+              text = path.read_text(encoding='utf-8')
+              if loader not in text:
+                  text = text.replace('</body>', f'  {loader}\n</body>')
+                  path.write_text(text, encoding='utf-8')
+          PY
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
