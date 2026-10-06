@@ -6,7 +6,8 @@
   --global-color-muted: #aaaaaa;
   --global-radius-sm: 6px;
   --global-radius-md: 10px;
-  --global-header-height: 64px;\n  --global-content-max-width: 1200px;
+  --global-header-height: 64px;
+  --global-content-max-width: 1200px;
 
   --global-control-one-line-width: min(100%, 360px);
   --global-control-multi-line-width: min(100%, 640px);
