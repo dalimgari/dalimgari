@@ -7,7 +7,11 @@ const registry = {
     content: "core/context/content.html"
   },
   definition: {
-    login: "core/definition/definitions/login.js"
+    login: "core/definition/definitions/login.js",
+    home: "core/definition/definitions/home.js",
+    register: "core/definition/definitions/register.js",
+    "reset-password": "core/definition/definitions/reset-password.js",
+    profile: "core/definition/definitions/profile.js"
   }
 };
 
