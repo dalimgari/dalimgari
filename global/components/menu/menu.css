@@ -1,1 +1,8 @@
-/* Menu component styles */
+.menu-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
