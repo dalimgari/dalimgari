@@ -1,58 +1,49 @@
-const loaderScript = document.currentScript;
-const loaderBase = new URL("../", loaderScript.src);
+const components = [
+  {
+    id: "header-component",
+    path: "global/components/header",
+    name: "header"
+  },
+  {
+    id: "sidebar-component",
+    path: "global/components/sidebar",
+    name: "sidebar"
+  }
+];
 
-function loadText(path) {
-  return fetch(new URL(path, loaderBase)).then(response => {
-    if (!response.ok) throw new Error("Failed to load: " + path);
-    return response.text();
-  });
-}
+async function loadComponent(component) {
+  const base = new URL("../../", document.currentScript.src);
+  const directory = new URL(component.path + "/", base);
 
-function loadStyle(path) {
-  const link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href = new URL(path, loaderBase);
-  document.head.appendChild(link);
-}
+  const htmlResponse = await fetch(
+    new URL(component.name + ".html", directory)
+  );
 
-function loadScript(path) {
+  if (!htmlResponse.ok) {
+    throw new Error("Failed to load: " + component.name + ".html");
+  }
+
+  const target = document.getElementById(component.id);
+
+  if (!target) {
+    throw new Error("Missing target: #" + component.id);
+  }
+
+  target.innerHTML = await htmlResponse.text();
+
+  const style = document.createElement("link");
+  style.rel = "stylesheet";
+  style.href = new URL(component.name + ".css", directory);
+  document.head.appendChild(style);
+
   const script = document.createElement("script");
-  script.src = new URL(path, loaderBase);
+  script.src = new URL(component.name + ".js", directory);
   document.body.appendChild(script);
 }
 
-async function loadGlobalComponent(component) {
-  let target = document.getElementById(component.id);
-
-  if (!target) {
-    target = document.createElement("div");
-    target.id = component.id;
-    document.body.prepend(target);
-  }
-
-  target.innerHTML = await loadText(
-    component.path + "/" + component.name + ".html"
-  );
-
-  loadStyle(component.path + "/" + component.name + ".css");
-  loadScript(component.path + "/" + component.name + ".js");
-}
-
 async function loadGlobalComponents() {
-  const components = [
-    { id: "header-component", path: "components/header", name: "header" },
-    { id: "sidebar-component", path: "components/sidebar", name: "sidebar" },
-    { id: "menu-component", path: "components/menu", name: "menu" },
-    { id: "button-component", path: "components/button", name: "button" },
-    { id: "input-box-component", path: "components/input-box", name: "input-box" },
-    { id: "avatar-component", path: "components/avatar", name: "avatar" },
-    { id: "profile-avatar-component", path: "components/profile-avatar", name: "profile-avatar" }
-  ];
-
-  await Promise.all(components.map(loadGlobalComponent));
-
-  if (typeof initSidebar === "function") {
-    initSidebar();
+  for (const component of components) {
+    await loadComponent(component);
   }
 }
 
