@@ -41,8 +41,35 @@ body {
   border-right: 1px solid var(--global-color-border);
 }
 
-button,
-.input-box,
+button {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--global-color-border);
+  border-radius: var(--global-radius-md);
+  background: var(--global-color-surface-alt);
+  color: var(--global-color-text);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.2;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+button[data-size="small"] {
+  padding: 8px 12px;
+  font-size: 14px;
+}
+
+button[data-size="large"] {
+  padding: 14px 20px;
+  font-size: 16px;
+}
+
+input,
+textarea,
+select,
 .output-box {
   box-sizing: border-box;
   border: 1px solid var(--global-color-border);
@@ -54,15 +81,9 @@ button,
   line-height: 1.2;
 }
 
-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 12px;
-  cursor: pointer;
-}
-
-.input-box {
+input,
+textarea,
+select {
   display: block;
   width: 100%;
   min-height: 40px;
