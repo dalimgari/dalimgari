@@ -93,8 +93,6 @@ function applyGlobalFeatures() {
 }
 
 async function loadGlobalSystem() {
-  loadCss("global-style/global-style.css");
-
   for (const context of globalContexts) {
     await loadContext(context);
   }
