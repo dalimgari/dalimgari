@@ -50,7 +50,7 @@ async function adminSaveTheme(value){return adminSaveSetting("theme",value,true)
 async function adminSaveCustomization(value){return adminSaveSetting("customization",value,true);}
 async function adminSaveLogo(dataUrl){
   if(!await isAdmin())return accessError("Admin access required.");
-  if(!/^data:image\\/(png|jpeg|jpg|webp|svg\\+xml);base64,/.test(dataUrl||""))return accessError("Invalid logo image.");
+  if(!/^data:image\/(png|jpeg|jpg|webp|svg\+xml);base64,/.test(dataUrl||""))return accessError("Invalid logo image.");
   if((dataUrl||"").length>700000)return accessError("Logo image is too large. Use an image smaller than 500 KB.");
   return adminSaveSetting("site.logo",dataUrl,true);
 }
