@@ -31,6 +31,11 @@ async function handleAction(action, payload = {}) {
   if (action === "forgot-password") return setDefinition("reset-password");
   if (action === "create-account") return setDefinition("register");
   if (action === "back-login") return setDefinition("login");
+  if (action === "profile") {
+    const session = await auth?.getSession();
+    if (session?.data?.session) return setDefinition("profile");
+    return setDefinition("login");
+  }
 
   if (!auth) return { error: { message: "Authentication service is unavailable." } };
 
