@@ -15,7 +15,7 @@ async function profile(){const c=client();if(!c)return accessError("Database ser
 async function saveAvatar(dataUrl){
   const me=await profile();
   if(me.error)return me;
-  if(!/^data:image\\/(png|jpeg|jpg|webp|gif);base64,/.test(dataUrl||""))return accessError("Invalid profile image.");
+  if(!/^data:image\/(png|jpeg|jpg|webp|gif);base64,/.test(dataUrl||""))return accessError("Invalid profile image.");
   if((dataUrl||"").length>1400000)return accessError("Profile image is too large.");
   const {data,error}=await client().from("profiles").update({avatar_url:dataUrl}).eq("id",me.data.id);
   return error?accessError(error.message,error):{data};
