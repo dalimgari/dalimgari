@@ -3,7 +3,9 @@
 window.Dalimgari = window.Dalimgari || {};
 window.Dalimgari.config = {
   supabasePublishableKey: "sb_publishable_sWfWMmJXXwuP1aqf8gki9g_gO9U_kgu",
-  passwordResetRedirect: window.location.origin
+  passwordResetRedirect: window.Capacitor?.getPlatform?.() === "android"
+    ? "com.dalimgari.app://reset-password"
+    : window.location.origin
 };
 
 window.Dalimgari.platform = {
