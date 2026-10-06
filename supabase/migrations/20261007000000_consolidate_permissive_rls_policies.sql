@@ -18,3 +18,6 @@ drop policy if exists profiles_admin_select on public.profiles;
 create policy profiles_select on public.profiles
   for select to authenticated
   using ((select private.is_admin()) or id = (select auth.uid()));
+
+-- The admin role is the canonical full-access role. Keep permission checks
+-- fail-safe by retaining the profile is_admin privilege path for all permissions.
