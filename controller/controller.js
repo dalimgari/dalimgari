@@ -48,7 +48,6 @@ async function loadGlobalSystem() {
   for (const feature of features) {
     if (!featureIsPresent(feature)) continue;
     if (feature.css && feature.selector) loadCss(feature.css);
-    if (feature.contextCss) loadCss(feature.contextCss);
     if (feature.js) await loadJs(feature.js);
   }
 }
