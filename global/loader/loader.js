@@ -4,6 +4,18 @@ async function loadComponent(id, path) {
 }
 
 async function loadComponents() {
+  if (!document.getElementById("header-component")) {
+    const header = document.createElement("div");
+    header.id = "header-component";
+    document.body.prepend(header);
+  }
+
+  if (!document.getElementById("sidebar-component")) {
+    const sidebar = document.createElement("div");
+    sidebar.id = "sidebar-component";
+    document.body.appendChild(sidebar);
+  }
+
   await loadComponent("header-component", "global/components/header/header.html");
   await loadComponent("sidebar-component", "global/components/sidebar/sidebar.html");
 
