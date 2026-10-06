@@ -7,4 +7,10 @@
   --global-radius-sm: 6px;
   --global-radius-md: 10px;
   --global-header-height: 64px;
+
+  --global-control-one-line-width: min(100%, 360px);
+  --global-control-multi-line-width: min(100%, 640px);
+  --global-control-one-line-height: 42px;
+  --global-control-multi-line-height: 140px;
+  --global-control-multi-line-max-height: 240px;
 }
