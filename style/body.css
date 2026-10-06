@@ -53,6 +53,9 @@ body {
   display: none;
 }
 
+.admin-group{width:100%;display:grid;gap:var(--global-spacing-md);min-width:0}.admin-group[hidden]{display:none}.admin-group>h2{margin:0}.admin-group-description{margin:0;color:var(--global-color-muted)}.admin-stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:var(--global-spacing-sm)}.admin-stat-card{display:grid;gap:4px;padding:var(--global-spacing-md);border:1px solid var(--global-color-border);border-radius:var(--global-radius-md);background:var(--global-color-surface)}.admin-stat-card strong{font-size:1.5rem;line-height:1.2}.admin-stat-card span{color:var(--global-color-muted)}
+
+
 .admin-panel {
   width: 100%;
   min-width: 0;
