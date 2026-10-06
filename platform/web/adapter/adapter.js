@@ -1,0 +1,45 @@
+// Web Adapter
+
+async function loadText(path) {
+  const response = await fetch(path);
+  if (!response.ok) throw new Error(`Failed to load: ${path}`);
+  return response.text();
+}
+
+async function mountContext(name) {
+  const path = window.Dalimgari.registry.context[name];
+  if (!path) return;
+
+  const html = await loadText(path);
+  const template = document.createElement("template");
+  template.innerHTML = html.trim();
+  document.getElementById("app").appendChild(template.content.cloneNode(true));
+}
+
+function loadScript(path) {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = path;
+    script.onload = resolve;
+    script.onerror = () => reject(new Error(`Failed to load: ${path}`));
+    document.body.appendChild(script);
+  });
+}
+
+async function loadDefinition(id) {
+  const path = window.Dalimgari.registry.definition[id];
+  if (!path) throw new Error(`Unknown definition: ${id}`);
+
+  if (!window.Dalimgari.definition.get(id)) {
+    await loadScript(path);
+  }
+
+  return window.Dalimgari.definition.get(id);
+}
+
+window.Dalimgari = window.Dalimgari || {};
+window.Dalimgari.webAdapter = {
+  mountContext,
+  loadScript,
+  loadDefinition
+};
