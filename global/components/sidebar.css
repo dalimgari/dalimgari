@@ -32,24 +32,3 @@
 .sidebar-item.active {
   background: #d5dee8;
 }
-
-.menu-item {
-  display: block;
-  width: 100%;
-  padding: 8px 10px;
-  border: 0;
-  border-radius: 4px;
-  background: transparent;
-  color: #222;
-  text-align: left;
-  cursor: pointer;
-  box-sizing: border-box;
-}
-
-.menu-item:hover {
-  background: #dde5ee;
-}
-
-.menu-item.active {
-  background: #d5dee8;
-}
