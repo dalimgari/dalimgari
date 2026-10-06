@@ -20,7 +20,7 @@ if (avatarSlot && !avatarSlot.querySelector('[data-component="profile-avatar"]')
     window.Dalimgari.controller?.handleAction("profile");
   });
 
-  window.Dalimgari.controller?.subscribe((action, payload) => {
+  const unsubscribe = window.Dalimgari.controller?.subscribe((action, payload) => {
     if (action === "auth-state-change") {
       updateTarget(payload.session);
     }
@@ -29,6 +29,11 @@ if (avatarSlot && !avatarSlot.querySelector('[data-component="profile-avatar"]')
   window.Dalimgari.auth?.getSession().then(({ data }) => {
     updateTarget(data.session);
   });
+
+  avatar.destroy = () => {
+    if (typeof unsubscribe === "function") unsubscribe();
+    avatar.remove();
+  };
 
   avatarSlot.appendChild(avatar);
 }
