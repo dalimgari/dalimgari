@@ -16,4 +16,4 @@ for (const name of webEntries) {
   fs.cpSync(source, path.join(dist, name), { recursive: true });
 }
 
-console.log(`Dalimgari Android web bundle created at ${dist}`);
+console.log(`Dalimgai - ডালিমগাড়ী Android web bundle created at ${dist}`);
