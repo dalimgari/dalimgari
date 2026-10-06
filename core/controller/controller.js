@@ -61,8 +61,8 @@ async function handleAction(action,payload={}) {
     const session=await auth.getSession();
     return session?.error ? session : setDefinition(session?.data?.session ? "profile" : "login");
   }
-  if(action==="admin") {
-    if(await isAdmin()) return setDefinition("admin");
+  if(action==="dashboard") {
+    if(await isAdmin()) return setDefinition("dashboard");
     return accessError("Admin access required.");
   }
   if(!auth) return accessError("Authentication service is unavailable.");
