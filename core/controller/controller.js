@@ -1,7 +1,11 @@
-let currentDefinition=null;const listeners=new Set();const actionState={busy:false,action:null};
+let currentDefinition=null;const listeners=new Set();const actionState={busy:false,action:null};const transientDefinitions=new Set(["login","register","reset-password","update-password"]);const fallbackParents={admin:"home",member:"home",profile:"home","reset-password":"login","update-password":"login",register:"home",login:"home"};
 function dispatch(action,payload={}){for(const listener of listeners){try{listener(action,payload);}catch(error){console.error(error);}}}
-function setDefinition(id){const registry=window.Dalimgari?.registry?.definition||{};if(!id||!Object.prototype.hasOwnProperty.call(registry,id)){dispatch("action-error",{action:"navigation",error:{message:"Unknown definition."}});return false;}if(currentDefinition===id)return true;currentDefinition=id;dispatch("definition-change",{id});return true;}
+function hasDefinition(id){const registry=window.Dalimgari?.registry?.definition||{};return Boolean(id&&Object.prototype.hasOwnProperty.call(registry,id));}
+function navigationState(id,depth=0){return{dalimgari:true,definition:id,depth};}
+function setDefinition(id,options={}){if(!hasDefinition(id)){const fallback=fallbackParents[id];if(fallback&&hasDefinition(fallback))return setDefinition(fallback,{...options,replace:true});dispatch("action-error",{action:"navigation",error:{message:"Unknown definition."}});return false;}if(currentDefinition===id)return true;const previous=currentDefinition;currentDefinition=id;const state=window.history?.state;const currentDepth=Number.isInteger(state?.depth)?state.depth:0;const replace=Boolean(options.replace||options.initial||transientDefinitions.has(previous)&&!options.allowTransientBack);const nextDepth=replace?currentDepth:currentDepth+1;if(window.history?.replaceState&&window.history?.pushState){const nextState=navigationState(id,Math.max(0,nextDepth));if(replace)window.history.replaceState(nextState,"");else window.history.pushState(nextState,"");}dispatch("definition-change",{id});return true;}
 function getDefinition(){return currentDefinition;}
+function handlePopState(event){const state=event.state;if(!state?.dalimgari){if(currentDefinition!=="home")setDefinition("home",{replace:true});return;}const id=hasDefinition(state.definition)?state.definition:(fallbackParents[state.definition]||"home");if(currentDefinition===id)return;currentDefinition=id;dispatch("definition-change",{id});}
+window.addEventListener("popstate",handlePopState);
 function subscribe(listener){if(typeof listener!=="function")return()=>{};listeners.add(listener);return()=>listeners.delete(listener);}
 function setBusy(action){actionState.busy=Boolean(action);actionState.action=action||null;dispatch("action-state-change",{...actionState});}
 function isBusy(){return actionState.busy;}
@@ -48,19 +52,19 @@ async function handleAction(action,payload={}) {
   try {
     if(action==="login") {
       result=await auth.login(payload.identifier||"",payload.password||"");
-      if(!result?.error) { const p=await profile(); if(p.data?.is_admin) setDefinition("admin"); else if(p.data) setDefinition("member"); }
+      if(!result?.error) { const p=await profile(); if(p.data?.is_admin) setDefinition("admin",{replace:true}); else if(p.data) setDefinition("member",{replace:true}); }
     } else if(action==="register") {
       result=await auth.register(payload.email||"",payload.password||"");
-      if(!result?.error && result.data?.session) setDefinition("home");
+      if(!result?.error && result.data?.session) setDefinition("home",{replace:true});
     } else if(action==="reset-password") {
       result=await auth.resetPassword(payload.email||"");
     } else if(action==="update-password") {
       if(payload.password!==payload.confirm_password) return accessError("Passwords do not match.");
       result=await auth.updatePassword(payload.password||"");
-      if(!result?.error) setDefinition("home");
+      if(!result?.error) setDefinition("home",{replace:true});
     } else if(action==="logout") {
       result=await auth.logout();
-      if(!result?.error) setDefinition("home");
+      if(!result?.error) setDefinition("home",{replace:true});
     } else {
       result={error:{message:"Unknown action: "+action}};
     }
