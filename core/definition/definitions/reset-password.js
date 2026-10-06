@@ -2,7 +2,7 @@ const resetPasswordDefinition = {
   id: "reset-password",
   type: "content",
   elements: [
-    { type: "input", name: "email", inputType: "email", placeholder: "Email", autocomplete: "email" },
+    { type: "input", name: "email", inputType: "email", placeholder: "Email", autocomplete: "email", required: true },
     { type: "button", action: "reset-password", label: "Reset Password", size: "large" },
     { type: "button", action: "back-login", label: "Back to Login", size: "small" }
   ]
