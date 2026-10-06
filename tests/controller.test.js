@@ -29,6 +29,11 @@ const context = {
         }
       },
       supabase: {
+        auth: {
+          async getUser() {
+            return { data: { user: { id: "1", email: "user@example.com" } } };
+          }
+        },
         from(table) {
           assert.equal(table, "profiles");
           return {
