@@ -31,7 +31,8 @@ assert.equal(controller.setDefinition("login"), true);
 assert.equal(controller.getDefinition(), "login");
 
 (async () => {
-assert.equal(controller.getDefinition(), "profile");
+  await controller.handleAction("profile");
+  assert.equal(controller.getDefinition(), "profile");
 
 const loginResult = await controller.handleAction("login", {
   identifier: "user@example.com",
