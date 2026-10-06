@@ -1,0 +1,30 @@
+#header-context {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+}
+
+.site-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--global-spacing-sm);
+  min-height: var(--global-header-height);
+  padding: 0 var(--global-spacing-md);
+  box-sizing: border-box;
+}
+
+.header-slot {
+  display: flex;
+  align-items: center;
+}
+
+.header-slot-profile {
+  order: 1;
+}
+
+.header-slot-menu {
+  order: 2;
+}
