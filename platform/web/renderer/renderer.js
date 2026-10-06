@@ -1,49 +1,10 @@
-// Web Renderer
-
-function clearElement(element) { while (element.firstChild) element.removeChild(element.firstChild); }
-
-function renderElement(definition) {
-  const components = window.Dalimgari.components || {};
-  if (definition.type === "input" && components.input) return components.input(definition);
-  if (definition.type === "button" && components.button) return components.button(definition);
-  if (definition.type === "output" && components.output) return components.output(definition);
-  if (definition.type === "heading") {
-    const level = Math.min(6, Math.max(1, Number(definition.level) || 1));
-    const element = document.createElement(`h${level}`);
-    element.textContent = definition.text || "";
-    return element;
-  }
-  if (definition.type === "actions") {
-    const wrapper = document.createElement("div");
-    wrapper.dataset.element = "actions";
-    for (const item of definition.items || []) {
-      const element = renderElement(item);
-      if (element) wrapper.appendChild(element);
-    }
-    return wrapper;
-  }
-  return null;
-}
-
-async function renderDefinition(id) {
-  try {
-    const definition = await window.Dalimgari.webAdapter.loadDefinition(id);
-    const content = document.querySelector('[data-context="content"]');
-    if (!content) return;
-    clearElement(content);
-    if (definition.type !== "content") return;
-    const form = document.createElement("form");
-    form.dataset.definition = definition.id;
-    form.addEventListener("submit", event => event.preventDefault());
-    for (const item of definition.elements || []) {
-      const element = renderElement(item);
-      if (element) form.appendChild(element);
-    }
-    content.appendChild(form);
-  } catch (error) {
-    console.error("Dalimgari render error:", error);
-  }
-}
-
-window.Dalimgari = window.Dalimgari || {};
-window.Dalimgari.webRenderer = { renderDefinition };
+function clearElement(element){while(element.firstChild)element.removeChild(element.firstChild);}
+function renderElement(d){const c=window.Dalimgari.components||{};if(d.type==="input"&&c.input)return c.input(d);if(d.type==="button"&&c.button)return c.button(d);if(d.type==="output"&&c.output)return c.output(d);if(d.type==="heading"){const level=Math.min(6,Math.max(1,Number(d.level)||1));const e=document.createElement(`h${level}`);e.textContent=d.text||"";return e;}if(d.type==="actions"){const w=document.createElement("div");w.dataset.element="actions";for(const i of d.items||[]){const e=renderElement(i);if(e)w.appendChild(e);}return w;}return null;}
+function adminDashboard(){const root=document.createElement("div");root.className="admin-dashboard";const a=window.Dalimgari.access;if(!a)return root;const section=t=>{const s=document.createElement("section");s.className="admin-panel";const h=document.createElement("h2");h.textContent=t;s.appendChild(h);return s;};const btn=(label,fn,refresh)=>{const b=document.createElement("button");b.type="button";b.textContent=label;b.dataset.size="small";b.onclick=async()=>{b.disabled=true;try{const r=await fn();if(r?.error)alert(r.error.message);if(refresh)await draw();}finally{b.disabled=false;}};return b;};async function draw(){clearElement(root);const result=await a.adminData();if(result.error){root.textContent=result.error.message;return;}const d=result.data;const members=section("Members");for(const m of d.members){const row=document.createElement("div");row.className="admin-row";row.textContent=(m.email||m.id)+" — "+(m.is_admin?"Admin":m.is_active?"Active":"Disabled");if(!m.is_admin)row.appendChild(btn(m.is_active?"Disable":"Enable",()=>a.adminSetMemberActive(m.id,!m.is_active),true));members.appendChild(row);}root.appendChild(members);
+const roles=section("Roles");const rf=document.createElement("div");rf.className="admin-form";rf.innerHTML='<input placeholder="Role name" data-role><input placeholder="Description" data-role-desc>';rf.appendChild(btn("Create Role",()=>a.adminCreateRole(rf.querySelector("[data-role]").value,rf.querySelector("[data-role-desc]").value),true));roles.appendChild(rf);for(const r of d.roles){const row=document.createElement("div");row.className="admin-row";row.textContent=r.name+" — "+(r.description||"");if(r.name!=="Member")row.appendChild(btn("Delete",()=>a.adminDeleteRole(r.id),true));roles.appendChild(row);}root.appendChild(roles);
+const perms=section("Permissions");const pf=document.createElement("div");pf.className="admin-form";pf.innerHTML='<input placeholder="permission.key" data-perm><input placeholder="Description" data-perm-desc>';pf.appendChild(btn("Create Permission",()=>a.adminCreatePermission(pf.querySelector("[data-perm]").value,pf.querySelector("[data-perm-desc]").value),true));perms.appendChild(pf);for(const p of d.permissions){const row=document.createElement("div");row.className="admin-row";row.textContent=p.key+" — "+(p.description||"");row.appendChild(btn("Delete",()=>a.adminDeletePermission(p.id),true));perms.appendChild(row);}root.appendChild(perms);
+const access=section("Member Access");const af=document.createElement("div");af.className="admin-form";af.innerHTML='<input placeholder="Member UUID" data-user><input placeholder="Role or Permission UUID" data-target>';af.appendChild(btn("Assign Role",()=>a.adminSetRole(af.querySelector("[data-user]").value,af.querySelector("[data-target]").value,true),true));af.appendChild(btn("Revoke Role",()=>a.adminSetRole(af.querySelector("[data-user]").value,af.querySelector("[data-target]").value,false),true));af.appendChild(btn("Grant Permission",()=>a.adminSetPermission(af.querySelector("[data-user]").value,af.querySelector("[data-target]").value,true),true));af.appendChild(btn("Revoke Permission",()=>a.adminSetPermission(af.querySelector("[data-user]").value,af.querySelector("[data-target]").value,false),true));af.appendChild(btn("Remove Override",()=>a.adminRemovePermission(af.querySelector("[data-user]").value,af.querySelector("[data-target]").value),true));access.appendChild(af);root.appendChild(access);
+const settings=section("Settings");const sf=document.createElement("div");sf.className="admin-form";sf.innerHTML='<input placeholder="setting.key" data-sk><input placeholder="JSON value" data-sv><label><input type="checkbox" data-sp> Public</label>';sf.appendChild(btn("Save Setting",async()=>{let value;try{value=JSON.parse(sf.querySelector("[data-sv]").value);}catch{value=sf.querySelector("[data-sv]").value;}return a.adminSaveSetting(sf.querySelector("[data-sk]").value,value,sf.querySelector("[data-sp]").checked);},true));settings.appendChild(sf);for(const x of d.settings){const row=document.createElement("div");row.className="admin-row";row.textContent=x.key+" — "+JSON.stringify(x.value);row.appendChild(btn("Delete",()=>a.adminDeleteSetting(x.key),true));settings.appendChild(row);}root.appendChild(settings);
+const content=section("Public Sections");const cf=document.createElement("div");cf.className="admin-form";cf.innerHTML='<input placeholder="slug" data-slug><input placeholder="Title" data-title><textarea placeholder="Content" data-content></textarea><input placeholder="Sort order" type="number" data-sort>';cf.appendChild(btn("Save Section",()=>a.adminSaveSection({slug:cf.querySelector("[data-slug]").value,title:cf.querySelector("[data-title]").value,content:cf.querySelector("[data-content]").value,sort_order:Number(cf.querySelector("[data-sort]").value)||0,is_published:true}),true));content.appendChild(cf);for(const x of d.sections){const row=document.createElement("div");row.className="admin-row";row.textContent=x.title+" — "+x.slug;row.appendChild(btn("Delete",()=>a.adminDeleteSection(x.id),true));content.appendChild(row);}root.appendChild(content);}draw();return root;}
+async function renderDefinition(id){const content=document.querySelector('[data-context="content"]');if(!content)return;content.setAttribute("aria-busy","true");content.innerHTML='<div class="skeleton-page" aria-hidden="true"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-button"></div></div>';try{const definition=await window.Dalimgari.webAdapter.loadDefinition(id);clearElement(content);if(definition.type!=="content")return;const form=document.createElement("form");form.dataset.definition=definition.id;form.addEventListener("submit",e=>e.preventDefault());for(const item of definition.elements||[]){const element=item.type==="admin-dashboard"?adminDashboard():renderElement(item);if(element)form.appendChild(element);}content.appendChild(form);if(id==="home"){const r=await window.Dalimgari.access.getPublicContent();const out=content.querySelector('output[name="public-content"]');if(out)out.textContent=r.data?.map(x=>x.content).join("\n\n")||"Public content is being prepared.";}if(id==="profile"){const p=await window.Dalimgari.access.profile();const e=content.querySelector('output[name="email"]');const role=content.querySelector('output[name="role"]');if(e)e.textContent=p.data?.email||"";if(role)role.textContent=p.data?.is_admin?"Admin":"Member";}}catch(error){console.error("Dalimgari render error:",error);content.textContent=error.message||"Unable to load content."}finally{content.removeAttribute("aria-busy");}}
+window.Dalimgari=window.Dalimgari||{};window.Dalimgari.webRenderer={renderDefinition};
