@@ -6,7 +6,7 @@ if (headerContent && menuButton && !headerContent.querySelector(".profile-avatar
   avatar.className = "profile-avatar";
   avatar.href = "/dalimgari/login.html";
   avatar.setAttribute("aria-label", "প্রোফাইল");
-  avatar.textContent = "P";
+  avatar.innerHTML = '<span class="profile-avatar-icon" aria-hidden="true"></span>';
 
   menuButton.insertAdjacentElement("afterend", avatar);
 }
