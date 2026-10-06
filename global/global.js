@@ -2,7 +2,14 @@ const loaderScript = document.currentScript;
 const globalBase = new URL("./", loaderScript.src);
 
 const globalFeatures = [
-  { name: "global-style", selector: null, css: "global-style/global-style.css" },
+  { name: "variables", selector: null, css: "global-style/variables/variables.css" },
+  { name: "reset", selector: null, css: "global-style/reset/reset.css" },
+  { name: "body", selector: null, css: "global-style/body/body.css" },
+  { name: "font", selector: null, css: "global-style/font/font.css" },
+  { name: "link", selector: null, css: "global-style/link/link.css" },
+  { name: "image", selector: null, css: "global-style/image/image.css" },
+  { name: "focus", selector: null, css: "global-style/focus/focus.css" },
+  { name: "spacing", selector: null, css: "global-style/spacing/spacing.css" },
   { name: "button", selector: "button", css: "button/button.css" },
   { name: "input-box", selector: "input, textarea, select", css: "input-box/input-box.css" },
   { name: "output-box", selector: "output", css: "output-box/output-box.css" },
@@ -44,8 +51,9 @@ function featureIsPresent(feature) {
 }
 
 async function loadGlobalSystem() {
-  const globalStyle = globalFeatures.find(feature => feature.name === "global-style");
-  loadCss(globalStyle.css);
+  for (const feature of globalFeatures.filter(feature => !feature.selector && feature.css)) {
+    loadCss(feature.css);
+  }
 
   for (const feature of globalFeatures.filter(feature => feature.html)) {
     await loadHtml(feature);
@@ -53,7 +61,7 @@ async function loadGlobalSystem() {
 
   for (const feature of globalFeatures) {
     if (!featureIsPresent(feature)) continue;
-    if (feature.css) loadCss(feature.css);
+    if (feature.css && feature.selector) loadCss(feature.css);
     if (feature.js) await loadJs(feature.js);
   }
 }
