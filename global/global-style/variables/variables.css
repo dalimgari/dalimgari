@@ -1,0 +1,14 @@
+:root {
+  --global-color-surface: #000000;
+  --global-color-surface-alt: #111111;
+  --global-color-text: #ffffff;
+  --global-color-border: #333333;
+  --global-color-muted: #aaaaaa;
+  --global-spacing-xs: 4px;
+  --global-spacing-sm: 8px;
+  --global-spacing-md: 16px;
+  --global-spacing-lg: 24px;
+  --global-radius-sm: 6px;
+  --global-radius-md: 10px;
+  --global-header-height: 64px;
+}
