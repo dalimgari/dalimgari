@@ -1,11 +1,1 @@
-const homeDefinition = {
-  id: "home",
-  type: "content",
-  elements: [
-    { type: "heading", level: 1, text: "Home" },
-    { type: "output", name: "status", value: "You are signed in." },
-    { type: "button", action: "logout", label: "Logout", size: "large" }
-  ]
-};
-window.Dalimgari = window.Dalimgari || {};
-window.Dalimgari.definition?.register("home", homeDefinition);
+const homeDefinition={id:"home",type:"content",elements:[{type:"heading",level:1,text:"Welcome to Dalimgari"},{type:"output",name:"public-content",value:"Welcome. Public content will appear here."},{type:"actions",items:[{type:"button",action:"login",label:"Login",size:"large"},{type:"button",action:"create-account",label:"Create Account",size:"large"}]}]};window.Dalimgari=window.Dalimgari||{};window.Dalimgari.definition?.register("home",homeDefinition);
