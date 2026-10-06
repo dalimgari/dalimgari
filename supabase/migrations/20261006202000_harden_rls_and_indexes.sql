@@ -40,3 +40,15 @@ create policy profiles_update on public.profiles
 drop index if exists public.user_roles_user_id_idx;
 drop index if exists public.role_permissions_role_id_idx;
 drop index if exists public.user_permissions_user_id_idx;
+
+
+drop policy if exists posts_admin_update on public.posts;
+create policy posts_admin_update on public.posts
+  for update to authenticated
+  using ((select private.is_admin()))
+  with check ((select private.is_admin()));
+
+drop policy if exists posts_admin_delete on public.posts;
+create policy posts_admin_delete on public.posts
+  for delete to authenticated
+  using ((select private.is_admin()));
