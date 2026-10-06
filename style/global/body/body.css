@@ -1,0 +1,6 @@
+body {
+  color: var(--global-color-text);
+  background: var(--global-color-surface-alt);
+  font-size: 16px;
+  line-height: 1.5;
+}
