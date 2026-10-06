@@ -3,6 +3,7 @@
 (async function startDalimgariWeb() {
   try {
     const dalimgari = window.Dalimgari;
+    let authReady = false;
 
     const styles = [
       "style/reset.css",
@@ -68,7 +69,14 @@
       }
 
       if (action === "auth-state-change") {
+        authReady = true;
         const current = dalimgari.controller.getDefinition();
+
+        if (payload.error) {
+          const output = document.querySelector('output[name="message"]');
+          if (output) output.textContent = payload.error.message || "Authentication initialization failed.";
+          return;
+        }
 
         if (payload.session) {
           if (!current || current === "login" || current === "register") {
@@ -82,7 +90,9 @@
 
     await dalimgari.auth?.initialize();
 
-    if (!dalimgari.controller.getDefinition()) {
+    if (!authReady && !dalimgari.controller.getDefinition()) {
+      dalimgari.controller.setDefinition("login");
+    } else if (!dalimgari.controller.getDefinition()) {
       dalimgari.controller.setDefinition("login");
     }
   } catch (error) {
