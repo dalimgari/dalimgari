@@ -9,7 +9,7 @@ if (headerContent && menuButton && !headerContent.querySelector(".profile-avatar
   avatar.textContent = "P";
 
   avatar.addEventListener("click", () => {
-    window.location.href = "login.html";
+    window.location.href = "/dalimgari/login.html";
   });
 
   menuButton.insertAdjacentElement("afterend", avatar);
