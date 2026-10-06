@@ -1,0 +1,9 @@
+.site-sidebar {
+  width: 200px;
+  max-width: 80vw;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--global-color-surface);
+  color: var(--global-color-text);
+  border-right: 1px solid var(--global-color-border);
+}
