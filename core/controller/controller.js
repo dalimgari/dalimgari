@@ -48,7 +48,7 @@ async function handleAction(action,payload={}) {
   try {
     if(action==="login") {
       result=await auth.login(payload.identifier||"",payload.password||"");
-      if(!result?.error) setDefinition("home");
+      if(!result?.error) { const p=await profile(); if(p.data?.is_admin) setDefinition("admin"); else if(p.data) setDefinition("member"); }
     } else if(action==="register") {
       result=await auth.register(payload.email||"",payload.password||"");
       if(!result?.error && result.data?.session) setDefinition("home");
