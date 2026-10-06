@@ -89,68 +89,102 @@ basicForm.append(titleInput,descriptionInput,logoFile,logoPreview,saveInfo,basic
 
 const content=section("Public Sections");const content=section("Public Sections");const cf=document.createElement("div");cf.className="admin-form";cf.innerHTML='<input placeholder="slug" data-slug><input placeholder="Title" data-title><textarea placeholder="Content" data-content></textarea><input placeholder="Sort order" type="number" data-sort>';cf.appendChild(btn("Save Section",()=>a.adminSaveSection({slug:cf.querySelector("[data-slug]").value,title:cf.querySelector("[data-title]").value,content:cf.querySelector("[data-content]").value,sort_order:Number(cf.querySelector("[data-sort]").value)||0,is_published:true}),true));content.appendChild(cf);for(const x of d.sections){const row=document.createElement("div");row.className="admin-row";row.textContent=x.title+" — "+x.slug;row.appendChild(btn("Delete",()=>a.adminDeleteSection(x.id),true));content.appendChild(row);}root.appendChild(content);
 const panelOrderKey="dashboard.tabs";
-const defaultTabOrder=["Members","Roles","Permissions","Member Access","Role Permissions","Posts","Customization","Theme","Sidebar Components","Basic Information","Public Sections"];
-const savedTabOrder=d.settings.find(x=>x.key===panelOrderKey)?.value;
-const configuredTabOrder=Array.isArray(savedTabOrder)?savedTabOrder.filter(x=>defaultTabOrder.includes(x)):[];
-const tabOrder=[...configuredTabOrder,...defaultTabOrder.filter(x=>!configuredTabOrder.includes(x))];
-const panels=[...root.querySelectorAll(".admin-panel")];
-panels.sort((x,y)=>tabOrder.indexOf(x.querySelector("h2")?.textContent)-tabOrder.indexOf(y.querySelector("h2")?.textContent));
-panels.forEach(panel=>root.appendChild(panel));
+const defaultGroupOrder=["Overview","Users & Access","Content","Website","Appearance","Dashboard Settings"];
+const savedGroupOrder=d.settings.find(x=>x.key===panelOrderKey)?.value;
+const configuredGroupOrder=Array.isArray(savedGroupOrder)?savedGroupOrder.filter(x=>defaultGroupOrder.includes(x)):[];
+const groupOrder=[...configuredGroupOrder,...defaultGroupOrder.filter(x=>!configuredGroupOrder.includes(x))];
+
+const overview=section("Overview");
+const stats=document.createElement("div");stats.className="admin-stat-grid";
+[
+  ["Members",(d.members||[]).length],
+  ["Active Members",(d.members||[]).filter(x=>x.is_active).length],
+  ["Roles",(d.roles||[]).length],
+  ["Permissions",(d.permissions||[]).length],
+  ["Posts",(d.posts||[]).length],
+  ["Public Sections",(d.sections||[]).length]
+].forEach(([label,value])=>{const card=document.createElement("div");card.className="admin-stat-card";const valueEl=document.createElement("strong");valueEl.textContent=String(value);const labelEl=document.createElement("span");labelEl.textContent=label;card.append(valueEl,labelEl);stats.appendChild(card);});
+overview.appendChild(stats);root.appendChild(overview);
+
+const allPanels=[...root.querySelectorAll(".admin-panel")];
+const groups=new Map(defaultGroupOrder.map(name=>[name,[]]));
+const groupMap={
+  "Members":"Users & Access","Roles":"Users & Access","Permissions":"Users & Access","Member Access":"Users & Access","Role Permissions":"Users & Access",
+  "Posts":"Content","Public Sections":"Content",
+  "Basic Information":"Website","Sidebar Components":"Website",
+  "Theme":"Appearance","Customization":"Appearance",
+  "Overview":"Overview"
+};
+allPanels.forEach(panel=>{const name=panel.querySelector("h2")?.textContent||"";const group=groupMap[name];if(group)groups.get(group).push(panel);});
+
+const dashboardSettings=section("Dashboard Settings");
+const orderSection=document.createElement("div");orderSection.className="admin-form";
+const orderTitle=document.createElement("h3");orderTitle.textContent="Dashboard Groups";
+const orderHint=document.createElement("p");orderHint.textContent="Arrange the groups in the order you want them to appear.";
+const orderList=document.createElement("div");orderList.dataset.dashboardGroupOrder="";
+const orderItems=[...groupOrder];
+const drawGroupOrder=()=>{
+  orderList.replaceChildren();
+  orderItems.forEach((label,index)=>{
+    const row=document.createElement("div");row.className="admin-row";
+    const textEl=document.createElement("span");textEl.textContent=label;row.appendChild(textEl);
+    if(index>0)row.appendChild(btn("Up",()=>{const t=orderItems[index-1];orderItems[index-1]=orderItems[index];orderItems[index]=t;drawGroupOrder();},false));
+    if(index<orderItems.length-1)row.appendChild(btn("Down",()=>{const t=orderItems[index+1];orderItems[index+1]=orderItems[index];orderItems[index]=t;drawGroupOrder();},false));
+    orderList.appendChild(row);
+  });
+};
+drawGroupOrder();
+orderSection.append(orderTitle,orderHint,orderList,btn("Save Dashboard Groups",()=>a.adminSaveSetting(panelOrderKey,orderItems,false),true));
+dashboardSettings.appendChild(orderSection);groups.get("Dashboard Settings").push(dashboardSettings);
+
+const groupPanels=[];
+for(const groupName of groupOrder){
+  const group=document.createElement("section");
+  group.className="admin-group";
+  group.dataset.adminGroup=groupName;
+  const heading=document.createElement("h2");heading.textContent=groupName;
+  group.appendChild(heading);
+  const description=document.createElement("p");description.className="admin-group-description";
+  const descriptions={
+    "Overview":"Quick view of your website management status.",
+    "Users & Access":"Manage members, roles, permissions, and access.",
+    "Content":"Manage posts and public website sections.",
+    "Website":"Manage website identity and navigation.",
+    "Appearance":"Control the visual design and website customization.",
+    "Dashboard Settings":"Control how the admin dashboard is organized."
+  };
+  description.textContent=descriptions[groupName]||"";group.appendChild(description);
+  for(const panel of groups.get(groupName)||[]){panel.hidden=false;group.appendChild(panel);}
+  groupPanels.push(group);root.appendChild(group);
+}
+
 const tabBar=document.createElement("div");
 tabBar.className="admin-tabs";
 tabBar.setAttribute("role","tablist");
-tabBar.setAttribute("aria-label","Dashboard management");
-panels.forEach((panel,index)=>{
-  const tabId="dashboard-tab-"+index;
-  const panelId="dashboard-panel-"+index;
-  panel.id=panelId;
-  panel.dataset.adminPanel=String(index);
-  panel.hidden=index!==0;
+tabBar.setAttribute("aria-label","Dashboard management groups");
+groupPanels.forEach((group,index)=>{
+  const tabId="dashboard-group-tab-"+index;
+  const panelId="dashboard-group-panel-"+index;
+  group.id=panelId;
+  group.hidden=index!==0;
   const tab=document.createElement("button");
-  tab.type="button";
-  tab.className="admin-tab";
-  tab.id=tabId;
-  tab.textContent=panel.querySelector("h2")?.textContent||"Management";
-  tab.setAttribute("role","tab");
-  tab.setAttribute("aria-controls",panelId);
-  tab.setAttribute("aria-selected",index===0?"true":"false");
-  tab.tabIndex=index===0?0:-1;
+  tab.type="button";tab.className="admin-tab";tab.id=tabId;
+  tab.textContent=group.dataset.adminGroup;
+  tab.setAttribute("role","tab");tab.setAttribute("aria-controls",panelId);
+  tab.setAttribute("aria-selected",index===0?"true":"false");tab.tabIndex=index===0?0:-1;
   tab.onclick=()=>{
-    panels.forEach((item,i)=>{
-      const active=i===index;
-      item.hidden=!active;
-      tabBar.querySelectorAll(".admin-tab")[i].classList.toggle("is-active",active);
-      tabBar.querySelectorAll(".admin-tab")[i].setAttribute("aria-selected",active?"true":"false");
-      tabBar.querySelectorAll(".admin-tab")[i].tabIndex=active?0:-1;
+    groupPanels.forEach((item,i)=>{
+      const active=i===index;item.hidden=!active;
+      const currentTab=tabBar.querySelectorAll(".admin-tab")[i];
+      currentTab.classList.toggle("is-active",active);
+      currentTab.setAttribute("aria-selected",active?"true":"false");
+      currentTab.tabIndex=active?0:-1;
     });
   };
   if(index===0)tab.classList.add("is-active");
   tabBar.appendChild(tab);
 });
 root.prepend(tabBar);
-const customizationPanel=panels.find(panel=>panel.querySelector("h2")?.textContent==="Customization");
-if(customizationPanel){
-  const orderSection=document.createElement("div");
-  orderSection.className="admin-form";
-  const orderTitle=document.createElement("h3");
-  orderTitle.textContent="Dashboard Tabs";
-  const orderList=document.createElement("div");
-  orderList.dataset.dashboardTabOrder="";
-  const orderItems=[...tabOrder];
-  const drawTabOrder=()=>{
-    orderList.replaceChildren();
-    orderItems.forEach((label,index)=>{
-      const row=document.createElement("div");row.className="admin-row";row.textContent=label+" ";
-      if(index>0)row.appendChild(btn("Up",()=>{const t=orderItems[index-1];orderItems[index-1]=orderItems[index];orderItems[index]=t;drawTabOrder();},false));
-      if(index<orderItems.length-1)row.appendChild(btn("Down",()=>{const t=orderItems[index+1];orderItems[index+1]=orderItems[index];orderItems[index]=t;drawTabOrder();},false));
-      orderList.appendChild(row);
-    });
-  };
-  drawTabOrder();
-  const saveOrder=btn("Save Dashboard Tabs",()=>a.adminSaveSetting(panelOrderKey,orderItems,false),true);
-  orderSection.append(orderTitle,orderList,saveOrder);
-  customization.appendChild(orderSection);
-}
-}draw();return root;}
+
 async function renderDefinition(id){const content=document.querySelector('[data-context="content"]');if(!content)return;content.setAttribute("aria-busy","true");content.innerHTML='<div class="skeleton-page" aria-hidden="true"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-button"></div></div>';try{const definition=await window.Dalimgari.webAdapter.loadDefinition(id);clearElement(content);if(definition.type!=="content")return;const form=document.createElement("form");form.dataset.definition=definition.id;form.addEventListener("submit",e=>e.preventDefault());for(const item of definition.elements||[]){const element=item.type==="admin-dashboard"?adminDashboard():renderElement(item);if(element)form.appendChild(element);}content.appendChild(form);if(id==="home"){const r=await window.Dalimgari.access.getPublicContent();const out=content.querySelector('output[name="public-content"]');if(out){out.hidden=Boolean(r.error);out.textContent=r.error?"":r.data?.map(x=>x.content).join("\n\n")||"";}}if(id==="member"){const p=await window.Dalimgari.access.profile();const e=content.querySelector('output[name="email"]');const role=content.querySelector('output[name="role"]');const message=content.querySelector('output[name="message"]');if(p.error){if(message)message.textContent=p.error.message;return;}if(e)e.textContent=p.data.email||"";if(role)role.textContent=p.data.is_admin?"Admin":"Member";}if(id==="profile"){const p=await window.Dalimgari.access.profile();const e=content.querySelector('output[name="email"]');const role=content.querySelector('output[name="role"]');const message=content.querySelector('output[name="message"]');if(p.error){if(message)message.textContent=p.error.message;return;}if(e)e.textContent=p.data.email||"";if(role)role.textContent=p.data.is_admin?"Admin":"Member";}}catch(error){console.error("Dalimgari render error:",error);content.textContent=error.message||"Unable to load content."}finally{content.removeAttribute("aria-busy");}}
 window.Dalimgari=window.Dalimgari||{};window.Dalimgari.webRenderer={renderDefinition};
