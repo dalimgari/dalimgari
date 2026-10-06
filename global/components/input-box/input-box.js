@@ -1,0 +1,1 @@
+// Input box component functionality
