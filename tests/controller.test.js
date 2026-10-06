@@ -30,7 +30,7 @@ assert.equal(controller.getDefinition(), null);
 assert.equal(controller.setDefinition("login"), true);
 assert.equal(controller.getDefinition(), "login");
 
-await controller.handleAction("profile");
+(async () => {
 assert.equal(controller.getDefinition(), "profile");
 
 const loginResult = await controller.handleAction("login", {
@@ -42,3 +42,4 @@ assert.equal(controller.getDefinition(), "home");
 
 assert.ok(events.some(event => event.action === "definition-change"));
 console.log("controller architecture tests passed");
+})();
