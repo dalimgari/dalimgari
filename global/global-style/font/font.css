@@ -1,0 +1,11 @@
+body {
+  font-family: sans-serif;
+}
+
+button,
+input,
+textarea,
+select,
+output {
+  font: inherit;
+}
