@@ -18,7 +18,11 @@ function loadStyle(path) {
 function loadScript(path) {
   const script = document.createElement("script");
   script.src = new URL(path, loaderBase);
-  document.body.appendChild(script);
+  return new Promise((resolve, reject) => {
+    script.onload = resolve;
+    script.onerror = reject;
+    document.body.appendChild(script);
+  });
 }
 
 async function loadGlobalComponents() {
@@ -37,14 +41,17 @@ async function loadGlobalComponents() {
       document.body.prepend(target);
     }
 
-    target.innerHTML = await loadText(component.path + "/" + component.name + ".html");
-    loadStyle(component.path + "/" + component.name + ".css");
-    loadScript(component.path + "/" + component.name + ".js");
+    target.innerHTML = await loadText(
+      component.path + "/" + component.name + ".html"
+    );
 
-    if (component.name === "sidebar" && typeof initSidebar === "function") {
-      initSidebar();
-    }
+    loadStyle(component.path + "/" + component.name + ".css");
+    await loadScript(component.path + "/" + component.name + ".js");
   }));
+
+  if (typeof initSidebar === "function") {
+    initSidebar();
+  }
 }
 
 loadGlobalComponents().catch(console.error);
