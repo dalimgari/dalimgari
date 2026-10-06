@@ -1,3 +1,10 @@
+const buttonBase = new URL("../button/", document.currentScript.src);
+
+const buttonStyle = document.createElement("link");
+buttonStyle.rel = "stylesheet";
+buttonStyle.href = new URL("button.css", buttonBase);
+document.head.appendChild(buttonStyle);
+
 const menuBase = new URL("../menu/", document.currentScript.src);
 
 const menuStyle = document.createElement("link");
