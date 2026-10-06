@@ -2,7 +2,7 @@
 .content > form[data-definition="register"],
 .content > form[data-definition="reset-password"],
 .content > form[data-definition="update-password"] {
-  width: min(100%, 400px);
+  width: var(--global-control-one-line-width);
   margin: 0 auto;
 }
 
