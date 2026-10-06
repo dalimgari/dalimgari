@@ -24,5 +24,50 @@ async function adminDeleteSetting(key){if(!await isAdmin())return accessError("A
 async function adminSaveSection(payload){if(!await isAdmin())return accessError("Admin access required.");const normalized={...payload,slug:String(payload.slug||"").trim(),title:String(payload.title||"").trim(),content:String(payload.content||"")};if(!/^[a-z0-9][a-z0-9-]{0,119}$/.test(normalized.slug))return accessError("Section slug must use lowercase letters, numbers and hyphens.");if(!normalized.title)return accessError("Section title is required.");const{error}=await client().from("public_sections").upsert(normalized,{onConflict:"slug"});return error?accessError(error.message,error):{data:true};}
 async function adminDeleteSection(id){if(!await isAdmin())return accessError("Admin access required.");const{error}=await client().from("public_sections").delete().eq("id",id);return error?accessError(error.message,error):{data:true};}
 async function getPublicContent(){const c=client();if(!c)return accessError("Database service is unavailable.");const{data,error}=await c.from("public_sections").select("title,content,sort_order").eq("is_published",true).order("sort_order");return error?accessError(error.message,error):{data};}
-async function handleAction(action,payload={}){const auth=window.Dalimgari?.auth;if(action==="go-login")return setDefinition("login");if(action==="forgot-password")return setDefinition("reset-password");if(action==="create-account")return setDefinition("register");if(action==="back-home")return setDefinition("home");if(action==="back-login")return setDefinition("login");if(action==="profile"){if(!auth)return accessError("Authentication service is unavailable.");const session=await auth.getSession();return session?.error?session:setDefinition(session?.data?.session?"profile":"login");}if(action==="admin"){if(await isAdmin())return setDefinition("admin");return accessError("Admin access required.");}if(!auth)return accessError("Authentication service is unavailable.");if(isBusy())return accessError("Please wait for the current action to finish.");let result;setBusy(action);try{if(action==="login"){result=await auth.login(payload.identifier||"",payload.password||"");if(!result?.error)setDefinition("home");}else if(action==="register"){result=await auth.register(payload.email||"",payload.password||"");if(!result?.error&&result.data?.session)setDefinition("home");}else if(action==="reset-password")result=await auth.resetPassword(payload.email||"");else if(action==="update-password"){if(payload.password!==payload.confirm_password)return accessError("Passwords do not match.");result=await auth.updatePassword(payload.password||"");if(!result?.error)setDefinition("home");}else if(action==="logout"){result=await auth.logout();if(!result?.error)setDefinition("home");}else result={error:{message:`Unknown action: ${action}`}}return result;}catch(error){return accessError(error?.message||"An unexpected error occurred.",error);}finally{setBusy(null);}}
+async function handleAction(action,payload={}) {
+  const auth=window.Dalimgari?.auth;
+  if(action==="go-login") return setDefinition("login");
+  if(action==="forgot-password") return setDefinition("reset-password");
+  if(action==="create-account") return setDefinition("register");
+  if(action==="back-home") return setDefinition("home");
+  if(action==="back-login") return setDefinition("login");
+  if(action==="profile") {
+    if(!auth) return accessError("Authentication service is unavailable.");
+    const session=await auth.getSession();
+    return session?.error ? session : setDefinition(session?.data?.session ? "profile" : "login");
+  }
+  if(action==="admin") {
+    if(await isAdmin()) return setDefinition("admin");
+    return accessError("Admin access required.");
+  }
+  if(!auth) return accessError("Authentication service is unavailable.");
+  if(isBusy()) return accessError("Please wait for the current action to finish.");
+  let result;
+  setBusy(action);
+  try {
+    if(action==="login") {
+      result=await auth.login(payload.identifier||"",payload.password||"");
+      if(!result?.error) setDefinition("home");
+    } else if(action==="register") {
+      result=await auth.register(payload.email||"",payload.password||"");
+      if(!result?.error && result.data?.session) setDefinition("home");
+    } else if(action==="reset-password") {
+      result=await auth.resetPassword(payload.email||"");
+    } else if(action==="update-password") {
+      if(payload.password!==payload.confirm_password) return accessError("Passwords do not match.");
+      result=await auth.updatePassword(payload.password||"");
+      if(!result?.error) setDefinition("home");
+    } else if(action==="logout") {
+      result=await auth.logout();
+      if(!result?.error) setDefinition("home");
+    } else {
+      result={error:{message:"Unknown action: "+action}};
+    }
+    return result;
+  } catch(error) {
+    return accessError(error?.message||"An unexpected error occurred.",error);
+  } finally {
+    setBusy(null);
+  }
+}
 window.Dalimgari=window.Dalimgari||{};window.Dalimgari.controller={dispatch,setDefinition,getDefinition,subscribe,isBusy,handleAction};window.Dalimgari.access={profile,isAdmin,can,adminData,adminCreateRole,adminDeleteRole,adminCreatePermission,adminDeletePermission,adminSetRole,adminSetPermission,adminRemovePermission,adminSetMemberActive,adminSaveSetting,adminDeleteSetting,adminSaveSection,adminDeleteSection,getPublicContent};
