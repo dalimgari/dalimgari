@@ -1,48 +1,46 @@
 // Web Entry
 
 (async function startDalimgariWeb() {
-  const dalimgari = window.Dalimgari;
+  try {
+    const dalimgari = window.Dalimgari;
+    const styles = [
+      "style/reset.css", "style/variables.css", "style/body.css", "style/font.css",
+      "style/focus.css", "style/spacing.css", "style/button.css", "style/input-box.css",
+      "style/output-box.css", "style/link.css", "style/image.css", "style/header.css",
+      "style/sidebar.css", "style/avatar.css", "style/login.css"
+    ];
 
-  const styles = [
-    "style/reset.css",
-    "style/variables.css",
-    "style/body.css",
-    "style/font.css",
-    "style/focus.css",
-    "style/spacing.css",
-    "style/button.css",
-    "style/input-box.css",
-    "style/output-box.css",
-    "style/link.css",
-    "style/image.css",
-    "style/header.css",
-    "style/sidebar.css",
-    "style/avatar.css",
-    "style/login.css"
-  ];
-
-  for (const path of styles) {
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = path;
-    document.head.appendChild(link);
-  }
-
-  await dalimgari.webAdapter.mountContext("header");
-  await dalimgari.webAdapter.mountContext("sidebar");
-  await dalimgari.webAdapter.mountContext("content");
-
-  await dalimgari.webAdapter.loadScript("core/component/avatar.js");
-  await dalimgari.webAdapter.loadScript("core/component/menu.js");
-  await dalimgari.webAdapter.loadScript("core/component/sidebar.js");
-  await dalimgari.webAdapter.loadScript("core/component/input.js");
-  await dalimgari.webAdapter.loadScript("core/component/button.js");
-
-  dalimgari.controller.subscribe((action, payload) => {
-    if (action === "definition-change") {
-      dalimgari.webRenderer.renderDefinition(payload.id);
+    for (const path of styles) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = path;
+      document.head.appendChild(link);
     }
-  });
 
-  dalimgari.controller.setDefinition("login");
+    await dalimgari.webAdapter.mountContext("header");
+    await dalimgari.webAdapter.mountContext("sidebar");
+    await dalimgari.webAdapter.mountContext("content");
+
+    for (const path of [
+      "core/component/avatar.js",
+      "core/component/menu.js",
+      "core/component/sidebar.js",
+      "core/component/input.js",
+      "core/component/output.js",
+      "core/component/button.js"
+    ]) await dalimgari.webAdapter.loadScript(path);
+
+    dalimgari.controller.subscribe((action, payload) => {
+      if (action === "definition-change") dalimgari.webRenderer.renderDefinition(payload.id);
+      if (action === "auth-state-change" && payload.session && dalimgari.controller.getDefinition() === "login") {
+        dalimgari.controller.setDefinition("home");
+      }
+      if (action === "action-error") console.error("Dalimgari action error:", payload.error);
+    });
+
+    await dalimgari.auth?.initialize();
+    if (!dalimgari.controller.getDefinition()) dalimgari.controller.setDefinition("login");
+  } catch (error) {
+    console.error("Dalimgari startup error:", error);
+  }
 })();
