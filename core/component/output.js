@@ -2,6 +2,7 @@ function createOutput(definition) {
   const output = document.createElement("output");
   output.name = definition.name || "";
   output.textContent = definition.value || "";
+  if (definition.multiline) output.dataset.multiline = "true";
   if (definition.role) output.setAttribute("role", definition.role);
   return output;
 }
