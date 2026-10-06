@@ -6,7 +6,9 @@ const registry = {
     sidebar: "core/context/sidebar.html",
     content: "core/context/content.html"
   },
-  definition: {}
+  definition: {
+    login: "core/definition/definitions/login.js"
+  }
 };
 
 window.Dalimgari = window.Dalimgari || {};
