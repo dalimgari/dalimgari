@@ -1,8 +1,6 @@
 -- Performance and RLS policy hardening
 -- Applied to the production Supabase project before committing this migration.
 
-create index if not exists posts_user_id_idx on public.posts (user_id);
-
 drop policy if exists posts_owner_delete on public.posts;
 create policy posts_owner_delete on public.posts
   for delete to authenticated
