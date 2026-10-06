@@ -1,0 +1,35 @@
+.global-button,
+.input-box,
+.output-box {
+  box-sizing: border-box;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background-color: #f3f4f6;
+  color: #1f2937;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.global-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.input-box {
+  display: block;
+  width: 100%;
+  min-height: 40px;
+  padding: 10px 12px;
+}
+
+.output-box {
+  display: block;
+  width: 100%;
+  min-height: 40px;
+  padding: 10px 12px;
+  overflow-wrap: anywhere;
+}
