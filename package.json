@@ -2,7 +2,7 @@
   "name": "dalimgari",
   "version": "1.0.0",
   "private": true,
-  "description": "Dalimgari shared web application with an Android Capacitor target.",
+  "description": "Dalimgai - ডালিমগাড়ী shared web application with an Android Capacitor target.",
   "scripts": {
     "test": "node tests/controller.test.js",
     "build:android": "node scripts/build-web.mjs",
