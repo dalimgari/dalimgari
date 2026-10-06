@@ -42,6 +42,12 @@ jobs:
       - name: Sync Android project
         run: npm run android:sync
 
+      - name: Verify Android auth deep link
+        working-directory: android
+        run: |-
+          grep -q 'android:scheme="com.dalimgari.app"' app/src/main/AndroidManifest.xml
+          grep -q 'android:host="reset-password"' app/src/main/AndroidManifest.xml
+
       - name: Build debug APK
         working-directory: android
         run: ./gradlew assembleDebug
