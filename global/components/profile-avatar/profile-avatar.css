@@ -1,1 +1,14 @@
-/* Profile avatar component styles */
+.profile-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-left: 8px;
+  border-radius: 50%;
+  box-sizing: border-box;
+  background-color: #d1d5db;
+  color: #1f2937;
+  font-size: 14px;
+  font-weight: 600;
+}
