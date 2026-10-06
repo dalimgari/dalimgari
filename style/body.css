@@ -23,6 +23,35 @@ body {
   gap: var(--global-spacing-lg);
 }
 
+.admin-tabs {
+  width: 100%;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--global-spacing-sm);
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 1px var(--global-spacing-xs);
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+}
+
+.admin-tab {
+  flex: 0 0 auto;
+  width: auto;
+  white-space: nowrap;
+  scroll-snap-align: start;
+}
+
+.admin-tab.is-active {
+  font-weight: 600;
+}
+
+.admin-panel[hidden] {
+  display: none;
+}
+
 .admin-panel {
   width: 100%;
   min-width: 0;
