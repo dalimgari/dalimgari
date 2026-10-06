@@ -3,23 +3,22 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: min(100%, 360px);
-  min-height: 40px;
-  max-width: 360px;
+  width: var(--global-control-one-line-width);
+  min-height: var(--global-control-one-line-height);
   border: 1px solid var(--global-color-border);
   border-radius: var(--global-radius-md);
   background: var(--global-color-surface-alt);
   color: var(--global-color-text);
   font-size: 14px;
   font-weight: 400;
-  line-height: 1.2;
+  line-height: 1.4;
   padding: 10px 12px;
   cursor: pointer;
 }
 
 button[data-size="small"] {
-  min-height: 40px;
-  padding: 8px 12px;
+  min-height: var(--global-control-one-line-height);
+  padding: 10px 12px;
   font-size: 14px;
 }
 
