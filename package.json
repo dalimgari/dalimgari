@@ -13,7 +13,8 @@
     "android:build": "npm run android:sync && npx cap build android --androidreleasetype APK"
   },
   "dependencies": {
-    "@capacitor/core": "8.5.2"
+    "@capacitor/core": "8.5.2",
+    "@capacitor/app": "8.0.2"
   },
   "devDependencies": {
     "@capacitor/android": "8.5.2",
