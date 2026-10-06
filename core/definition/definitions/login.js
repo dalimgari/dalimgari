@@ -2,8 +2,8 @@ const loginDefinition = {
   id: "login",
   type: "content",
   elements: [
-    { type: "input", name: "identifier", inputType: "text", placeholder: "Email / Phone Number", autocomplete: "username" },
-    { type: "input", name: "password", inputType: "password", placeholder: "Password", autocomplete: "current-password" },
+    { type: "input", name: "identifier", inputType: "text", placeholder: "Email / Phone Number", autocomplete: "username", required: true },
+    { type: "input", name: "password", inputType: "password", placeholder: "Password", autocomplete: "current-password", required: true },
     { type: "button", name: "login", action: "login", label: "Login", size: "large" },
     { type: "actions", items: [
       { type: "button", action: "forgot-password", label: "Forgot Password", size: "small" },
