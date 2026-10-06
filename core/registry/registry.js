@@ -1,9 +1,12 @@
 // Global Registry
 
 const registry = {
-  header: "core/context/header.html",
-  sidebar: "core/context/sidebar.html",
-  content: "core/context/content.html"
+  context: {
+    header: "core/context/header.html",
+    sidebar: "core/context/sidebar.html",
+    content: "core/context/content.html"
+  },
+  definition: {}
 };
 
 window.Dalimgari = window.Dalimgari || {};
