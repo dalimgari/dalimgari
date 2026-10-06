@@ -48,6 +48,39 @@ async function adminUpdatePost(id,content,imageUrl=null){if(!await isAdmin())ret
 async function adminDeletePost(id){if(!await isAdmin())return accessError("Admin access required.");const{error}=await client().from("posts").delete().eq("id",id);return error?accessError(error.message,error):{data:true};}
 async function adminSaveTheme(value){return adminSaveSetting("theme",value,true);}
 async function adminSaveCustomization(value){return adminSaveSetting("customization",value,true);}
+async function adminSaveLogo(dataUrl){
+  if(!await isAdmin())return accessError("Admin access required.");
+  if(!/^data:image\\/(png|jpeg|jpg|webp|svg\\+xml);base64,/.test(dataUrl||""))return accessError("Invalid logo image.");
+  if((dataUrl||"").length>700000)return accessError("Logo image is too large. Use an image smaller than 500 KB.");
+  return adminSaveSetting("site.logo",dataUrl,true);
+}
+async function getPublicBranding(){
+  const c=client();if(!c)return accessError("Database service is unavailable.");
+  const {data,error}=await c.from("site_settings").select("key,value").in("key",["site.title","site.logo"]).eq("is_public",true);
+  if(error)return accessError(error.message,error);
+  return {data:{
+    title:data?.find(x=>x.key==="site.title")?.value||"Dalimgai - ডালিমগাড়ী",
+    logo:data?.find(x=>x.key==="site.logo")?.value||null
+  }};
+}
+async function applyPublicBranding(){
+  const result=await getPublicBranding();
+  if(result.error)return result;
+  const title=typeof result.data.title==="string"?result.data.title:"Dalimgai - ডালিমগাড়ী";
+  document.title=title;
+  const host=document.querySelector('[data-layout-region="header-start"]');
+  if(host){
+    host.replaceChildren();
+    const brand=document.createElement("div");brand.className="site-brand";
+    const logo=result.data.logo;
+    if(typeof logo==="string"&&logo.startsWith("data:image/")){
+      const img=document.createElement("img");img.className="site-logo";img.alt=title+" logo";img.src=logo;brand.appendChild(img);
+    }
+    const name=document.createElement("span");name.className="site-brand-name";name.textContent=title;brand.appendChild(name);
+    host.appendChild(brand);
+  }
+  return result;
+}
 async function adminSaveSetting(key,value,isPublic){if(!await isAdmin())return accessError("Admin access required.");key=key.trim();if(!key)return accessError("Setting key is required.");const me=await profile();const{error}=await client().from("site_settings").upsert({key,value,is_public:Boolean(isPublic),updated_by:me.data?.id||null});return error?accessError(error.message,error):{data:true};}
 async function adminDeleteSetting(key){if(!await isAdmin())return accessError("Admin access required.");const{error}=await client().from("site_settings").delete().eq("key",key);return error?accessError(error.message,error):{data:true};}
 async function adminSaveSection(payload){if(!await isAdmin())return accessError("Admin access required.");const normalized={...payload,slug:String(payload.slug||"").trim(),title:String(payload.title||"").trim(),content:String(payload.content||"")};if(!/^[a-z0-9][a-z0-9-]{0,119}$/.test(normalized.slug))return accessError("Section slug must use lowercase letters, numbers and hyphens.");if(!normalized.title)return accessError("Section title is required.");const{error}=await client().from("public_sections").upsert(normalized,{onConflict:"slug"});return error?accessError(error.message,error):{data:true};}
@@ -100,4 +133,4 @@ async function handleAction(action,payload={}) {
     setBusy(null);
   }
 }
-window.Dalimgari=window.Dalimgari||{};window.Dalimgari.controller={dispatch,setDefinition,getDefinition,subscribe,isBusy,handleAction};window.Dalimgari.access={profile,saveAvatar,createPost,getPosts,isAdmin,can,adminData,adminCreateRole,adminDeleteRole,adminCreatePermission,adminDeletePermission,adminSetRole,adminSetRolePermission,adminSetPermission,adminRemovePermission,adminSetMemberActive,adminSaveSetting,adminDeleteSetting,adminSaveSection,adminDeleteSection,adminUpdatePost,adminDeletePost,adminSaveTheme,adminSaveCustomization,applyPublicAppearance,getPublicContent};
+window.Dalimgari=window.Dalimgari||{};window.Dalimgari.controller={dispatch,setDefinition,getDefinition,subscribe,isBusy,handleAction};window.Dalimgari.access={profile,saveAvatar,createPost,getPosts,isAdmin,can,adminData,adminCreateRole,adminDeleteRole,adminCreatePermission,adminDeletePermission,adminSetRole,adminSetRolePermission,adminSetPermission,adminRemovePermission,adminSetMemberActive,adminSaveSetting,adminDeleteSetting,adminSaveSection,adminDeleteSection,adminUpdatePost,adminDeletePost,adminSaveTheme,adminSaveCustomization,adminSaveLogo,getPublicBranding,applyPublicBranding,applyPublicAppearance,getPublicContent};
