@@ -18,35 +18,23 @@ function loadStyle(path) {
 function loadScript(path) {
   const script = document.createElement("script");
   script.src = new URL(path, loaderBase);
-  return new Promise((resolve, reject) => {
-    script.onload = resolve;
-    script.onerror = reject;
-    document.body.appendChild(script);
-  });
+  document.body.appendChild(script);
 }
 
 async function loadGlobalComponents() {
   const components = [
     { id: "header-component", path: "components/header", name: "header" },
     { id: "sidebar-component", path: "components/sidebar", name: "sidebar" },
-    { id: "menu-component", path: "components/menu", name: "menu" }
+    { id: "menu-component", path: "components/menu", name: "menu" },
+    { id: "button-component", path: "components/button", name: "button" },
+    { id: "input-box-component", path: "components/input-box", name: "input-box" },
+    { id: "avatar-component", path: "components/avatar", name: "avatar" },
+    { id: "profile-avatar-component", path: "components/profile-avatar", name: "profile-avatar" }
   ];
 
   await Promise.all(components.map(async component => {
-    let target = document.getElementById(component.id);
-
-    if (!target) {
-      target = document.createElement("div");
-      target.id = component.id;
-      document.body.prepend(target);
-    }
-
-    target.innerHTML = await loadText(
-      component.path + "/" + component.name + ".html"
-    );
-
     loadStyle(component.path + "/" + component.name + ".css");
-    await loadScript(component.path + "/" + component.name + ".js");
+    loadScript(component.path + "/" + component.name + ".js");
   }));
 
   if (typeof initSidebar === "function") {
