@@ -4,23 +4,15 @@
   left: 0;
   height: 100%;
   pointer-events: auto;
+  display: none;
 }
 
 .site-sidebar {
-  width: 220px;
+  width: max-content;
+  min-width: 0;
   height: 100%;
   box-sizing: border-box;
-  padding: 80px 16px 16px;
   background-color: #e8edf3;
   color: #1f2937;
   border-right: 1px solid #cbd5e1;
-}
-
-.site-sidebar-content {
-  display: block;
-}
-
-.site-sidebar-title {
-  font-size: 18px;
-  font-weight: 600;
 }
