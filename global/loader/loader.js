@@ -21,6 +21,23 @@ function loadScript(path) {
   document.body.appendChild(script);
 }
 
+async function loadGlobalComponent(component) {
+  let target = document.getElementById(component.id);
+
+  if (!target) {
+    target = document.createElement("div");
+    target.id = component.id;
+    document.body.prepend(target);
+  }
+
+  target.innerHTML = await loadText(
+    component.path + "/" + component.name + ".html"
+  );
+
+  loadStyle(component.path + "/" + component.name + ".css");
+  loadScript(component.path + "/" + component.name + ".js");
+}
+
 async function loadGlobalComponents() {
   const components = [
     { id: "header-component", path: "components/header", name: "header" },
@@ -32,10 +49,7 @@ async function loadGlobalComponents() {
     { id: "profile-avatar-component", path: "components/profile-avatar", name: "profile-avatar" }
   ];
 
-  await Promise.all(components.map(async component => {
-    loadStyle(component.path + "/" + component.name + ".css");
-    loadScript(component.path + "/" + component.name + ".js");
-  }));
+  await Promise.all(components.map(loadGlobalComponent));
 
   if (typeof initSidebar === "function") {
     initSidebar();
