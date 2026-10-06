@@ -125,6 +125,17 @@ textarea::placeholder {
   outline-offset: 2px;
 }
 
+main {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: var(--global-spacing-lg);
+}
+
+main form {
+  width: min(100%, 400px);
+}
+
 .site-header {
   width: 100%;
   min-height: var(--global-header-height);
