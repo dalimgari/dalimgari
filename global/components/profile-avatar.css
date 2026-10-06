@@ -1,8 +1,18 @@
 .profile-avatar {
   width: 40px;
   height: 40px;
-  margin-right: 10px;
+  margin-right: 0;
   border-radius: 50%;
   object-fit: cover;
   display: block;
+  background: #c7d0da;
+}
+
+.profile-avatar:hover {
+  opacity: 0.9;
+}
+
+.profile-avatar:focus {
+  outline: 2px solid #c7d0da;
+  outline-offset: 2px;
 }
