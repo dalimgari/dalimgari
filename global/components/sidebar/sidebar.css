@@ -1,8 +1,8 @@
 #sidebar-component {
   position: fixed;
-  top: 0;
+  top: 65px;
   left: 0;
-  height: 100%;
+  height: calc(100% - 65px);
   pointer-events: auto;
   display: none;
 }
