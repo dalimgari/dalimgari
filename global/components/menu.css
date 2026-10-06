@@ -1,3 +1,9 @@
+.menu {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .menu-item {
   display: block;
   width: 100%;
@@ -6,6 +12,7 @@
   border-radius: 4px;
   background: transparent;
   color: #222;
+  font-size: 14px;
   text-align: left;
   cursor: pointer;
   box-sizing: border-box;
@@ -15,6 +22,20 @@
   background: #dde5ee;
 }
 
+.menu-item:active {
+  background: #d5dee8;
+}
+
+.menu-item:focus {
+  outline: 2px solid #c7d0da;
+  outline-offset: 1px;
+}
+
 .menu-item.active {
   background: #d5dee8;
+}
+
+.menu-item:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
