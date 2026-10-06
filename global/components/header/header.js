@@ -8,3 +8,14 @@ document.head.appendChild(menuStyle);
 const menuScript = document.createElement("script");
 menuScript.src = new URL("menu.js", menuBase);
 document.body.appendChild(menuScript);
+
+const profileAvatarBase = new URL("../profile-avatar/", document.currentScript.src);
+
+const profileAvatarStyle = document.createElement("link");
+profileAvatarStyle.rel = "stylesheet";
+profileAvatarStyle.href = new URL("profile-avatar.css", profileAvatarBase);
+document.head.appendChild(profileAvatarStyle);
+
+const profileAvatarScript = document.createElement("script");
+profileAvatarScript.src = new URL("profile-avatar.js", profileAvatarBase);
+document.body.appendChild(profileAvatarScript);
