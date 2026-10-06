@@ -1,0 +1,14 @@
+.output-box {
+  display: block;
+  width: 100%;
+  min-height: 40px;
+  padding: 10px 12px;
+  box-sizing: border-box;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background-color: #f3f4f6;
+  color: #1f2937;
+  font-size: 14px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
