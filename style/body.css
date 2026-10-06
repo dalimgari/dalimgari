@@ -3,4 +3,104 @@ body {
   background: var(--global-color-surface-alt);
   font-size: 16px;
   line-height: 1.5;
+  overflow-x: hidden;
+}
+
+.content {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--global-spacing-lg);
+}
+
+.content > form {
+  width: 100%;
+}
+
+.admin-dashboard {
+  width: 100%;
+  display: grid;
+  gap: var(--global-spacing-lg);
+}
+
+.admin-panel {
+  width: 100%;
+  min-width: 0;
+  padding: var(--global-spacing-md);
+  border: 1px solid var(--global-color-border);
+  border-radius: var(--global-radius-md);
+  background: var(--global-color-surface);
+}
+
+.admin-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: var(--global-spacing-sm);
+  width: 100%;
+}
+
+.admin-form button {
+  width: 100%;
+}
+
+.admin-row {
+  display: flex;
+  align-items: center;
+  gap: var(--global-spacing-sm);
+  flex-wrap: wrap;
+  min-width: 0;
+  padding: var(--global-spacing-sm) 0;
+  border-bottom: 1px solid var(--global-color-border);
+  overflow-wrap: anywhere;
+}
+
+.admin-row:last-child {
+  border-bottom: 0;
+}
+
+.skeleton-page {
+  width: 100%;
+  max-width: 100%;
+  padding: var(--global-spacing-lg);
+}
+
+[data-toast] {
+  position: fixed;
+  top: calc(var(--global-header-height) + var(--global-spacing-sm));
+  right: var(--global-spacing-md);
+  z-index: 2000;
+  width: min(360px, calc(100vw - 2 * var(--global-spacing-md)));
+  padding: 12px 14px;
+  border: 1px solid var(--global-color-border);
+  border-radius: var(--global-radius-md);
+  background: var(--global-color-surface);
+  color: var(--global-color-text);
+  box-shadow: 0 8px 24px rgba(0,0,0,.2);
+  opacity: 0;
+  transform: translateY(-8px);
+  pointer-events: none;
+  transition: opacity .2s ease, transform .2s ease;
+}
+
+[data-toast].is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (max-width: 700px) {
+  .content {
+    padding: var(--global-spacing-md);
+  }
+
+  .admin-panel {
+    padding: var(--global-spacing-sm);
+  }
+
+  .admin-row {
+    align-items: stretch;
+  }
+
+  .admin-row button {
+    width: 100%;
+  }
 }
