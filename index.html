@@ -6,10 +6,11 @@
   <title>Dalimgari</title>
   <style>
     html,body{margin:0;min-height:100%;background:#111;color:#fff}
-    #app{min-height:100vh}
-    [data-context-slot="header"]{position:fixed;top:0;left:0;right:0;z-index:1100;min-height:64px}
-    [data-context-slot="sidebar"]{position:relative}
-    [data-context-slot="content"]{min-height:calc(100vh - 64px);min-width:0;padding-top:64px;box-sizing:border-box}
+    body{min-height:100dvh}
+    #app{min-height:100dvh;display:grid;grid-template-rows:auto minmax(0,1fr)}
+    [data-context-slot="header"]{position:sticky;top:0;z-index:1100;min-width:0}
+    [data-context-slot="sidebar"]{position:fixed;top:var(--global-header-height);left:auto;right:0;bottom:0;z-index:1000}
+    [data-context-slot="content"]{min-height:0;min-width:0}
   </style>
 </head>
 <body>
