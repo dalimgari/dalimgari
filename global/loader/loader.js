@@ -1,6 +1,11 @@
 const loaderScript = document.currentScript;
 const loaderBase = new URL("../", loaderScript.src);
 
+const loaderStyle = document.createElement("style");
+loaderStyle.id = "global-loader-style";
+loaderStyle.textContent = "body { visibility: hidden; }";
+document.head.appendChild(loaderStyle);
+
 async function loadText(path) {
   const response = await fetch(new URL(path, loaderBase));
   if (!response.ok) throw new Error("Failed to load: " + path);
@@ -12,6 +17,10 @@ async function loadStyle(path) {
   link.rel = "stylesheet";
   link.href = new URL(path, loaderBase);
   document.head.appendChild(link);
+  await new Promise((resolve, reject) => {
+    link.onload = resolve;
+    link.onerror = reject;
+  });
 }
 
 async function loadScript(path) {
@@ -42,14 +51,14 @@ async function loadGlobalComponents() {
 
     target.innerHTML = await loadText(component.path + "/" + component.name + ".html");
     await loadStyle(component.path + "/" + component.name + ".css");
+    await loadScript(component.path + "/" + component.name + ".js");
 
-    if (component.name === "sidebar") {
-      await loadScript(component.path + "/" + component.name + ".js");
-      if (typeof initSidebar === "function") initSidebar();
-    } else {
-      await loadScript(component.path + "/" + component.name + ".js");
+    if (component.name === "sidebar" && typeof initSidebar === "function") {
+      initSidebar();
     }
   }
+
+  document.getElementById("global-loader-style").textContent = "body { visibility: visible; }";
 }
 
 loadGlobalComponents().catch(console.error);
