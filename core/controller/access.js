@@ -63,6 +63,10 @@ async function createRole(name, description = "") {
 
 async function deleteRole(id) {
   if (!await isAdmin()) return accessError("Admin access required.");
+  const { data: role, error: lookupError } = await getClient().from("roles").select("name").eq("id", id).maybeSingle();
+  if (lookupError) return accessError(lookupError.message, lookupError);
+  if (!role) return accessError("Role not found.");
+  if (role.name === "Admin") return accessError("The Admin role cannot be deleted.");
   const { error } = await getClient().from("roles").delete().eq("id", id);
   return error ? accessError(error.message, error) : { data: true };
 }
