@@ -1,100 +1,29 @@
-// Global Controller
-
-let currentDefinition = null;
-const listeners = new Set();
-const actionState = { busy: false, action: null };
-
-function dispatch(action, payload = {}) {
-  for (const listener of listeners) {
-    try { listener(action, payload); } catch (error) { console.error(error); }
-  }
-}
-
-function setDefinition(id) {
-  const registry = window.Dalimgari?.registry?.definition || {};
-  if (!id || !Object.prototype.hasOwnProperty.call(registry, id)) {
-    dispatch("action-error", {
-      action: "navigation",
-      error: { message: "Unknown definition." }
-    });
-    return false;
-  }
-  if (currentDefinition === id) return true;
-  currentDefinition = id;
-  dispatch("definition-change", { id });
-  return true;
-}
-
-function getDefinition() {
-  return currentDefinition;
-}
-
-function subscribe(listener) {
-  if (typeof listener !== "function") return () => {};
-  listeners.add(listener);
-  return () => listeners.delete(listener);
-}
-
-function setBusy(action) {
-  actionState.busy = Boolean(action);
-  actionState.action = action || null;
-  dispatch("action-state-change", { ...actionState });
-}
-
-function isBusy() {
-  return actionState.busy;
-}
-
-async function handleAction(action, payload = {}) {
-  const auth = window.Dalimgari?.auth;
-
-  if (action === "forgot-password") return setDefinition("reset-password");
-  if (action === "create-account") return setDefinition("register");
-  if (action === "back-login") return setDefinition("login");
-
-  if (action === "profile") {
-    if (!auth) return { error: { message: "Authentication service is unavailable." } };
-    const session = await auth.getSession();
-    if (session?.error) return session;
-    return setDefinition(session?.data?.session ? "profile" : "login");
-  }
-
-  if (!auth) return { error: { message: "Authentication service is unavailable." } };
-
-  if (isBusy()) return { error: { message: "Please wait for the current action to finish." } };
-
-  let result;
-  setBusy(action);
-
-  try {
-    if (action === "login") {
-      result = await auth.login(payload.identifier || "", payload.password || "");
-      if (!result?.error) setDefinition("home");
-    } else if (action === "register") {
-      result = await auth.register(payload.email || "", payload.password || "");
-      if (!result?.error && result.data?.session) setDefinition("home");
-    } else if (action === "reset-password") {
-      result = await auth.resetPassword(payload.email || "");
-    } else if (action === "logout") {
-      result = await auth.logout();
-      if (!result?.error) setDefinition("login");
-    } else {
-      result = { error: { message: `Unknown action: ${action}` } };
-    }
-    return result;
-  } catch (error) {
-    return { error: { message: error?.message || "An unexpected error occurred." } };
-  } finally {
-    setBusy(null);
-  }
-}
-
-window.Dalimgari = window.Dalimgari || {};
-window.Dalimgari.controller = {
-  dispatch,
-  setDefinition,
-  getDefinition,
-  subscribe,
-  isBusy,
-  handleAction
-};
+let currentDefinition=null;const listeners=new Set();const actionState={busy:false,action:null};
+function dispatch(action,payload={}){for(const listener of listeners){try{listener(action,payload);}catch(error){console.error(error);}}}
+function setDefinition(id){const registry=window.Dalimgari?.registry?.definition||{};if(!id||!Object.prototype.hasOwnProperty.call(registry,id)){dispatch("action-error",{action:"navigation",error:{message:"Unknown definition."}});return false;}if(currentDefinition===id)return true;currentDefinition=id;dispatch("definition-change",{id});return true;}
+function getDefinition(){return currentDefinition;}
+function subscribe(listener){if(typeof listener!=="function")return()=>{};listeners.add(listener);return()=>listeners.delete(listener);}
+function setBusy(action){actionState.busy=Boolean(action);actionState.action=action||null;dispatch("action-state-change",{...actionState});}
+function isBusy(){return actionState.busy;}
+function client(){return window.Dalimgari?.supabase||null;}
+function accessError(message,cause=null){return{error:{message,cause}};}
+async function profile(){const c=client();if(!c)return accessError("Database service is unavailable.");const{data:u,error:ue}=await c.auth.getUser();if(ue||!u?.user)return accessError("You must be signed in.");const{data,error}=await c.from("profiles").select("*").eq("id",u.user.id).single();return error?accessError(error.message,error):{data};}
+async function isAdmin(){const p=await profile();return Boolean(p.data?.is_admin&&p.data?.is_active);}
+async function adminList(table,select="*"){if(!await isAdmin())return accessError("Admin access required.");const{data,error}=await client().from(table).select(select);return error?accessError(error.message,error):{data};}
+async function adminMutation(table,method,payload,filter={}){if(!await isAdmin())return accessError("Admin access required.");let q=client().from(table);if(method==="insert")q=q.insert(payload);if(method==="update")q=q.update(payload);if(method==="delete")q=q.delete();for(const[k,v]of Object.entries(filter))q=q.eq(k,v);const{data,error}=method==="delete"?await q:{data:null,error:null};return error?accessError(error.message,error):{data:data||true};}
+async function adminData(){if(!await isAdmin())return accessError("Admin access required.");const c=client();const [m,r,p,ur,up,s,pc]=await Promise.all([c.from("profiles").select("id,email,display_name,is_admin,is_active,created_at").order("created_at",{ascending:false}),c.from("roles").select("*").order("name"),c.from("permissions").select("*").order("key"),c.from("user_roles").select("user_id,role_id,roles(name)"),c.from("user_permissions").select("user_id,permission_id,allowed,permissions(key)"),c.from("site_settings").select("*").order("key"),c.from("public_sections").select("*").order("sort_order")]);for(const x of[m,r,p,ur,up,s,pc])if(x.error)return accessError(x.error.message,x.error);return{data:{members:m.data,roles:r.data,permissions:p.data,userRoles:ur.data,userPermissions:up.data,settings:s.data,sections:pc.data}};}
+async function adminCreateRole(name,description){if(!await isAdmin())return accessError("Admin access required.");const{error}=await client().from("roles").insert({name:name.trim(),description:description.trim()});return error?accessError(error.message,error):{data:true};}
+async function adminDeleteRole(id){return adminMutation("roles","delete",null,{id});}
+async function adminCreatePermission(key,description){if(!await isAdmin())return accessError("Admin access required.");const{error}=await client().from("permissions").insert({key:key.trim(),description:description.trim()});return error?accessError(error.message,error):{data:true};}
+async function adminDeletePermission(id){return adminMutation("permissions","delete",null,{id});}
+async function adminSetRole(userId,roleId,enabled){if(!await isAdmin())return accessError("Admin access required.");const q=client().from("user_roles");const r=enabled?await q.upsert({user_id:userId,role_id:roleId}):await q.delete().eq("user_id",userId).eq("role_id",roleId);return r.error?accessError(r.error.message,r.error):{data:true};}
+async function adminSetPermission(userId,permissionId,allowed){if(!await isAdmin())return accessError("Admin access required.");const{error}=await client().from("user_permissions").upsert({user_id:userId,permission_id:permissionId,allowed});return error?accessError(error.message,error):{data:true};}
+async function adminRemovePermission(userId,permissionId){if(!await isAdmin())return accessError("Admin access required.");const{error}=await client().from("user_permissions").delete().eq("user_id",userId).eq("permission_id",permissionId);return error?accessError(error.message,error):{data:true};}
+async function adminSetMemberActive(userId,isActive){if(!await isAdmin())return accessError("Admin access required.");const me=await profile();if(me.data?.id===userId)return accessError("You cannot deactivate your own admin account.");const{error}=await client().from("profiles").update({is_active:Boolean(isActive)}).eq("id",userId).eq("is_admin",false);return error?accessError(error.message,error):{data:true};}
+async function adminSaveSetting(key,value,isPublic){if(!await isAdmin())return accessError("Admin access required.");const me=await profile();const{error}=await client().from("site_settings").upsert({key,value,is_public:isPublic,updated_by:me.data?.id||null});return error?accessError(error.message,error):{data:true};}
+async function adminDeleteSetting(key){return adminMutation("site_settings","delete",null,{key});}
+async function adminSaveSection(payload){if(!await isAdmin())return accessError("Admin access required.");const{error}=await client().from("public_sections").upsert(payload,{onConflict:"slug"});return error?accessError(error.message,error):{data:true};}
+async function adminDeleteSection(id){return adminMutation("public_sections","delete",null,{id});}
+async function getPublicContent(){const c=client();if(!c)return accessError("Database service is unavailable.");const{data,error}=await c.from("public_sections").select("title,content,sort_order").eq("is_published",true).order("sort_order");return error?accessError(error.message,error):{data};}
+async function handleAction(action,payload={}){const auth=window.Dalimgari?.auth;if(action==="forgot-password")return setDefinition("reset-password");if(action==="create-account")return setDefinition("register");if(action==="back-home")return setDefinition("home");if(action==="back-login")return setDefinition("login");if(action==="profile"){if(!auth)return accessError("Authentication service is unavailable.");const session=await auth.getSession();return session?.error?session:setDefinition(session?.data?.session?"profile":"home");}if(action==="admin"){if(await isAdmin())return setDefinition("admin");return accessError("Admin access required.");}if(!auth)return accessError("Authentication service is unavailable.");if(isBusy())return accessError("Please wait for the current action to finish.");let result;setBusy(action);try{if(action==="login"){result=await auth.login(payload.identifier||"",payload.password||"");if(!result?.error)setDefinition("home");}else if(action==="register"){result=await auth.register(payload.email||"",payload.password||"");if(!result?.error&&result.data?.session)setDefinition("home");}else if(action==="reset-password")result=await auth.resetPassword(payload.email||"");else if(action==="logout"){result=await auth.logout();if(!result?.error)setDefinition("home");}else result={error:{message:`Unknown action: ${action}`}}return result;}catch(error){return accessError(error?.message||"An unexpected error occurred.",error);}finally{setBusy(null);}}
+window.Dalimgari=window.Dalimgari||{};window.Dalimgari.controller={dispatch,setDefinition,getDefinition,subscribe,isBusy,handleAction};window.Dalimgari.access={profile,isAdmin,adminData,adminCreateRole,adminDeleteRole,adminCreatePermission,adminDeletePermission,adminSetRole,adminSetPermission,adminRemovePermission,adminSetMemberActive,adminSaveSetting,adminDeleteSetting,adminSaveSection,adminDeleteSection,getPublicContent};
