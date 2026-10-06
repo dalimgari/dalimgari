@@ -56,10 +56,11 @@ async function adminSaveLogo(dataUrl){
 }
 async function getPublicBranding(){
   const c=client();if(!c)return accessError("Database service is unavailable.");
-  const {data,error}=await c.from("site_settings").select("key,value").in("key",["site.title","site.logo"]).eq("is_public",true);
+  const {data,error}=await c.from("site_settings").select("key,value").in("key",["site.title","site.description","site.logo"]).eq("is_public",true);
   if(error)return accessError(error.message,error);
   return {data:{
     title:data?.find(x=>x.key==="site.title")?.value||"Dalimgai - ডালিমগাড়ী",
+    description:data?.find(x=>x.key==="site.description")?.value||"",
     logo:data?.find(x=>x.key==="site.logo")?.value||null
   }};
 }
@@ -68,6 +69,9 @@ async function applyPublicBranding(){
   if(result.error)return result;
   const title=typeof result.data.title==="string"?result.data.title:"Dalimgai - ডালিমগাড়ী";
   document.title=title;
+  let descriptionMeta=document.querySelector('meta[name="description"]');
+  if(!descriptionMeta){descriptionMeta=document.createElement("meta");descriptionMeta.name="description";document.head.appendChild(descriptionMeta);}
+  descriptionMeta.content=typeof result.data.description==="string"?result.data.description:"";
   const host=document.querySelector('[data-layout-region="header-start"]');
   if(host){
     host.replaceChildren();
