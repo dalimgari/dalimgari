@@ -1,0 +1,22 @@
+{
+  "name": "dalimgari",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Dalimgari shared web application with an Android Capacitor target.",
+  "scripts": {
+    "test": "node tests/controller.test.js",
+    "build:android": "node scripts/build-web.mjs",
+    "android:add": "npm run build:android && npx cap add android",
+    "android:sync": "npm run build:android && npx cap sync android",
+    "android:open": "npx cap open android",
+    "android:run": "npm run android:sync && npx cap run android",
+    "android:build": "npm run android:sync && npx cap build android --androidreleasetype APK"
+  },
+  "dependencies": {
+    "@capacitor/core": "8.5.2"
+  },
+  "devDependencies": {
+    "@capacitor/android": "8.5.2",
+    "@capacitor/cli": "8.5.2"
+  }
+}
