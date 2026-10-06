@@ -84,7 +84,7 @@ function featureIsPresent(feature) {
   return !feature.selector || document.querySelector(feature.selector);
 }
 
-async function applyGlobalFeatures() {
+function applyGlobalFeatures() {
   for (const feature of globalFeatures) {
     if (featureIsPresent(feature) && feature.css) {
       loadCss(feature.css);
@@ -93,7 +93,7 @@ async function applyGlobalFeatures() {
 }
 
 async function loadGlobalSystem() {
-  await applyGlobalFeatures();
+  loadCss("global-style/global-style.css");
 
   for (const context of globalContexts) {
     await loadContext(context);
@@ -102,6 +102,8 @@ async function loadGlobalSystem() {
   for (const component of globalComponents) {
     await loadComponent(component);
   }
+
+  applyGlobalFeatures();
 }
 
 loadGlobalSystem().catch(console.error);
