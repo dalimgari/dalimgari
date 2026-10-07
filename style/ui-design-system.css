@@ -54,7 +54,9 @@ textarea{min-height:110px}
 .auth-card__header{margin-bottom:var(--ui-space-6)}
 .auth-card__footer{margin-top:var(--ui-space-5);font-size:var(--ui-text-sm)}
 .auth-divider{gap:var(--ui-space-3);margin:var(--ui-space-4) 0;font-size:var(--ui-text-xs)}
-.profile-card__hero{gap:var(--ui-space-5);padding:var(--ui-space-7)}
+.profile-card__hero{gap:var(--ui-space-4);padding:var(--ui-space-5)}
+.profile-card__identity h1{margin:0;font-size:var(--ui-title);line-height:1.15}
+.profile-card__identity .profile-role{display:inline-block;margin-top:var(--ui-space-1);font-size:var(--ui-text-sm);line-height:1.2}
 .profile-stat{gap:var(--ui-space-1);padding:var(--ui-space-5)}
 .profile-stat span{font-size:var(--ui-text-sm)}
 .profile-card__footer{gap:var(--ui-space-2);padding:var(--ui-space-5)}
