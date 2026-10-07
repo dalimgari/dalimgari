@@ -179,6 +179,12 @@
                 <option value="false">Suspended</option>
               </select>
             </label>
+            <label>Member Since
+              <input name="member_since" type="text" readonly>
+            </label>
+            <label>User Activity
+              <input name="activity" type="text" readonly>
+            </label>
             <label>Account Type
               <select name="account_type">
                 <option value="Member">Member</option>
@@ -212,6 +218,10 @@
 
     <section class="profile-panel" data-profile-panel="role" hidden>
       <div class="profile-management">
+        <div class="ui-card">
+          <h2>Current Role</h2>
+          <p data-current-role>—</p>
+        </div>
         <div class="ui-card">
           <h2>Role Management</h2>
           <form data-role-form class="ui-form">
