@@ -1,1 +1,1 @@
-.site-layout{display:grid;grid-template-columns:var(--sidebar) minmax(0,1fr);align-items:start;width:100%;min-width:0}.site-layout>[data-context=sidebar],.site-layout>[data-context=content]{min-width:0}@media(max-width:760px){.site-layout{grid-template-columns:1fr}}
+.site-layout{display:block;width:100%;min-width:0}.site-layout>[data-context=sidebar],.site-layout>[data-context=content]{min-width:0}
