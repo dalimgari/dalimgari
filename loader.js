@@ -83,9 +83,13 @@ async function initializeWebsite() {
 // after the critical context has started loading.
 const priorityTwoModules = [
     "/content/home.html",
-    "/component/avatar/",
-    "/component/menu/",
-    "/component/search/"
+    "/component/avatar/avatar.html",
+    "/component/avatar/avatar.css",
+    "/component/menu/menu.html",
+    "/component/menu/menu.css",
+    "/component/menu/menu.js",
+    "/component/search/search.css",
+    "/component/search/search.js"
 ];
 
 function preloadPriorityTwo() {
@@ -94,6 +98,12 @@ function preloadPriorityTwo() {
             if (path.endsWith(".html")) {
                 return fetch(path).catch((error) => {
                     console.error(`Priority 2 preload failed: ${path}`, error);
+                });
+            }
+
+            if (path.endsWith(".css")) {
+                return loadStylesheet(path).catch((error) => {
+                    console.error(`Priority 2 stylesheet preload failed: ${path}`, error);
                 });
             }
 
