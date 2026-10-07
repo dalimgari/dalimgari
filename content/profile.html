@@ -1,19 +1,301 @@
-<section data-page="profile" aria-labelledby="profile-title">
-  <h1 id="profile-title">Profile</h1>
+<section data-page="profile" aria-labelledby="profile-title" class="profile-page">
+  <header class="profile-header">
+    <div class="profile-identity">
+      <div class="profile-avatar" data-profile-avatar aria-label="Profile photo" role="img"></div>
+      <div>
+        <h1 id="profile-title" data-profile-name>Profile</h1>
+        <p class="profile-role" data-profile-role></p>
+      </div>
+    </div>
+  </header>
 
-  <div class="avatar" aria-label="Profile avatar" role="img"></div>
+  <nav class="profile-tabs" data-profile-tabs aria-label="Profile sections"></nav>
 
-  <p><strong>Name</strong></p>
-  <p>Basic information</p>
+  <div class="profile-message" data-profile-message role="status" aria-live="polite"></div>
 
-  <p>
-    <button type="button">Edit Profile</button>
-  </p>
+  <div class="profile-panels">
+    <section class="profile-panel" data-profile-panel="overview">
+      <div class="ui-card profile-overview-card">
+        <div class="profile-overview-avatar profile-avatar" data-overview-avatar aria-hidden="true"></div>
+        <div>
+          <h2 data-overview-name>Profile</h2>
+          <p data-overview-role></p>
+        </div>
+      </div>
+    </section>
 
-  <section aria-labelledby="account-settings-title">
-    <h2 id="account-settings-title">Account Settings</h2>
-    <p>
-      <button type="button">Account Settings</button>
-    </p>
-  </section>
+    <section class="profile-panel" data-profile-panel="photo" hidden>
+      <div class="profile-management">
+        <div class="ui-card">
+          <h2>Photo</h2>
+          <form data-photo-form class="ui-form">
+            <input type="hidden" name="id">
+            <label>Photo URL
+              <input name="image" type="url" required placeholder="https://...">
+            </label>
+            <label>Album
+              <select name="album"></select>
+            </label>
+            <label>Visibility
+              <select name="visibility">
+                <option value="public">Public</option>
+                <option value="member">Member</option>
+                <option value="admin">Admin</option>
+                <option value="only_me">Only Me</option>
+              </select>
+            </label>
+            <div class="ui-actions">
+              <button class="ui-button ui-button-primary" type="submit">Save</button>
+              <button class="ui-button" type="button" data-photo-reset>Clear</button>
+              <button class="ui-button ui-button-danger" type="button" data-photo-delete hidden>Delete</button>
+              <button class="ui-button" type="button" data-photo-profile hidden>Set as Profile Photo</button>
+            </div>
+          </form>
+        </div>
+        <div class="ui-card">
+          <h2>Existing Photos</h2>
+          <div class="ui-record-list" data-photo-list></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="profile-panel" data-profile-panel="video" hidden>
+      <div class="profile-management">
+        <div class="ui-card">
+          <h2>Video</h2>
+          <form data-video-form class="ui-form">
+            <input type="hidden" name="id">
+            <label>Video Title
+              <input name="title" type="text" maxlength="200" required>
+            </label>
+            <label>Video Description
+              <textarea name="description" rows="4"></textarea>
+            </label>
+            <label>Video URL
+              <input name="video" type="url" required placeholder="https://...">
+            </label>
+            <label>Visibility
+              <select name="visibility">
+                <option value="public">Public</option>
+                <option value="member">Member</option>
+                <option value="admin">Admin</option>
+                <option value="only_me">Only Me</option>
+              </select>
+            </label>
+            <div class="ui-actions">
+              <button class="ui-button ui-button-primary" type="submit">Save</button>
+              <button class="ui-button" type="button" data-video-reset>Clear</button>
+              <button class="ui-button ui-button-danger" type="button" data-video-delete hidden>Delete</button>
+            </div>
+          </form>
+        </div>
+        <div class="ui-card">
+          <h2>Existing Videos</h2>
+          <div class="ui-record-list ui-media-grid" data-video-list></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="profile-panel" data-profile-panel="album" hidden>
+      <div class="profile-management">
+        <div class="ui-card">
+          <h2>Album</h2>
+          <form data-album-form class="ui-form">
+            <input type="hidden" name="id">
+            <label>Album Name
+              <input name="title" type="text" maxlength="160" required>
+            </label>
+            <label>Description
+              <textarea name="description" rows="4"></textarea>
+            </label>
+            <div class="ui-actions">
+              <button class="ui-button ui-button-primary" type="submit">Save</button>
+              <button class="ui-button" type="button" data-album-reset>Clear</button>
+              <button class="ui-button ui-button-danger" type="button" data-album-delete hidden>Delete</button>
+            </div>
+          </form>
+        </div>
+        <div class="ui-card">
+          <h2>Existing Albums</h2>
+          <div class="ui-record-list" data-album-list></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="profile-panel" data-profile-panel="about" hidden>
+      <div class="profile-management">
+        <div class="ui-card">
+          <h2>Basic Information</h2>
+          <form data-about-form class="ui-form">
+            <label>Name
+              <input name="name" type="text" maxlength="160" required>
+            </label>
+            <label>Phone Number
+              <input name="phone" type="tel">
+            </label>
+            <label>Email
+              <input name="email" type="email">
+            </label>
+            <div class="ui-actions">
+              <button class="ui-button ui-button-primary" type="submit">Save</button>
+            </div>
+          </form>
+        </div>
+        <div class="ui-card">
+          <h2>Account Information</h2>
+          <dl class="ui-definition-list">
+            <div><dt>Account Status</dt><dd data-about-status></dd></div>
+            <div><dt>Role</dt><dd data-about-role></dd></div>
+            <div><dt>Joined Date</dt><dd data-about-joined></dd></div>
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <section class="profile-panel" data-profile-panel="customize" hidden>
+      <div class="ui-card">
+        <h2>Profile Tab Management</h2>
+        <form data-customize-form class="ui-form">
+          <div class="ui-record-list" data-customize-list></div>
+          <div class="ui-actions">
+            <button class="ui-button ui-button-primary" type="submit">Save</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section class="profile-panel" data-profile-panel="user" hidden>
+      <div class="profile-management">
+        <div class="ui-card">
+          <h2>User Management</h2>
+          <form data-user-form class="ui-form">
+            <input type="hidden" name="id">
+            <label>User Name
+              <input name="name" type="text" maxlength="160">
+            </label>
+            <label>Account Status
+              <select name="is_active">
+                <option value="true">Active</option>
+                <option value="false">Suspended</option>
+              </select>
+            </label>
+            <label>Account Type
+              <select name="account_type">
+                <option value="Member">Member</option>
+                <option value="Admin">Admin</option>
+              </select>
+            </label>
+            <label>Verification
+              <select name="verified">
+                <option value="true">Verified</option>
+                <option value="false">Not Verified</option>
+              </select>
+            </label>
+            <div class="ui-actions">
+              <button class="ui-button ui-button-primary" type="submit">Save</button>
+              <button class="ui-button ui-button-danger" type="button" data-user-delete hidden>Delete User</button>
+            </div>
+          </form>
+        </div>
+        <div class="ui-card">
+          <h2>Existing Users</h2>
+          <div class="ui-record-list" data-user-list></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="profile-panel" data-profile-panel="role" hidden>
+      <div class="profile-management">
+        <div class="ui-card">
+          <h2>Role Management</h2>
+          <form data-role-form class="ui-form">
+            <input type="hidden" name="id">
+            <label>Role Name
+              <input name="name" type="text" maxlength="80" required>
+            </label>
+            <label>Description
+              <textarea name="description" rows="3"></textarea>
+            </label>
+            <fieldset class="ui-fieldset">
+              <legend>Assign Permission</legend>
+              <div data-role-permissions class="ui-check-grid"></div>
+            </fieldset>
+            <div class="ui-actions">
+              <button class="ui-button ui-button-primary" type="submit">Save</button>
+              <button class="ui-button" type="button" data-role-reset>Clear</button>
+              <button class="ui-button ui-button-danger" type="button" data-role-delete hidden>Delete</button>
+            </div>
+          </form>
+        </div>
+        <div class="ui-card">
+          <h2>Existing Roles</h2>
+          <div class="ui-record-list" data-role-list></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="profile-panel" data-profile-panel="permission" hidden>
+      <div class="profile-management">
+        <div class="ui-card">
+          <h2>Permission Management</h2>
+          <form data-permission-form class="ui-form">
+            <input type="hidden" name="id">
+            <label>Permission Key
+              <input name="key" type="text" maxlength="128" pattern="[a-z][a-z0-9_.:-]{1,127}" required placeholder="content.create">
+            </label>
+            <label>Description
+              <textarea name="description" rows="3"></textarea>
+            </label>
+            <div class="ui-actions">
+              <button class="ui-button ui-button-primary" type="submit">Save</button>
+              <button class="ui-button" type="button" data-permission-reset>Clear</button>
+              <button class="ui-button ui-button-danger" type="button" data-permission-delete hidden>Delete</button>
+            </div>
+          </form>
+        </div>
+        <div class="ui-card">
+          <h2>Existing Permissions</h2>
+          <div class="ui-record-list" data-permission-list></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="profile-panel" data-profile-panel="settings" hidden>
+      <div class="profile-management">
+        <div class="ui-card">
+          <h2>Appearance</h2>
+          <div class="ui-form">
+            <label>Day / Night
+              <select data-setting-theme-mode>
+                <option value="day">Day</option>
+                <option value="night">Night</option>
+              </select>
+            </label>
+            <label>Theme
+              <select data-setting-theme>
+                <option value="default">Default</option>
+                <option value="soft">Soft</option>
+                <option value="contrast">Contrast</option>
+              </select>
+            </label>
+            <label>Font
+              <select data-setting-font>
+                <option value="system">System</option>
+                <option value="serif">Serif</option>
+                <option value="mono">Monospace</option>
+              </select>
+            </label>
+            <button class="ui-button ui-button-primary" type="button" data-settings-save>Save</button>
+          </div>
+        </div>
+        <div class="ui-card">
+          <h2>Account Actions</h2>
+          <div class="ui-actions">
+            <button class="ui-button ui-button-danger" type="button" data-deactivate>Deactivate Account</button>
+            <button class="ui-button ui-button-danger" type="button" data-delete-account>Delete Account</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
 </section>
