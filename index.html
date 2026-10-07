@@ -8,10 +8,11 @@
 </head>
 <body>
   <header data-layout="header"></header>
-  <div class="page-layout">
-    <aside data-layout="sidebar"></aside>
-    <main data-layout="content"></main>
-  </div>
+
+  <main data-layout="content"></main>
+
+  <aside data-layout="sidebar" class="sidebar"></aside>
+
   <script>
     async function loadLayouts() {
       const layouts = {
@@ -19,6 +20,7 @@
         content: "context/content.html",
         sidebar: "context/sidebar.html"
       };
+
       for (const [region, path] of Object.entries(layouts)) {
         const target = document.querySelector(`[data-layout="${region}"]`);
         try {
@@ -29,7 +31,15 @@
           console.error(`Failed to load ${path}`, error);
         }
       }
+
+      const menuButton = document.querySelector("[data-menu-toggle]");
+      const sidebar = document.querySelector("[data-layout='sidebar']");
+
+      menuButton?.addEventListener("click", () => {
+        sidebar.classList.toggle("is-open");
+      });
     }
+
     loadLayouts();
   </script>
 </body>
