@@ -1,0 +1,25 @@
+<section class="page page-community" data-page="community">
+  <div class="community-head">
+    <div><span class="eyebrow">Dalimgari community</span><h1>Community</h1><p>Share updates, discover members, join events, and explore community media.</p></div>
+    <div class="community-tabs" role="tablist" aria-label="Community sections">
+      <button class="tab is-active" data-community-tab="feed">Feed</button><button class="tab" data-community-tab="members">Members</button><button class="tab" data-community-tab="events">Events</button><button class="tab" data-community-tab="gallery">Gallery</button>
+    </div>
+  </div>
+  <div data-community-view="feed">
+    <div class="community-grid">
+      <main>
+        <article class="card composer" data-auth-required>
+          <h2>Share with the community</h2><textarea data-post-content maxlength="5000" placeholder="What's happening in Dalimgari?"></textarea>
+          <div class="composer-row"><span class="muted">Visible to community members</span><button class="button button--primary" data-create-post>Publish</button></div>
+          <output class="form-message" data-community-message aria-live="polite"></output>
+        </article>
+        <div class="section-head"><h2>Community feed</h2><button class="text-link" data-refresh-feed>Refresh</button></div>
+        <div data-feed></div>
+      </main>
+      <aside class="community-aside"><article class="card"><h2>Announcements</h2><div data-announcements></div></article><article class="card"><h2>Upcoming events</h2><div data-event-preview></div></article></aside>
+    </div>
+  </div>
+  <div data-community-view="members" hidden><div class="section-head"><h2>Members</h2><span class="muted" data-member-count></span></div><div class="member-grid" data-members></div></div>
+  <div data-community-view="events" hidden><div class="section-head"><h2>Events</h2><button class="button button--primary" data-new-event>New event</button></div><div class="event-grid" data-events></div></div>
+  <div data-community-view="gallery" hidden><div class="section-head"><h2>Gallery</h2><span class="muted">Community media</span></div><div class="gallery-grid" data-gallery></div></div>
+</section>
