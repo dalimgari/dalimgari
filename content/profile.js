@@ -280,10 +280,10 @@ async function loadVideos() {
   list.innerHTML = (data || []).length
     ? data.map((item) =>
         '<button type="button" class="ui-record ui-record-button ui-media-item" data-video-id="' + item.id + '">' +
+          '<video src="' + escapeHtml(item.video) + '" muted preload="metadata" playsinline></video>' +
           '<span class="ui-record-title">' + escapeHtml(item.title) + '</span>' +
           '<span class="ui-record-meta">' + escapeHtml(item.description || "") + '</span>' +
           '<span class="ui-record-meta">' + escapeHtml(item.visibility) + '</span>' +
-          '<img src="" alt="" hidden>' +
         '</button>'
       ).join("")
     : "<p>No videos yet.</p>";
@@ -530,10 +530,19 @@ async function loadUsers() {
   ).join("") || "<p>No users found.</p>";
 }
 
-function fillUser(item) {
+async function fillUser(item) {
   const form = $("[data-user-form]");
+  const { count, error } = await client
+    .from("Post & Media")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", item.id);
+
+  if (error) throw error;
+
   form.elements.id.value = item.id;
   form.elements.name.value = item.display_name || "";
+  form.elements.member_since.value = item.created_at ? new Date(item.created_at).toLocaleDateString() : "—";
+  form.elements.activity.value = String(count ?? 0) + " Post & Media item(s)";
   form.elements.is_active.value = String(Boolean(item.is_active));
   form.elements.account_type.value = item.is_admin ? "Admin" : "Member";
   form.elements.verified.value = String(Boolean(item.is_verified));
@@ -673,6 +682,8 @@ async function deletePermission() {
 
 async function loadRoles() {
   if (!state.isAdmin) return;
+  const currentRole = $("[data-current-role]");
+  if (currentRole) currentRole.textContent = state.roleName;
 
   const { data, error } = await client
     .from("roles")
@@ -855,7 +866,9 @@ function wireEvents() {
     if (user) {
       const { data, error } = await client.from("profiles").select("*").eq("id", user.dataset.userId).single();
       if (error) return message(error.message);
-      return fillUser(data);
+      const authUsers = (await client.functions.invoke("admin-user-management", { body: { action: "list_users" } })).data?.users || [];
+      data.blocked = Boolean(authUsers.find((entry) => entry.id === data.id)?.banned_until);
+      return fillUser(data).catch((fillError) => message(fillError.message));
     }
 
     const role = event.target.closest("[data-role-id]");
