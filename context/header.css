@@ -2,8 +2,28 @@
 
 .site-header {
     width: 100%;
+    border-bottom: 1px solid #e5e7eb;
+    background: #ffffff;
 }
 
 .site-header__inner {
     width: 100%;
+    max-width: 1200px;
+    min-height: 56px;
+    margin: 0 auto;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.site-header__brand {
+    font-weight: 700;
+}
+
+.site-header__nav {
+    display: flex;
+    align-items: center;
+    gap: 16px;
 }
