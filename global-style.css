@@ -49,3 +49,46 @@ button {
   outline: 2px solid var(--border);
   outline-offset: 2px;
 }
+
+.ui-card {
+  padding: var(--space-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.ui-form { display: grid; gap: var(--space-md); }
+.ui-form label { display: grid; gap: var(--space-sm); font-weight: 600; }
+.ui-form input,
+.ui-form select,
+.ui-form textarea,
+.ui-button {
+  width: 100%;
+  min-height: var(--control-height);
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+}
+.ui-form textarea { resize: vertical; }
+.ui-actions { display: flex; flex-wrap: wrap; gap: var(--space-sm); }
+.ui-actions .ui-button { width: auto; }
+.ui-button-primary { font-weight: 700; }
+.ui-button-danger { border-color: #b91c1c; }
+.ui-record-list { display: grid; gap: var(--space-sm); }
+.ui-record {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  padding: var(--space-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  text-align: left;
+}
+.ui-record:hover,
+.ui-record.is-selected { background: var(--surface-alt); }
+.ui-record-title { font-weight: 700; }
+.ui-record-meta { font-size: .9rem; opacity: .72; }
+.ui-record-button { border: 0; cursor: pointer; font: inherit; }
+.ui-button:disabled { cursor: not-allowed; opacity: .55; }
