@@ -442,12 +442,13 @@ async function saveAbout(event) {
 
   if (profileError) throw profileError;
 
-  const { error: authError } = await client.auth.updateUser({
-    email: email || undefined,
-    phone: phone || undefined
-  });
-
-  if (authError) throw authError;
+  const authPayload = {};
+  if (email) authPayload.email = email;
+  if (phone) authPayload.phone = phone;
+  if (Object.keys(authPayload).length) {
+    const { error: authError } = await client.auth.updateUser(authPayload);
+    if (authError) throw authError;
+  }
 
   state.profile.display_name = name;
   state.profile.phone_number = phone;
@@ -552,6 +553,16 @@ async function saveUser(event) {
   const { data, error } = await client.functions.invoke("admin-user-management", { body: action });
   if (error) throw error;
   if (!data?.ok) throw new Error(data?.message || "User update failed.");
+
+  const { data: blockData, error: blockError } = await client.functions.invoke("admin-user-management", {
+    body: {
+      action: "set_block",
+      user_id: id,
+      blocked: selectedValue(form, "blocked") === "true"
+    }
+  });
+  if (blockError) throw blockError;
+  if (!blockData?.ok) throw new Error(blockData?.message || "Block status update failed.");
 
   message("User updated.");
   await loadUsers();
