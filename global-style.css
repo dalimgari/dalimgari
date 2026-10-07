@@ -29,10 +29,54 @@ body {
 
 input,
 button,
-a {
+a,
+output {
   text-align: center;
 }
 
+input,
+button {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+input {
+  width: 100%;
+  max-width: 480px;
+}
+
+input:focus {
+  outline: 2px solid var(--border);
+  outline-offset: 1px;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:hover {
+  background: var(--surface-alt);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+output {
+  display: block;
+  width: 100%;
+  max-width: 480px;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+}
 
 .sidebar-button {
   display: block;
