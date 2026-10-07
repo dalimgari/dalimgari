@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dalimgari</title>
+</head>
+<body>
+  <div data-context="header"></div>
+  <div data-context="sidebar"></div>
+  <main data-context="content"></main>
+
+  <script>
+    const contexts = [
+      ["header", "context/header.html"],
+      ["sidebar", "context/sidebar.html"],
+      ["content", "context/content.html"]
+    ];
+
+    async function loadContext(target, path) {
+      const response = await fetch(path, { cache: "no-cache" });
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      document.querySelector('[data-context="' + target + '"]').outerHTML =
+        await response.text();
+    }
+
+    async function init() {
+      await Promise.all(
+        contexts.map(([target, path]) => loadContext(target, path))
+      );
+    }
+
+    init().catch(console.error);
+  </script>
+</body>
+</html>
