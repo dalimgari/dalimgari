@@ -1,0 +1,1 @@
+.ui-alert{display:block;padding:12px 14px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);line-height:1.5}.ui-alert--info{border-color:#93c5fd}.ui-alert--success{border-color:#86efac}.ui-alert--warning{border-color:#fcd34d}.ui-alert--error{border-color:#fca5a5}
