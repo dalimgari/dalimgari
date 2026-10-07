@@ -506,19 +506,26 @@ async function saveCustomize(event) {
 async function loadUsers() {
   if (!state.isAdmin) return;
 
-  const { data, error } = await client
-    .from("profiles")
-    .select("id,display_name,email,is_admin,is_active,is_verified,created_at")
-    .order("created_at", { ascending: false });
+  const [{ data, error }, { data: authData, error: authError }] = await Promise.all([
+    client.from("profiles").select("id,display_name,email,is_admin,is_active,is_verified,created_at").order("created_at", { ascending: false }),
+    client.functions.invoke("admin-user-management", { body: { action: "list_users" } })
+  ]);
 
   if (error) throw error;
+  if (authError) throw authError;
+
+  const authUsers = authData?.users || [];
+  const merged = (data || []).map((item) => ({
+    ...item,
+    blocked: Boolean(authUsers.find((user) => user.id === item.id)?.banned_until)
+  }));
 
   const list = $("[data-user-list]");
-  list.innerHTML = (data || []).map((item) =>
+  list.innerHTML = merged.map((item) =>
     '<button type="button" class="ui-record ui-record-button" data-user-id="' + item.id + '">' +
       '<span class="ui-record-title">' + escapeHtml(item.display_name || item.email || "User") + '</span>' +
       '<span class="ui-record-meta">' + escapeHtml(item.email || "") + '</span>' +
-      '<span class="ui-record-meta">' + (item.is_active ? "Active" : "Suspended") + " · " + (item.is_admin ? "Admin" : "Member") + '</span>' +
+      '<span class="ui-record-meta">' + (item.is_active ? "Active" : "Suspended") + " · " + (item.is_admin ? "Admin" : "Member") + " · " + (item.blocked ? "Blocked" : "Unblocked") + '</span>' +
     '</button>'
   ).join("") || "<p>No users found.</p>";
 }
@@ -530,6 +537,7 @@ function fillUser(item) {
   form.elements.is_active.value = String(Boolean(item.is_active));
   form.elements.account_type.value = item.is_admin ? "Admin" : "Member";
   form.elements.verified.value = String(Boolean(item.is_verified));
+  form.elements.blocked.value = String(Boolean(item.blocked));
   $("[data-user-delete]").hidden = false;
 }
 
