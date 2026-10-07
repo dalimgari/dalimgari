@@ -1,0 +1,10 @@
+main[data-layout="content"] {
+  min-height: calc(100vh - 56px);
+  background: var(--surface);
+}
+
+.content-panel {
+  padding: 24px;
+  background: var(--surface);
+  color: var(--text);
+}
