@@ -10,7 +10,7 @@ function initSearch(searchRoot) {
     { title: "Dashboard", url: "content/dashboard.html" },
     { title: "Login", url: "content/login.html" },
     { title: "Create Account", url: "content/create-account.html" },
-    { title: "Reset Password", url: "content/reset-password.html" }
+    { title: "Forgot Password", url: "content/forgot-password.html" }
   ];
 
   function renderResults(query) {
@@ -39,16 +39,9 @@ function initSearch(searchRoot) {
     });
   }
 
-  input.addEventListener("input", () => {
-    renderResults(input.value);
-  });
+  input.addEventListener("input", () => renderResults(input.value));
 
   input.addEventListener("keydown", event => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      renderResults(input.value);
-    }
-
     if (event.key === "Escape") {
       input.value = "";
       results.replaceChildren();
