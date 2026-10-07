@@ -4,7 +4,7 @@
   --surface-alt: #f0f3f7;
   --text: #1f2937;
   --border: #d9dee7;
-  --sidebar-width: clamp(200px, 20vw, 280px);
+  --sidebar-width: clamp(160px, 20vw, 280px);
 }
 
 * {
