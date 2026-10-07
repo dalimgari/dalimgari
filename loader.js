@@ -1,5 +1,5 @@
 // Central application loader.
-const APP_ASSET_VERSION="20261008-perf-profile-fix";
+const APP_ASSET_VERSION="20261008-profile-tabs-v2";
 import { initContent } from "./context/content.js";
 const globalStylesheet="./style/global-style.css";
 const designSystemStylesheet="./style/ui-design-system.css";
