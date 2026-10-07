@@ -4,37 +4,24 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title></title>
-  <link rel="stylesheet" href="global-stylesheet.css">
 </head>
 <body>
-  <header data-layout="header"></header>
-
-  <div class="page-layout">
-    <aside data-layout="sidebar"></aside>
-    <main data-layout="content"></main>
-  </div>
+  <div data-layout="header"></div>
+  <main data-layout="content"></main>
+  <aside data-layout="sidebar"></aside>
 
   <script>
-    async function loadLayouts() {
-      const layouts = {
-        header: "context/header.html",
-        content: "context/content.html",
-        sidebar: "context/sidebar.html"
-      };
+    const layouts = {
+      header: "context/header.html",
+      content: "context/content.html",
+      sidebar: "context/sidebar.html"
+    };
 
-      for (const [region, path] of Object.entries(layouts)) {
-        const target = document.querySelector(`[data-layout="${region}"]`);
-        try {
-          const response = await fetch(path, { cache: "no-cache" });
-          if (!response.ok) throw new Error(`HTTP ${response.status}`);
-          target.innerHTML = await response.text();
-        } catch (error) {
-          console.error(`Failed to load ${path}`, error);
-        }
-      }
-    }
-
-    loadLayouts();
+    Object.entries(layouts).forEach(async ([region, path]) => {
+      const target = document.querySelector(`[data-layout="${region}"]`);
+      const response = await fetch(path);
+      if (response.ok) target.innerHTML = await response.text();
+    });
   </script>
 </body>
 </html>
