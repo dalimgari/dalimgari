@@ -1,0 +1,16 @@
+.input {
+  width: 100%;
+  max-width: var(--content-max-width);
+  min-height: var(--control-height);
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--border);
+  outline-offset: 1px;
+}
