@@ -104,6 +104,36 @@ function preloadPriorityTwo() {
     );
 }
 
-initializeWebsite().then(preloadPriorityTwo).catch((error) => {
-    console.error("Website initialization failed:", error);
-});
+
+// Priority 3: preload secondary pages and the global stylesheet
+// after Priority 2 has finished.
+const priorityThreeModules = [
+    "/content/create-account.html",
+    "/content/forgot-password.html",
+    "/content/login.html",
+    "/content/profile.html",
+    "/style/global-style.css"
+];
+
+function preloadPriorityThree() {
+    return Promise.all(
+        priorityThreeModules.map((path) => {
+            if (path.endsWith(".css")) {
+                return loadStylesheet(path).catch((error) => {
+                    console.error(`Priority 3 stylesheet preload failed: ${path}`, error);
+                });
+            }
+
+            return fetch(path).catch((error) => {
+                console.error(`Priority 3 preload failed: ${path}`, error);
+            });
+        })
+    );
+}
+
+initializeWebsite()
+    .then(preloadPriorityTwo)
+    .then(preloadPriorityThree)
+    .catch((error) => {
+        console.error("Website initialization failed:", error);
+    });
