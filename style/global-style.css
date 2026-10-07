@@ -1,5 +1,32 @@
 /* Global visual baseline loaded by loader.js. */
 
+:root {
+    --color-background: #ffffff;
+    --color-surface: #f9fafb;
+    --color-text: #1f2937;
+    --color-muted: #6b7280;
+    --color-border: #d1d5db;
+    --color-border-light: #e5e7eb;
+    --color-hover: #f3f4f6;
+    --color-focus: #2563eb;
+    --color-selection: #dbeafe;
+    --color-selection-text: #111827;
+
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+
+    --radius-sm: 6px;
+    --radius-md: 8px;
+
+    --control-height: 40px;
+    --content-width: 760px;
+    --page-padding: 16px;
+}
+
 *,
 *::before,
 *::after {
@@ -16,8 +43,8 @@ body {
     margin: 0;
     min-width: 320px;
     min-height: 100vh;
-    background: #ffffff;
-    color: #1f2937;
+    background: var(--color-background);
+    color: var(--color-text);
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     font-size: 16px;
     line-height: 1.5;
@@ -123,14 +150,14 @@ ol {
 
 .page {
     width: 100%;
-    max-width: 760px;
+    max-width: var(--content-width);
     margin: 0 auto;
-    padding: 24px 16px;
+    padding: var(--space-6) var(--page-padding);
 }
 
 .page form {
     display: grid;
-    gap: 10px;
+    gap: var(--space-2);
     max-width: 480px;
 }
 
@@ -140,37 +167,46 @@ ol {
 
 .page form input,
 .page form button {
-    min-height: 40px;
-    padding: 8px 10px;
+    min-height: var(--control-height);
+    padding: var(--space-2) 10px;
+}
+
+.page form input,
+.page form textarea,
+.page form select {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-background);
 }
 
 .page form button {
     width: fit-content;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    background: #f9fafb;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
 }
 
 .page form output {
     min-height: 1.5em;
+    color: var(--color-muted);
 }
 
 :focus-visible {
-    outline: 2px solid currentColor;
+    outline: 2px solid var(--color-focus);
     outline-offset: 2px;
 }
 
 ::selection {
-    background: #dbeafe;
-    color: #111827;
+    background: var(--color-selection);
+    color: var(--color-selection-text);
 }
 
 @media (max-width: 640px) {
     .site-header__inner {
         align-items: flex-start;
         flex-direction: column;
-        padding-top: 12px;
-        padding-bottom: 12px;
+        padding-top: var(--space-3);
+        padding-bottom: var(--space-3);
     }
 
     .site-header__nav {
