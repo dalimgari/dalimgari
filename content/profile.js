@@ -152,15 +152,15 @@ function resetForm(form) {
 
 async function loadAlbumOptions(select, includeEmpty = true) {
   const { data, error } = await client
-    .from("albums")
-    .select("id, title")
-    .order("title");
+    .from("Album")
+    .select("id, name")
+    .order("name");
 
   if (error) throw error;
 
   select.replaceChildren();
   if (includeEmpty) select.add(new Option("No Album", ""));
-  (data || []).forEach((album) => select.add(new Option(album.title, album.id)));
+  (data || []).forEach((album) => select.add(new Option(album.name, album.id)));
 }
 
 function mediaOwnerFilter(query) {
@@ -173,9 +173,10 @@ async function loadPhotos() {
   await loadAlbumOptions(form.elements.album);
 
   const query = client
-    .from("Post & Media")
-    .select("id,title,image,visibility,album,created_at")
-    .not("image", "is", null)
+    .from("Media")
+    .select("id,title,media_url,thumbnail_url,visibility,album_id,created_at")
+    .eq("media_type", "image")
+    .not("media_url", "is", null)
     .order("created_at", { ascending: false });
 
   const { data, error } = await mediaOwnerFilter(query);
@@ -185,7 +186,7 @@ async function loadPhotos() {
   list.innerHTML = (data || []).length
     ? data.map((item) =>
         '<button type="button" class="ui-record ui-record-button" data-photo-id="' + item.id + '">' +
-          '<img src="' + escapeHtml(item.image) + '" alt="" style="width:72px;height:54px;object-fit:cover;border-radius:var(--radius);">' +
+          '<img src="' + escapeHtml(item.thumbnail_url || item.media_url) + '"' alt="" style="width:72px;height:54px;object-fit:cover;border-radius:var(--radius);">' +
           '<span class="ui-record-title">' + escapeHtml(item.title || "Photo") + '</span>' +
           '<span class="ui-record-meta">' + escapeHtml(item.visibility) + '</span>' +
         '</button>'
@@ -196,9 +197,9 @@ async function loadPhotos() {
 function fillPhoto(item) {
   const form = $("[data-photo-form]");
   form.elements.id.value = item.id;
-  form.elements.image.value = item.image || "";
+  form.elements.image.value = item.media_url || "";
   form.elements.visibility.value = item.visibility || "public";
-  form.elements.album.value = item.album || "";
+  form.elements.album.value = item.album_id || "";
   $("[data-photo-delete]").hidden = false;
   $("[data-photo-profile]").hidden = false;
 }
@@ -213,17 +214,17 @@ async function savePhoto(event) {
   const payload = {
     user_id: state.user.id,
     title: "Photo",
-    image,
-    video: null,
-    media_link: null,
     description: null,
-    visibility: selectedValue(form, "visibility") || "public",
-    album: selectedValue(form, "album") || null
+    media_type: "image",
+    media_url: image,
+    thumbnail_url: null,
+    album_id: selectedValue(form, "album") || null,
+    visibility: selectedValue(form, "visibility") || "public"
   };
 
   const query = id
-    ? client.from("Post & Media").update(payload).eq("id", id)
-    : client.from("Post & Media").insert(payload);
+    ? client.from("Media").update(payload).eq("id", id)
+    : client.from("Media").insert(payload);
 
   const { error } = await query;
   if (error) throw error;
@@ -268,9 +269,10 @@ async function setProfilePhoto() {
 
 async function loadVideos() {
   const query = client
-    .from("Post & Media")
-    .select("id,title,description,video,visibility,created_at")
-    .not("video", "is", null)
+    .from("Media")
+    .select("id,title,description,media_url,thumbnail_url,visibility,album_id,created_at")
+    .eq("media_type", "video")
+    .not("media_url", "is", null)
     .order("created_at", { ascending: false });
 
   const { data, error } = await mediaOwnerFilter(query);
@@ -280,8 +282,8 @@ async function loadVideos() {
   list.innerHTML = (data || []).length
     ? data.map((item) =>
         '<button type="button" class="ui-record ui-record-button ui-media-item" data-video-id="' + item.id + '">' +
-          '<video src="' + escapeHtml(item.video) + '" muted preload="metadata" playsinline></video>' +
-          '<span class="ui-record-title">' + escapeHtml(item.title) + '</span>' +
+          '<video src="' + escapeHtml(item.media_url) + '"' muted preload="metadata" playsinline></video>' +
+          '<span class="ui-record-title">' + escapeHtml(item.name) + '</span>' +
           '<span class="ui-record-meta">' + escapeHtml(item.description || "") + '</span>' +
           '<span class="ui-record-meta">' + escapeHtml(item.visibility) + '</span>' +
         '</button>'
@@ -292,10 +294,12 @@ async function loadVideos() {
 function fillVideo(item) {
   const form = $("[data-video-form]");
   form.elements.id.value = item.id;
-  form.elements.title.value = item.title || "";
+  form.elements.title.value = item.name || "";
   form.elements.description.value = item.description || "";
-  form.elements.video.value = item.video || "";
+  loadAlbumMedia(item.id).catch((error) => message(error.message));
+  form.elements.video.value = item.media_url || "";
   form.elements.visibility.value = item.visibility || "public";
+  form.elements.album.value = item.album_id || "";
   $("[data-video-delete]").hidden = false;
 }
 
@@ -309,16 +313,16 @@ async function saveVideo(event) {
     user_id: state.user.id,
     title: selectedValue(form, "title"),
     description: selectedValue(form, "description") || null,
-    image: null,
-    video: selectedValue(form, "video"),
-    media_link: null,
-    visibility: selectedValue(form, "visibility") || "public",
-    album: null
+    media_type: "video",
+    media_url: selectedValue(form, "video"),
+    thumbnail_url: null,
+    album_id: selectedValue(form, "album") || null,
+    visibility: selectedValue(form, "visibility") || "public"
   };
 
   const query = id
-    ? client.from("Post & Media").update(payload).eq("id", id)
-    : client.from("Post & Media").insert(payload);
+    ? client.from("Media").update(payload).eq("id", id)
+    : client.from("Media").insert(payload);
 
   const { error } = await query;
   if (error) throw error;
@@ -345,8 +349,9 @@ async function deleteVideo() {
 
 async function loadAlbums() {
   const { data, error } = await client
-    .from("albums")
-    .select("id,title,description,created_by,created_at")
+    .from("Album")
+    .select("id,name,description,visibility,created_at")
+    .eq("user_id", state.user?.id || "00000000-0000-0000-0000-000000000000")
     .order("created_at", { ascending: false });
 
   if (error) throw error;
@@ -377,13 +382,14 @@ async function saveAlbum(event) {
   const form = event.currentTarget;
   const id = selectedValue(form, "id");
   const payload = {
-    title: selectedValue(form, "title"),
-    description: selectedValue(form, "description") || null
+    name: selectedValue(form, "title"),
+    description: selectedValue(form, "description") || null,
+    user_id: state.user.id
   };
 
   const query = id
-    ? client.from("albums").update(payload).eq("id", id)
-    : client.from("albums").insert({ ...payload, created_by: state.user.id });
+    ? client.from("Album").update(payload).eq("id", id).eq("user_id", state.user.id)
+    : client.from("Album").insert(payload);
 
   const { error } = await query;
   if (error) throw error;
@@ -394,12 +400,82 @@ async function saveAlbum(event) {
   await loadAlbums();
 }
 
+async function loadAlbumMedia(albumId) {
+  const list = $("[data-album-media-list]");
+  if (!list) return;
+  const { data, error } = await client
+    .from("Media")
+    .select("id,title,media_type,media_url,thumbnail_url,visibility,album_id,created_at")
+    .eq("album_id", albumId)
+    .eq("user_id", state.user?.id || "00000000-0000-0000-0000-000000000000")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  list.innerHTML = (data || []).length
+    ? data.map((item) =>
+      '<div class="ui-record">' +
+        '<span class="ui-record-title">' + escapeHtml(item.title || item.media_type) + '</span>' +
+        '<span class="ui-record-meta">' + escapeHtml(item.media_type) + '</span>' +
+        '<button class="ui-button" type="button" data-album-remove-media="' + item.id + '">Remove</button>' +
+      '</div>'
+    ).join("")
+    : "<p>No media in this album.</p>";
+}
+
+async function loadAvailableAlbumMedia(albumId) {
+  const list = $("[data-album-available-list]");
+  if (!list) return;
+  const { data, error } = await client
+    .from("Media")
+    .select("id,title,media_type,album_id,created_at")
+    .eq("user_id", state.user?.id || "00000000-0000-0000-0000-000000000000")
+    .neq("album_id", albumId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  list.innerHTML = (data || []).length
+    ? data.map((item) =>
+      '<label class="ui-check"><input type="checkbox" value="' + item.id + '" data-album-available-media> ' +
+      escapeHtml(item.title || item.media_type) + ' (' + escapeHtml(item.media_type) + ')</label>'
+    ).join("")
+    : "<p>No other uploaded media available.</p>";
+}
+
+async function addSelectedMediaToAlbum() {
+  const albumId = selectedValue($("[data-album-form]"), "id");
+  if (!albumId) return message("Select an album first.");
+  const ids = $("[data-album-available-media]:checked").map((input) => input.value);
+  if (!ids.length) return message("Select media first.");
+  const { error } = await client
+    .from("Media")
+    .update({ album_id: albumId })
+    .in("id", ids)
+    .eq("user_id", state.user.id);
+  if (error) throw error;
+  message("Selected media added to album.");
+  await loadAlbumMedia(albumId);
+  await loadAvailableAlbumMedia(albumId);
+}
+
+async function removeMediaFromAlbum(id) {
+  const albumId = selectedValue($("[data-album-form]"), "id");
+  if (!albumId) return;
+  const { error } = await client
+    .from("Media")
+    .update({ album_id: null })
+    .eq("id", id)
+    .eq("album_id", albumId)
+    .eq("user_id", state.user.id);
+  if (error) throw error;
+  message("Media removed from album.");
+  await loadAlbumMedia(albumId);
+  await loadAvailableAlbumMedia(albumId);
+}
+
 async function deleteAlbum() {
   const id = selectedValue($("[data-album-form]"), "id");
   if (!id) return;
   if (!confirm("Delete this album?")) return;
 
-  const { error } = await client.from("albums").delete().eq("id", id);
+  const { error } = await client.from("Album").delete().eq("id", id).eq("user_id", state.user.id);
   if (error) throw error;
 
   resetForm($("[data-album-form]"));
@@ -533,7 +609,7 @@ async function loadUsers() {
 async function fillUser(item) {
   const form = $("[data-user-form]");
   const { count, error } = await client
-    .from("Post & Media")
+    .from("Media")
     .select("id", { count: "exact", head: true })
     .eq("user_id", item.id);
 
@@ -542,7 +618,7 @@ async function fillUser(item) {
   form.elements.id.value = item.id;
   form.elements.name.value = item.display_name || "";
   form.elements.member_since.value = item.created_at ? new Date(item.created_at).toLocaleDateString() : "—";
-  form.elements.activity.value = String(count ?? 0) + " Post & Media item(s)";
+  form.elements.activity.value = String(count ?? 0) + " Media item(s)";
   form.elements.is_active.value = String(Boolean(item.is_active));
   form.elements.account_type.value = item.is_admin ? "Admin" : "Member";
   form.elements.verified.value = String(Boolean(item.is_verified));
@@ -859,7 +935,8 @@ function wireEvents() {
     if (album) {
       const { data, error } = await client.from("albums").select("*").eq("id", album.dataset.albumId).single();
       if (error) return message(error.message);
-      return fillAlbum(data);
+      fillAlbum(data);
+      return loadAvailableAlbumMedia(data.id).catch((error) => message(error.message));
     }
 
     const user = event.target.closest("[data-user-id]");
@@ -927,6 +1004,11 @@ function wireEvents() {
   $("[data-photo-profile]")?.addEventListener("click", () => setProfilePhoto().catch((error) => message(error.message)));
   $("[data-video-delete]")?.addEventListener("click", () => deleteVideo().catch((error) => message(error.message)));
   $("[data-album-delete]")?.addEventListener("click", () => deleteAlbum().catch((error) => message(error.message)));
+  $("[data-album-add-media]")?.addEventListener("click", () => addSelectedMediaToAlbum().catch((error) => message(error.message)));
+  page.addEventListener("click", (event) => {
+    const remove = event.target.closest("[data-album-remove-media]");
+    if (remove) removeMediaFromAlbum(remove.dataset.albumRemoveMedia).catch((error) => message(error.message));
+  });
   $("[data-user-delete]")?.addEventListener("click", () => deleteUser().catch((error) => message(error.message)));
   $("[data-role-delete]")?.addEventListener("click", () => deleteRole().catch((error) => message(error.message)));
   $("[data-permission-delete]")?.addEventListener("click", () => deletePermission().catch((error) => message(error.message)));
