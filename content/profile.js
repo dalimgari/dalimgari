@@ -294,7 +294,7 @@ async function loadVideos() {
 function fillVideo(item) {
   const form = $("[data-video-form]");
   form.elements.id.value = item.id;
-  form.elements.title.value = item.name || "";
+  form.elements.title.value = item.title || "";
   form.elements.description.value = item.description || "";
   form.elements.video.value = item.media_url || "";
   form.elements.visibility.value = item.visibility || "public";
@@ -337,7 +337,7 @@ async function deleteVideo() {
   if (!id) return;
   if (!confirm("Delete this video?")) return;
 
-  const { error } = await client.from("Post & Media").delete().eq("id", id);
+  const { error } = await client.from("Media").delete().eq("id", id);
   if (error) throw error;
 
   resetForm($("[data-video-form]"));
