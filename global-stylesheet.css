@@ -67,6 +67,12 @@ main[data-layout="content"] {
   min-height: calc(100vh - 56px);
 }
 
+.content-panel {
+  padding: 24px;
+  background: var(--bg);
+  color: var(--text);
+}
+
 .sidebar {
   position: fixed;
   top: 56px;
