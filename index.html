@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="style/global-style.css">
   <link rel="stylesheet" href="context/header.css">
   <link rel="stylesheet" href="context/sidebar.css">
+  <link rel="stylesheet" href="context/content.css">
   <link rel="stylesheet" href="component/menu/menu.css">
   <link rel="stylesheet" href="component/avatar/avatar.css">
 </head>
@@ -67,7 +68,7 @@
       ]);
 
       await loadScript("component/menu/menu.js");
-      await loadScript("component/page-loader.js");
+      await loadScript("context/content.js");
       await loadScript("supabase/client/supabase.js");
       await loadScript("supabase/auth/auth.js");
 
