@@ -71,6 +71,10 @@ function getInitialContentPage() {
   return normalizeContentPath(hash) || "content/home.html";
 }
 
+contentArea?.addEventListener("click", () => {
+  closeSidebar();
+});
+
 document.addEventListener("click", (event) => {
   const link = event.target.closest("a[href]");
   const contentButton = event.target.closest("[data-content-page]");
