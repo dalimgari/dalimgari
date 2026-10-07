@@ -1,0 +1,55 @@
+<section data-page="post-media" aria-labelledby="post-media-title">
+  <h1 id="post-media-title">Post &amp; Media</h1>
+
+  <form data-post-media-form>
+    <label>
+      Title
+      <input name="title" type="text" maxlength="200" required>
+    </label>
+
+    <label>
+      Description
+      <textarea name="description" rows="4"></textarea>
+    </label>
+
+    <label>
+      Image
+      <input name="image" type="url" placeholder="https://...">
+    </label>
+
+    <label>
+      Video
+      <input name="video" type="url" placeholder="https://...">
+    </label>
+
+    <label>
+      Media Link
+      <input name="media_link" type="url" placeholder="https://...">
+    </label>
+
+    <label>
+      Visibility
+      <select name="visibility">
+        <option value="public" selected>Public</option>
+        <option value="member">Member</option>
+        <option value="admin" data-admin-only hidden>Admin</option>
+        <option value="only_me">Only Me</option>
+      </select>
+    </label>
+
+    <label>
+      Album
+      <select name="album">
+        <option value="">No Album</option>
+      </select>
+    </label>
+
+    <button type="submit">Create Post</button>
+    <output data-post-media-message aria-live="polite"></output>
+  </form>
+
+  <section aria-labelledby="post-list-title">
+    <h2 id="post-list-title">Posts</h2>
+    <div data-post-media-list></div>
+  </section>
+</section>
