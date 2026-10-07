@@ -1,4 +1,5 @@
 const supabaseClient = window.dalimgariSupabase;
+const DEFAULT_AVATAR = "./component/avatar/default-avatar.svg";
 
 export async function initAvatar(root = document) {
     const avatar = root.querySelector("[data-avatar]");
@@ -6,11 +7,15 @@ export async function initAvatar(root = document) {
 
     const { data } = await supabaseClient.auth.getSession();
     const session = data?.session;
+    const image = avatar.querySelector(".avatar__image");
+    image.src = DEFAULT_AVATAR;
 
     if (!session) {
         avatar.href = "#content/login.html";
         avatar.dataset.route = "content/login.html";
         avatar.setAttribute("aria-label", "Login");
+        image.alt = "Default profile avatar";
+        image.onerror = () => { image.src = DEFAULT_AVATAR; };
         return;
     }
 
@@ -23,13 +28,9 @@ export async function initAvatar(root = document) {
         .maybeSingle();
 
     if (profile?.avatar_url) avatarUrl = profile.avatar_url;
-    if (avatarUrl) {
-        const image = avatar.querySelector(".avatar__image");
-        image.src = avatarUrl;
-        image.alt = profile?.username || user.email || "Profile";
-        image.hidden = false;
-        avatar.querySelector(".avatar__fallback").hidden = true;
-    }
+    image.src = avatarUrl || DEFAULT_AVATAR;
+    image.alt = profile?.username || user.email || "Profile";
+    image.onerror = () => { image.src = DEFAULT_AVATAR; image.alt = "Default profile avatar"; };
 
     avatar.href = "#content/profile.html";
     avatar.dataset.route = "content/profile.html";
