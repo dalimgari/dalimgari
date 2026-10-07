@@ -4,35 +4,63 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title></title>
-  <link rel="stylesheet" href="global-stylesheet.css">
+  <link rel="stylesheet" href="global-style.css">
+  <link rel="stylesheet" href="component/menu.css">
 </head>
 <body>
   <header data-layout="header">
     <div class="header-bar">
       <button type="button" data-menu-toggle aria-label="Toggle menu" aria-expanded="false">☰</button>
-      <div class="header-title">Home</div>
-      <a class="header-avatar" href="profile.html" aria-label="Profile">👤</a>
+      <div class="header-title" data-state-name>Home</div>
+      <a class="header-avatar" href="#profile" aria-label="Profile">👤</a>
     </div>
   </header>
 
-  <main data-layout="content">
-    <div class="content-panel">Welcome to Dalimgari</div>
-  </main>
+  <main data-layout="content"></main>
 
   <aside data-layout="sidebar" class="sidebar">
     <div class="sidebar-panel">
-      <div>Sidebar</div>
+      <nav aria-label="Main navigation">
+        <a href="#home">Home</a>
+        <a href="#login">Login</a>
+        <a href="#create-account">Create Account</a>
+        <a href="#reset-password">Reset Password</a>
+        <a href="#profile">Profile</a>
+        <a href="#dashboard">Dashboard</a>
+      </nav>
     </div>
   </aside>
 
   <script>
-    const menuButton = document.querySelector("[data-menu-toggle]");
-    const sidebar = document.querySelector("[data-layout='sidebar']");
+    const content = document.querySelector("[data-layout='content']");
+    const stateName = document.querySelector("[data-state-name]");
 
-    menuButton?.addEventListener("click", () => {
-      const open = sidebar.classList.toggle("is-open");
-      menuButton.setAttribute("aria-expanded", String(open));
-    });
+    const states = {
+      home: "Home",
+      login: "Login",
+      "create-account": "Create Account",
+      "reset-password": "Reset Password",
+      profile: "Profile",
+      dashboard: "Dashboard"
+    };
+
+    async function loadState() {
+      const state = location.hash.slice(1) || "home";
+      const name = states[state] ? state : "home";
+
+      try {
+        const response = await fetch(`content/${name}.html`, { cache: "no-cache" });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        content.innerHTML = await response.text();
+        stateName.textContent = states[name];
+      } catch (error) {
+        console.error(`Failed to load content/${name}.html`, error);
+      }
+    }
+
+    window.addEventListener("hashchange", loadState);
+    loadState();
   </script>
+  <script src="component/menu.js"></script>
 </body>
 </html>
