@@ -1,0 +1,9 @@
+/* Content-area visual scope. */
+
+.site-content {
+    width: 100%;
+}
+
+#content {
+    width: 100%;
+}
