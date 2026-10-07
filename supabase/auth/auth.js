@@ -12,6 +12,10 @@ function authMessage(form, message) {
   output.textContent = message;
 }
 
+function getAppBaseUrl() {
+  return new URL("./", window.location.href).href;
+}
+
 function goToContent(path) {
   if (window.location.hash === `#${path}`) {
     window.dispatchEvent(new HashChangeEvent("hashchange"));
@@ -114,7 +118,7 @@ async function handlePasswordResetRequest(form) {
   const email = form.elements.email.value.trim();
 
   const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin + "/#content/forgot-password.html"
+    redirectTo: getAppBaseUrl() + "#content/forgot-password.html"
   });
 
   if (error) {
@@ -148,7 +152,7 @@ async function handleGoogleLogin(button) {
   const { error } = await supabaseClient.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: window.location.origin + "/#content/home.html"
+      redirectTo: getAppBaseUrl() + "#content/home.html"
     }
   });
 
