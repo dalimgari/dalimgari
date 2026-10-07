@@ -1,30 +1,30 @@
 // loader.js
 // Central application loader: global styles, persistent context, routing and components.
 
-import { initContent } from "/context/content.js";
+import { initContent } from "./context/content.js";
 
-const globalStylesheet = "/style/global-style.css";
+const globalStylesheet = "./style/global-style.css";
 
 const contextFiles = [
-    { name: "header", html: "/context/header.html", css: "/context/header.css" },
-    { name: "sidebar", html: "/context/sidebar.html", css: "/context/sidebar.css" },
-    { name: "content", html: "/context/content.html", css: "/context/content.css" }
+    { name: "header", html: "./context/header.html", css: "./context/header.css" },
+    { name: "sidebar", html: "./context/sidebar.html", css: "./context/sidebar.css" },
+    { name: "content", html: "./context/content.html", css: "./context/content.css" }
 ];
 
-const contextLayoutStylesheet = "/context/layout.css";
+const contextLayoutStylesheet = "./context/layout.css";
 
 const pageFiles = {
-    "content/home.html": "/content/home.html",
-    "content/login.html": "/content/login.html",
-    "content/create-account.html": "/content/create-account.html",
-    "content/forgot-password.html": "/content/forgot-password.html",
-    "content/profile.html": "/content/profile.html"
+    "content/home.html": "./content/home.html",
+    "content/login.html": "./content/login.html",
+    "content/create-account.html": "./content/create-account.html",
+    "content/forgot-password.html": "./content/forgot-password.html",
+    "content/profile.html": "./content/profile.html"
 };
 
 const componentFiles = {
-    avatar: "/component/avatar/avatar.html",
-    menu: "/component/menu/menu.html",
-    search: "/component/search/search.html"
+    avatar: "./component/avatar/avatar.html",
+    menu: "./component/menu/menu.html",
+    search: "./component/search/search.html"
 };
 
 const componentTemplateCache = new Map();
@@ -109,13 +109,31 @@ async function mountComponents(root) {
 async function initializeComponents(root) {
     await mountComponents(root);
 
-    const [{ initMenu }, { initSearch }] = await Promise.all([
-        import("/component/menu/menu.js"),
-        import("/component/search/search.js")
-    ]);
+    const tasks = [];
 
-    initMenu(root);
-    initSearch(root);
+    if (root.querySelector("[data-menu]")) {
+        tasks.push(import("./component/menu/menu.js"));
+    }
+
+    if (root.querySelector("[data-search]")) {
+        tasks.push(import("./component/search/search.js"));
+    }
+
+    if (!tasks.length) {
+        return;
+    }
+
+    const modules = await Promise.all(tasks);
+
+    for (const module of modules) {
+        if (module.initMenu) {
+            module.initMenu(root);
+        }
+
+        if (module.initSearch) {
+            module.initSearch(root);
+        }
+    }
 }
 
 async function loadPage(path) {
@@ -215,9 +233,9 @@ async function initializeWebsite() {
 
 // Priority 2: preload reusable component assets and cache their templates.
 const priorityTwoModules = [
-    { name: "avatar", html: "/component/avatar/avatar.html", css: "/component/avatar/avatar.css" },
-    { name: "menu", html: "/component/menu/menu.html", css: "/component/menu/menu.css" },
-    { name: "search", html: "/component/search/search.html", css: "/component/search/search.css" }
+    { name: "avatar", html: "./component/avatar/avatar.html", css: "./component/avatar/avatar.css" },
+    { name: "menu", html: "./component/menu/menu.html", css: "./component/menu/menu.css" },
+    { name: "search", html: "./component/search/search.html", css: "./component/search/search.css" }
 ];
 
 async function preloadPriorityTwo() {
@@ -243,10 +261,10 @@ async function preloadPriorityTwo() {
 
 // Priority 3: preload secondary page documents.
 const priorityThreeModules = [
-    "/content/create-account.html",
-    "/content/forgot-password.html",
-    "/content/login.html",
-    "/content/profile.html"
+    "./content/create-account.html",
+    "./content/forgot-password.html",
+    "./content/login.html",
+    "./content/profile.html"
 ];
 
 function preloadPriorityThree() {
