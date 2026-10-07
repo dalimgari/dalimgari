@@ -1,0 +1,9 @@
+/* Header visual scope. */
+
+.site-header {
+    width: 100%;
+}
+
+.site-header__inner {
+    width: 100%;
+}
