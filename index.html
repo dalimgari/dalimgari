@@ -26,6 +26,20 @@
         await response.text();
     }
 
+    async function loadComponent(target, path) {
+      const response = await fetch(path, { cache: "no-cache" });
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      document.querySelector('[data-component="' + target + '"]').outerHTML =
+        await response.text();
+    }
+
+    async function loadComponentScript(path) {
+      const script = document.createElement("script");
+      script.src = path;
+      script.defer = true;
+      document.body.appendChild(script);
+    }
+
     function syncHeaderHeight() {
       const header = document.querySelector('[data-layout="header"]');
       if (!header) return;
@@ -38,6 +52,13 @@
       await Promise.all(
         contexts.map(([target, path]) => loadContext(target, path))
       );
+
+      await Promise.all([
+        loadComponent("menu", "component/menu.html"),
+        loadComponent("avatar", "component/avatar.html")
+      ]);
+
+      await loadComponentScript("component/menu.js");
 
       syncHeaderHeight();
 
