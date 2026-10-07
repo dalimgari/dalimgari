@@ -1,33 +1,39 @@
 function bindProfileTabs(root=document){
-    const page=root.querySelector?.("[data-page=profile]")||root.closest?.("[data-page=profile]");
+    const page=root.matches?.("[data-page=profile]")?root:root.querySelector?.("[data-page=profile]");
     if(!page||page.dataset.profileTabsBound==="true")return;
     const tabs=[...page.querySelectorAll("[data-profile-tab]")];
     const panels=[...page.querySelectorAll("[data-profile-panel]")];
     if(!tabs.length||!panels.length)return;
-    const selectTab=(name)=>{
+    const selectTab=(name,focus=false)=>{
+        const target=tabs.find(tab=>tab.dataset.profileTab===name)||tabs[0];
+        const activeName=target.dataset.profileTab;
         tabs.forEach(tab=>{
-            const active=tab.dataset.profileTab===name;
+            const active=tab===target;
             tab.classList.toggle("is-active",active);
             tab.setAttribute("aria-selected",String(active));
             tab.setAttribute("tabindex",active?"0":"-1");
         });
         panels.forEach(panel=>{
-            const active=panel.dataset.profilePanel===name;
+            const active=panel.dataset.profilePanel===activeName;
             panel.hidden=!active;
             panel.classList.toggle("is-active",active);
         });
-        page.dataset.profileActiveTab=name;
+        page.dataset.profileActiveTab=activeName;
+        if(focus)target.focus({preventScroll:true});
     };
-    tabs.forEach(tab=>tab.addEventListener("click",()=>selectTab(tab.dataset.profileTab)));
-    tabs.forEach(tab=>tab.addEventListener("keydown",event=>{
+    page.addEventListener("click",event=>{
+        const tab=event.target.closest?.("[data-profile-tab]");
+        if(tab&&page.contains(tab))selectTab(tab.dataset.profileTab);
+    });
+    page.addEventListener("keydown",event=>{
+        const tab=event.target.closest?.("[data-profile-tab]");
+        if(!tab||!page.contains(tab))return;
         if(!["ArrowLeft","ArrowRight","Home","End"].includes(event.key))return;
         event.preventDefault();
         const index=tabs.indexOf(tab);
-        const next=event.key==="Home"?0:event.key==="End"?tabs.length-1:
-            (index+(event.key==="ArrowRight"?1:-1)+tabs.length)%tabs.length;
-        tabs[next].focus();
-        selectTab(tabs[next].dataset.profileTab);
-    }));
+        const next=event.key==="Home"?0:event.key==="End"?tabs.length-1:(index+(event.key==="ArrowRight"?1:-1)+tabs.length)%tabs.length;
+        selectTab(tabs[next].dataset.profileTab,true);
+    });
     selectTab("overview");
     page.dataset.profileTabsBound="true";
 }
@@ -42,9 +48,7 @@ export async function initProfile(root){
     const user=ctx?.user||ctx?.session?.user;
     if(!user)return;
     const metadata=user.user_metadata||{};
-    page.querySelector("[data-profile-name]")?.replaceChildren(document.createTextNode(
-        metadata.full_name||metadata.name||user.email?.split("@")[0]||"Profile"
-    ));
+    page.querySelector("[data-profile-name]")?.replaceChildren(document.createTextNode(metadata.full_name||metadata.name||user.email?.split("@")[0]||"Profile"));
     page.querySelector("[data-profile-email]")?.replaceChildren(document.createTextNode(user.email||"—"));
     page.querySelector("[data-profile-status]")?.replaceChildren(document.createTextNode(user.email_confirmed_at?"Active":"Pending"));
     const client=window.dalimgariSupabase;
@@ -69,5 +73,3 @@ export async function initProfile(root){
         if(!error)page.querySelector("[data-profile-bio]")?.replaceChildren(document.createTextNode(bio||"—"));
     });
 }
-if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>bindProfileTabs(document),{once:true});
-else bindProfileTabs(document);
