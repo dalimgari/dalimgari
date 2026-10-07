@@ -79,6 +79,31 @@ async function initializeWebsite() {
     app.replaceChildren(context);
 }
 
-initializeWebsite().catch((error) => {
+// Priority 2: preload the initial content page and reusable components
+// after the critical context has started loading.
+const priorityTwoModules = [
+    "/content/home.html",
+    "/component/avatar/",
+    "/component/menu/",
+    "/component/search/"
+];
+
+function preloadPriorityTwo() {
+    return Promise.all(
+        priorityTwoModules.map((path) => {
+            if (path.endsWith(".html")) {
+                return fetch(path).catch((error) => {
+                    console.error(`Priority 2 preload failed: ${path}`, error);
+                });
+            }
+
+            return import(path).catch((error) => {
+                console.error(`Priority 2 module preload failed: ${path}`, error);
+            });
+        })
+    );
+}
+
+initializeWebsite().then(preloadPriorityTwo).catch((error) => {
     console.error("Website initialization failed:", error);
 });
