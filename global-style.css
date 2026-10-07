@@ -121,29 +121,3 @@ output {
   background: var(--text);
   transform: translateX(-50%);
 }
-
-/* Search component */
-.search {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-}
-
-.search-input {
-  width: 100%;
-  max-width: 480px;
-  text-align: center;
-}
-
-.search-results {
-  width: 100%;
-  max-width: 480px;
-  text-align: center;
-}
-
-.search-result {
-  display: block;
-  text-decoration: none;
-  text-align: center;
-}
