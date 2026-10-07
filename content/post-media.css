@@ -1,0 +1,48 @@
+[data-page="post-media"] {
+  width: min(100%, var(--content-max-width));
+  padding: var(--space-lg) 0;
+  text-align: left;
+}
+[data-page="post-media"] form {
+  display: grid;
+  gap: var(--space-md);
+}
+[data-page="post-media"] label {
+  display: grid;
+  gap: var(--space-sm);
+  font-weight: 600;
+}
+[data-page="post-media"] input,
+[data-page="post-media"] textarea,
+[data-page="post-media"] select,
+[data-page="post-media"] button {
+  width: 100%;
+  min-height: var(--control-height);
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+}
+[data-page="post-media"] textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+[data-post-media-list] {
+  display: grid;
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
+}
+.post-media-card {
+  padding: var(--space-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.post-media-card a {
+  text-decoration: underline;
+}
+.post-media-meta {
+  font-size: .9rem;
+  opacity: .75;
+}
