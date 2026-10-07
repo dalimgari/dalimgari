@@ -1,0 +1,9 @@
+/* Sidebar visual scope. */
+
+.site-sidebar {
+    width: 100%;
+}
+
+.site-sidebar__nav {
+    width: 100%;
+}
