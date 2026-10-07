@@ -1,5 +1,5 @@
 // Central application loader.
-const APP_ASSET_VERSION="20261008-username-fix";
+const APP_ASSET_VERSION="20261008-auth-cleanup";
 import { initContent } from "./context/content.js";
 const globalStylesheet="./style/global-style.css";
 const pageStylesheet="./style/page-style.css";
