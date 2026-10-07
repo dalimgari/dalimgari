@@ -26,10 +26,27 @@
         await response.text();
     }
 
+    function syncHeaderHeight() {
+      const header = document.querySelector('[data-layout="header"]');
+      if (!header) return;
+
+      const height = header.getBoundingClientRect().height;
+      document.documentElement.style.setProperty("--header-height", height + "px");
+    }
+
     async function init() {
       await Promise.all(
         contexts.map(([target, path]) => loadContext(target, path))
       );
+
+      syncHeaderHeight();
+
+      const header = document.querySelector('[data-layout="header"]');
+      if (header && "ResizeObserver" in window) {
+        new ResizeObserver(syncHeaderHeight).observe(header);
+      } else {
+        window.addEventListener("resize", syncHeaderHeight);
+      }
     }
 
     init().catch(console.error);
