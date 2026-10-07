@@ -25,7 +25,7 @@ const componentFiles = {
     avatar: {
         html: "./component/avatar/avatar.html",
         css: "./component/avatar/avatar.css",
-        js: "./component/avatar/avatar.js"
+        js: null
     },
     menu: {
         html: "./component/menu/menu.html",
@@ -127,7 +127,7 @@ async function initializeComponents(root) {
     const tasks = [];
 
     for (const [name, component] of Object.entries(componentFiles)) {
-        if (root.querySelector(`[data-${name}]`)) {
+        if (component.js && root.querySelector(`[data-${name}]`)) {
             tasks.push(import(component.js));
         }
     }
