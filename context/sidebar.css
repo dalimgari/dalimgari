@@ -18,10 +18,35 @@
 .sidebar-button {
   display: block;
   width: 100%;
-  padding: var(--space-md) var(--space-lg);
+  min-height: var(--control-height);
+  margin: 0;
+  padding: var(--space-sm) var(--space-lg);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: inherit;
+  font: inherit;
   text-decoration: none;
   text-align: center;
+  cursor: pointer;
+}
+
+.sidebar-button:hover {
+  background: var(--surface);
+}
+
+.sidebar-button:active {
+  background: var(--surface);
+  transform: translateY(1px);
+}
+
+.sidebar-button.is-active {
+  background: var(--surface);
+  font-weight: 600;
+}
+
+.sidebar-button.is-active:hover {
+  background: var(--surface);
 }
 
 .sidebar.is-open {
