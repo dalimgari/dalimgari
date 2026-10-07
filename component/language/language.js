@@ -14,7 +14,7 @@ en:{
 "community.communityFeed":"Community feed","community.refresh":"Refresh","community.announcements":"Announcements","community.upcoming":"Upcoming events",
 "community.adminSettings":"Community settings","community.communityName":"Community name","community.country":"Country","community.region":"Region",
 "community.timezone":"Timezone","community.latitude":"Latitude","community.longitude":"Longitude","community.saveSettings":"Save community settings",
-"community.saved":"Community settings saved.","community.settingsHelp":"These settings control the public location and local time used across the site."
+"community.saved":"Community settings saved.","community.settingsHelp":"These settings control the public location and local time used across the site.","community.addMedia":"Add photo/video","community.visible":"Visible to community members","community.newEvent":"New event","community.createAlbum":"Create album","community.uploadMedia":"Upload media","community.album":"Album","community.noAlbum":"No album","community.photosVideos":"Photos and videos","community.day":"Day","community.night":"Night"
 },
 bn:{
 "nav.community":"কমিউনিটি","nav.signin":"সাইন ইন","nav.create":"অ্যাকাউন্ট তৈরি","nav.signout":"সাইন আউট","nav.profile":"প্রোফাইল",
@@ -30,7 +30,7 @@ bn:{
 "community.communityFeed":"কমিউনিটি ফিড","community.refresh":"রিফ্রেশ","community.announcements":"ঘোষণা","community.upcoming":"আসন্ন অনুষ্ঠান",
 "community.adminSettings":"কমিউনিটি সেটিংস","community.communityName":"কমিউনিটির নাম","community.country":"দেশ","community.region":"অঞ্চল",
 "community.timezone":"টাইমজোন","community.latitude":"অক্ষাংশ","community.longitude":"দ্রাঘিমাংশ","community.saveSettings":"কমিউনিটি সেটিংস সংরক্ষণ",
-"community.saved":"কমিউনিটি সেটিংস সংরক্ষণ হয়েছে।","community.settingsHelp":"এই সেটিংস পুরো সাইটের কমিউনিটির অবস্থান ও স্থানীয় সময় নিয়ন্ত্রণ করে।"
+"community.saved":"কমিউনিটি সেটিংস সংরক্ষণ হয়েছে।","community.settingsHelp":"এই সেটিংস পুরো সাইটের কমিউনিটির অবস্থান ও স্থানীয় সময় নিয়ন্ত্রণ করে।","community.addMedia":"ছবি/ভিডিও যোগ করুন","community.visible":"কমিউনিটি সদস্যরা দেখতে পারবেন","community.newEvent":"নতুন অনুষ্ঠান","community.createAlbum":"অ্যালবাম তৈরি","community.uploadMedia":"মিডিয়া আপলোড","community.album":"অ্যালবাম","community.noAlbum":"কোনো অ্যালবাম নেই","community.photosVideos":"ছবি ও ভিডিও","community.day":"দিন","community.night":"রাত"
 }};
 function language(){return localStorage.getItem(KEY)||"en"}
 function translate(key){return translations[language()]?.[key]||translations.en[key]||key}
