@@ -1,4 +1,8 @@
 const contentArea = document.querySelector('[data-layout="content"]');
+const contentAssetState = {
+  style: null,
+  script: null
+};
 
 function normalizeContentPath(path) {
   if (!path) return null;
@@ -7,15 +11,68 @@ function normalizeContentPath(path) {
   return cleanPath.startsWith("content/") ? cleanPath : null;
 }
 
-function closeSidebar() {
-  const sidebar = document.querySelector('[data-layout="sidebar"]');
-  const menuButton = document.querySelector("[data-menu-toggle]");
+function getPageAssetPath(pagePath, extension) {
+  const fileName = pagePath.split("/").pop().replace(/\.html$/i, "");
+  return "content/" + fileName + "." + extension;
+}
 
-  if (!sidebar) return;
+async function assetExists(path) {
+  const response = await fetch(path, {
+    method: "HEAD",
+    cache: "no-cache"
+  });
 
-  sidebar.classList.remove("is-open");
-  sidebar.setAttribute("aria-hidden", "true");
-  menuButton?.setAttribute("aria-expanded", "false");
+  return response.ok;
+}
+
+function removePageStyle() {
+  contentAssetState.style?.remove();
+  contentAssetState.style = null;
+}
+
+function removePageScript() {
+  contentAssetState.script?.remove();
+  contentAssetState.script = null;
+}
+
+async function loadContentStyle(pagePath) {
+  removePageStyle();
+
+  const pageStyle = getPageAssetPath(pagePath, "css");
+  const defaultStyle = "context/content.css";
+  const stylePath = (await assetExists(pageStyle)) ? pageStyle : defaultStyle;
+
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = stylePath;
+  link.dataset.contentAsset = "style";
+  document.head.appendChild(link);
+
+  contentAssetState.style = link;
+}
+
+async function loadContentScript(pagePath) {
+  removePageScript();
+
+  const pageScript = getPageAssetPath(pagePath, "js");
+  const defaultScript = "context/content.js";
+  const scriptPath = (await assetExists(pageScript))
+    ? pageScript
+    : (await assetExists(defaultScript) ? defaultScript : null);
+
+  if (!scriptPath) return;
+
+  const script = document.createElement("script");
+  script.src = scriptPath;
+  script.dataset.contentAsset = "script";
+
+  await new Promise((resolve, reject) => {
+    script.onload = resolve;
+    script.onerror = reject;
+    document.body.appendChild(script);
+  });
+
+  contentAssetState.script = script;
 }
 
 function syncActiveNavigation(path) {
@@ -58,8 +115,9 @@ async function loadContentPage(path, updateHistory = true) {
   template.innerHTML = html.trim();
 
   contentArea.replaceChildren(template.content.cloneNode(true));
+  await loadContentStyle(normalizedPath);
+  await loadContentScript(normalizedPath);
   syncActiveNavigation(normalizedPath);
-  closeSidebar();
 
   if (updateHistory) {
     history.pushState({ contentPage: normalizedPath }, "", "#" + normalizedPath);
@@ -70,10 +128,6 @@ function getInitialContentPage() {
   const hash = decodeURIComponent(window.location.hash.slice(1));
   return normalizeContentPath(hash) || "content/home.html";
 }
-
-contentArea?.addEventListener("click", () => {
-  closeSidebar();
-});
 
 document.addEventListener("click", (event) => {
   const link = event.target.closest("a[href]");
