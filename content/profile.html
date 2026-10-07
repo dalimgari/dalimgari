@@ -8,25 +8,59 @@
                 <p>Manage and review your account information.</p>
             </div>
         </div>
-        <div class="profile-card__body" data-profile-view>
-            <div class="profile-stat"><span>Username</span><strong data-profile-username>—</strong></div>
-            <div class="profile-stat"><span>Email</span><strong data-profile-email>—</strong></div>
-            <div class="profile-stat"><span>Status</span><strong data-profile-status>—</strong></div>
-            <div class="profile-stat"><span>Account type</span><strong data-profile-type>—</strong></div>
+
+        <nav class="profile-tabs" role="tablist" aria-label="Profile sections">
+            <button type="button" class="profile-tab is-active" role="tab" aria-selected="true" aria-controls="profile-tab-about" data-profile-tab="about">About</button>
+            <button type="button" class="profile-tab" role="tab" aria-selected="false" aria-controls="profile-tab-posts" data-profile-tab="posts">Posts</button>
+            <button type="button" class="profile-tab" role="tab" aria-selected="false" aria-controls="profile-tab-activity" data-profile-tab="activity">Activity</button>
+            <button type="button" class="profile-tab" role="tab" aria-selected="false" aria-controls="profile-tab-media" data-profile-tab="media">Media</button>
+            <button type="button" class="profile-tab" role="tab" aria-selected="false" aria-controls="profile-tab-contributions" data-profile-tab="contributions">Contributions</button>
+            <button type="button" class="profile-tab" role="tab" aria-selected="false" aria-controls="profile-tab-settings" data-profile-tab="settings" data-requires-owner>Settings</button>
+        </nav>
+
+        <div class="profile-tab-panels">
+            <section id="profile-tab-about" class="profile-tab-panel is-active" role="tabpanel" data-profile-panel="about">
+                <div class="profile-card__body" data-profile-view>
+                    <div class="profile-stat"><span>Username</span><strong data-profile-username>—</strong></div>
+                    <div class="profile-stat"><span>Email</span><strong data-profile-email>—</strong></div>
+                    <div class="profile-stat"><span>Status</span><strong data-profile-status>—</strong></div>
+                    <div class="profile-stat"><span>Account type</span><strong data-profile-type>—</strong></div>
+                    <div class="profile-stat"><span>Bio</span><strong data-profile-bio>—</strong></div>
+                </div>
+            </section>
+
+            <section id="profile-tab-posts" class="profile-tab-panel" role="tabpanel" data-profile-panel="posts" hidden>
+                <div class="profile-tab-empty"><h2>Posts</h2><p>Your community posts will appear here.</p></div>
+            </section>
+
+            <section id="profile-tab-activity" class="profile-tab-panel" role="tabpanel" data-profile-panel="activity" hidden>
+                <div class="profile-tab-empty"><h2>Activity</h2><p>Your visible community activity will appear here.</p></div>
+            </section>
+
+            <section id="profile-tab-media" class="profile-tab-panel" role="tabpanel" data-profile-panel="media" hidden>
+                <div class="profile-tab-empty"><h2>Media</h2><p>Your published photos and videos will appear here.</p></div>
+            </section>
+
+            <section id="profile-tab-contributions" class="profile-tab-panel" role="tabpanel" data-profile-panel="contributions" hidden>
+                <div class="profile-tab-empty"><h2>Contributions</h2><p>Your approved community contributions will appear here.</p></div>
+            </section>
+
+            <section id="profile-tab-settings" class="profile-tab-panel" role="tabpanel" data-profile-panel="settings" hidden data-requires-owner>
+                <form class="profile-edit" data-profile-form>
+                    <div class="profile-edit__grid">
+                        <label class="field"><span>Username</span><input name="username" type="text" autocomplete="username" data-profile-username-input required></label>
+                        <label class="field"><span>Bio</span><textarea name="bio" rows="4" maxlength="500" data-profile-bio-input></textarea></label>
+                    </div>
+                    <output class="form-message" data-auth-message aria-live="polite"></output>
+                    <div class="profile-card__footer">
+                        <button class="button button--primary" type="submit">Save changes</button>
+                    </div>
+                </form>
+            </section>
         </div>
-        <form class="profile-edit" data-profile-form hidden>
-            <div class="profile-edit__grid">
-                <label class="field"><span>Username</span><input name="username" type="text" autocomplete="username" data-profile-username-input required></label>
-                <label class="field"><span>Bio</span><textarea name="bio" rows="4" maxlength="500" data-profile-bio-input></textarea></label>
-            </div>
-            <output class="form-message" data-auth-message aria-live="polite"></output>
-            <div class="profile-card__footer">
-                <button class="button button--secondary" type="button" data-cancel-profile>Edit cancel</button>
-                <button class="button button--primary" type="submit">Save changes</button>
-            </div>
-        </form>
+
         <div class="profile-card__footer" data-profile-actions>
-            <button class="button button--secondary" type="button" data-edit-profile>Edit Profile</button>
+            <button class="button button--secondary" type="button" data-profile-open-settings data-requires-owner>Settings</button>
             <button class="button button--danger" type="button" data-auth-action="logout">Sign out</button>
         </div>
     </div>
