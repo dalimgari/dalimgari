@@ -11,17 +11,26 @@
   <aside data-layout="sidebar"></aside>
 
   <script>
-    const layouts = {
-      header: "context/header.html",
-      content: "context/content.html",
-      sidebar: "context/sidebar.html"
-    };
+    async function loadLayouts() {
+      const layouts = {
+        header: "context/header.html",
+        content: "context/content.html",
+        sidebar: "context/sidebar.html"
+      };
 
-    Object.entries(layouts).forEach(async ([region, path]) => {
-      const target = document.querySelector(`[data-layout="${region}"]`);
-      const response = await fetch(path);
-      if (response.ok) target.innerHTML = await response.text();
-    });
+      for (const [region, path] of Object.entries(layouts)) {
+        const target = document.querySelector(`[data-layout="${region}"]`);
+        try {
+          const response = await fetch(path, { cache: "no-cache" });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          target.innerHTML = await response.text();
+        } catch (error) {
+          console.error(`Failed to load ${path}`, error);
+        }
+      }
+    }
+
+    loadLayouts();
   </script>
 </body>
 </html>
