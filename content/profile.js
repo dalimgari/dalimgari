@@ -1,6 +1,40 @@
+function bindProfileTabs(root=document){
+    const page=root.querySelector?.("[data-page=profile]")||root.closest?.("[data-page=profile]");
+    if(!page)return;
+    if(page.dataset.profileTabsBound==="true")return;
+    const tabs=[...page.querySelectorAll("[data-profile-tab]")];
+    const panels=[...page.querySelectorAll("[data-profile-panel]")];
+    if(!tabs.length||!panels.length)return;
+    const selectTab=(name)=>{
+        tabs.forEach(tab=>{
+            const active=tab.dataset.profileTab===name;
+            tab.classList.toggle("is-active",active);
+            tab.setAttribute("aria-selected",String(active));
+            tab.setAttribute("tabindex",active?"0":"-1");
+        });
+        panels.forEach(panel=>{
+            const active=panel.dataset.profilePanel===name;
+            panel.hidden=!active;
+            panel.classList.toggle("is-active",active);
+        });
+    };
+    tabs.forEach(tab=>tab.addEventListener("click",()=>selectTab(tab.dataset.profileTab)));
+    tabs.forEach(tab=>tab.addEventListener("keydown",event=>{
+        if(!["ArrowLeft","ArrowRight","Home","End"].includes(event.key))return;
+        event.preventDefault();
+        const index=tabs.indexOf(tab);
+        const next=event.key==="Home"?0:event.key==="End"?tabs.length-1:
+            (index+(event.key==="ArrowRight"?1:-1)+tabs.length)%tabs.length;
+        tabs[next].focus();
+        selectTab(tabs[next].dataset.profileTab);
+    }));
+    selectTab(tabs.find(tab=>tab.classList.contains("is-active"))?.dataset.profileTab||tabs[0].dataset.profileTab);
+    page.dataset.profileTabsBound="true";
+}
 export async function initProfile(root){
     const page=root.querySelector("[data-page=profile]");
     if(!page)return;
+    bindProfileTabs(page);
     const tabs=[...page.querySelectorAll("[data-profile-tab]")];
     const panels=[...page.querySelectorAll("[data-profile-panel]")];
     const selectTab=(name)=>{
@@ -54,4 +88,12 @@ export async function initProfile(root){
             page.querySelector("[data-profile-bio]")?.replaceChildren(document.createTextNode(bio||"—"));
         }
     });
+}
+function bootProfileTabs(){
+    bindProfileTabs(document);
+}
+if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",bootProfileTabs,{once:true});
+}else{
+    bootProfileTabs();
 }
