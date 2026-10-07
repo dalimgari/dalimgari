@@ -49,3 +49,11 @@ drop policy if exists user_preferences_own on public.user_preferences;
 create policy user_preferences_own on public.user_preferences for all to authenticated
 using (user_id=(select auth.uid()))
 with check (user_id=(select auth.uid()));
+
+-- Remove redundant indexes and split admin writes from public reads.
+drop index if exists public.media_album_idx;
+drop index if exists public.user_role_idx;
+drop policy if exists platform_options_admin_write on public.platform_options;
+create policy platform_options_admin_insert on public.platform_options for insert to authenticated with check ((select private.is_admin()));
+create policy platform_options_admin_update on public.platform_options for update to authenticated using ((select private.is_admin())) with check ((select private.is_admin()));
+create policy platform_options_admin_delete on public.platform_options for delete to authenticated using ((select private.is_admin()));
