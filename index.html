@@ -4,11 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title></title>
+  <link rel="stylesheet" href="global-stylesheet.css">
 </head>
 <body>
-  <div data-layout="header"></div>
-  <main data-layout="content"></main>
-  <aside data-layout="sidebar"></aside>
+  <header data-layout="header"></header>
+
+  <div class="page-layout">
+    <aside data-layout="sidebar"></aside>
+    <main data-layout="content"></main>
+  </div>
 
   <script>
     async function loadLayouts() {
