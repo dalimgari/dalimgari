@@ -2,8 +2,8 @@
 
 .site-header {
     width: 100%;
-    border-bottom: 1px solid #e5e7eb;
-    background: #ffffff;
+    border-bottom: 1px solid var(--color-border-light);
+    background: var(--color-background);
 }
 
 .site-header__inner {
@@ -11,11 +11,11 @@
     max-width: 1200px;
     min-height: 56px;
     margin: 0 auto;
-    padding: 0 16px;
+    padding: 0 var(--page-padding);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
+    gap: var(--space-4);
 }
 
 .site-header__brand {
@@ -25,5 +25,5 @@
 .site-header__nav {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: var(--space-4);
 }
