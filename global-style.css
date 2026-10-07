@@ -42,6 +42,11 @@ output {
   text-align: center;
 }
 
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
 input,
 button {
   min-height: var(--control-height);
