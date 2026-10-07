@@ -1,0 +1,30 @@
+.sidebar {
+  position: fixed;
+  top: var(--header-height, 56px);
+  bottom: 0;
+  left: 0;
+  z-index: 90;
+  width: var(--sidebar-width);
+  overflow-y: auto;
+  background: var(--surface-alt);
+  border-right: 1px solid var(--border);
+  transform: translateX(0);
+}
+
+.sidebar-panel {
+  min-height: 100%;
+}
+
+.sidebar.is-open {
+  transform: translateX(0);
+}
+
+@media (max-width: 640px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
+
+  .sidebar.is-open {
+    transform: translateX(0);
+  }
+}
