@@ -27,7 +27,7 @@ export async function initProfile(root){
     const user=ctx.user||ctx.session?.user;
     if(user){
         const metadata=user.user_metadata||{};
-        page.querySelector("[data-profile-username]")?.replaceChildren(document.createTextNode(profile?.username||metadata.username||user.email?.split("@")[0]||"—"));
+        page.querySelector("[data-profile-username]")?.replaceChildren(document.createTextNode(metadata.username||user.email?.split("@")[0]||"—"));
         page.querySelector("[data-profile-email]")?.replaceChildren(document.createTextNode(user.email||"—"));
         page.querySelector("[data-profile-status]")?.replaceChildren(document.createTextNode(user.email_confirmed_at?"Active":"Pending"));
         const client=window.dalimgariSupabase;
