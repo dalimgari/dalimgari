@@ -1,3 +1,14 @@
 <section class="page page-login" data-page="login">
-    <div class="page-login__content"></div>
+    <h1>Login</h1>
+    <form data-auth-form="login">
+        <label for="login-identifier">Email or phone</label>
+        <input id="login-identifier" name="identifier" type="text" autocomplete="username" required>
+
+        <label for="login-password">Password</label>
+        <input id="login-password" name="password" type="password" autocomplete="current-password" required>
+
+        <button type="submit">Login</button>
+        <button type="button" data-auth-action="google">Continue with Google</button>
+        <output data-auth-message aria-live="polite"></output>
+    </form>
 </section>
