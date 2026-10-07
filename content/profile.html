@@ -1,11 +1,29 @@
 <section class="page page-profile" data-page="profile">
-    <h1>Profile</h1>
-    <div data-component="avatar"></div>
-    <dl class="profile__details">
-        <div><dt>Username</dt><dd data-profile-username>—</dd></div>
-        <div><dt>Email</dt><dd data-profile-email>—</dd></div>
-        <div><dt>Account status</dt><dd data-profile-status>—</dd></div>
-        <div><dt>Account type</dt><dd data-profile-type>—</dd></div>
-    </dl>
-    <button type="button" data-auth-action="logout">Logout</button>
+    <div class="profile-card">
+        <div class="profile-card__hero">
+            <div data-component="avatar"></div>
+            <div>
+                <span class="eyebrow">Account</span>
+                <h1>Profile</h1>
+                <p>Manage and review your account information.</p>
+            </div>
+        </div>
+        <div class="profile-card__body">
+            <div class="profile-stat">
+                <span>Username</span><strong data-profile-username>—</strong>
+            </div>
+            <div class="profile-stat">
+                <span>Email</span><strong data-profile-email>—</strong>
+            </div>
+            <div class="profile-stat">
+                <span>Status</span><strong data-profile-status>—</strong>
+            </div>
+            <div class="profile-stat">
+                <span>Account type</span><strong data-profile-type>—</strong>
+            </div>
+        </div>
+        <div class="profile-card__footer">
+            <button class="button button--danger" type="button" data-auth-action="logout">Sign out</button>
+        </div>
+    </div>
 </section>

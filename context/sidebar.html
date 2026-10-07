@@ -1,10 +1,20 @@
 <aside class="site-sidebar" data-context-sidebar>
-    <div data-component="search"></div>
-    <nav class="site-sidebar__nav" aria-label="Main navigation">
-        <a href="#content/home.html" data-route="content/home.html">Home</a>
-        <a href="#content/login.html" data-route="content/login.html">Login</a>
-        <a href="#content/create-account.html" data-route="content/create-account.html">Create account</a>
-        <a href="#content/forgot-password.html" data-route="content/forgot-password.html">Forgot password</a>
-        <a href="#content/profile.html" data-route="content/profile.html">Profile</a>
-    </nav>
+    <div class="sidebar__inner">
+        <div class="sidebar__section">
+            <span class="sidebar__label">Navigate</span>
+            <nav class="site-sidebar__nav" aria-label="Main navigation">
+                <a href="#content/home.html" data-route="content/home.html">Home</a>
+                <a href="#content/profile.html" data-route="content/profile.html">Profile</a>
+            </nav>
+        </div>
+        <div class="sidebar__section">
+            <span class="sidebar__label">Account</span>
+            <nav class="site-sidebar__nav" aria-label="Account navigation">
+                <a href="#content/login.html" data-route="content/login.html">Sign in</a>
+                <a href="#content/create-account.html" data-route="content/create-account.html">Create account</a>
+                <a href="#content/forgot-password.html" data-route="content/forgot-password.html">Forgot password</a>
+            </nav>
+        </div>
+        <div data-component="search"></div>
+    </div>
 </aside>
