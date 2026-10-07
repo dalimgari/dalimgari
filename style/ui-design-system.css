@@ -114,12 +114,16 @@ textarea{min-height:110px}
 /* Global pill-tab component */ 
 .profile-tabs{
   display:flex;
-  flex-wrap:wrap;
+  flex-wrap:nowrap;
   align-items:center;
   gap:var(--ui-space-2);
-  padding:var(--ui-space-2) 0 0;
+  padding:var(--ui-space-2) 0;
   margin:0 0 var(--ui-space-5);
-  overflow:visible;
+  overflow-x:auto;
+  overflow-y:hidden;
+  overscroll-behavior-x:contain;
+  -webkit-overflow-scrolling:touch;
+  scroll-snap-type:x proximity;
 }
 .profile-tab{
   appearance:none;
@@ -136,6 +140,8 @@ textarea{min-height:110px}
   font-size:var(--ui-text-sm);
   font-weight:600;
   line-height:1;
+  flex:0 0 auto;
+  scroll-snap-align:start;
   cursor:pointer;
   transition:background-color .18s ease,border-color .18s ease,box-shadow .18s ease,transform .18s ease;
 }
@@ -188,7 +194,7 @@ body::-webkit-scrollbar,
 }
 @media(max-width:700px){
   .home-context-grid{grid-template-columns:1fr}
-  .profile-card__hero{align-items:flex-start;flex-direction:column}
+  .profile-card__hero{align-items:center;flex-direction:row}
   .profile-card__body{grid-template-columns:1fr}
   .profile-card__footer .button{width:100%}
   .card-grid{grid-template-columns:1fr}
