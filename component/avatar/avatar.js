@@ -31,10 +31,10 @@ export async function initAvatar(root = document) {
     }
     const user = session.user;
     let avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture || "";
-    const { data: profile } = await supabaseClient.from("User").select("username,email,avatar_url,account_status").eq("user_id", user.id).maybeSingle();
+    const { data: profile } = await supabaseClient.from("User").select("email,avatar_url,account_status").eq("user_id", user.id).maybeSingle();
     if (profile?.avatar_url) avatarUrl = profile.avatar_url;
     image.src = avatarUrl || defaultAvatarUrl();
-    image.alt = profile?.username || user.email || "Profile";
+    image.alt = user.email || "Profile";
     image.onerror = () => setDefaultAvatar(image);
     avatar.href = "#content/profile.html";
     avatar.dataset.route = "content/profile.html";

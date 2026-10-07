@@ -50,16 +50,11 @@ begin
   );
 
   insert into public."User" (
-    user_id, username, email, avatar_url, account_status,
+    user_id, email, avatar_url, account_status,
     is_verified, role_id, created_at, updated_at
   )
   values (
     new.id,
-    coalesce(
-      nullif(new.raw_user_meta_data ->> 'username',''),
-      nullif(new.raw_user_meta_data ->> 'name',''),
-      split_part(coalesce(new.email,''),'@',1)
-    ),
     new.email,
     profile_avatar_url,
     'active',
