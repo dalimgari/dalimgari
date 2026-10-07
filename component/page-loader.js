@@ -27,11 +27,10 @@ document.addEventListener("click", (event) => {
   const contentButton = event.target.closest("[data-content-page]");
 
   if (link) {
-    const url = new URL(link.href, document.baseURI);
+    const path = link.getAttribute("href");
 
-    if (url.origin === window.location.origin && url.pathname.includes("/content/")) {
+    if (path?.startsWith("content/")) {
       event.preventDefault();
-      const path = url.pathname.replace(/^\//, "");
       loadContentPage(path).catch(console.error);
       return;
     }
