@@ -9,7 +9,7 @@ header[data-layout="header"] {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 56px;
+  min-height: var(--header-height);
   padding: 0 20px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
@@ -25,6 +25,6 @@ header[data-layout="header"] {
 
 @media (max-width: 640px) {
   .header-bar {
-    padding: 0 16px;
+    padding: 0 var(--space-lg);
   }
 }
