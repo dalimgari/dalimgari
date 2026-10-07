@@ -1,0 +1,1 @@
+const client = window.dalimgariSupabase; console.log(client);
