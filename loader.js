@@ -1,7 +1,8 @@
 // Central application loader.
 const APP_ASSET_VERSION="20261008-auth-cleanup";
 import { initContent } from "./context/content.js";
-const globalStylesheet="./style/global-style.css";\nconst designSystemStylesheet="./style/ui-design-system.css";
+const globalStylesheet="./style/global-style.css";
+const designSystemStylesheet="./style/ui-design-system.css";
 const pageStylesheet="./style/page-style.css";
 const communityStylesheet="./style/community.css";
 const cardStylesheet="./component/cards/cards.css";
