@@ -8,20 +8,23 @@ export async function initLocation(root=document){
   const detail=[community.region,community.country].filter(Boolean).join(", ");
   el.querySelector("[data-location-name]").textContent=name;
   el.querySelector("[data-location-detail]").textContent=detail||community.timezone||"—";
-  const map=el.querySelector("[data-location-map]");
-  const label=el.querySelector("[data-location-map-label]");
+  const frame=el.querySelector("[data-location-map-frame]");
+  const fallback=el.querySelector("[data-location-map-fallback]");
   const coordinates=el.querySelector("[data-location-coordinates]");
+  const open=el.querySelector("[data-location-open]");
   const lat=Number(community.latitude),lon=Number(community.longitude);
   const valid=Number.isFinite(lat)&&Number.isFinite(lon);
-  if(label)label.textContent=name;
-  if(coordinates)coordinates.textContent=valid?"Interactive map ready · "+lat.toFixed(5)+", "+lon.toFixed(5):"Set community latitude and longitude to enable the interactive map.";
-  if(map){
-    map.dataset.mapUrl=valid?"https://www.openstreetmap.org/?mlat="+encodeURIComponent(lat)+"&mlon="+encodeURIComponent(lon)+"#map=15/"+encodeURIComponent(lat)+"/"+encodeURIComponent(lon):"https://www.openstreetmap.org/search?query="+encodeURIComponent([name,community.region,community.country].filter(Boolean).join(", "));
-    map.setAttribute("role","link");
-    map.setAttribute("tabindex","0");
-    map.setAttribute("aria-label","Open community location in OpenStreetMap");
-    const open=()=>window.open(map.dataset.mapUrl,"_blank","noopener,noreferrer");
-    map.addEventListener("click",open);
-    map.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();open()}});
+  if(valid){
+    const q=encodeURIComponent(lat+","+lon);
+    const mapsUrl="https://www.google.com/maps/search/?api=1&query="+q;
+    if(frame)frame.src="https://www.google.com/maps?q="+q+"&z=15&output=embed";
+    if(open){open.href=mapsUrl;open.hidden=false;open.textContent="Open in Google Maps";}
+    if(coordinates)coordinates.textContent="Google Maps · "+lat.toFixed(5)+", "+lon.toFixed(5);
+  }else{
+    const q=encodeURIComponent([name,community.region,community.country].filter(Boolean).join(", "));
+    if(frame)frame.src="https://www.google.com/maps?q="+q+"&output=embed";
+    if(open){open.href="https://www.google.com/maps/search/?api=1&query="+q;open.hidden=false;open.textContent="Search on Google Maps";}
+    if(coordinates)coordinates.textContent="Set community latitude and longitude for an exact map marker.";
   }
+  if(fallback)fallback.hidden=false;
 }
