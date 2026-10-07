@@ -7,13 +7,13 @@
 
 .search-input {
   width: 100%;
-  max-width: 480px;
+  max-width: var(--content-max-width);
   text-align: center;
 }
 
 .search-results {
   width: 100%;
-  max-width: 480px;
+  max-width: var(--content-max-width);
   text-align: center;
 }
 
