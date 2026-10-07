@@ -51,7 +51,7 @@ begin
 
   insert into public."User" (
     user_id, username, email, avatar_url, account_status,
-    account_type, is_verified, role_id, created_at, updated_at
+    is_verified, role_id, created_at, updated_at
   )
   values (
     new.id,
@@ -63,7 +63,6 @@ begin
     new.email,
     profile_avatar_url,
     'active',
-    'member',
     false,
     member_role_id,
     now(),
