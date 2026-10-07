@@ -1,9 +1,8 @@
-name: Deploy to GitHub Pages
+name: Deploy website
 
 on:
   push:
-    branches:
-      - main
+    branches: ["main"]
   workflow_dispatch:
 
 permissions:
@@ -16,24 +15,38 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Validate JavaScript syntax
+        run: |
+          set -e
+          find . -name '*.js' -not -path './node_modules/*' -print0 |
+            xargs -0 -n1 node --check
+      - name: Run smoke tests
+        run: node tests/smoke.mjs
+      - name: Validate required files
+        run: |
+          test -f index.html
+          test -f loader.js
+          test -f supabase/client/supabase.js
+          test -f supabase/auth/auth.js
+          test -f component/avatar/avatar.js
+
   deploy:
+    needs: validate
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: .
-
-      - name: Deploy to GitHub Pages
-        id: deployment
+      - id: deployment
         uses: actions/deploy-pages@v4
