@@ -2,7 +2,8 @@
   position: fixed;
   inset: 0 0 auto;
   z-index: 100;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
   min-height: 56px;
   padding: 0 20px;
@@ -10,23 +11,17 @@
   border-bottom: 1px solid var(--border);
 }
 
-.header-bar button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
+[data-component="menu"] {
+  justify-self: start;
 }
 
 .header-title {
-  flex: 1;
+  justify-self: center;
   min-width: 0;
 }
 
-.header-avatar {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
+[data-component="avatar"] {
+  justify-self: end;
 }
 
 .sidebar {
