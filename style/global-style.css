@@ -43,3 +43,4 @@ input{background:#0f1626}.button--secondary,.button--danger{background:var(--col
 }
 @media(max-width:700px){:root{--page-padding:16px}.page{padding-top:28px}.button{min-height:46px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+.form-message[data-state="error"]{color:var(--color-danger)}.form-message[data-state="success"]{color:var(--color-success)}form[aria-busy="true"]{opacity:.82;pointer-events:none}.page-error{min-height:60vh;display:grid;place-items:center}.page-error .card{width:min(100%,600px)}
