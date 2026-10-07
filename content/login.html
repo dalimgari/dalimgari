@@ -5,14 +5,76 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - Dalimgari</title>
   <link rel="stylesheet" href="../global-style.css">
+  <link rel="stylesheet" href="../context/header.css">
+  <link rel="stylesheet" href="../context/sidebar.css">
+  <link rel="stylesheet" href="../context/content.css">
+  <link rel="stylesheet" href="../component/avatar.css">
 </head>
 <body>
-  <form data-content="login">
-    <input type="text" name="identifier" placeholder="Email / Phone Number" autocomplete="username">
-    <input type="password" name="password" placeholder="Password" autocomplete="current-password">
-    <button type="submit">Login</button>
-    <a href="reset-password.html">Forgot Password</a>
-    <a href="create-account.html">Create Account</a>
-  </form>
+  <div data-context="header"></div>
+  <div data-context="sidebar"></div>
+  <main data-context="content">
+    <form data-content="login">
+      <input type="text" name="identifier" placeholder="Email / Phone Number" autocomplete="username">
+      <input type="password" name="password" placeholder="Password" autocomplete="current-password">
+      <button type="submit">Login</button>
+      <a href="reset-password.html">Forgot Password</a>
+      <a href="create-account.html">Create Account</a>
+    </form>
+  </main>
+
+  <script>
+    async function loadContext(target, path) {
+      const response = await fetch(path, { cache: "no-cache" });
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      document.querySelector('[data-context="' + target + '"]').outerHTML =
+        await response.text();
+    }
+
+    async function loadComponent(target, path) {
+      const response = await fetch(path, { cache: "no-cache" });
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      document.querySelector('[data-component="' + target + '"]').outerHTML =
+        await response.text();
+    }
+
+    async function loadComponentScript(path) {
+      const script = document.createElement("script");
+      script.src = path;
+      script.defer = true;
+      document.body.appendChild(script);
+    }
+
+    function syncHeaderHeight() {
+      const header = document.querySelector('[data-layout="header"]');
+      if (!header) return;
+      const height = header.getBoundingClientRect().height;
+      document.documentElement.style.setProperty("--header-height", height + "px");
+    }
+
+    async function init() {
+      await Promise.all([
+        loadContext("header", "../context/header.html"),
+        loadContext("sidebar", "../context/sidebar.html")
+      ]);
+
+      await Promise.all([
+        loadComponent("menu", "../component/menu.html"),
+        loadComponent("avatar", "../component/avatar.html")
+      ]);
+
+      await loadComponentScript("../component/menu.js");
+      syncHeaderHeight();
+
+      const header = document.querySelector('[data-layout="header"]');
+      if (header && "ResizeObserver" in window) {
+        new ResizeObserver(syncHeaderHeight).observe(header);
+      } else {
+        window.addEventListener("resize", syncHeaderHeight);
+      }
+    }
+
+    init().catch(console.error);
+  </script>
 </body>
 </html>
