@@ -15,6 +15,8 @@
   <div data-context="sidebar"></div>
   <main data-context="content"></main>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <script>
     const contexts = [
       ["header", "context/header.html"],
@@ -36,11 +38,14 @@
         await response.text();
     }
 
-    async function loadComponentScript(path) {
-      const script = document.createElement("script");
-      script.src = path;
-      script.defer = true;
-      document.body.appendChild(script);
+    function loadScript(path) {
+      return new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = path;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.body.appendChild(script);
+      });
     }
 
     function syncHeaderHeight() {
@@ -61,8 +66,10 @@
         loadComponent("avatar", "component/avatar.html")
       ]);
 
-      await loadComponentScript("component/menu.js");
-      await loadComponentScript("component/page-loader.js");
+      await loadScript("component/menu.js");
+      await loadScript("component/page-loader.js");
+      await loadScript("supabase/client/supabase.js");
+      await loadScript("supabase/auth/auth.js");
 
       syncHeaderHeight();
 
