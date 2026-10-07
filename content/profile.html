@@ -44,6 +44,9 @@
                 <option value="only_me">Only Me</option>
               </select>
             </label>
+            <label>Album
+              <select name="album"></select>
+            </label>
             <div class="ui-actions">
               <button class="ui-button ui-button-primary" type="submit">Save</button>
               <button class="ui-button" type="button" data-photo-reset>Clear</button>
@@ -118,6 +121,15 @@
         <div class="ui-card">
           <h2>Existing Albums</h2>
           <div class="ui-record-list" data-album-list></div>
+        </div>
+        <div class="ui-card">
+          <h2>Album Media</h2>
+          <div class="ui-record-list" data-album-media-list></div>
+          <h3>Available Uploaded Media</h3>
+          <div class="ui-check-grid" data-album-available-list></div>
+          <div class="ui-actions">
+            <button class="ui-button ui-button-primary" type="button" data-album-add-media>Add Selected Media</button>
+          </div>
         </div>
       </div>
     </section>
