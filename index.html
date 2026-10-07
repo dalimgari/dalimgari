@@ -36,7 +36,8 @@
       const sidebar = document.querySelector("[data-layout='sidebar']");
 
       menuButton?.addEventListener("click", () => {
-        sidebar.classList.toggle("is-open");
+        const open = sidebar.classList.toggle("is-open");
+        menuButton.setAttribute("aria-expanded", String(open));
       });
     }
 
