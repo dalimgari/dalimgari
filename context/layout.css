@@ -1,0 +1,25 @@
+/* Shared context layout visual scope. */
+
+.site-layout {
+    display: grid;
+    grid-template-columns: minmax(200px, 240px) minmax(0, 1fr);
+    align-items: start;
+    width: 100%;
+    min-width: 0;
+}
+
+.site-layout > [data-context="sidebar"],
+.site-layout > [data-context="content"] {
+    min-width: 0;
+}
+
+@media (max-width: 800px) {
+    .site-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .site-sidebar {
+        border-right: 0;
+        border-bottom: 1px solid var(--color-border-light);
+    }
+}
