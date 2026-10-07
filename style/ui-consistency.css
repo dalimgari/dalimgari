@@ -28,6 +28,7 @@
   --ui-title:24px;
 }
 .site-header__inner{min-height:var(--ui-header);gap:var(--ui-space-3)}
+.site-sidebar{min-height:calc(100vh - var(--ui-header))}.sidebar__inner{top:var(--ui-header);max-height:calc(100vh - var(--ui-header))}
 .site-header__mark{width:36px;height:36px;border-radius:var(--ui-radius)}
 .site-header__brand{gap:var(--ui-space-2)}
 .site-header__actions{gap:var(--ui-space-2)}
