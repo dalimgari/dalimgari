@@ -1,0 +1,24 @@
+.search {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.search-input {
+  width: 100%;
+  max-width: var(--content-max-width);
+  text-align: center;
+}
+
+.search-results {
+  width: 100%;
+  max-width: var(--content-max-width);
+  text-align: center;
+}
+
+.search-result {
+  display: block;
+  text-decoration: none;
+  text-align: center;
+}
