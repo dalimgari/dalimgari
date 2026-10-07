@@ -1,0 +1,30 @@
+header[data-layout="header"] {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 100;
+  width: 100%;
+}
+
+.header-bar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  min-height: 56px;
+  padding: 0 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+[data-component="menu"] {
+  justify-self: start;
+}
+
+[data-component="avatar"] {
+  justify-self: end;
+}
+
+@media (max-width: 640px) {
+  .header-bar {
+    padding: 0 16px;
+  }
+}
