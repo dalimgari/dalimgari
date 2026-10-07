@@ -71,3 +71,56 @@ body {
   padding: 16px;
   box-shadow: 4px 0 14px rgba(0, 0, 0, 0.15);
 }
+
+.clean-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  padding: 24px;
+  background: #f8fafc;
+}
+
+.clean-card {
+  width: min(100%, 400px);
+  box-sizing: border-box;
+  padding: 32px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+.clean-card h1 {
+  margin: 0 0 24px;
+}
+
+.clean-card form {
+  display: grid;
+  gap: 10px;
+}
+
+.clean-card label {
+  font-size: 14px;
+  color: #374151;
+}
+
+.clean-card input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.clean-card button {
+  padding: 11px 14px;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.clean-card a {
+  display: inline-block;
+  margin-top: 18px;
+}
