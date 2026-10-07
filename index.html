@@ -7,8 +7,8 @@
   <link rel="stylesheet" href="global-style.css">
   <link rel="stylesheet" href="context/header.css">
   <link rel="stylesheet" href="context/sidebar.css">
-  <link rel="stylesheet" href="component/menu.css">
-  <link rel="stylesheet" href="component/avatar.css">
+  <link rel="stylesheet" href="component/menu/menu.css">
+  <link rel="stylesheet" href="component/avatar/avatar.css">
 </head>
 <body>
   <div data-context="header"></div>
@@ -62,11 +62,11 @@
       );
 
       await Promise.all([
-        loadComponent("menu", "component/menu.html"),
-        loadComponent("avatar", "component/avatar.html")
+        loadComponent("menu", "component/menu/menu.html"),
+        loadComponent("avatar", "component/avatar/avatar.html")
       ]);
 
-      await loadScript("component/menu.js");
+      await loadScript("component/menu/menu.js");
       await loadScript("component/page-loader.js");
       await loadScript("supabase/client/supabase.js");
       await loadScript("supabase/auth/auth.js");
