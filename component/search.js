@@ -7,7 +7,6 @@ function initSearch(searchRoot) {
   const searchableContent = [
     { title: "Home", url: "content/home.html" },
     { title: "Profile", url: "content/profile.html" },
-    { title: "Dashboard", url: "content/dashboard.html" },
     { title: "Login", url: "content/login.html" },
     { title: "Create Account", url: "content/create-account.html" },
     { title: "Forgot Password", url: "content/forgot-password.html" }
