@@ -5,35 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title></title>
   <link rel="stylesheet" href="global-style.css">
+  <link rel="stylesheet" href="context/header.css">
+  <link rel="stylesheet" href="context/content.css">
+  <link rel="stylesheet" href="context/sidebar.css">
   <link rel="stylesheet" href="component/menu.css">
 </head>
 <body>
-  <header data-layout="header">
-    <div class="header-bar">
-      <button type="button" data-menu-toggle aria-label="Toggle menu" aria-expanded="false">☰</button>
-      <div class="header-title" data-state-name>Home</div>
-      <a class="header-avatar" href="#profile" aria-label="Profile">👤</a>
-    </div>
-  </header>
-
-  <main data-layout="content"></main>
-
-  <aside data-layout="sidebar" class="sidebar">
-    <div class="sidebar-panel">
-      <nav aria-label="Main navigation">
-        <a href="#home">Home</a>
-        <a href="#login">Login</a>
-        <a href="#create-account">Create Account</a>
-        <a href="#reset-password">Reset Password</a>
-        <a href="#profile">Profile</a>
-        <a href="#dashboard">Dashboard</a>
-      </nav>
-    </div>
-  </aside>
+  <div data-context="header"></div>
+  <div data-context="content"></div>
+  <div data-context="sidebar"></div>
 
   <script>
-    const content = document.querySelector("[data-layout='content']");
-    const stateName = document.querySelector("[data-state-name]");
+    const contexts = [
+      ["header", "context/header.html"],
+      ["content", "context/content.html"],
+      ["sidebar", "context/sidebar.html"]
+    ];
 
     const states = {
       home: "Home",
@@ -44,23 +31,40 @@
       dashboard: "Dashboard"
     };
 
+    async function loadContext(target, path) {
+      const response = await fetch(path, { cache: "no-cache" });
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      document.querySelector('[data-context="' + target + '"]').outerHTML = await response.text();
+    }
+
     async function loadState() {
       const state = location.hash.slice(1) || "home";
       const name = states[state] ? state : "home";
+      const content = document.querySelector("[data-layout='content']");
+      const stateName = document.querySelector("[data-state-name]");
 
       try {
-        const response = await fetch(`content/${name}.html`, { cache: "no-cache" });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const response = await fetch("content/" + name + ".html", { cache: "no-cache" });
+        if (!response.ok) throw new Error("HTTP " + response.status);
         content.innerHTML = await response.text();
         stateName.textContent = states[name];
       } catch (error) {
-        console.error(`Failed to load content/${name}.html`, error);
+        console.error("Failed to load content/" + name + ".html", error);
+      }
+    }
+
+    async function init() {
+      try {
+        await Promise.all(contexts.map(([target, path]) => loadContext(target, path)));
+        await loadState();
+        await import("./component/menu.js");
+      } catch (error) {
+        console.error("Failed to load page contexts", error);
       }
     }
 
     window.addEventListener("hashchange", loadState);
-    loadState();
+    init();
   </script>
-  <script src="component/menu.js"></script>
 </body>
 </html>
