@@ -1,5 +1,8 @@
-/* Dalimgari unified UI design system. Loaded after component styles. */
+/* Dalimgari unified UI design system. Single source of truth for shared visual tokens and component consistency. */
 :root{
+  --ui-page-max:1080px;--ui-page-wide:1200px;--ui-page-community:1180px;
+  --ui-pad:20px;--ui-sidebar:248px;
+
   --ui-space-1:4px;--ui-space-2:8px;--ui-space-3:12px;--ui-space-4:16px;--ui-space-5:20px;--ui-space-6:24px;--ui-space-7:32px;--ui-space-8:40px;--ui-space-9:48px;
   --ui-control-sm:40px;--ui-control:44px;--ui-control-lg:48px;--ui-header:64px;
   --ui-icon-sm:16px;--ui-icon:20px;--ui-icon-lg:24px;
@@ -142,3 +145,6 @@ textarea{min-height:110px}
   .community-aside{display:grid;grid-template-columns:1fr 1fr;gap:var(--ui-space-3)}
 }
 @media(prefers-reduced-motion:reduce){.album-slider__track{transition:none}}
+
+.eyebrow{margin-bottom:var(--ui-space-2)}
+.text-link--small{font-size:var(--ui-text-sm)}
