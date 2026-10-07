@@ -101,7 +101,7 @@ overview.appendChild(stats);root.appendChild(overview);
 const allPanels=[...root.querySelectorAll(".admin-panel")];
 const groups=new Map(defaultGroupOrder.map(name=>[name,[]]));
 const groupMap={
-  "Members":"Users & Access","Roles":"Users & Access","Permissions":"Users & Access","Member Access":"Users & Access","Role Permissions":"Users & Access",
+  "Content":"Content","Members":"Users & Access","Roles":"Users & Access","Permissions":"Users & Access","Member Access":"Users & Access","Role Permissions":"Users & Access",
   "Posts":"Content","Public Sections":"Content",
   "Basic Information":"Website","Sidebar Components":"Website",
   "Theme":"Appearance","Customization":"Appearance",
