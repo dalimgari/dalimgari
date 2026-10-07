@@ -111,8 +111,66 @@ textarea{min-height:110px}
 .settings-grid .card{padding:var(--ui-space-5)}
 .empty{padding:var(--ui-space-6);border-radius:var(--ui-radius)}
 .list-item{padding:var(--ui-space-2) 0}
-.profile-tabs{gap:var(--ui-space-1);padding:var(--ui-space-2) 0 0;margin:0 0 var(--ui-space-4)}
-.profile-tab{padding:var(--ui-space-2) var(--ui-space-3)}
+/* Global pill-tab component */ 
+.profile-tabs{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:var(--ui-space-2);
+  padding:var(--ui-space-2) 0 0;
+  margin:0 0 var(--ui-space-5);
+  overflow:visible;
+}
+.profile-tab{
+  appearance:none;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:var(--ui-control);
+  padding:var(--ui-space-2) var(--ui-space-4);
+  border:var(--ui-border-width) solid transparent;
+  border-radius:999px;
+  background:transparent;
+  color:inherit;
+  font:inherit;
+  font-size:var(--ui-text-sm);
+  font-weight:600;
+  line-height:1;
+  cursor:pointer;
+  transition:background-color .18s ease,border-color .18s ease,box-shadow .18s ease,transform .18s ease;
+}
+.profile-tab:hover{
+  background:color-mix(in srgb,currentColor 8%,transparent);
+}
+.profile-tab:focus-visible{
+  outline:none;
+  box-shadow:var(--ui-focus-ring);
+}
+.profile-tab.is-active,
+.profile-tab[aria-selected="true"]{
+  background:var(--color-primary,#2563eb);
+  border-color:var(--color-primary,#2563eb);
+  color:#fff;
+  box-shadow:0 2px 8px rgba(0,0,0,.12);
+}
+.profile-tab-panel[hidden]{display:none!important}
+.profile-tab-panels{min-width:0}
+@media(max-width:560px){
+  .profile-tabs{gap:var(--ui-space-2)}
+  .profile-tab{min-height:var(--ui-control-sm);padding:var(--ui-space-2) var(--ui-space-3)}
+}
+/* Hide scrollbar globally without disabling scrolling */
+html,body,*{
+  scrollbar-width:none;
+  -ms-overflow-style:none;
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+*::-webkit-scrollbar{
+  width:0;
+  height:0;
+  display:none;
+}
 @media(max-width:760px){
   .site-header__inner{min-height:var(--ui-header)}
   .site-header__actions{gap:var(--ui-space-2)}
