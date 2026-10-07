@@ -1,5 +1,7 @@
 // loader.js
-// Priority 1: load the initial website context in parallel.
+// Priority 1: load the global stylesheet and initial website context.
+
+const globalStylesheet = "/style/global-style.css";
 
 const contextFiles = [
     {
@@ -59,8 +61,10 @@ async function initializeWebsite() {
     const app = document.getElementById("app");
 
     if (!app) {
-        throw new Error('Missing root element: #app');
+        throw new Error("Missing root element: #app");
     }
+
+    await loadStylesheet(globalStylesheet);
 
     const loaded = await Promise.all(
         contextFiles.map(loadContextFile)
@@ -80,7 +84,7 @@ async function initializeWebsite() {
 }
 
 // Priority 2: preload the initial content page and reusable components
-// after the critical context has started loading.
+// after the critical context has loaded.
 const priorityTwoModules = [
     "/content/home.html",
     "/component/avatar/avatar.html",
@@ -114,30 +118,21 @@ function preloadPriorityTwo() {
     );
 }
 
-
-// Priority 3: preload secondary pages and the global stylesheet
-// after Priority 2 has finished.
+// Priority 3: preload secondary pages after Priority 2.
 const priorityThreeModules = [
     "/content/create-account.html",
     "/content/forgot-password.html",
     "/content/login.html",
-    "/content/profile.html",
-    "/style/global-style.css"
+    "/content/profile.html"
 ];
 
 function preloadPriorityThree() {
     return Promise.all(
-        priorityThreeModules.map((path) => {
-            if (path.endsWith(".css")) {
-                return loadStylesheet(path).catch((error) => {
-                    console.error(`Priority 3 stylesheet preload failed: ${path}`, error);
-                });
-            }
-
-            return fetch(path).catch((error) => {
+        priorityThreeModules.map((path) =>
+            fetch(path).catch((error) => {
                 console.error(`Priority 3 preload failed: ${path}`, error);
-            });
-        })
+            })
+        )
     );
 }
 
