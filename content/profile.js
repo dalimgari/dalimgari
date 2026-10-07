@@ -186,7 +186,7 @@ async function loadPhotos() {
   list.innerHTML = (data || []).length
     ? data.map((item) =>
         '<button type="button" class="ui-record ui-record-button" data-photo-id="' + item.id + '">' +
-          '<img src="' + escapeHtml(item.thumbnail_url || item.media_url) + '"' alt="" style="width:72px;height:54px;object-fit:cover;border-radius:var(--radius);">' +
+          '<img src="' + escapeHtml(item.thumbnail_url || item.media_url) + '" alt="" style="width:72px;height:54px;object-fit:cover;border-radius:var(--radius);">' +
           '<span class="ui-record-title">' + escapeHtml(item.title || "Photo") + '</span>' +
           '<span class="ui-record-meta">' + escapeHtml(item.visibility) + '</span>' +
         '</button>'
@@ -241,7 +241,7 @@ async function deletePhoto() {
   if (!id) return;
   if (!confirm("Delete this photo?")) return;
 
-  const { error } = await client.from("Post & Media").delete().eq("id", id);
+  const { error } = await client.from("Media").delete().eq("id", id);
   if (error) throw error;
 
   resetForm($("[data-photo-form]"));
@@ -282,8 +282,8 @@ async function loadVideos() {
   list.innerHTML = (data || []).length
     ? data.map((item) =>
         '<button type="button" class="ui-record ui-record-button ui-media-item" data-video-id="' + item.id + '">' +
-          '<video src="' + escapeHtml(item.media_url) + '"' muted preload="metadata" playsinline></video>' +
-          '<span class="ui-record-title">' + escapeHtml(item.name) + '</span>' +
+          '<video src="' + escapeHtml(item.media_url) + '" muted preload="metadata" playsinline></video>' +
+          '<span class="ui-record-title">' + escapeHtml(item.title || "Video") + '</span>' +
           '<span class="ui-record-meta">' + escapeHtml(item.description || "") + '</span>' +
           '<span class="ui-record-meta">' + escapeHtml(item.visibility) + '</span>' +
         '</button>'
@@ -296,7 +296,6 @@ function fillVideo(item) {
   form.elements.id.value = item.id;
   form.elements.title.value = item.name || "";
   form.elements.description.value = item.description || "";
-  loadAlbumMedia(item.id).catch((error) => message(error.message));
   form.elements.video.value = item.media_url || "";
   form.elements.visibility.value = item.visibility || "public";
   form.elements.album.value = item.album_id || "";
@@ -360,7 +359,7 @@ async function loadAlbums() {
   list.innerHTML = (data || []).length
     ? data.map((item) =>
         '<button type="button" class="ui-record ui-record-button" data-album-id="' + item.id + '">' +
-          '<span class="ui-record-title">' + escapeHtml(item.title) + '</span>' +
+          '<span class="ui-record-title">' + escapeHtml(item.name) + '</span>' +
           '<span class="ui-record-meta">' + escapeHtml(item.description || "") + '</span>' +
         '</button>'
       ).join("")
@@ -370,8 +369,9 @@ async function loadAlbums() {
 function fillAlbum(item) {
   const form = $("[data-album-form]");
   form.elements.id.value = item.id;
-  form.elements.title.value = item.title || "";
+  form.elements.title.value = item.name || "";
   form.elements.description.value = item.description || "";
+  loadAlbumMedia(item.id).catch((error) => message(error.message));
   $("[data-album-delete]").hidden = false;
 }
 
@@ -933,7 +933,7 @@ function wireEvents() {
 
     const album = event.target.closest("[data-album-id]");
     if (album) {
-      const { data, error } = await client.from("albums").select("*").eq("id", album.dataset.albumId).single();
+      const { data, error } = await client.from("Album").select("*").eq("id", album.dataset.albumId).single();
       if (error) return message(error.message);
       fillAlbum(data);
       return loadAvailableAlbumMedia(data.id).catch((error) => message(error.message));
