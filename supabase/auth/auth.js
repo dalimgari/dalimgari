@@ -2,13 +2,11 @@ const supabaseClient = window.dalimgariSupabase;
 
 function authMessage(form, message) {
   let output = form.querySelector("[data-auth-message]");
-
   if (!output) {
     output = document.createElement("output");
     output.dataset.authMessage = "";
     form.appendChild(output);
   }
-
   output.textContent = message;
 }
 
@@ -19,7 +17,6 @@ function goToContent(path) {
 
 function updateAuthUI(session) {
   const avatar = document.querySelector("[data-avatar]");
-
   if (avatar) {
     const signedIn = Boolean(session);
     avatar.href = signedIn ? "content/profile.html" : "content/login.html";
@@ -48,8 +45,7 @@ async function handleLogin(form) {
 
 async function handleSignup(form) {
   const name = form.elements.name.value.trim();
-  const email = form.elements.email.value.trim();
-  const phone = form.elements.phone.value.trim();
+  const identifier = form.elements.identifier.value.trim();
   const password = form.elements.password.value;
   const confirmPassword = form.elements["confirm-password"].value;
 
@@ -58,15 +54,15 @@ async function handleSignup(form) {
     return;
   }
 
+  const isEmail = identifier.includes("@");
+  const credentials = isEmail
+    ? { email: identifier, password }
+    : { phone: identifier, password };
+
   const { data, error } = await supabaseClient.auth.signUp({
-    email,
-    password,
+    ...credentials,
     options: {
-      data: {
-        name,
-        phone
-      },
-      emailRedirectTo: window.location.origin + "/#content/home.html"
+      data: { name }
     }
   });
 
@@ -75,17 +71,22 @@ async function handleSignup(form) {
     return;
   }
 
+  if (data.session) {
+    authMessage(form, "Account created successfully.");
+    goToContent("content/home.html");
+    return;
+  }
+
   authMessage(
     form,
-    data.session
-      ? "Account created successfully."
-      : "Account created. Check your email to confirm your account."
+    isEmail
+      ? "Account created. Check your email to confirm your account."
+      : "Account created. Check your phone for the verification code."
   );
 }
 
 async function handlePasswordResetRequest(form) {
   const email = form.elements.email.value.trim();
-
   const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
     redirectTo: window.location.origin + "/#content/forgot-password.html"
   });
@@ -133,12 +134,10 @@ async function handleGoogleLogin(button) {
 
 async function handleLogout(button) {
   const { error } = await supabaseClient.auth.signOut();
-
   if (error) {
     console.error(error);
     return;
   }
-
   goToContent("content/home.html");
 }
 
