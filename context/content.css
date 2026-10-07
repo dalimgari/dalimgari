@@ -1,15 +1,11 @@
-.content {
-  min-height: 100vh;
-  margin-left: var(--sidebar-width, 240px);
+main[data-layout="content"] {
+  min-height: calc(100vh - 56px);
+  margin-left: var(--sidebar-width);
   padding-top: 56px;
 }
 
-main[data-layout="content"] {
-  min-height: calc(100vh - 56px);
-}
-
 @media (max-width: 640px) {
-  .content {
+  main[data-layout="content"] {
     margin-left: 0;
   }
 }
