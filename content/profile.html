@@ -15,7 +15,7 @@
             <button type="button" class="profile-tab" role="tab" aria-selected="false" aria-controls="profile-tab-activity" data-profile-tab="activity">Activity</button>
             <button type="button" class="profile-tab" role="tab" aria-selected="false" aria-controls="profile-tab-media" data-profile-tab="media">Media</button>
             <button type="button" class="profile-tab" role="tab" aria-selected="false" aria-controls="profile-tab-contributions" data-profile-tab="contributions">Contributions</button>
-            <button type="button" class="profile-tab" role="tab" aria-selected="false" aria-controls="profile-tab-settings" data-profile-tab="settings" data-requires-owner>Settings</button>
+            <button type="button" class="profile-tab is-owner-control" role="tab" aria-selected="false" aria-controls="profile-tab-settings" data-profile-tab="settings" data-requires-owner data-requires-auth>Settings</button>
         </nav>
 
         <div class="profile-tab-panels">
@@ -45,7 +45,7 @@
                 <div class="profile-tab-empty"><h2>Contributions</h2><p>Your approved community contributions will appear here.</p></div>
             </section>
 
-            <section id="profile-tab-settings" class="profile-tab-panel" role="tabpanel" data-profile-panel="settings" hidden data-requires-owner>
+            <section id="profile-tab-settings" class="profile-tab-panel" role="tabpanel" data-profile-panel="settings" hidden data-requires-owner data-requires-auth>
                 <form class="profile-edit" data-profile-form>
                     <div class="profile-edit__grid">
                         <label class="field"><span>Username</span><input name="username" type="text" autocomplete="username" data-profile-username-input required></label>
@@ -59,9 +59,9 @@
             </section>
         </div>
 
-        <div class="profile-card__footer" data-profile-actions>
-            <button class="button button--secondary" type="button" data-profile-open-settings data-requires-owner>Settings</button>
-            <button class="button button--danger" type="button" data-auth-action="logout">Sign out</button>
+        <div class="profile-card__footer" data-profile-actions data-requires-auth>
+            <button class="button button--secondary" type="button" data-profile-open-settings data-requires-owner data-requires-auth>Settings</button>
+            <button class="button button--danger" type="button" data-auth-action="logout" data-requires-auth>Sign out</button>
         </div>
     </div>
 </section>
