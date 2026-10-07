@@ -1,1 +1,0 @@
-const homeDefinition={id:"home",type:"content",elements:[{type:"heading",level:1,text:"Welcome to Dalimgari"},{type:"output",name:"public-content",value:"",multiline:true}]};window.Dalimgari=window.Dalimgari||{};window.Dalimgari.definition?.register("home",homeDefinition);

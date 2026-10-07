@@ -1,1 +1,0 @@
-(async function(){const layout=window.Dalimgari?.layout;if(!layout)return;await layout.loadConfiguration?.();})();
