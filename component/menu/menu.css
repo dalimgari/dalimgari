@@ -1,13 +1,1 @@
-/* Menu visual scope. */
-
-.menu {
-    position: relative;
-}
-
-.menu__list {
-    display: block;
-}
-
-.menu__list[hidden] {
-    display: none;
-}
+.menu{position:relative}.menu__toggle{display:inline-flex;align-items:center;gap:7px;min-height:42px;padding:9px 12px;border:1px solid var(--border);border-radius:9px;background:var(--surface);color:var(--text);font-weight:700}.menu__toggle:hover{background:var(--surface-2)}.menu__list{position:absolute;right:0;top:calc(100% + 8px);z-index:40;display:grid;min-width:190px;padding:6px;border:1px solid var(--border);border-radius:12px;background:var(--surface);box-shadow:var(--shadow-lg)}.menu__list[hidden]{display:none}.menu__list a{padding:10px 12px;border-radius:8px;color:var(--muted);font-weight:650}.menu__list a:hover,.menu__list a[aria-current=page]{background:var(--surface-2);color:var(--text)}
