@@ -78,3 +78,8 @@ begin
   return new;
 end;
 $function$;
+
+revoke execute on function private.has_permission(text) from public, anon, authenticated;
+revoke execute on function private.is_admin() from public, anon, authenticated;
+revoke execute on function private.protect_user_privileges() from public, anon, authenticated;
+revoke execute on function private.handle_new_user() from public, anon, authenticated;

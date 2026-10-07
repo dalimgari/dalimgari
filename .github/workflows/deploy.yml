@@ -27,6 +27,8 @@ jobs:
           set -e
           find . -name '*.js' -not -path './node_modules/*' -print0 |
             xargs -0 -n1 node --check
+      - name: Run smoke tests
+        run: node tests/smoke.mjs
       - name: Validate required files
         run: |
           test -f index.html
