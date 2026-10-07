@@ -2,26 +2,51 @@ const supabaseClient = window.dalimgariSupabase;
 
 function authMessage(form, message) {
   let output = form.querySelector("[data-auth-message]");
+
   if (!output) {
     output = document.createElement("output");
     output.dataset.authMessage = "";
     form.appendChild(output);
   }
+
   output.textContent = message;
 }
 
 function goToContent(path) {
-  window.history.pushState({ contentPage: path }, "", "#" + path);
-  window.dispatchEvent(new PopStateEvent("popstate"));
+  if (window.location.hash === `#${path}`) {
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
+    return;
+  }
+
+  window.location.hash = path;
 }
 
 function updateAuthUI(session) {
-  const avatar = document.querySelector("[data-avatar]");
-  if (avatar) {
-    const signedIn = Boolean(session);
-    avatar.href = signedIn ? "content/profile.html" : "content/login.html";
-    avatar.setAttribute("aria-label", signedIn ? "Profile" : "Login");
+  const avatars = document.querySelectorAll("[data-avatar]");
+
+  if (!avatars.length) {
+    return;
   }
+
+  const signedIn = Boolean(session);
+  const path = signedIn ? "content/profile.html" : "content/login.html";
+
+  avatars.forEach((avatar) => {
+    avatar.href = `#${path}`;
+    avatar.dataset.route = path;
+    avatar.setAttribute("aria-label", signedIn ? "Profile" : "Login");
+  });
+}
+
+async function refreshAuthUI() {
+  const { data, error } = await supabaseClient.auth.getSession();
+
+  if (error) {
+    console.error("Auth session lookup failed:", error);
+    return;
+  }
+
+  updateAuthUI(data.session);
 }
 
 async function handleLogin(form) {
@@ -87,6 +112,7 @@ async function handleSignup(form) {
 
 async function handlePasswordResetRequest(form) {
   const email = form.elements.email.value.trim();
+
   const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
     redirectTo: window.location.origin + "/#content/forgot-password.html"
   });
@@ -128,16 +154,21 @@ async function handleGoogleLogin(button) {
 
   if (error) {
     const form = button.closest("form");
-    if (form) authMessage(form, error.message);
+
+    if (form) {
+      authMessage(form, error.message);
+    }
   }
 }
 
-async function handleLogout(button) {
+async function handleLogout() {
   const { error } = await supabaseClient.auth.signOut();
+
   if (error) {
     console.error(error);
     return;
   }
+
   goToContent("content/home.html");
 }
 
@@ -175,14 +206,17 @@ document.addEventListener("click", (event) => {
   }
 
   if (logoutButton) {
-    handleLogout(logoutButton).catch(console.error);
+    event.preventDefault();
+    handleLogout().catch(console.error);
   }
+});
+
+document.addEventListener("dalimgari:page-loaded", () => {
+  refreshAuthUI().catch(console.error);
 });
 
 supabaseClient.auth.onAuthStateChange((_event, session) => {
   updateAuthUI(session);
 });
 
-supabaseClient.auth.getSession().then(({ data }) => {
-  updateAuthUI(data.session);
-});
+refreshAuthUI().catch(console.error);
