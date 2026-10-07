@@ -1,16 +1,15 @@
 <section class="page page-profile" data-page="profile">
     <div class="profile-card">
-        <div class="profile-card__hero">
-            <div data-component="avatar"></div>
-            <div>
-                <span class="eyebrow">Account</span>
-                <h1>Profile</h1>
-                <p>Manage and review your account information.</p>
+        <header class="profile-card__hero">
+            <div class="profile-card__avatar" data-component="avatar"></div>
+            <div class="profile-card__identity">
+                <h1 data-profile-name>Profile</h1>
+                <span class="profile-role" data-profile-type>Member</span>
             </div>
-        </div>
+        </header>
 
         <nav class="profile-tabs" role="tablist" aria-label="Profile sections">
-            <button type="button" class="profile-tab is-active" role="tab" aria-selected="true" aria-controls="profile-tab-about" data-profile-tab="about">About</button>
+            <button type="button" class="profile-tab is-active" role="tab" aria-selected="true" aria-controls="profile-tab-overview" data-profile-tab="overview">Overview</button>
             <button type="button" class="profile-tab" role="tab" aria-selected="false" aria-controls="profile-tab-posts" data-profile-tab="posts">Posts</button>
             <button type="button" class="profile-tab" role="tab" aria-selected="false" aria-controls="profile-tab-activity" data-profile-tab="activity">Activity</button>
             <button type="button" class="profile-tab" role="tab" aria-selected="false" aria-controls="profile-tab-media" data-profile-tab="media">Media</button>
@@ -18,18 +17,20 @@
             <button type="button" class="profile-tab is-owner-control" role="tab" aria-selected="false" aria-controls="profile-tab-settings" data-profile-tab="settings" data-requires-owner data-requires-auth>Settings</button>
         </nav>
 
-        <div class="profile-tab-panels">
-            <section id="profile-tab-about" class="profile-tab-panel is-active" role="tabpanel" data-profile-panel="about">
+        <main class="profile-content">
+            <section id="profile-tab-overview" class="profile-tab-panel is-active" role="tabpanel" data-profile-panel="overview">
                 <div class="profile-card__body" data-profile-view>
                     <div class="profile-stat"><span>Email</span><strong data-profile-email>—</strong></div>
                     <div class="profile-stat"><span>Status</span><strong data-profile-status>—</strong></div>
-                    <div class="profile-stat"><span>Role</span><strong data-profile-type>—</strong></div>
+                    <div class="profile-stat"><span>Role</span><strong data-profile-type>Member</strong></div>
                     <div class="profile-stat"><span>Bio</span><strong data-profile-bio>—</strong></div>
                 </div>
             </section>
 
             <section id="profile-tab-posts" class="profile-tab-panel" role="tabpanel" data-profile-panel="posts" hidden>
-                <div class="profile-tab-empty"><h2>Posts</h2><p>Your community posts will appear here.</p></div>
+                <div class="profile-posts" data-profile-posts data-user-posts-order="newest-first">
+                    <div class="profile-tab-empty"><h2>Posts</h2><p>Your newest posts will appear here first.</p></div>
+                </div>
             </section>
 
             <section id="profile-tab-activity" class="profile-tab-panel" role="tabpanel" data-profile-panel="activity" hidden>
@@ -55,11 +56,6 @@
                     </div>
                 </form>
             </section>
-        </div>
-
-        <div class="profile-card__footer" data-profile-actions data-requires-auth>
-            <button class="button button--secondary" type="button" data-profile-open-settings data-requires-owner data-requires-auth>Settings</button>
-            <button class="button button--danger" type="button" data-auth-action="logout" data-requires-auth>Sign out</button>
-        </div>
+        </main>
     </div>
 </section>
