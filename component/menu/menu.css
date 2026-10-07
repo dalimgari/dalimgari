@@ -1,0 +1,13 @@
+/* Menu visual scope. */
+
+.menu {
+    position: relative;
+}
+
+.menu__list {
+    display: block;
+}
+
+.menu__list[hidden] {
+    display: none;
+}
