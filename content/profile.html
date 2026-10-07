@@ -1,6 +1,6 @@
 <section class="page page-profile" data-page="profile">
     <div class="profile-card">
-        <header class="profile-card__hero">
+        <header class="profile-card__hero" data-profile-area="identity">
             <div class="profile-card__avatar" data-component="avatar"></div>
             <div class="profile-card__identity">
                 <h1 data-profile-name>Profile</h1>
@@ -10,16 +10,16 @@
 
         <nav class="profile-tabs" role="tablist" aria-label="Profile sections">
             <button type="button" class="profile-tab is-active" role="tab" aria-selected="true" aria-controls="profile-tab-overview" data-profile-tab="overview">Overview</button>
-            <button type="button" class="profile-tab" role="tab" aria-selected="false" aria-controls="profile-tab-posts" data-profile-tab="posts">Posts</button>
-            <button type="button" class="profile-tab" role="tab" aria-selected="false" aria-controls="profile-tab-activity" data-profile-tab="activity">Activity</button>
-            <button type="button" class="profile-tab" role="tab" aria-selected="false" aria-controls="profile-tab-media" data-profile-tab="media">Media</button>
-            <button type="button" class="profile-tab" role="tab" aria-selected="false" aria-controls="profile-tab-contributions" data-profile-tab="contributions">Contributions</button>
+            <button type="button" class="profile-tab" role="tab" aria-selected="false" aria-controls="profile-tab-post" data-profile-tab="post">Post</button>
+            <button type="button" class="profile-tab" role="tab" aria-selected="false" aria-controls="profile-tab-photo" data-profile-tab="photo">Photo</button>
+            <button type="button" class="profile-tab" role="tab" aria-selected="false" aria-controls="profile-tab-video" data-profile-tab="video">Video</button>
+            <button type="button" class="profile-tab" role="tab" aria-selected="false" aria-controls="profile-tab-album" data-profile-tab="album">Album</button>
             <button type="button" class="profile-tab is-owner-control" role="tab" aria-selected="false" aria-controls="profile-tab-settings" data-profile-tab="settings" data-requires-owner data-requires-auth>Settings</button>
         </nav>
 
         <main class="profile-content">
             <section id="profile-tab-overview" class="profile-tab-panel is-active" role="tabpanel" data-profile-panel="overview">
-                <div class="profile-card__body" data-profile-view>
+                <div class="profile-card__body" data-profile-area="overview-summary">
                     <div class="profile-stat"><span>Email</span><strong data-profile-email>—</strong></div>
                     <div class="profile-stat"><span>Status</span><strong data-profile-status>—</strong></div>
                     <div class="profile-stat"><span>Role</span><strong data-profile-type>Member</strong></div>
@@ -27,22 +27,48 @@
                 </div>
             </section>
 
-            <section id="profile-tab-posts" class="profile-tab-panel" role="tabpanel" data-profile-panel="posts" hidden>
-                <div class="profile-posts" data-profile-posts data-user-posts-order="newest-first">
-                    <div class="profile-tab-empty"><h2>Posts</h2><p>Your newest posts will appear here first.</p></div>
+            <section id="profile-tab-post" class="profile-tab-panel" role="tabpanel" data-profile-panel="post" hidden>
+                <div class="profile-tab-empty" data-profile-area="post-action">
+                    <h2>Post</h2>
+                    <p>Create and manage your posts from your profile.</p>
+                </div>
+                <div class="profile-tab-empty" data-profile-area="post-data">
+                    <h3>Existing posts</h3>
+                    <p>Your newest posts will appear here.</p>
                 </div>
             </section>
 
-            <section id="profile-tab-activity" class="profile-tab-panel" role="tabpanel" data-profile-panel="activity" hidden>
-                <div class="profile-tab-empty"><h2>Activity</h2><p>Your visible community activity will appear here.</p></div>
+            <section id="profile-tab-photo" class="profile-tab-panel" role="tabpanel" data-profile-panel="photo" hidden>
+                <div class="profile-tab-empty" data-profile-area="photo-action">
+                    <h2>Photo</h2>
+                    <p>Upload and manage your photos from your profile.</p>
+                </div>
+                <div class="profile-tab-empty" data-profile-area="photo-data">
+                    <h3>Existing photos</h3>
+                    <p>Your published photos will appear here.</p>
+                </div>
             </section>
 
-            <section id="profile-tab-media" class="profile-tab-panel" role="tabpanel" data-profile-panel="media" hidden>
-                <div class="profile-tab-empty"><h2>Media</h2><p>Your published photos and videos will appear here.</p></div>
+            <section id="profile-tab-video" class="profile-tab-panel" role="tabpanel" data-profile-panel="video" hidden>
+                <div class="profile-tab-empty" data-profile-area="video-action">
+                    <h2>Video</h2>
+                    <p>Upload and manage your videos from your profile.</p>
+                </div>
+                <div class="profile-tab-empty" data-profile-area="video-data">
+                    <h3>Existing videos</h3>
+                    <p>Your published videos will appear here.</p>
+                </div>
             </section>
 
-            <section id="profile-tab-contributions" class="profile-tab-panel" role="tabpanel" data-profile-panel="contributions" hidden>
-                <div class="profile-tab-empty"><h2>Contributions</h2><p>Your approved community contributions will appear here.</p></div>
+            <section id="profile-tab-album" class="profile-tab-panel" role="tabpanel" data-profile-panel="album" hidden>
+                <div class="profile-tab-empty" data-profile-area="album-action">
+                    <h2>Album</h2>
+                    <p>Create and manage your albums from your profile.</p>
+                </div>
+                <div class="profile-tab-empty" data-profile-area="album-data">
+                    <h3>Existing albums</h3>
+                    <p>Your albums will appear here.</p>
+                </div>
             </section>
 
             <section id="profile-tab-settings" class="profile-tab-panel" role="tabpanel" data-profile-panel="settings" hidden data-requires-owner data-requires-auth>
