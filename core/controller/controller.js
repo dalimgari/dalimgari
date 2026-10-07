@@ -80,7 +80,7 @@ async function applyPublicBranding(){
     if(typeof logo==="string"&&logo.startsWith("data:image/")){
       const img=document.createElement("img");img.className="site-logo";img.alt=title+" logo";img.src=logo;brand.appendChild(img);
     }
-    const name=document.createElement("span");name.className="site-brand-name";name.textContent=title;brand.appendChild(name);const pageName=document.createElement("span");pageName.className="site-brand-page-name";pageName.setAttribute("aria-live","polite");brand.appendChild(pageName);brand.setAttribute("data-site-brand","true");
+    const name=document.createElement("span");name.className="site-brand-name";name.textContent=title;brand.appendChild(name);brand.setAttribute("data-site-brand","true");
     host.appendChild(brand);
   }
   return result;
