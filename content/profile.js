@@ -16,6 +16,7 @@ function bindProfileTabs(root=document){
             panel.hidden=!active;
             panel.classList.toggle("is-active",active);
         });
+        page.dataset.profileActiveTab=name;
     };
     tabs.forEach(tab=>tab.addEventListener("click",()=>selectTab(tab.dataset.profileTab)));
     tabs.forEach(tab=>tab.addEventListener("keydown",event=>{
