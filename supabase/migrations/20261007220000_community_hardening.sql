@@ -7,8 +7,10 @@ create index if not exists reports_reporter_idx on public.reports(reporter_id);
 create index if not exists reports_status_idx on public.reports(status);
 create index if not exists post_media_media_idx on public.post_media(media_id);
 create index if not exists media_created_idx on public."Media"(created_at desc);
-create index if not exists media_album_created_idx on public."Media"(album_id, created_at desc);
-create index if not exists album_user_idx on public."Album"(user_id);
+create index if not exists announcements_author_idx on public.announcements(author_id);
+create index if not exists events_creator_idx on public.events(creator_id);
+create index if not exists reports_comment_idx on public.reports(comment_id);
+create index if not exists reports_post_idx on public.reports(post_id);
 
 insert into public.theme_presets (key,name,description,tokens,is_active)
 values
@@ -31,3 +33,19 @@ with check (bucket_id='community-media' and owner_id=(select auth.uid()::text));
 drop policy if exists "community media owner delete" on storage.objects;
 create policy "community media owner delete" on storage.objects for delete to authenticated
 using (bucket_id='community-media' and owner_id=(select auth.uid()::text));
+
+drop policy if exists post_media_delete_own on public.post_media;
+create policy post_media_delete_own on public.post_media for delete to authenticated
+using (exists(select 1 from public.posts p where p.id=post_media.post_id and p.user_id=(select auth.uid())));
+
+drop policy if exists post_media_insert_own on public.post_media;
+create policy post_media_insert_own on public.post_media for insert to authenticated
+with check (
+  exists(select 1 from public.posts p where p.id=post_media.post_id and p.user_id=(select auth.uid()))
+  and exists(select 1 from public."Media" m where m.id=post_media.media_id and m.user_id=(select auth.uid()))
+);
+
+drop policy if exists user_preferences_own on public.user_preferences;
+create policy user_preferences_own on public.user_preferences for all to authenticated
+using (user_id=(select auth.uid()))
+with check (user_id=(select auth.uid()));
