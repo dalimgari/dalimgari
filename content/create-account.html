@@ -1,3 +1,19 @@
 <section class="page page-create-account" data-page="create-account">
-    <div class="page-create-account__content"></div>
+    <h1>Create account</h1>
+    <form data-auth-form="signup">
+        <label for="signup-name">Name</label>
+        <input id="signup-name" name="name" type="text" autocomplete="name" required>
+
+        <label for="signup-identifier">Email or phone</label>
+        <input id="signup-identifier" name="identifier" type="text" autocomplete="username" required>
+
+        <label for="signup-password">Password</label>
+        <input id="signup-password" name="password" type="password" autocomplete="new-password" required>
+
+        <label for="signup-confirm-password">Confirm password</label>
+        <input id="signup-confirm-password" name="confirm-password" type="password" autocomplete="new-password" required>
+
+        <button type="submit">Create account</button>
+        <output data-auth-message aria-live="polite"></output>
+    </form>
 </section>
