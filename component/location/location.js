@@ -1,0 +1,2 @@
+import {getPlatformContext} from "../../context/platform.js";
+export async function initLocation(root=document){const el=root.querySelector("[data-location-widget]");if(!el)return;const {community}=await getPlatformContext();el.querySelector("[data-location-name]").textContent=community.name||"Dalimgari";const detail=[community.region,community.country].filter(Boolean).join(", ");el.querySelector("[data-location-detail]").textContent=detail||community.timezone||"—"}
