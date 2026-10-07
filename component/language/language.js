@@ -3,7 +3,7 @@ const translations={
 en:{
 "nav.community":"Community","nav.signin":"Sign in","nav.create":"Create account","nav.signout":"Sign out","nav.profile":"Profile",
 "home.eyebrow":"Dalimgari community","home.title":"Welcome to Dalimgari","home.lead":"A simple place for community news, events, updates, and shared media.","home.action":"Explore community",
-"home.today":"Today","home.location":"Community location","home.albums":"Community albums","home.albumsTitle":"Memories from our community","home.quick.title":"What do you need?",
+"home.today":"Today","home.language":"Language","home.location":"Community location","home.albums":"Community albums","home.albumsTitle":"Memories from our community","home.quick.title":"What do you need?",
 "home.community.title":"Community","home.community.body":"See local posts and updates from the community.","home.community.action":"View community",
 "home.info.title":"Important information","home.info.body":"Find announcements, upcoming events, and shared community media.","home.info.action":"Discover more",
 "home.quick.community":"Community","home.quick.events":"Events","home.quick.profile":"My profile",
@@ -19,7 +19,7 @@ en:{
 bn:{
 "nav.community":"কমিউনিটি","nav.signin":"সাইন ইন","nav.create":"অ্যাকাউন্ট তৈরি","nav.signout":"সাইন আউট","nav.profile":"প্রোফাইল",
 "home.eyebrow":"ডালিমগাড়ি কমিউনিটি","home.title":"ডালিমগাড়িতে স্বাগতম","home.lead":"কমিউনিটির খবর, অনুষ্ঠান, আপডেট ও ছবি-ভিডিও এক জায়গায়।","home.action":"কমিউনিটি দেখুন",
-"home.today":"আজ","home.location":"কমিউনিটির অবস্থান","home.albums":"কমিউনিটির অ্যালবাম","home.albumsTitle":"আমাদের কমিউনিটির স্মৃতি","home.quick.title":"আপনি কী করতে চান?",
+"home.today":"আজ","home.language":"ভাষা","home.location":"কমিউনিটির অবস্থান","home.albums":"কমিউনিটির অ্যালবাম","home.albumsTitle":"আমাদের কমিউনিটির স্মৃতি","home.quick.title":"আপনি কী করতে চান?",
 "home.community.title":"কমিউনিটি","home.community.body":"কমিউনিটির পোস্ট ও নতুন খবর দেখুন।","home.community.action":"কমিউনিটি দেখুন",
 "home.info.title":"গুরুত্বপূর্ণ তথ্য","home.info.body":"ঘোষণা, আসন্ন অনুষ্ঠান এবং কমিউনিটির ছবি-ভিডিও দেখুন।","home.info.action":"আরও দেখুন",
 "home.quick.community":"কমিউনিটি","home.quick.events":"অনুষ্ঠান","home.quick.profile":"আমার প্রোফাইল",
@@ -34,6 +34,6 @@ bn:{
 }};
 function language(){return localStorage.getItem(KEY)||"en"}
 function translate(key){return translations[language()]?.[key]||translations.en[key]||key}
-function apply(root=document){const lang=language();root.querySelectorAll("[data-i18n]").forEach(el=>{const value=translations[lang]?.[el.dataset.i18n]||translations.en?.[el.dataset.i18n];if(value)el.textContent=value});root.querySelectorAll("[data-i18n-placeholder]").forEach(el=>{const value=translations[lang]?.[el.dataset.i18nPlaceholder]||translations.en?.[el.dataset.i18nPlaceholder];if(value)el.placeholder=value});root.querySelectorAll("[data-language-switch]").forEach(el=>el.value=lang);document.documentElement.lang=lang==="bn"?"bn":"en"}
+function apply(root=document){const lang=language();root.querySelectorAll("[data-i18n]").forEach(el=>{const value=translations[lang]?.[el.dataset.i18n]||translations.en?.[el.dataset.i18n];if(value)el.textContent=value});root.querySelectorAll("[data-i18n-placeholder]").forEach(el=>{const value=translations[lang]?.[el.dataset.i18nPlaceholder]||translations.en?.[el.dataset.i18nPlaceholder];if(value)el.placeholder=value});root.querySelectorAll("[data-language-switch]").forEach(el=>el.value=lang);root.querySelectorAll("[data-i18n-aria-label]").forEach(el=>el.setAttribute("aria-label",translations[lang]?.[el.dataset.i18nAriaLabel]||el.getAttribute("aria-label")||""));document.documentElement.lang=lang==="bn"?"bn":"en"}
 export function initLanguage(root=document){const select=root.querySelector("[data-language-switch]");if(!select)return;select.value=language();select.addEventListener("change",()=>{localStorage.setItem(KEY,select.value);apply(document);document.dispatchEvent(new CustomEvent("dalimgari:language-changed",{detail:{language:select.value}}))});apply(root)}
 export{apply as applyLanguage,translate as t};
