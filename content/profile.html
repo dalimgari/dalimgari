@@ -8,21 +8,25 @@
                 <p>Manage and review your account information.</p>
             </div>
         </div>
-        <div class="profile-card__body">
-            <div class="profile-stat">
-                <span>Username</span><strong data-profile-username>—</strong>
-            </div>
-            <div class="profile-stat">
-                <span>Email</span><strong data-profile-email>—</strong>
-            </div>
-            <div class="profile-stat">
-                <span>Status</span><strong data-profile-status>—</strong>
-            </div>
-            <div class="profile-stat">
-                <span>Account type</span><strong data-profile-type>—</strong>
-            </div>
+        <div class="profile-card__body" data-profile-view>
+            <div class="profile-stat"><span>Username</span><strong data-profile-username>—</strong></div>
+            <div class="profile-stat"><span>Email</span><strong data-profile-email>—</strong></div>
+            <div class="profile-stat"><span>Status</span><strong data-profile-status>—</strong></div>
+            <div class="profile-stat"><span>Account type</span><strong data-profile-type>—</strong></div>
         </div>
-        <div class="profile-card__footer">
+        <form class="profile-edit" data-profile-form hidden>
+            <div class="profile-edit__grid">
+                <label class="field"><span>Username</span><input name="username" type="text" autocomplete="username" data-profile-username-input required></label>
+                <label class="field"><span>Bio</span><textarea name="bio" rows="4" maxlength="500" data-profile-bio-input></textarea></label>
+            </div>
+            <output class="form-message" data-auth-message aria-live="polite"></output>
+            <div class="profile-card__footer">
+                <button class="button button--secondary" type="button" data-cancel-profile>Edit cancel</button>
+                <button class="button button--primary" type="submit">Save changes</button>
+            </div>
+        </form>
+        <div class="profile-card__footer" data-profile-actions>
+            <button class="button button--secondary" type="button" data-edit-profile>Edit Profile</button>
             <button class="button button--danger" type="button" data-auth-action="logout">Sign out</button>
         </div>
     </div>
