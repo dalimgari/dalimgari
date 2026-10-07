@@ -4,10 +4,13 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    width: 48px;
+    height: 48px;
 }
 
 .avatar__image {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    border-radius: 50%;
 }
