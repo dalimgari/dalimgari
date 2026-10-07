@@ -12,6 +12,7 @@
   --ui-control-sm:40px;
   --ui-control:44px;
   --ui-control-lg:48px;
+  --ui-header:64px;
   --ui-icon-sm:16px;
   --ui-icon:20px;
   --ui-icon-lg:24px;
@@ -26,7 +27,7 @@
   --ui-title-sm:20px;
   --ui-title:24px;
 }
-.site-header__inner{min-height:var(--ui-control-lg);gap:var(--ui-space-3)}
+.site-header__inner{min-height:var(--ui-header);gap:var(--ui-space-3)}
 .site-header__mark{width:36px;height:36px;border-radius:var(--ui-radius)}
 .site-header__brand{gap:var(--ui-space-2)}
 .site-header__actions{gap:var(--ui-space-2)}
@@ -126,16 +127,16 @@ textarea{min-height:110px}
 .profile-tabs{gap:var(--ui-space-1);padding:var(--ui-space-2) 0 0;margin:0 0 var(--ui-space-4)}
 .profile-tab{padding:var(--ui-space-2) var(--ui-space-3)}
 @media(max-width:760px){
-  .site-header__inner{min-height:var(--ui-control-lg)}
+  .site-header__inner{min-height:var(--ui-header)}
   .site-header__actions{gap:var(--ui-space-2)}
-  .site-sidebar{top:var(--ui-control-lg)}
+  .site-sidebar{top:var(--ui-header)}
   .sidebar__inner{padding:var(--ui-space-3) var(--ui-space-4)}
   .sidebar__section+.sidebar__section{margin-top:var(--ui-space-4)}
   .page{padding-top:var(--ui-space-6)}
   .button{min-height:var(--ui-control-lg)}
 }
 @media(max-width:520px){
-  .search__panel{top:calc(var(--ui-control-lg) + var(--ui-space-2))}
+  .search__panel{top:calc(var(--ui-header) + var(--ui-space-2))}
 }
 @media(max-width:640px){
   .location-widget,.date-time-widget{padding:var(--ui-space-4)}
