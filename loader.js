@@ -22,9 +22,21 @@ const pageFiles = {
 };
 
 const componentFiles = {
-    avatar: "./component/avatar/avatar.html",
-    menu: "./component/menu/menu.html",
-    search: "./component/search/search.html"
+    avatar: {
+        html: "./component/avatar/avatar.html",
+        css: "./component/avatar/avatar.css",
+        js: "./component/avatar/avatar.js"
+    },
+    menu: {
+        html: "./component/menu/menu.html",
+        css: "./component/menu/menu.css",
+        js: "./component/menu/menu.js"
+    },
+    search: {
+        html: "./component/search/search.html",
+        css: "./component/search/search.css",
+        js: "./component/search/search.js"
+    }
 };
 
 const componentTemplateCache = new Map();
@@ -68,16 +80,19 @@ async function loadComponentTemplate(name) {
         return componentTemplateCache.get(name);
     }
 
-    const path = componentFiles[name];
+    const component = componentFiles[name];
 
-    if (!path) {
+    if (!component) {
         throw new Error(`Unknown component: ${name}`);
     }
 
-    const response = await fetch(path);
+    const [response] = await Promise.all([
+        fetch(component.html),
+        loadStylesheet(component.css)
+    ]);
 
     if (!response.ok) {
-        throw new Error(`Failed to load ${path}: ${response.status}`);
+        throw new Error(`Failed to load ${component.html}: ${response.status}`);
     }
 
     const html = await response.text();
@@ -111,12 +126,10 @@ async function initializeComponents(root) {
 
     const tasks = [];
 
-    if (root.querySelector("[data-menu]")) {
-        tasks.push(import("./component/menu/menu.js"));
-    }
-
-    if (root.querySelector("[data-search]")) {
-        tasks.push(import("./component/search/search.js"));
+    for (const [name, component] of Object.entries(componentFiles)) {
+        if (root.querySelector(`[data-${name}]`)) {
+            tasks.push(import(component.js));
+        }
     }
 
     if (!tasks.length) {
@@ -231,33 +244,7 @@ async function initializeWebsite() {
     await loadPage(initialPath);
 }
 
-// Priority 2: preload reusable component assets and cache their templates.
-const priorityTwoModules = [
-    { name: "avatar", html: "./component/avatar/avatar.html", css: "./component/avatar/avatar.css" },
-    { name: "menu", html: "./component/menu/menu.html", css: "./component/menu/menu.css" },
-    { name: "search", html: "./component/search/search.html", css: "./component/search/search.css" }
-];
-
-async function preloadPriorityTwo() {
-    await Promise.all(
-        priorityTwoModules.map(async (component) => {
-            try {
-                const [response] = await Promise.all([
-                    fetch(component.html),
-                    loadStylesheet(component.css)
-                ]);
-
-                if (!response.ok) {
-                    throw new Error(`Failed to load ${component.html}: ${response.status}`);
-                }
-
-                componentTemplateCache.set(component.name, await response.text());
-            } catch (error) {
-                console.error(`Priority 2 preload failed: ${component.name}`, error);
-            }
-        })
-    );
-}
+// Component HTML/CSS are loaded on first mount and cached for subsequent page switches.
 
 // Priority 3: preload secondary page documents.
 const priorityThreeModules = [
@@ -278,7 +265,6 @@ function preloadPriorityThree() {
 }
 
 initializeWebsite()
-    .then(preloadPriorityTwo)
     .then(preloadPriorityThree)
     .catch((error) => {
         console.error("Website initialization failed:", error);
