@@ -1,54 +1,4 @@
-function getProfileTabController(page){
-    if(page._profileTabController)return page._profileTabController;
-    const tabs=[...page.querySelectorAll("[data-profile-tab]")];
-    const panels=[...page.querySelectorAll("[data-profile-panel]")];
-    if(!tabs.length||!panels.length)return null;
-    const selectable=()=>tabs.filter(tab=>!tab.hidden);
-    const selectTab=(name,focus=false)=>{
-        const available=selectable();
-        const target=available.find(tab=>tab.dataset.profileTab===name)||available.find(tab=>tab.dataset.profileTab==="overview")||available[0];
-        if(!target)return;
-        const activeName=target.dataset.profileTab;
-        tabs.forEach(tab=>{
-            const active=tab===target;
-            tab.classList.toggle("is-active",active);
-            tab.setAttribute("aria-selected",String(active));
-            tab.setAttribute("tabindex",active?"0":"-1");
-        });
-        panels.forEach(panel=>{
-            const active=panel.dataset.profilePanel===activeName;
-            panel.hidden=!active;
-            panel.classList.toggle("is-active",active);
-        });
-        page.dataset.profileActiveTab=activeName;
-        if(focus)target.focus({preventScroll:true});
-    };
-    const onClick=event=>{
-        const tab=event.target.closest?.("[data-profile-tab]");
-        if(tab&&page.contains(tab)&&!tab.hidden)selectTab(tab.dataset.profileTab);
-    };
-    const onKeydown=event=>{
-        const tab=event.target.closest?.("[data-profile-tab]");
-        if(!tab||!page.contains(tab)||tab.hidden)return;
-        if(!["ArrowLeft","ArrowRight","Home","End"].includes(event.key))return;
-        event.preventDefault();
-        const available=selectable();
-        const index=available.indexOf(tab);
-        const next=event.key==="Home"?0:event.key==="End"?available.length-1:(index+(event.key==="ArrowRight"?1:-1)+available.length)%available.length;
-        selectTab(available[next]?.dataset.profileTab,true);
-    };
-    page.addEventListener("click",onClick);
-    page.addEventListener("keydown",onKeydown);
-    page._profileTabController={selectTab,refresh:()=>selectTab(page.dataset.profileActiveTab||"overview")};
-    return page._profileTabController;
-}
-function bindProfileTabs(root=document){
-    const page=root.matches?.("[data-page=profile]")?root:root.querySelector?.("[data-page=profile]");
-    if(!page)return null;
-    return getProfileTabController(page);
-}
-function setMessage(box,message,error=false){box.textContent=message;box.dataset.state=error?"error":"success";}
-function escapeText(value){return String(value??"");}
+function setMessage(box,message,error=false){if(!box)return;box.textContent=message;box.dataset.state=error?"error":"success";}
 function initCrud(page,client,user){
     if(!client||!user)return;
     const configs={
@@ -78,9 +28,7 @@ function initCrud(page,client,user){
         form.addEventListener("submit",async event=>{
             event.preventDefault();
             const values=Object.fromEntries(new FormData(form).entries()),payload=config.build(values);
-            let result;
-            if(values.id) result=await client.from(config.table).update(payload).eq("id",values.id).eq("user_id",user.id);
-            else result=await client.from(config.table).insert({...payload,user_id:user.id});
+            const result=values.id?await client.from(config.table).update(payload).eq("id",values.id).eq("user_id",user.id):await client.from(config.table).insert({...payload,user_id:user.id});
             if(result.error)setMessage(message,result.error.message,true);
             else{setMessage(message,values.id?config.title+" updated.":config.title+" created.");cancel?.click();await load();}
         });
@@ -90,12 +38,8 @@ function initCrud(page,client,user){
 export async function initProfile(root){
     const page=root.querySelector("[data-page=profile]");
     if(!page)return;
-    const controller=bindProfileTabs(page);
     const access=window.dalimgariAccess;
     const ctx=await access?.getContext?.();
-    const owner=!!ctx?.isAuthenticated;
-    page.querySelectorAll("[data-requires-owner]").forEach(el=>{el.hidden=!owner;});
-    controller?.refresh();
     const user=ctx?.user||ctx?.session?.user;
     if(!user)return;
     const metadata=user.user_metadata||{};
@@ -103,12 +47,13 @@ export async function initProfile(root){
     page.querySelector("[data-profile-email]")?.replaceChildren(document.createTextNode(user.email||"—"));
     page.querySelector("[data-profile-status]")?.replaceChildren(document.createTextNode(user.email_confirmed_at?"Active":"Pending"));
     const client=window.dalimgariSupabase;
-    let profile=null;
-    if(client){
+    let profile=ctx?.profile||null;
+    if(!profile&&client){
         const {data}=await client.from("User").select("email,account_status,bio,Role(name)").eq("user_id",user.id).maybeSingle();
         profile=data;
     }
-    const roleLabel=(profile?.Role?.name||"member").toLowerCase()==="admin"?"Admin":"Member";
+    const roleName=String(profile?.role_name||profile?.role||profile?.Role?.name||"member").toLowerCase();
+    const roleLabel=roleName==="admin"?"Admin":"Member";
     page.querySelectorAll("[data-profile-type]").forEach(el=>el.replaceChildren(document.createTextNode(roleLabel)));
     page.querySelector("[data-profile-bio]")?.replaceChildren(document.createTextNode(profile?.bio||metadata.bio||"—"));
     const bioInput=page.querySelector("[data-profile-bio-input]");
@@ -119,9 +64,9 @@ export async function initProfile(root){
         event.preventDefault();
         const message=page.querySelector("[data-auth-message]");
         const bio=form.elements.bio.value.trim();
-        if(!client||!user){message.textContent="Profile service is unavailable.";return;}
+        if(!client||!user){setMessage(message,"Profile service is unavailable.",true);return;}
         const {error}=await client.auth.updateUser({data:{...(user.user_metadata||{}),bio}});
-        message.textContent=error?error.message:"Profile updated.";
+        setMessage(message,error?error.message:"Profile updated.",!!error);
         if(!error)page.querySelector("[data-profile-bio]")?.replaceChildren(document.createTextNode(bio||"—"));
     });
 }
