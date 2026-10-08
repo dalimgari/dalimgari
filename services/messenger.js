@@ -32,10 +32,16 @@ export async function getConversations(userId){
   if(pr)return {data:[],error:pr};
   const profileMap=new Map((profiles||[]).map(x=>[x.user_id,x]));
   const participantMap=new Map((participants||[]).map(x=>[x.conversation_id,x]));
+  const messageResult=await db().from("messages").select("id,conversation_id,sender_id,body,created_at").in("conversation_id",ids).order("created_at",{ascending:false}).limit(500);
+  if(messageResult.error)return {data:[],error:messageResult.error};
+  const latest=new Map();
+  for(const m of (messageResult.data||[])){if(!latest.has(m.conversation_id))latest.set(m.conversation_id,m);}
   const rows=(data||[]).map(row=>{
     const conversation=(conversations||[]).find(x=>x.id===row.conversation_id);
     const otherParticipant=participantMap.get(row.conversation_id);
-    return {...row,conversation,other:profileMap.get(otherParticipant?.user_id)||null};
+    const lastMessage=latest.get(row.conversation_id)||null;
+    const unreadCount=(messageResult.data||[]).filter(m=>m.conversation_id===row.conversation_id&&m.sender_id!==userId&&new Date(m.created_at)>new Date(row.last_read_at||0)).length;
+    return {...row,conversation,other:profileMap.get(otherParticipant?.user_id)||null,lastMessage,unreadCount};
   }).sort((a,b)=>new Date(b.conversation?.updated_at||0)-new Date(a.conversation?.updated_at||0));
   return {data:rows,error:null};
 }
