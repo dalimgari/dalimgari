@@ -1,0 +1,11 @@
+const db=window.dalimgariSupabase;
+async function me(){return (await window.dalimgariAccess?.getContext?.())?.user||null}
+export async function listStories(){return db.from("stories").select("id,user_id,media_url,media_type,caption,created_at,expires_at").gt("expires_at",new Date().toISOString()).order("created_at",{ascending:false}).limit(50)}
+export async function createStory({media_url,media_type,caption=""}){const u=await me();if(!u)return {error:new Error("Sign in required.")};return db.from("stories").insert({user_id:u.id,media_url,media_type,caption}).select().single()}
+export async function listGroups(){return db.from("groups").select("id,owner_id,name,description,visibility,created_at").order("created_at",{ascending:false}).limit(50)}
+export async function createGroup({name,description="",visibility="public"}){const u=await me();if(!u)return {error:new Error("Sign in required.")};const r=await db.from("groups").insert({owner_id:u.id,name:name.trim(),description,visibility}).select().single();if(r.error)return r;await db.from("group_members").insert({group_id:r.data.id,user_id:u.id,role:"owner",status:"active"});return r}
+export async function joinGroup(groupId){const u=await me();if(!u)return {error:new Error("Sign in required.")};return db.from("group_members").upsert({group_id:groupId,user_id:u.id,status:"active"},{onConflict:"group_id,user_id"})}
+export async function listPages(){return db.from("pages").select("id,owner_id,name,description,avatar_url,created_at").order("created_at",{ascending:false}).limit(50)}
+export async function createPage({name,description="",avatar_url=""}){const u=await me();if(!u)return {error:new Error("Sign in required.")};return db.from("pages").insert({owner_id:u.id,name:name.trim(),description,avatar_url}).select().single()}
+export async function followPage(pageId){const u=await me();if(!u)return {error:new Error("Sign in required.")};return db.from("page_followers").upsert({page_id:pageId,user_id:u.id},{onConflict:"page_id,user_id"})}
+export async function listSavedPosts(){const u=await me();if(!u)return {data:[],error:new Error("Sign in required.")};return db.from("saved_posts").select("post_id,created_at").eq("user_id",u.id).order("created_at",{ascending:false}).limit(100)}
