@@ -99,10 +99,10 @@ export async function initProfile(root){
     const metadata=user.user_metadata||{},client=window.dalimgariSupabase;
     let profile=null;
     if(client){
-        const result=await client.from("User").select("email,account_status,bio").eq("user_id",user.id).maybeSingle();
+        const result=await client.from("User").select("email,display_name,account_status,bio").eq("user_id",user.id).maybeSingle();
         if(!result.error)profile=result.data||null;
     }
-    page.querySelector("[data-profile-name]")?.replaceChildren(document.createTextNode(metadata.full_name||metadata.name||profile?.email||user.email?.split("@")[0]||"Profile"));
+    page.querySelector("[data-profile-name]")?.replaceChildren(document.createTextNode(profile?.display_name||metadata.full_name||metadata.name||profile?.email||user.email?.split("@")[0]||"Profile"));
     page.querySelector("[data-profile-type]")?.replaceChildren(document.createTextNode(String(ctx?.role||"member").toLowerCase()==="admin"?"Admin":"Member"));
     page.dataset.profileEmail=profile?.email||user.email||"";
     page.dataset.profileStatus=profile?.account_status||"";
