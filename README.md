@@ -11,12 +11,9 @@ The project is a lightweight web application built around reusable HTML/CSS/Java
 - Home dashboard
 - Community feed
 - Member directory
-- Events and RSVP
 - Media gallery and albums
 - User profile
 - Stories
-- Groups and group membership
-- Pages and page followers
 - Saved posts and collections
 - Authentication
 - Member and admin access control
@@ -84,11 +81,10 @@ Supabase is used for:
 - Community profiles
 - Posts and comments
 - Reactions
-- Events and RSVPs
 - Media and albums
 - Community settings
 - User preferences
-- Social platform features (Stories, Groups, Pages, Saved Posts)
+- Social platform features (Stories and Saved Posts)
 - Platform options
 - Community media storage
 
@@ -160,7 +156,7 @@ The deployment workflow:
 
 ## Project status
 
-The repository is at a consolidated social-platform checkpoint with core social, Messenger, Stories, Groups, Pages, Saved Posts, event RSVP, moderation reporting, preferences, and access-control foundations integrated. Architecture, UI consistency, access permissions, authentication behavior, community features, and administrative controls are being continuously unified and refined.
+The repository is at a consolidated social-platform checkpoint with core social, Messenger, Stories, Groups, Pages, Saved Posts, moderation reporting, preferences, and access-control foundations integrated. Architecture, UI consistency, access permissions, authentication behavior, community features, and administrative controls are being continuously unified and refined.
 
 ## Maintenance principles
 
