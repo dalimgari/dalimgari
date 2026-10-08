@@ -1,5 +1,5 @@
 // Central application loader.
-const APP_ASSET_VERSION="20261008-core-social-v3";
+const APP_ASSET_VERSION="20261008-social-experience-v4";
 import { initContent } from "./context/content.js";
 const globalStylesheet="./style/global-style.css";
 const designSystemStylesheet="./style/ui-design-system.css";
