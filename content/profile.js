@@ -1,3 +1,11 @@
+const PROFILE_PAGES={
+    overview:"./content/profile/overview.html",
+    post:"./content/profile/post.html",
+    photo:"./content/profile/photo.html",
+    video:"./content/profile/video.html",
+    album:"./content/profile/album.html",
+    settings:"./content/profile/settings.html"
+};
 function setMessage(box,message,error=false){if(!box)return;box.textContent=message;box.dataset.state=error?"error":"success";}
 function initCrud(page,client,user){
     if(!client||!user)return;
@@ -29,44 +37,52 @@ function initCrud(page,client,user){
             event.preventDefault();
             const values=Object.fromEntries(new FormData(form).entries()),payload=config.build(values);
             const result=values.id?await client.from(config.table).update(payload).eq("id",values.id).eq("user_id",user.id):await client.from(config.table).insert({...payload,user_id:user.id});
-            if(result.error)setMessage(message,result.error.message,true);
-            else{setMessage(message,values.id?config.title+" updated.":config.title+" created.");cancel?.click();await load();}
+            if(result.error)setMessage(message,result.error.message,true);else{setMessage(message,values.id?config.title+" updated.":config.title+" created.");cancel?.click();await load();}
         });
         load();
     });
 }
-export async function initProfile(root){
-    const page=root.querySelector("[data-page=profile]");
-    if(!page)return;
-    const access=window.dalimgariAccess;
-    const ctx=await access?.getContext?.();
-    const user=ctx?.user||ctx?.session?.user;
-    if(!user)return;
-    const metadata=user.user_metadata||{};
-    page.querySelector("[data-profile-name]")?.replaceChildren(document.createTextNode(metadata.full_name||metadata.name||user.email?.split("@")[0]||"Profile"));
-    page.querySelector("[data-profile-email]")?.replaceChildren(document.createTextNode(user.email||"—"));
-    page.querySelector("[data-profile-status]")?.replaceChildren(document.createTextNode(user.email_confirmed_at?"Active":"Pending"));
-    const client=window.dalimgariSupabase;
-    let profile=ctx?.profile||null;
-    if(!profile&&client){
-        const {data}=await client.from("User").select("email,account_status,bio,role").eq("user_id",user.id).maybeSingle();
-        profile=data;
-    }
-    const roleName=String(profile?.role_name||profile?.role||profile?.Role?.name||"member").toLowerCase();
-    const roleLabel=roleName==="admin"?"Admin":"Member";
-    page.querySelectorAll("[data-profile-type]").forEach(el=>el.replaceChildren(document.createTextNode(roleLabel)));
-    page.querySelector("[data-profile-bio]")?.replaceChildren(document.createTextNode(profile?.bio||metadata.bio||"—"));
-    const bioInput=page.querySelector("[data-profile-bio-input]");
-    if(bioInput)bioInput.value=profile?.bio||metadata.bio||"";
-    initCrud(page,client,user);
-    const form=page.querySelector("[data-profile-form]");
+async function initProfileContent(page,name,client,user){
+    const content=page.querySelector("[data-profile-content]"),target=PROFILE_PAGES[name]||PROFILE_PAGES.overview;
+    if(!content)return;
+    const response=await fetch(target);
+    if(!response.ok)throw new Error("Failed to load profile section: "+response.status);
+    const html=await response.text();
+    const template=document.createElement("template");template.innerHTML=html;
+    const source=template.content.querySelector("[data-page=profile] .profile-content");
+    if(!source)throw new Error("Invalid profile section.");
+    content.replaceChildren(...source.childNodes);
+    await window.dalimgariProfileInitializeComponents?.(content);
+    const active=page.querySelector("[data-profile-tab=""+name+""]");
+    page.querySelectorAll("[data-profile-tab]").forEach(tab=>tab.classList.toggle("is-active",tab===active));
+    initCrud(content,client,user);
+    const bioInput=content.querySelector("[data-profile-bio-input]");
+    if(bioInput)bioInput.value=user.user_metadata?.bio||"";
+    const form=content.querySelector("[data-profile-form]");
     form?.addEventListener("submit",async event=>{
         event.preventDefault();
-        const message=page.querySelector("[data-auth-message]");
-        const bio=form.elements.bio.value.trim();
+        const message=content.querySelector("[data-auth-message]"),bio=form.elements.bio.value.trim();
         if(!client||!user){setMessage(message,"Profile service is unavailable.",true);return;}
         const {error}=await client.auth.updateUser({data:{...(user.user_metadata||{}),bio}});
         setMessage(message,error?error.message:"Profile updated.",!!error);
-        if(!error)page.querySelector("[data-profile-bio]")?.replaceChildren(document.createTextNode(bio||"—"));
     });
 }
+export async function initProfile(root){
+    const page=root.querySelector("[data-page=profile]");if(!page)return;
+    const access=window.dalimgariAccess,ctx=await access?.getContext?.(),user=ctx?.user||ctx?.session?.user;
+    if(!user)return;
+    const metadata=user.user_metadata||{},client=window.dalimgariSupabase;
+    page.querySelector("[data-profile-name]")?.replaceChildren(document.createTextNode(metadata.full_name||metadata.name||user.email?.split("@")[0]||"Profile"));
+    page.querySelector("[data-profile-type]")?.replaceChildren(document.createTextNode(String(ctx?.role||"member").toLowerCase()==="admin"?"Admin":"Member"));
+    const load=name=>initProfileContent(page,name,client,user).catch(error=>console.error("Profile section load failed:",error));
+    page.querySelectorAll("[data-profile-tab]").forEach(tab=>tab.addEventListener("click",event=>{
+        event.preventDefault();
+        const name=tab.dataset.profileTab;
+        if(window.location.hash!==tab.getAttribute("href"))history.pushState({profileTab:name},"",tab.getAttribute("href"));
+        load(name);
+    }));
+    window.addEventListener("popstate",()=>load(getProfileNameFromHash()));
+    const initial=getProfileNameFromHash();
+    load(initial);
+}
+function getProfileNameFromHash(){const path=window.location.hash.slice(1);const match=path.match(/^content\/profile\/(overview|post|photo|video|album|settings)\.html$/);return match?.[1]||"overview";}
