@@ -3,7 +3,8 @@ import { readFileSync, existsSync } from "node:fs";
 const required = [
   "index.html","loader.js","supabase/auth/auth.js","supabase/client/supabase.js",
   "supabase/community.js","content/community.html","style/community.css",
-  "component/avatar/avatar.js","component/menu/menu.js","component/search/search.js"
+  "component/avatar/avatar.js","component/menu/menu.js","component/search/search.js",
+  "content/profile/overview.html","content/profile/post.html","content/profile/photo.html","content/profile/video.html","content/profile/album.html","content/profile/settings.html"
 ];
 for (const file of required) if (!existsSync(file)) throw new Error(`Missing required file: ${file}`);
 
