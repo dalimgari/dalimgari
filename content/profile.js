@@ -1,9 +1,8 @@
 function getProfileTabController(page){
     if(page._profileTabController)return page._profileTabController;
     const tabs=[...page.querySelectorAll("[data-profile-tab]")];
-    const primaryPanels=[...page.querySelectorAll("[data-profile-primary-panel]")];
-    const secondaryPanels=[...page.querySelectorAll("[data-profile-secondary-panel]")];
-    if(!tabs.length||!primaryPanels.length||!secondaryPanels.length)return null;
+    const panels=[...page.querySelectorAll("[data-profile-panel]")];
+    if(!tabs.length||!panels.length)return null;
     const selectable=()=>tabs.filter(tab=>!tab.hidden);
     const selectTab=(name,focus=false)=>{
         const available=selectable();
@@ -16,13 +15,8 @@ function getProfileTabController(page){
             tab.setAttribute("aria-selected",String(active));
             tab.setAttribute("tabindex",active?"0":"-1");
         });
-        primaryPanels.forEach(panel=>{
-            const active=panel.dataset.profilePrimaryPanel===activeName;
-            panel.hidden=!active;
-            panel.classList.toggle("is-active",active);
-        });
-        secondaryPanels.forEach(panel=>{
-            const active=panel.dataset.profileSecondaryPanel===activeName;
+        panels.forEach(panel=>{
+            const active=panel.dataset.profilePanel===activeName;
             panel.hidden=!active;
             panel.classList.toggle("is-active",active);
         });
@@ -68,7 +62,6 @@ export async function initProfile(root){
     page.querySelector("[data-profile-name]")?.replaceChildren(document.createTextNode(metadata.full_name||metadata.name||user.email?.split("@")[0]||"Profile"));
     page.querySelector("[data-profile-email]")?.replaceChildren(document.createTextNode(user.email||"—"));
     page.querySelector("[data-profile-status]")?.replaceChildren(document.createTextNode(user.email_confirmed_at?"Active":"Pending"));
-    page.querySelector("[data-profile-account-status]")?.replaceChildren(document.createTextNode(user.email_confirmed_at?"Active":"Pending"));
     const client=window.dalimgariSupabase;
     let profile=null;
     if(client){
@@ -76,7 +69,7 @@ export async function initProfile(root){
         profile=data;
     }
     const roleLabel=(profile?.Role?.name||"member").toLowerCase()==="admin"?"Admin":"Member";
-    page.querySelectorAll("[data-profile-type],[data-profile-settings-role]").forEach(el=>el.replaceChildren(document.createTextNode(roleLabel)));
+    page.querySelectorAll("[data-profile-type]").forEach(el=>el.replaceChildren(document.createTextNode(roleLabel)));
     page.querySelector("[data-profile-bio]")?.replaceChildren(document.createTextNode(profile?.bio||metadata.bio||"—"));
     const bioInput=page.querySelector("[data-profile-bio-input]");
     if(bioInput)bioInput.value=profile?.bio||metadata.bio||"";
