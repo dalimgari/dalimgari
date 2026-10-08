@@ -52,18 +52,18 @@ async function initProfileContent(page,name,client,user){
     const source=template.content.querySelector("[data-profile-section]");
     if(!source)throw new Error("Invalid profile section.");
     content.replaceChildren(...source.childNodes);
-    await window.dalimgariProfileInitializeComponents?.(content);
     const active=page.querySelector('[data-profile-tab="' + name + '"]');
     page.querySelectorAll("[data-profile-tab]").forEach(tab=>tab.classList.toggle("is-active",tab===active));
     initCrud(content,client,user);
     const bioInput=content.querySelector("[data-profile-bio-input]");
-    if(bioInput)bioInput.value=user.user_metadata?.bio||"";
+    if(bioInput)bioInput.value=content.dataset.profileBio||user.user_metadata?.bio||"";
     const form=content.querySelector("[data-profile-form]");
     form?.addEventListener("submit",async event=>{
         event.preventDefault();
         const message=content.querySelector("[data-auth-message]"),bio=form.elements.bio.value.trim();
         if(!client||!user){setMessage(message,"Profile service is unavailable.",true);return;}
-        const {error}=await client.auth.updateUser({data:{...(user.user_metadata||{}),bio}});
+        const {error}=await client.from("User").update({bio}).eq("user_id",user.id);
+        if(!error)content.dataset.profileBio=bio;
         setMessage(message,error?error.message:"Profile updated.",!!error);
     });
 }
@@ -72,8 +72,19 @@ export async function initProfile(root){
     const access=window.dalimgariAccess,ctx=await access?.getContext?.(),user=ctx?.user||ctx?.session?.user;
     if(!user)return;
     const metadata=user.user_metadata||{},client=window.dalimgariSupabase;
-    page.querySelector("[data-profile-name]")?.replaceChildren(document.createTextNode(metadata.full_name||metadata.name||user.email?.split("@")[0]||"Profile"));
+    let profile=null;
+    if(client){
+        const result=await client.from("User").select("email,account_status,bio").eq("user_id",user.id).maybeSingle();
+        if(!result.error)profile=result.data||null;
+    }
+    page.querySelector("[data-profile-name]")?.replaceChildren(document.createTextNode(metadata.full_name||metadata.name||profile?.email||user.email?.split("@")[0]||"Profile"));
     page.querySelector("[data-profile-type]")?.replaceChildren(document.createTextNode(String(ctx?.role||"member").toLowerCase()==="admin"?"Admin":"Member"));
+    page.dataset.profileEmail=profile?.email||user.email||"";
+    page.dataset.profileStatus=profile?.account_status||"";
+    page.dataset.profileBio=profile?.bio??metadata.bio??"";
+    page.querySelector("[data-profile-email]")?.replaceChildren(document.createTextNode(page.dataset.profileEmail||"—"));
+    page.querySelector("[data-profile-status]")?.replaceChildren(document.createTextNode(page.dataset.profileStatus||"—"));
+    page.querySelector("[data-profile-bio]")?.replaceChildren(document.createTextNode(page.dataset.profileBio||"—"));
     const load=name=>initProfileContent(page,name,client,user).catch(error=>console.error("Profile section load failed:",error));
     page.querySelectorAll("[data-profile-tab]").forEach(tab=>tab.addEventListener("click",event=>{
         event.preventDefault();
