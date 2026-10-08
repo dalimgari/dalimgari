@@ -66,7 +66,7 @@ async function initProfileContent(page,name,client,user){
     content.replaceChildren(...source.childNodes);
     const active=page.querySelector('[data-profile-tab="' + name + '"]');
     page.querySelectorAll("[data-profile-tab]").forEach(tab=>tab.classList.toggle("is-active",tab===active));
-    initCrud(content,client,user);
+    if(user.__isOwner)initCrud(content,client,user);
     const socialSection=content.querySelector("[data-profile-section='social']");
     if(socialSection){
         const title=socialSection.querySelector("[data-social-title]"),description=socialSection.querySelector("[data-social-description]"),list=socialSection.querySelector("[data-social-list]");
@@ -112,11 +112,11 @@ export async function initProfile(root){
     }
     page.querySelector("[data-profile-name]")?.replaceChildren(document.createTextNode(profile?.display_name||metadata.full_name||metadata.name||profile?.email||user.email?.split("@")[0]||"Profile"));
     page.querySelector("[data-profile-type]")?.replaceChildren(document.createTextNode(String(ctx?.role||"member").toLowerCase()==="admin"?"Admin":"Member"));
-    page.dataset.profileEmail=profile?.email||user.email||"";
+    page.dataset.profileEmail=profile?.email||"—";
     page.dataset.profileStatus=profile?.account_status||"";
     page.dataset.profileBio=profile?.bio??metadata.bio??"";
     page.querySelector("[data-profile-email]")?.replaceChildren(document.createTextNode(page.dataset.profileEmail||"—"));
-    page.querySelector("[data-profile-status]")?.replaceChildren(document.createTextNode(page.dataset.profileStatus||"—"));
+    page.querySelector("[data-profile-status]")?.replaceChildren(document.createTextNode(page.dataset.profileStatus||"—"));\n    page.querySelector("[data-profile-message]")?.addEventListener("click",()=>{window.location.hash="content/messenger.html?user="+encodeURIComponent(profileId)});\n    if(!isOwner)page.querySelectorAll(".is-owner-control").forEach(el=>el.hidden=true);
     page.querySelector("[data-profile-bio]")?.replaceChildren(document.createTextNode(page.dataset.profileBio||"—"));
     const load=name=>initProfileContent(page,name,client,user).catch(error=>console.error("Profile section load failed:",error));
     page.querySelectorAll("[data-profile-tab]").forEach(tab=>tab.addEventListener("click",event=>{
