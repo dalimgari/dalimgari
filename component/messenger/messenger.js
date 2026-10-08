@@ -37,7 +37,7 @@ export async function initMessenger(root){
     await clearChannel();
     if(!activeId)return;
     channel=window.dalimgariSupabase.channel("messenger-"+activeId)
-      .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"conversation_id=eq."+activeId},()=>renderMessages())
+      .on("postgres_changes",{event:"*",schema:"public",table:"messages",filter:"conversation_id=eq."+activeId},()=>{renderMessages();renderList();})
       .subscribe();
   };
 
@@ -45,7 +45,7 @@ export async function initMessenger(root){
     activeId=row.conversation_id;
     page.querySelectorAll("[data-conversation-id]").forEach(x=>x.classList.toggle("is-active",x.dataset.conversationId===activeId));
     const name=row.other?.display_name||"Conversation";
-    head.innerHTML='<strong>'+esc(name)+'</strong>';
+    head.innerHTML='<strong>'+esc(name)+'</strong><div class="messenger__presence" data-messenger-presence>Offline</div>';
     form.hidden=false;
     await renderMessages(); await subscribe();
   };
@@ -56,7 +56,7 @@ export async function initMessenger(root){
     list.replaceChildren(...(r.data||[]).map(row=>{
       const button=document.createElement("button");button.type="button";button.className="messenger__conversation";button.dataset.conversationId=row.conversation_id;
       const avatar=document.createElement("img");avatar.className="messenger__avatar";avatar.src=row.other?.avatar_url||"";avatar.alt="";
-      const text=document.createElement("span");text.innerHTML='<span class="messenger__name">'+esc(row.other?.display_name||"Member")+'</span>';
+      const text=document.createElement("span");const preview=row.lastMessage?.body||"No messages yet";text.innerHTML='<span class="messenger__name">'+esc(row.other?.display_name||"Member")+'</span><span class="messenger__preview">'+esc(preview.slice(0,70))+'</span>'+(row.unreadCount?'<strong class="messenger__unread">'+row.unreadCount+'</strong>':"");
       button.append(avatar,text);button.addEventListener("click",()=>openConversation(row));return button;
     }));
     const target=hashParams().get("user");
