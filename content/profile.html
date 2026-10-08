@@ -28,30 +28,61 @@
             </section>
 
             <section id="profile-tab-post" class="profile-tab-panel" role="tabpanel" data-profile-panel="post" hidden>
-                <div class="profile-tab-section">
+                <div class="profile-crud" data-crud="posts">
                     <h2>Post</h2>
-                    <p>Create, view, edit and delete your posts.</p>
+                    <form class="profile-crud__form" data-crud-form>
+                        <input type="hidden" name="id">
+                        <label class="field"><span>Post</span><textarea name="content" rows="5" maxlength="5000" required placeholder="Write your post..."></textarea></label>
+                        <label class="field"><span>Visibility</span><select name="visibility"><option value="public">Public</option><option value="members">Members</option></select></label>
+                        <div class="profile-card__footer"><button class="button button--primary" type="submit" data-action-save>Create Post</button><button class="button" type="button" data-action-cancel hidden>Cancel</button></div>
+                    </form>
+                    <output class="form-message" data-crud-message aria-live="polite"></output>
+                    <div data-crud-list></div>
                 </div>
             </section>
 
             <section id="profile-tab-photo" class="profile-tab-panel" role="tabpanel" data-profile-panel="photo" hidden>
-                <div class="profile-tab-section">
+                <div class="profile-crud" data-crud="photo">
                     <h2>Photo</h2>
-                    <p>Create, view, edit and delete your photos.</p>
+                    <form class="profile-crud__form" data-crud-form>
+                        <input type="hidden" name="id">
+                        <label class="field"><span>Title</span><input name="title" maxlength="180" required></label>
+                        <label class="field"><span>Photo URL</span><input name="media_url" type="url" required placeholder="https://..."></label>
+                        <label class="field"><span>Description</span><textarea name="description" rows="3" maxlength="1000"></textarea></label>
+                        <div class="profile-card__footer"><button class="button button--primary" type="submit" data-action-save>Create Photo</button><button class="button" type="button" data-action-cancel hidden>Cancel</button></div>
+                    </form>
+                    <output class="form-message" data-crud-message aria-live="polite"></output>
+                    <div data-crud-list></div>
                 </div>
             </section>
 
             <section id="profile-tab-video" class="profile-tab-panel" role="tabpanel" data-profile-panel="video" hidden>
-                <div class="profile-tab-section">
+                <div class="profile-crud" data-crud="video">
                     <h2>Video</h2>
-                    <p>Create, view, edit and delete your videos.</p>
+                    <form class="profile-crud__form" data-crud-form>
+                        <input type="hidden" name="id">
+                        <label class="field"><span>Title</span><input name="title" maxlength="180" required></label>
+                        <label class="field"><span>Video URL</span><input name="media_url" type="url" required placeholder="https://..."></label>
+                        <label class="field"><span>Description</span><textarea name="description" rows="3" maxlength="1000"></textarea></label>
+                        <div class="profile-card__footer"><button class="button button--primary" type="submit" data-action-save>Create Video</button><button class="button" type="button" data-action-cancel hidden>Cancel</button></div>
+                    </form>
+                    <output class="form-message" data-crud-message aria-live="polite"></output>
+                    <div data-crud-list></div>
                 </div>
             </section>
 
             <section id="profile-tab-album" class="profile-tab-panel" role="tabpanel" data-profile-panel="album" hidden>
-                <div class="profile-tab-section">
+                <div class="profile-crud" data-crud="albums">
                     <h2>Album</h2>
-                    <p>Create, view, edit and delete your albums.</p>
+                    <form class="profile-crud__form" data-crud-form>
+                        <input type="hidden" name="id">
+                        <label class="field"><span>Name</span><input name="name" maxlength="180" required></label>
+                        <label class="field"><span>Description</span><textarea name="description" rows="3" maxlength="1000"></textarea></label>
+                        <label class="field"><span>Visibility</span><select name="visibility"><option value="public">Public</option><option value="members">Members</option></select></label>
+                        <div class="profile-card__footer"><button class="button button--primary" type="submit" data-action-save>Create Album</button><button class="button" type="button" data-action-cancel hidden>Cancel</button></div>
+                    </form>
+                    <output class="form-message" data-crud-message aria-live="polite"></output>
+                    <div data-crud-list></div>
                 </div>
             </section>
 
