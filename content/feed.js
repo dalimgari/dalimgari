@@ -21,7 +21,7 @@ export async function initFeed(root=document){
   form.setAttribute("aria-busy","true");button.disabled=true;
   const r=await createPost({content:input.value,visibility:form.elements.visibility?.value||"public",files});
   if(r.error){msg.textContent=r.error.message;msg.dataset.state="error";form.removeAttribute("aria-busy");button.disabled=false;return}
-  input.value="";if(fileInput)fileInput.value="";if(selected)selected.textContent="No media selected";msg.textContent="Published.";msg.dataset.state="success";offset=0;done=false;form.removeAttribute("aria-busy");button.disabled=false;await render(true);
+  input.value="";if(fileInput)fileInput.value="";if(selected)selected.textContent="No media selected";msg.textContent="Published.";msg.dataset.state="success";offset=0;done=false;form.removeAttribute("aria-busy");button.disabled=false;await render(true);\n const focus=sessionStorage.getItem("dalimgari:focusPost");if(focus){const el=document.querySelector(`[data-post-id="${focus}"]`);if(el){el.scrollIntoView({behavior:"smooth",block:"center"});el.classList.add("is-focus");}sessionStorage.removeItem("dalimgari:focusPost");}
  });
  root.querySelector("[data-feed-more]")?.addEventListener("click",()=>render(false));
  await render(true);
