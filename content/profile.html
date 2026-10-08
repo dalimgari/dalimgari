@@ -18,69 +18,58 @@
         </nav>
 
         <main class="profile-content">
-            <section id="profile-tab-overview" class="profile-tab-panel is-active" role="tabpanel" data-profile-panel="overview">
-                <div class="profile-card__body" data-profile-area="overview-summary">
-                    <div class="profile-stat"><span>Email</span><strong data-profile-email>—</strong></div>
-                    <div class="profile-stat"><span>Status</span><strong data-profile-status>—</strong></div>
-                    <div class="profile-stat"><span>Role</span><strong data-profile-type>Member</strong></div>
-                    <div class="profile-stat"><span>Bio</span><strong data-profile-bio>—</strong></div>
-                </div>
-            </section>
-
-            <section id="profile-tab-post" class="profile-tab-panel" role="tabpanel" data-profile-panel="post" hidden>
-                <div class="profile-tab-empty" data-profile-area="post-action">
-                    <h2>Post</h2>
-                    <p>Create and manage your posts from your profile.</p>
-                </div>
-                <div class="profile-tab-empty" data-profile-area="post-data">
-                    <h3>Existing posts</h3>
-                    <p>Your newest posts will appear here.</p>
-                </div>
-            </section>
-
-            <section id="profile-tab-photo" class="profile-tab-panel" role="tabpanel" data-profile-panel="photo" hidden>
-                <div class="profile-tab-empty" data-profile-area="photo-action">
-                    <h2>Photo</h2>
-                    <p>Upload and manage your photos from your profile.</p>
-                </div>
-                <div class="profile-tab-empty" data-profile-area="photo-data">
-                    <h3>Existing photos</h3>
-                    <p>Your published photos will appear here.</p>
-                </div>
-            </section>
-
-            <section id="profile-tab-video" class="profile-tab-panel" role="tabpanel" data-profile-panel="video" hidden>
-                <div class="profile-tab-empty" data-profile-area="video-action">
-                    <h2>Video</h2>
-                    <p>Upload and manage your videos from your profile.</p>
-                </div>
-                <div class="profile-tab-empty" data-profile-area="video-data">
-                    <h3>Existing videos</h3>
-                    <p>Your published videos will appear here.</p>
-                </div>
-            </section>
-
-            <section id="profile-tab-album" class="profile-tab-panel" role="tabpanel" data-profile-panel="album" hidden>
-                <div class="profile-tab-empty" data-profile-area="album-action">
-                    <h2>Album</h2>
-                    <p>Create and manage your albums from your profile.</p>
-                </div>
-                <div class="profile-tab-empty" data-profile-area="album-data">
-                    <h3>Existing albums</h3>
-                    <p>Your albums will appear here.</p>
-                </div>
-            </section>
-
-            <section id="profile-tab-settings" class="profile-tab-panel" role="tabpanel" data-profile-panel="settings" hidden data-requires-owner data-requires-auth>
-                <form class="profile-edit" data-profile-form>
-                    <div class="profile-edit__grid">
-                        <label class="field"><span>Bio</span><textarea name="bio" rows="4" maxlength="500" data-profile-bio-input></textarea></label>
+            <section class="profile-area profile-area--primary" data-profile-region="primary" aria-label="Primary profile content">
+                <section id="profile-primary-overview" class="profile-tab-panel is-active" role="tabpanel" data-profile-primary-panel="overview">
+                    <div class="profile-card__body" data-profile-area="overview-primary">
+                        <div class="profile-stat"><span>Email</span><strong data-profile-email>—</strong></div>
+                        <div class="profile-stat"><span>Status</span><strong data-profile-status>—</strong></div>
+                        <div class="profile-stat"><span>Role</span><strong data-profile-type>Member</strong></div>
+                        <div class="profile-stat"><span>Bio</span><strong data-profile-bio>—</strong></div>
                     </div>
-                    <output class="form-message" data-auth-message aria-live="polite"></output>
-                    <div class="profile-card__footer">
-                        <button class="button button--primary" type="submit">Save changes</button>
+                </section>
+                <section id="profile-primary-post" class="profile-tab-panel" role="tabpanel" data-profile-primary-panel="post" hidden>
+                    <div class="profile-tab-empty" data-profile-area="post-action"><h2>Post</h2><p>Create and manage your posts from your profile.</p></div>
+                </section>
+                <section id="profile-primary-photo" class="profile-tab-panel" role="tabpanel" data-profile-primary-panel="photo" hidden>
+                    <div class="profile-tab-empty" data-profile-area="photo-action"><h2>Photo</h2><p>Upload and manage your photos from your profile.</p></div>
+                </section>
+                <section id="profile-primary-video" class="profile-tab-panel" role="tabpanel" data-profile-primary-panel="video" hidden>
+                    <div class="profile-tab-empty" data-profile-area="video-action"><h2>Video</h2><p>Upload and manage your videos from your profile.</p></div>
+                </section>
+                <section id="profile-primary-album" class="profile-tab-panel" role="tabpanel" data-profile-primary-panel="album" hidden>
+                    <div class="profile-tab-empty" data-profile-area="album-action"><h2>Album</h2><p>Create and manage your albums from your profile.</p></div>
+                </section>
+                <section id="profile-primary-settings" class="profile-tab-panel" role="tabpanel" data-profile-primary-panel="settings" hidden data-requires-owner data-requires-auth>
+                    <form class="profile-edit" data-profile-form>
+                        <div class="profile-edit__grid"><label class="field"><span>Bio</span><textarea name="bio" rows="4" maxlength="500" data-profile-bio-input></textarea></label></div>
+                        <output class="form-message" data-auth-message aria-live="polite"></output>
+                        <div class="profile-card__footer"><button class="button button--primary" type="submit">Save changes</button></div>
+                    </form>
+                </section>
+            </section>
+
+            <section class="profile-area profile-area--secondary" data-profile-region="secondary" aria-label="Profile data content">
+                <section id="profile-secondary-overview" class="profile-tab-panel is-active" role="tabpanel" data-profile-secondary-panel="overview">
+                    <div class="profile-tab-empty" data-profile-area="overview-secondary"><h3>Profile summary</h3><p>Your profile activity and content summary will appear here.</p></div>
+                </section>
+                <section id="profile-secondary-post" class="profile-tab-panel" role="tabpanel" data-profile-secondary-panel="post" hidden>
+                    <div class="profile-tab-empty" data-profile-area="post-data"><h3>Existing posts</h3><p>Your newest posts will appear here.</p></div>
+                </section>
+                <section id="profile-secondary-photo" class="profile-tab-panel" role="tabpanel" data-profile-secondary-panel="photo" hidden>
+                    <div class="profile-tab-empty" data-profile-area="photo-data"><h3>Existing photos</h3><p>Your published photos will appear here.</p></div>
+                </section>
+                <section id="profile-secondary-video" class="profile-tab-panel" role="tabpanel" data-profile-secondary-panel="video" hidden>
+                    <div class="profile-tab-empty" data-profile-area="video-data"><h3>Existing videos</h3><p>Your published videos will appear here.</p></div>
+                </section>
+                <section id="profile-secondary-album" class="profile-tab-panel" role="tabpanel" data-profile-secondary-panel="album" hidden>
+                    <div class="profile-tab-empty" data-profile-area="album-data"><h3>Existing albums</h3><p>Your albums will appear here.</p></div>
+                </section>
+                <section id="profile-secondary-settings" class="profile-tab-panel" role="tabpanel" data-profile-secondary-panel="settings" hidden data-requires-owner data-requires-auth>
+                    <div class="profile-card__body">
+                        <div class="profile-stat"><span>Account status</span><strong data-profile-account-status>—</strong></div>
+                        <div class="profile-stat"><span>Role</span><strong data-profile-settings-role>Member</strong></div>
                     </div>
-                </form>
+                </section>
             </section>
         </main>
     </div>
