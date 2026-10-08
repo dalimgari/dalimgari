@@ -1,0 +1,17 @@
+<section class="messenger" data-messenger>
+  <aside class="messenger__list" aria-label="Conversations">
+    <div class="messenger__head"><h1>Messenger</h1></div>
+    <div class="messenger__conversations" data-messenger-conversations></div>
+  </aside>
+  <section class="messenger__chat" aria-label="Conversation">
+    <header class="messenger__chat-head" data-messenger-chat-head>
+      <strong>Select a conversation</strong>
+    </header>
+    <div class="messenger__messages" data-messenger-messages></div>
+    <form class="messenger__composer" data-messenger-form hidden>
+      <textarea name="body" rows="2" maxlength="5000" placeholder="Write a message…" required></textarea>
+      <button class="button button--primary" type="submit">Send</button>
+    </form>
+    <p class="form-message" data-messenger-message aria-live="polite"></p>
+  </section>
+</section>
