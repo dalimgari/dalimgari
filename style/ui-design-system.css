@@ -221,3 +221,7 @@ body::-webkit-scrollbar,
 .profile-social__avatar{width:40px;height:40px;border-radius:50%;object-fit:cover;background:var(--surface-2)}
 .profile-social__name{font-weight:700;color:inherit;text-decoration:none}.profile-social__actions{display:flex;gap:var(--ui-space-2)}
 @media(max-width:560px){.profile-social__item{grid-template-columns:40px 1fr}.profile-social__actions{grid-column:2}.profile-social__actions .button{width:auto}}
+
+.profile-card__actions{display:flex;flex-wrap:wrap;gap:var(--ui-space-2);margin-top:var(--ui-space-3)}
+.profile-card__actions .button{min-height:var(--ui-control-sm)}
+@media(max-width:560px){.profile-card__actions{width:100%}.profile-card__actions .button{flex:1}}
