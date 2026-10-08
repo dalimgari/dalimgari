@@ -18,10 +18,10 @@ export async function getFeed({limit=10,offset=0}={}){
   const to=offset+limit-1;
   const result=await db.from("posts").select(`
     id,user_id,content,visibility,created_at,updated_at,
-    User:user_id(user_id,email,display_name,avatar_url,bio),
+    
     post_media(sort_order,Media:Media!post_media_media_id_fkey(id,title,media_type,media_url,thumbnail_url)),
     post_reactions(user_id,reaction),
-    comments(id,user_id,content,created_at,User:user_id(user_id,email,display_name,avatar_url)),
+    comments(id,user_id,content,created_at),
     post_shares(user_id)
   `).order("created_at",{ascending:false}).range(offset,to);
   if(result.error)return result;
@@ -29,7 +29,7 @@ export async function getFeed({limit=10,offset=0}={}){
     const score=relIds.has(post.user_id)?2:0;
     return {...post,_feedScore:score};
   }).sort((a,b)=>b._feedScore-a._feedScore||new Date(b.created_at)-new Date(a.created_at));
-  return {...result,data};
+  const ids=[...new Set(data.map(x=>x.user_id).concat(data.flatMap(x=>(x.comments||[]).map(c=>c.user_id))))]; const profiles=ids.length?await db.from("public_profiles").select("user_id,display_name,avatar_url,bio").in("user_id",ids):{data:[]}; const map=new Map((profiles.data||[]).map(x=>[x.user_id,x])); data.forEach(x=>{x.User=map.get(x.user_id)||null;(x.comments||[]).forEach(c=>{c.User=map.get(c.user_id)||null})}); return {...result,data};
 }
 export async function createPost({content,visibility="public",files=[]}={}){
   const user=await currentUser(); if(!user)return {data:null,error:new Error("Sign in required.")};
@@ -66,7 +66,7 @@ export async function reactToPost(postId,reaction="like"){
 }
 export async function getComments(postId){
   if(!db)return {data:[],error:new Error("Database unavailable.")};
-  return db.from("comments").select("id,post_id,user_id,content,created_at,User:user_id(user_id,email,display_name,avatar_url),post_replies(id,comment_id,user_id,content,created_at,User:user_id(user_id,email,display_name,avatar_url))").eq("post_id",postId).order("created_at",{ascending:true});
+  const r=await db.from("comments").select("id,post_id,user_id,content,created_at,post_replies(id,comment_id,user_id,content,created_at)").eq("post_id",postId).order("created_at",{ascending:true}); if(r.error)return r; const ids=[...new Set((r.data||[]).flatMap(c=>[c.user_id,...(c.post_replies||[]).map(x=>x.user_id)]))]; const profiles=ids.length?await db.from("public_profiles").select("user_id,display_name,avatar_url,bio").in("user_id",ids):{data:[]}; const map=new Map((profiles.data||[]).map(x=>[x.user_id,x])); (r.data||[]).forEach(c=>{c.User=map.get(c.user_id)||null;(c.post_replies||[]).forEach(x=>x.User=map.get(x.user_id)||null)}); return r;
 }
 export async function addComment(postId,content){
   const user=await currentUser(); if(!user)return {error:new Error("Sign in required.")};
