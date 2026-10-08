@@ -49,7 +49,7 @@ export async function initProfile(root){
     const client=window.dalimgariSupabase;
     let profile=ctx?.profile||null;
     if(!profile&&client){
-        const {data}=await client.from("User").select("email,account_status,bio,Role(name)").eq("user_id",user.id).maybeSingle();
+        const {data}=await client.from("User").select("email,account_status,bio,role").eq("user_id",user.id).maybeSingle();
         profile=data;
     }
     const roleName=String(profile?.role_name||profile?.role||profile?.Role?.name||"member").toLowerCase();
