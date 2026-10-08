@@ -53,7 +53,7 @@ async function initProfileContent(page,name,client,user){
     if(!source)throw new Error("Invalid profile section.");
     content.replaceChildren(...source.childNodes);
     await window.dalimgariProfileInitializeComponents?.(content);
-    const active=page.querySelector("[data-profile-tab=""+name+""]");
+    const active=page.querySelector('[data-profile-tab="' + name + '"]');
     page.querySelectorAll("[data-profile-tab]").forEach(tab=>tab.classList.toggle("is-active",tab===active));
     initCrud(content,client,user);
     const bioInput=content.querySelector("[data-profile-bio-input]");
