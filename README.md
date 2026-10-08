@@ -1,4 +1,4 @@
-# Dalimgari Community Hub
+# Dalimgari
 
 Dalimgari Community Hub is a community-focused web platform for connecting members, sharing community updates, coordinating events, and managing community information.
 
@@ -13,11 +13,9 @@ The project is a lightweight web application built around reusable HTML/CSS/Java
 - Member directory
 - Media gallery and albums
 - User profile
-- Stories
-- Saved posts and collections
 - Authentication
 - Member and admin access control
-- Community settings
+- Platform settings
 - Language switching
 - Theme preferences
 - Date/time and location widgets
@@ -84,13 +82,12 @@ Supabase is used for:
 - Media and albums
 - Community settings
 - User preferences
-- Social platform features (Stories and Saved Posts)
 - Platform options
 - Community media storage
 
 Database access is performed through the Supabase client and is expected to be protected by appropriate Row Level Security (RLS) policies.
 
-## Community functionality
+## Core functionality
 
 The community area currently supports:
 
@@ -156,7 +153,7 @@ The deployment workflow:
 
 ## Project status
 
-The repository is at a consolidated social-platform checkpoint with core social, Messenger, Stories, Groups, Pages, Saved Posts, moderation reporting, preferences, and access-control foundations integrated. Architecture, UI consistency, access permissions, authentication behavior, community features, and administrative controls are being continuously unified and refined.
+The repository is a consolidated community platform with the core feed, media, albums, profiles, Messenger, notifications, moderation, preferences, and access-control foundations integrated. Architecture, UI consistency, access permissions, authentication behavior, community features, and administrative controls are being continuously unified and refined.
 
 ## Maintenance principles
 
@@ -175,4 +172,4 @@ When extending the project:
 
 **Repository:** `dalimgari/dalimgari`
 
-The project is maintained as the source of truth for the Dalimgari Community Hub website.
+The project is maintained as the source of truth for the Dalimgari website.
