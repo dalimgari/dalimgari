@@ -1,0 +1,31 @@
+<section class="page page-profile" data-page="profile" data-profile-view="video">
+    <div class="profile-card">
+        <header class="profile-card__hero" data-profile-area="identity">
+            <div class="profile-card__avatar" data-component="avatar"></div>
+            <div class="profile-card__identity">
+                <h1 data-profile-name>Profile</h1>
+                <span class="profile-role" data-profile-type>Member</span>
+            </div>
+        </header>
+        <nav class="profile-tabs" aria-label="Profile sections">
+            <a class="profile-tab " aria-current="false" href="#content/profile/overview.html" data-route="content/profile/overview.html">Overview</a>
+            <a class="profile-tab " aria-current="false" href="#content/profile/post.html" data-route="content/profile/post.html">Post</a>
+            <a class="profile-tab " aria-current="false" href="#content/profile/photo.html" data-route="content/profile/photo.html">Photo</a>
+            <a class="profile-tab is-active" aria-current="page" href="#content/profile/video.html" data-route="content/profile/video.html">Video</a>
+            <a class="profile-tab " aria-current="false" href="#content/profile/album.html" data-route="content/profile/album.html">Album</a>
+            <a class="profile-tab is-owner-control " aria-current="false" href="#content/profile/settings.html" data-route="content/profile/settings.html" data-requires-auth>Settings</a>
+        </nav>
+        <main class="profile-content"><div class="profile-crud" data-crud="video">
+    <h2>Video</h2>
+    <form class="profile-crud__form" data-crud-form>
+        <input type="hidden" name="id">
+        <label class="field"><span>Title</span><input name="title" maxlength="180" required></label>
+        <label class="field"><span>Video URL</span><input name="media_url" type="url" required placeholder="https://..."></label>
+        <label class="field"><span>Description</span><textarea name="description" rows="3" maxlength="1000"></textarea></label>
+        <div class="profile-card__footer"><button class="button button--primary" type="submit" data-action-save>Create Video</button><button class="button" type="button" data-action-cancel hidden>Cancel</button></div>
+    </form>
+    <output class="form-message" data-crud-message aria-live="polite"></output>
+    <div data-crud-list></div>
+</div></main>
+    </div>
+</section>
