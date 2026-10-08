@@ -7,14 +7,6 @@ export async function getFeed({limit=10,offset=0}={}){
   if(!db)return {data:[],error:new Error("Database unavailable.")};
   const user=await currentUser();
   const relIds=new Set(user?[user.id]:[]);
-  if(user){
-    const [friends,follows]=await Promise.all([
-      db.from("friendships").select("requester_id,addressee_id").eq("status","accepted").or("requester_id.eq."+user.id+",addressee_id.eq."+user.id),
-      db.from("follows").select("following_id").eq("follower_id",user.id)
-    ]);
-    (friends.data||[]).forEach(x=>relIds.add(x.requester_id===user.id?x.addressee_id:x.requester_id));
-    (follows.data||[]).forEach(x=>relIds.add(x.following_id));
-  }
   const to=offset+limit-1;
   const result=await db.from("posts").select(`
     id,user_id,content,visibility,created_at,updated_at,
@@ -26,7 +18,7 @@ export async function getFeed({limit=10,offset=0}={}){
   `).order("created_at",{ascending:false}).range(offset,to);
   if(result.error)return result;
   const data=(result.data||[]).map(post=>{
-    const score=relIds.has(post.user_id)?2:0;
+    const score=relIds.has(post.user_id)?1:0;
     return {...post,_feedScore:score};
   }).sort((a,b)=>b._feedScore-a._feedScore||new Date(b.created_at)-new Date(a.created_at));
   const ids=[...new Set(data.map(x=>x.user_id).concat(data.flatMap(x=>(x.comments||[]).map(c=>c.user_id))))]; const profiles=ids.length?await db.from("public_profiles").select("user_id,display_name,avatar_url,bio").in("user_id",ids):{data:[]}; const map=new Map((profiles.data||[]).map(x=>[x.user_id,x])); data.forEach(x=>{x.User=map.get(x.user_id)||null;(x.comments||[]).forEach(c=>{c.User=map.get(c.user_id)||null})}); return {...result,data};
