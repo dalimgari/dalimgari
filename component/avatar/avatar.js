@@ -36,8 +36,8 @@ export async function initAvatar(root = document) {
     image.src = avatarUrl || defaultAvatarUrl();
     image.alt = user.email || "Profile";
     image.onerror = () => setDefaultAvatar(image);
-    avatar.href = "#content/profile.html";
-    avatar.dataset.route = "content/profile.html";
+    avatar.href = "#content/profile/overview.html";
+    avatar.dataset.route = "content/profile/overview.html";
     avatar.setAttribute("aria-label", "Profile");
 }
 export function refreshDefaultAvatarTheme(root=document){
