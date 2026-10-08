@@ -4,7 +4,16 @@ const PROFILE_PAGES={
     photo:"./content/profile/photo.html",
     video:"./content/profile/video.html",
     album:"./content/profile/album.html",
-    settings:"./content/profile/settings.html"
+    settings:"./content/profile/settings.html",
+    about:"./content/profile/overview.html",
+    posts:"./content/profile/post.html",
+    photos:"./content/profile/photo.html",
+    videos:"./content/profile/video.html",
+    albums:"./content/profile/album.html",
+    friends:"./content/profile/social.html",
+    followers:"./content/profile/social.html",
+    following:"./content/profile/social.html",
+    activity:"./content/profile/social.html"
 };
 function setMessage(box,message,error=false){if(!box)return;box.textContent=message;box.dataset.state=error?"error":"success";}
 function initCrud(page,client,user){
@@ -55,6 +64,22 @@ async function initProfileContent(page,name,client,user){
     const active=page.querySelector('[data-profile-tab="' + name + '"]');
     page.querySelectorAll("[data-profile-tab]").forEach(tab=>tab.classList.toggle("is-active",tab===active));
     initCrud(content,client,user);
+    const socialSection=content.querySelector("[data-profile-section='social']");
+    if(socialSection){
+        const title=socialSection.querySelector("[data-social-title]"),description=socialSection.querySelector("[data-social-description]"),list=socialSection.querySelector("[data-social-list]");
+        const labels={friends:["Friends","Your accepted community connections."],followers:["Followers","People who follow this profile."],following:["Following","Profiles this account follows."],activity:["Activity","Recent activity for this profile."]};
+        const meta=labels[name]||["Social","Community connections."];
+        title.textContent=meta[0];description.textContent=meta[1];
+        const [friends,followers,following,posts]=await Promise.all([
+            client.from("friendships").select("id",{count:"exact",head:true}).or("requester_id.eq."+user.id+",addressee_id.eq."+user.id).eq("status","accepted"),
+            client.from("follows").select("follower_id",{count:"exact",head:true}).eq("following_id",user.id),
+            client.from("follows").select("following_id",{count:"exact",head:true}).eq("follower_id",user.id),
+            client.from("posts").select("id,content,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(5)
+        ]);
+        const counts={friends:friends.count||0,followers:followers.count||0,following:following.count||0};
+        if(name==="activity") list.innerHTML=(posts.data||[]).map(x=>'<article class="profile-social__item"><strong>Post</strong><p>'+String(x.content||"").replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]))+'</p></article>').join("")||'<div class="empty">No recent activity.</div>';
+        else list.innerHTML='<div class="profile-social__item"><strong>'+counts[name]+'</strong><span> '+meta[0].toLowerCase()+'</span></div>';
+    }
     const bioInput=content.querySelector("[data-profile-bio-input]");
     if(bioInput)bioInput.value=content.dataset.profileBio||user.user_metadata?.bio||"";
     const form=content.querySelector("[data-profile-form]");
@@ -96,4 +121,4 @@ export async function initProfile(root){
     const initial=getProfileNameFromHash();
     load(initial);
 }
-function getProfileNameFromHash(){const path=window.location.hash.slice(1);const match=path.match(/^content\/profile\/(overview|post|photo|video|album|settings)\.html$/);return match?.[1]||"overview";}
+function getProfileNameFromHash(){const path=window.location.hash.slice(1);const match=path.match(/^content\/profile\/(overview|post|photo|video|album|settings|about|posts|photos|videos|albums|friends|followers|following|activity)\.html$/);return match?.[1]||"overview";}
