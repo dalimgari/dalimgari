@@ -217,3 +217,7 @@ body::-webkit-scrollbar,
 .text-link--small{font-size:var(--ui-text-sm)}
 
 .feed-composer{padding:var(--ui-space-5);margin-bottom:var(--ui-space-4)}.feed-composer__footer{display:flex;justify-content:space-between;align-items:center;gap:var(--ui-space-3);margin-top:var(--ui-space-3)}.feed-composer__footer select{width:auto;min-width:140px}.profile-social__list{display:grid;gap:var(--ui-space-3)}.profile-social__item{padding:var(--ui-space-4);border:1px solid var(--border);border-radius:var(--ui-radius);background:var(--surface)}@media(max-width:560px){.feed-composer__footer{align-items:stretch;flex-direction:column}.feed-composer__footer select,.feed-composer__footer .button{width:100%}}
+.profile-social__item{display:grid;grid-template-columns:40px 1fr auto;align-items:center;gap:var(--ui-space-3);padding:var(--ui-space-3);border:1px solid var(--border);border-radius:var(--ui-radius);background:var(--surface)}
+.profile-social__avatar{width:40px;height:40px;border-radius:50%;object-fit:cover;background:var(--surface-2)}
+.profile-social__name{font-weight:700;color:inherit;text-decoration:none}.profile-social__actions{display:flex;gap:var(--ui-space-2)}
+@media(max-width:560px){.profile-social__item{grid-template-columns:40px 1fr}.profile-social__actions{grid-column:2}.profile-social__actions .button{width:auto}}
