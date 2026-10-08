@@ -49,7 +49,7 @@ async function initProfileContent(page,name,client,user){
     if(!response.ok)throw new Error("Failed to load profile section: "+response.status);
     const html=await response.text();
     const template=document.createElement("template");template.innerHTML=html;
-    const source=template.content.querySelector("[data-page=profile] .profile-content");
+    const source=template.content.querySelector("[data-profile-section]");
     if(!source)throw new Error("Invalid profile section.");
     content.replaceChildren(...source.childNodes);
     await window.dalimgariProfileInitializeComponents?.(content);
