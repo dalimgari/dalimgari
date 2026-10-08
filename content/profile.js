@@ -1,8 +1,5 @@
-import {follow,unfollow,getRelationship,sendFriendRequest,respondFriendRequest,unfriend,block,unblock} from "../services/social.js";
-import {getSocialList,getRelationshipState} from "../services/social-directory.js";
-
 const esc=s=>String(s??"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
-const PROFILE_PAGES={overview:"./content/profile/overview.html",post:"./content/profile/post.html",photo:"./content/profile/photo.html",video:"./content/profile/video.html",album:"./content/profile/album.html",settings:"./content/profile/settings.html",about:"./content/profile/overview.html",posts:"./content/profile/post.html",photos:"./content/profile/photo.html",videos:"./content/profile/video.html",albums:"./content/profile/album.html",friends:"./content/profile/social.html",followers:"./content/profile/social.html",following:"./content/profile/social.html",activity:"./content/profile/social.html"};
+const PROFILE_PAGES={overview:"./content/profile/overview.html",post:"./content/profile/post.html",photo:"./content/profile/photo.html",video:"./content/profile/video.html",album:"./content/profile/album.html",settings:"./content/profile/settings.html",about:"./content/profile/overview.html",posts:"./content/profile/post.html",photos:"./content/profile/photo.html",videos:"./content/profile/video.html",albums:"./content/profile/album.html",activity:"./content/profile/activity.html"};
 
 function setMessage(box,message,error=false){if(!box)return;box.textContent=message;box.dataset.state=error?"error":"success";}
 
@@ -27,14 +24,11 @@ function initCrud(page,client,user){
 async function renderRelationship(page,profileId){
  const actions=page.querySelector("[data-profile-actions]");if(!actions)return;
  const ctx=await window.dalimgariAccess?.getContext?.(),me=ctx?.user?.id;if(!me||me===profileId){actions.hidden=true;return;}
- const state=await getRelationship(me,profileId);actions.hidden=false;
- const followBtn=actions.querySelector("[data-profile-follow]"),friendBtn=actions.querySelector("[data-profile-friend]"),blockBtn=actions.querySelector("[data-profile-block]");
- followBtn.textContent=state.following?"Following":"Follow";
- friendBtn.textContent=state.friend==="accepted"?"Unfriend":state.friend==="pending"?(state.friendship?.requester_id===me?"Request sent":"Accept request"):"Add Friend";
- blockBtn.textContent=state.blocked?"Unblock":"Block";
- followBtn.onclick=async()=>{const r=state.following?await unfollow(profileId):await follow(profileId);if(!r.error)await renderRelationship(page,profileId);};
- friendBtn.onclick=async()=>{let r;if(state.friend==="accepted")r=await unfriend(profileId);else if(state.friend==="pending"&&state.friendship?.addressee_id===me)r=await respondFriendRequest(state.friendship.id,"accepted");else if(state.friend==="pending")return;else r=await sendFriendRequest(profileId);if(r?.error)return;await renderRelationship(page,profileId);};
- blockBtn.onclick=async()=>{const r=state.blocked?await unblock(profileId):await block(profileId);if(!r.error)await renderRelationship(page,profileId);};
+ const blockBtn=actions.querySelector("[data-profile-block]");if(!blockBtn)return;
+ const db=window.dalimgariSupabase;
+ const state=await db.from("blocks").select("blocked_id").eq("blocker_id",me).eq("blocked_id",profileId).maybeSingle();
+ blockBtn.textContent=state.data?"Unblock":"Block";
+ blockBtn.onclick=async()=>{const r=state.data?await db.from("blocks").delete().eq("blocker_id",me).eq("blocked_id",profileId):await db.from("blocks").insert({blocker_id:me,blocked_id:profileId});if(!r.error)await renderRelationship(page,profileId);};
 }
 
 async function initProfileContent(page,name,client,user){
@@ -72,4 +66,4 @@ export async function initProfile(root){
  page.querySelectorAll("[data-profile-tab]").forEach(tab=>tab.addEventListener("click",event=>{event.preventDefault();const name=tab.dataset.profileTab;window.location.hash=tab.getAttribute("href");load(name);}));
  const initial=getProfileNameFromHash();load(initial);
 }
-function getProfileNameFromHash(){const path=window.location.hash.slice(1).split("?")[0];const match=path.match(/^content\/profile\/(overview|post|photo|video|album|settings|about|posts|photos|videos|albums|friends|followers|following|activity)\.html$/);return match?.[1]||"overview";}
+function getProfileNameFromHash(){const path=window.location.hash.slice(1).split("?")[0];const match=path.match(/^content\/profile\/(overview|post|photo|video|album|settings|about|posts|photos|videos|albums|activity)\.html$/);return match?.[1]||"overview";}
