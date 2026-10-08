@@ -78,10 +78,6 @@ export async function addReply(commentId,content){
   const text=String(content||"").trim(); if(!text)return {error:new Error("Reply cannot be empty.")};
   return db.from("post_replies").insert({comment_id:commentId,user_id:user.id,content:text}).select().single();
 }
-export async function toggleSave(postId,saved){
-  const user=await currentUser(); if(!user)return {error:new Error("Sign in required.")};
-  return saved?db.from("saved_posts").delete().eq("post_id",postId).eq("user_id",user.id):db.from("saved_posts").insert({post_id:postId,user_id:user.id});
-}
 export async function sharePost(postId){
   const user=await currentUser(); if(!user)return {error:new Error("Sign in required."),created:false};
   const existing=await db.from("post_shares").select("id").eq("post_id",postId).eq("user_id",user.id).maybeSingle();
@@ -89,14 +85,6 @@ export async function sharePost(postId){
   if(existing.data)return {data:existing.data,created:false};
   const created=await db.from("post_shares").insert({post_id:postId,user_id:user.id}).select("id").single();
   return {...created,created:!created.error};
-}
-export async function getPostState(postId){
-  const user=await currentUser(); if(!user)return {saved:false,reaction:null};
-  const [saved,reaction]=await Promise.all([
-    db.from("saved_posts").select("post_id").eq("post_id",postId).eq("user_id",user.id).maybeSingle(),
-    db.from("post_reactions").select("reaction").eq("post_id",postId).eq("user_id",user.id).maybeSingle()
-  ]);
-  return {saved:!!saved.data,reaction:reaction.data?.reaction||null};
 }
 async function uploadPostMedia(files){
   const user=await currentUser(); if(!user)return {error:new Error("Sign in required.")};
