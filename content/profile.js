@@ -116,7 +116,7 @@ export async function initProfile(root){
     page.dataset.profileStatus=profile?.account_status||"";
     page.dataset.profileBio=profile?.bio??metadata.bio??"";
     page.querySelector("[data-profile-email]")?.replaceChildren(document.createTextNode(page.dataset.profileEmail||"—"));
-    page.querySelector("[data-profile-status]")?.replaceChildren(document.createTextNode(page.dataset.profileStatus||"—"));\n    page.querySelector("[data-profile-message]")?.addEventListener("click",()=>{window.location.hash="content/messenger.html?user="+encodeURIComponent(profileId)});\n    if(!isOwner)page.querySelectorAll(".is-owner-control").forEach(el=>el.hidden=true);
+    page.querySelector("[data-profile-status]")?.replaceChildren(document.createTextNode(page.dataset.profileStatus||"—"));\n    page.querySelector("[data-profile-message]")?.addEventListener("click",()=>{window.location.hash="content/messenger.html?user="+encodeURIComponent(profileId)});\n    if(!isOwner)page.querySelectorAll(".is-owner-control").forEach(el=>el.hidden=true);\n    if(isOwner)page.querySelector("[data-profile-message]")?.setAttribute("hidden","");
     page.querySelector("[data-profile-bio]")?.replaceChildren(document.createTextNode(page.dataset.profileBio||"—"));
     const load=name=>initProfileContent(page,name,client,user).catch(error=>console.error("Profile section load failed:",error));
     page.querySelectorAll("[data-profile-tab]").forEach(tab=>tab.addEventListener("click",event=>{
