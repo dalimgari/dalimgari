@@ -1,11 +1,13 @@
-function bindProfileTabs(root=document){
-    const page=root.matches?.("[data-page=profile]")?root:root.querySelector?.("[data-page=profile]");
-    if(!page||page.dataset.profileTabsBound==="true")return;
+function getProfileTabController(page){
+    if(page._profileTabController)return page._profileTabController;
     const tabs=[...page.querySelectorAll("[data-profile-tab]")];
     const panels=[...page.querySelectorAll("[data-profile-panel]")];
-    if(!tabs.length||!panels.length)return;
+    if(!tabs.length||!panels.length)return null;
+    const selectable=()=>tabs.filter(tab=>!tab.hidden);
     const selectTab=(name,focus=false)=>{
-        const target=tabs.find(tab=>tab.dataset.profileTab===name)||tabs[0];
+        const available=selectable();
+        const target=available.find(tab=>tab.dataset.profileTab===name)||available.find(tab=>tab.dataset.profileTab==="overview")||available[0];
+        if(!target)return;
         const activeName=target.dataset.profileTab;
         tabs.forEach(tab=>{
             const active=tab===target;
@@ -21,30 +23,39 @@ function bindProfileTabs(root=document){
         page.dataset.profileActiveTab=activeName;
         if(focus)target.focus({preventScroll:true});
     };
-    page.addEventListener("click",event=>{
+    const onClick=event=>{
         const tab=event.target.closest?.("[data-profile-tab]");
-        if(tab&&page.contains(tab))selectTab(tab.dataset.profileTab);
-    });
-    page.addEventListener("keydown",event=>{
+        if(tab&&page.contains(tab)&&!tab.hidden)selectTab(tab.dataset.profileTab);
+    };
+    const onKeydown=event=>{
         const tab=event.target.closest?.("[data-profile-tab]");
-        if(!tab||!page.contains(tab))return;
+        if(!tab||!page.contains(tab)||tab.hidden)return;
         if(!["ArrowLeft","ArrowRight","Home","End"].includes(event.key))return;
         event.preventDefault();
-        const index=tabs.indexOf(tab);
-        const next=event.key==="Home"?0:event.key==="End"?tabs.length-1:(index+(event.key==="ArrowRight"?1:-1)+tabs.length)%tabs.length;
-        selectTab(tabs[next].dataset.profileTab,true);
-    });
-    selectTab("overview");
-    page.dataset.profileTabsBound="true";
+        const available=selectable();
+        const index=available.indexOf(tab);
+        const next=event.key==="Home"?0:event.key==="End"?available.length-1:(index+(event.key==="ArrowRight"?1:-1)+available.length)%available.length;
+        selectTab(available[next]?.dataset.profileTab,true);
+    };
+    page.addEventListener("click",onClick);
+    page.addEventListener("keydown",onKeydown);
+    page._profileTabController={selectTab,refresh:()=>selectTab(page.dataset.profileActiveTab||"overview")};
+    return page._profileTabController;
+}
+function bindProfileTabs(root=document){
+    const page=root.matches?.("[data-page=profile]")?root:root.querySelector?.("[data-page=profile]");
+    if(!page)return null;
+    return getProfileTabController(page);
 }
 export async function initProfile(root){
     const page=root.querySelector("[data-page=profile]");
     if(!page)return;
-    bindProfileTabs(page);
+    const controller=bindProfileTabs(page);
     const access=window.dalimgariAccess;
     const ctx=await access?.getContext?.();
     const owner=!!ctx?.isAuthenticated;
     page.querySelectorAll("[data-requires-owner]").forEach(el=>{el.hidden=!owner;});
+    controller?.refresh();
     const user=ctx?.user||ctx?.session?.user;
     if(!user)return;
     const metadata=user.user_metadata||{};
