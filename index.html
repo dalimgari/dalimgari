@@ -987,10 +987,11 @@
       if (!isCurrent()) return;
       const configs = {
         post: { table:"posts", label:"Posts", fields:[
-          {name:"title",label:"Title",type:"text",required:true},
+          {name:"title",label:"Caption",type:"text",required:true},
           {name:"description",label:"Description",type:"textarea",full:true},
-          {name:"url",label:"URL",type:"text",required:true,help:"Automatically suggested from the title; you can edit it."},
-          {name:"media_ids",label:"Select media from shared library",type:"media_multi",full:true},
+          {name:"post_media_method",label:"Choose exactly one media method",type:"select",options:[["photo","Photo upload"],["video","Video upload"],["external","External link"]]},
+          {name:"post_media_file",label:"Choose one photo or video",type:"file",accept:"image/*",full:true},
+          {name:"post_external_url",label:"External media link",type:"url",full:true},
           {name:"album_id",label:"Album",type:"album"},
           {name:"visibility",label:"Visibility",type:"select",options:[["public","Public"],["private","Only Me"]]}
         ]},
@@ -1202,6 +1203,26 @@
       function generateUrlValue(value){return String(value||"").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");}
       if(section.id==="post"||section.id==="page"){} 
       for(const def of config.fields)makeField(def);
+      if(section.id==="post"){
+        const method=controls.post_media_method;
+        const file=controls.post_media_file;
+        const url=controls.post_external_url;
+        const fileHolder=file.closest(".dashboard-crud-field");
+        const urlHolder=url.closest(".dashboard-crud-field");
+        file.multiple=false;
+        url.placeholder="https://…";
+        function syncPostMediaMethod(){
+          fileHolder.hidden=method.value==="external";
+          urlHolder.hidden=method.value!=="external";
+          file.accept=method.value==="photo"?"image/*":"video/*";
+          file.required=method.value!=="external";
+          url.required=method.value==="external";
+          file.value="";
+          url.value="";
+        }
+        method.addEventListener("change",syncPostMediaMethod);
+        syncPostMediaMethod();
+      }
       let mediaPreview=null;
       if(config.mediaType && controls.source_type && controls.external_url){
         controls.media_type=document.createElement("input");controls.media_type.type="hidden";controls.media_type.value=config.mediaType;form.append(controls.media_type);
@@ -1233,7 +1254,7 @@
         controls.source_type?.addEventListener("change",updatePreview);
       }
       // One shared Media Library uploader for all media-related Dashboard sections.
-      if (["post","photo","video","album"].includes(section.id)) {
+      if (["photo","video","album"].includes(section.id)) {
         const uploadCard = document.createElement("section");
         uploadCard.className = "dashboard-crud-card";
         const uploadHeading = document.createElement("h3");
@@ -1389,7 +1410,7 @@
       }
       function resetForm(){
         selectedId=null;form.reset();if(controls.source_type){controls.source_type.value="external";controls.external_url.closest(".dashboard-crud-field").hidden=false;controls.upload_file.closest(".dashboard-crud-field").hidden=true;}
-        save.textContent=config.editOnly?"Select a media item":(config.readOnlyCreate?"Save Profile":"Create");save.disabled=!!config.editOnly;remove.disabled=true;setStatus("");
+        save.textContent=config.editOnly?"Select a media item":(config.readOnlyCreate?"Save Profile":(section.id==="post"?"Publish":"Create"));save.disabled=!!config.editOnly;remove.disabled=true;setStatus("");
         list.querySelectorAll(".dashboard-crud-row").forEach(row=>row.classList.remove("is-selected"));
       }
       clear.addEventListener("click",resetForm);
@@ -1459,7 +1480,7 @@
         save.disabled=true;remove.disabled=true;save.textContent="Saving…";setStatus("");
         try{
           const payload={};
-          config.fields.forEach(def=>{if(def.type==="file"||def.type==="media_multi")return;let value=controls[def.name].value;if(def.name==="value"&&(section.id==="customization"||section.id==="settings")){try{value=JSON.parse(value);}catch{throw new Error("Value must be valid JSON.");}}else if(value==="")value=null;payload[def.name]=value;});
+          config.fields.forEach(def=>{if(def.type==="file"||def.type==="media_multi"||def.name==="post_media_method"||def.name==="post_external_url")return;let value=controls[def.name].value;if(def.name==="value"&&(section.id==="customization"||section.id==="settings")){try{value=JSON.parse(value);}catch{throw new Error("Value must be valid JSON.");}}else if(value==="")value=null;payload[def.name]=value;});
           if(config.mediaType && controls.source_type && controls.external_url){payload.media_type=config.mediaType;payload.source_type=controls.source_type.value;
             if(payload.source_type==="upload"){
               const file=controls.upload_file.files?.[0];if(file){const ext=(file.name.split(".").pop()||"bin").replace(/[^a-zA-Z0-9]/g,"");const path=user.id+"/"+crypto.randomUUID()+"."+ext;
@@ -1472,8 +1493,53 @@
               payload.external_url=url;payload.storage_path=null;
             }
           }
-          if(config.table==="posts"||config.table==="pages"){payload.url=generateUrlValue(payload.url||payload.title);if(!payload.url)throw new Error("Title or URL is required.");}
-          if(config.table==="posts"&&payload.album_id==="")payload.album_id=null;
+          if(config.table==="posts"){
+            const caption=String(controls.title.value||"").trim();
+            if(!caption)throw new Error("Enter a caption.");
+            const method=controls.post_media_method.value;
+            const file=controls.post_media_file.files?.[0]||null;
+            const externalUrl=String(controls.post_external_url.value||"").trim();
+            if(method==="external"){
+              if(!/^https?:\/\//i.test(externalUrl))throw new Error("Enter a valid external http:// or https:// link.");
+            }else{
+              if(!file)throw new Error("Choose exactly one photo or video.");
+              if(method==="photo"&&!file.type.startsWith("image/"))throw new Error("For Photo upload, choose an image file.");
+              if(method==="video"&&!file.type.startsWith("video/"))throw new Error("For Video upload, choose a video file.");
+            }
+            const slug=generateUrlValue(caption);
+            if(!slug)throw new Error("Caption must contain letters or numbers to create a post URL.");
+            let uploadedPath=null, mediaId=null, postId=null;
+            try{
+              const mediaPayload={title:caption,description:null,media_type:method==="external"?"other":method,source_type:method==="external"?"external":"upload",external_url:method==="external"?externalUrl:null,storage_path:null,visibility:payload.visibility||"public",created_by:user.id};
+              if(method!=="external"){
+                const ext=(file.name.split(".").pop()||"bin").replace(/[^a-zA-Z0-9]/g,"").toLowerCase()||"bin";
+                uploadedPath=user.id+"/"+crypto.randomUUID()+"."+ext;
+                const {error:storageError}=await supabaseClient.storage.from("site-media").upload(uploadedPath,file,{upsert:false,contentType:file.type||"application/octet-stream"});
+                if(storageError)throw storageError;
+                mediaPayload.storage_path=uploadedPath;
+              }
+              const {data:mediaRecord,error:mediaError}=await supabaseClient.from("media").insert(mediaPayload).select("id").single();
+              if(mediaError)throw mediaError;
+              mediaId=mediaRecord.id;
+              const postPayload={title:caption,description:controls.description.value.trim()||null,url:slug,album_id:controls.album_id.value||null,visibility:controls.visibility.value||"public",created_by:user.id,updated_at:new Date().toISOString()};
+              const {data:postRecord,error:postError}=await supabaseClient.from("posts").insert(postPayload).select("id").single();
+              if(postError)throw postError;
+              postId=postRecord.id;
+              const {error:linkError}=await supabaseClient.from("post_media").insert({post_id:postId,media_id:mediaId,sort_order:0});
+              if(linkError)throw linkError;
+              if(postPayload.album_id){
+                const {error:albumLinkError}=await supabaseClient.from("album_media").insert({album_id:postPayload.album_id,media_id:mediaId,sort_order:0});
+                if(albumLinkError)throw albumLinkError;
+              }
+            }catch(postError){
+              if(postId){await supabaseClient.from("post_media").delete().eq("post_id",postId);await supabaseClient.from("posts").delete().eq("id",postId);}
+              if(mediaId){await supabaseClient.from("post_media").delete().eq("media_id",mediaId);await supabaseClient.from("album_media").delete().eq("media_id",mediaId);await supabaseClient.from("media").delete().eq("id",mediaId);}
+              if(uploadedPath){const {error:cleanupError}=await supabaseClient.storage.from("site-media").remove([uploadedPath]);if(cleanupError)console.warn("Uploaded file cleanup failed",cleanupError);}
+              throw postError;
+            }
+            resetForm();setStatus("Post published successfully with one media item.","success");await loadRecords();return;
+          }
+          if(config.table==="pages"){payload.url=generateUrlValue(payload.url||payload.title);if(!payload.url)throw new Error("Title or URL is required.");}
           if(config.table==="site_customizations"||config.table==="site_settings")payload.updated_by=user.id;
           if(config.table!=="profiles")payload.updated_at=new Date().toISOString();
           let result;
@@ -1485,11 +1551,6 @@
           }
           if(result.error)throw result.error;
           const savedId=result.data?.id||selectedId;
-          if(section.id==="post"&&savedId){
-            await supabaseClient.from("post_media").delete().eq("post_id",savedId);
-            const mediaIds=Array.from(controls.media_ids.selectedOptions).map(o=>o.value);
-            if(mediaIds.length){const {error:relationError}=await supabaseClient.from("post_media").insert(mediaIds.map((media_id,sort_order)=>({post_id:savedId,media_id,sort_order})));if(relationError)throw relationError;}
-          }
           if(section.id==="album"&&savedId){
             await supabaseClient.from("album_media").delete().eq("album_id",savedId);
             const mediaIds=Array.from(controls.media_ids.selectedOptions).map(o=>o.value);
@@ -1497,7 +1558,7 @@
           }
           const wasUpdating=Boolean(selectedId);resetForm();setStatus(wasUpdating?"Record updated successfully.":"Record created successfully.","success");await loadRecords();
         }catch(error){setStatus(error.message||"Could not save record.","error");}
-        finally{save.disabled=false;save.textContent=selectedId?"Update":(config.readOnlyCreate?"Save Profile":"Create");remove.disabled=!selectedId||!!config.noDelete;}
+        finally{save.disabled=false;save.textContent=selectedId?"Update":(config.readOnlyCreate?"Save Profile":(section.id==="post"?"Publish":"Create"));remove.disabled=!selectedId||!!config.noDelete;}
       });
       remove.addEventListener("click",async()=>{
         if(!selectedId||config.noDelete)return;
