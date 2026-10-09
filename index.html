@@ -988,7 +988,7 @@
         post: { table:"posts", label:"Posts", fields:[
           {name:"title",label:"Title",type:"text",required:true},
           {name:"description",label:"Description",type:"textarea",full:true},
-          {name:"url_slug",label:"URL slug",type:"text",required:true,help:"Automatically suggested from the title; you can edit it."},
+          {name:"url",label:"URL",type:"text",required:true,help:"Automatically suggested from the title; you can edit it."},
           {name:"media_ids",label:"Attach existing photo/video media",type:"media_multi",full:true},
           {name:"album_id",label:"Album",type:"album"},
           {name:"visibility",label:"Visibility",type:"select",options:[["public","Public"],["private","Only Me"]]}
@@ -1019,7 +1019,7 @@
           {name:"title",label:"Title",type:"text",required:true},
           {name:"description",label:"Description",type:"textarea",full:true},
           {name:"content",label:"Page content",type:"textarea",full:true},
-          {name:"url_slug",label:"URL slug",type:"text",required:true,help:"Suggested from the title; you can override it."},
+          {name:"url",label:"URL",type:"text",required:true,help:"Suggested from the title; you can override it."},
           {name:"visibility",label:"Visibility",type:"select",options:[["public","Public"],["private","Only Me"]]}
         ]},
         role: { table:"roles", label:"Roles", fields:[
@@ -1105,18 +1105,18 @@
         holder.append(label,input);
         if(def.help){const help=document.createElement("small");help.className="dashboard-crud-hint";help.textContent=def.help;holder.append(help);}
         form.insertBefore(holder,actions);controls[def.name]=input;
-        if((def.name==="url_slug")&&(section.id==="post"||section.id==="page")) {
-          let slugTouched=false;input.addEventListener("input",()=>{slugTouched=true;});
+        if((def.name==="url")&&(section.id==="post"||section.id==="page")) {
+          let urlEdited=false;input.addEventListener("input",()=>{urlEdited=true;});
           const titleInput=()=>controls.title;
-          titleInput().addEventListener("input",()=>{if(!slugTouched&&!selectedId)input.value=slugify(titleInput().value);});
-          input.addEventListener("blur",()=>{if(!input.value.trim()&&titleInput().value.trim())input.value=slugify(titleInput().value);});
+          titleInput().addEventListener("input",()=>{if(!urlEdited&&!selectedId)input.value=generateUrlValue(titleInput().value);});
+          input.addEventListener("blur",()=>{if(!input.value.trim()&&titleInput().value.trim())input.value=generateUrlValue(titleInput().value);});
         }
         if(def.name==="source_type"){
           input.addEventListener("change",()=>{const external=controls.external_url?.closest(".dashboard-crud-field");const file=controls.upload_file?.closest(".dashboard-crud-field");if(external)external.hidden=input.value!=="external";if(file)file.hidden=input.value!=="upload";});
         }
         return input;
       }
-      function slugify(value){return String(value||"").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");}
+      function generateUrlValue(value){return String(value||"").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");}
       if(section.id==="post"||section.id==="page"){} 
       for(const def of config.fields)makeField(def);
       let mediaPreview=null;
@@ -1174,7 +1174,7 @@
         records.forEach(record=>{
           const row=document.createElement("tr");row.className="dashboard-crud-row";row.tabIndex=0;
           const title=record.title||record.name||record.key||record.full_name||record.id||"Record";
-          const details=record.external_url||record.url_slug||record.description||record.phone||record.source_type||"";
+          const details=record.external_url||record.url||record.description||record.phone||record.source_type||"";
           [String(record.id||"").slice(0,8)||"—",title,details,record.visibility==="private"?"Only Me":record.visibility==="public"?"Public":"—",record.created_at?new Date(record.created_at).toLocaleString():"—"].forEach(value=>{const td=document.createElement("td");td.textContent=String(value);row.append(td);});
           const first=row.firstElementChild;first.textContent="Select";
           row.addEventListener("click",()=>selectRecord(record,row));
@@ -1215,7 +1215,7 @@
               payload.external_url=url;payload.storage_path=null;
             }
           }
-          if(config.table==="posts"||config.table==="pages"){payload.url_slug=slugify(payload.url_slug||payload.title);if(!payload.url_slug)throw new Error("Title or URL slug is required.");}
+          if(config.table==="posts"||config.table==="pages"){payload.url=generateUrlValue(payload.url||payload.title);if(!payload.url)throw new Error("Title or URL is required.");}
           if(config.table==="posts"&&payload.album_id==="")payload.album_id=null;
           if(config.table==="site_customizations"||config.table==="site_settings")payload.updated_by=user.id;
           if(config.table!=="profiles")payload.updated_at=new Date().toISOString();
