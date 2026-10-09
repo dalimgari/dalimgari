@@ -291,7 +291,17 @@
     .attachment-button{flex:0 0 auto;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;background:#fff;color:#222;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
     .attachment-button:hover{background:#f3f4f6}.attachment-filename{margin:-8px 0 14px;color:#475569;font-size:13px;overflow-wrap:anywhere}
     .attachment-input{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-    @media(max-width:420px){.attachment-picker{gap:10px;padding:12px}.attachment-icon{flex-basis:38px;width:38px;height:38px}.attachment-button{padding:8px;font-size:12px}}
+    .message-retention-notice{margin:0 0 22px;padding:14px 16px;border:1px solid #dbeafe;border-radius:12px;background:#eff6ff;color:#1e40af;text-align:center;font-size:14px;font-weight:600;line-height:1.6}
+    .message-quota{margin:4px 0 18px;padding:13px 14px;border:1px solid #e5e7eb;border-radius:10px;background:#fafafa}
+    .message-quota-label{display:flex;justify-content:space-between;gap:10px;margin-bottom:8px;color:#4b5563;font-size:13px}
+    .message-quota-track{height:7px;overflow:hidden;border-radius:999px;background:#e5e7eb}
+    .message-quota-fill{width:0;height:100%;border-radius:999px;background:#475569;transition:width .2s ease}
+    .message-send-status{margin:12px 0 0;font-size:14px;line-height:1.5;overflow-wrap:anywhere}
+    .admin-message-card{padding:16px;margin:0 0 12px;border:1px solid #e5e7eb;border-radius:12px;background:#fff;overflow-wrap:anywhere}
+    .admin-message-meta{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin:0 0 10px;color:#6b7280;font-size:12px}
+    .admin-message-body{margin:0 0 12px;color:#222;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6}
+    .admin-message-file{display:inline-block;margin:0 0 8px;color:#1d4ed8;font-size:14px;overflow-wrap:anywhere}
+    @media(max-width:420px){.attachment-picker{gap:10px;padding:12px}.attachment-icon{flex-basis:38px;width:38px;height:38px}.attachment-button{padding:8px;font-size:12px}.message-quota-label{flex-direction:column;gap:4px}}
     @media(max-width:560px){.profile-page,.message-page{padding:17px;margin:18px auto}.profile-details{grid-template-columns:1fr}.profile-actions .action-button{flex:1 1 100%}.profile-heading,.message-heading{font-size:22px}}
 
     footer {
@@ -352,6 +362,7 @@
       if (pageName === "Profile") { renderProfile(); return; }
       if (pageName === "EditProfile") { renderEditProfile(); return; }
       if (pageName === "Message") { renderMessage(); return; }
+      if (pageName === "AdminInbox") { renderAdminInbox(); return; }
       if (pageName !== "Login") return;
 
       const form = document.createElement("form");
@@ -676,7 +687,13 @@
       msg.addEventListener("click",()=>{renderPage("Message");history.replaceState(null,"","#message");});
       const logout=document.createElement("button");logout.className="action-button";logout.textContent="Logout";logout.type="button";
       logout.addEventListener("click",async()=>{const {error}=await supabaseClient.auth.signOut();if(!error){renderPage("Login");history.replaceState(null,"","#login");setCurrentMenuPage("Login");}});
-      actions.append(edit,msg,logout);page.append(heading,summary,info,actions);mainContent.replaceChildren(page);setCurrentMenuPage("Profile");
+      actions.append(edit,msg);
+      if (role === "ADMIN") {
+        const inbox=document.createElement("button");inbox.className="action-button";inbox.type="button";inbox.textContent="Admin Inbox";
+        inbox.addEventListener("click",()=>{renderPage("AdminInbox");history.replaceState(null,"","#admin-inbox");});
+        actions.append(inbox);
+      }
+      actions.append(logout);page.append(heading,summary,info,actions);mainContent.replaceChildren(page);setCurrentMenuPage("Profile");
     }
 
     async function renderEditProfile() {
@@ -743,28 +760,334 @@
       page.append(heading,form);mainContent.replaceChildren(page);
     }
 
+    async function renderAdminInbox() {
+      const user = await getCurrentUser();
+      if (!user || String((user.app_metadata || {}).role || "").toLowerCase() !== "admin") {
+        renderPage("Profile");
+        history.replaceState(null, "", "#profile");
+        return;
+      }
+
+      const page = document.createElement("section");
+      page.className = "message-page";
+      const back = document.createElement("button");
+      back.className = "action-button back-profile";
+      back.type = "button";
+      back.textContent = "← Back to Profile";
+      back.addEventListener("click", () => {
+        renderPage("Profile");
+        history.replaceState(null, "", "#profile");
+      });
+
+      const heading = document.createElement("h1");
+      heading.className = "message-heading";
+      heading.textContent = "Admin Inbox";
+      const status = document.createElement("p");
+      status.className = "message-send-status";
+      status.setAttribute("role", "status");
+      status.textContent = "Loading messages...";
+      page.append(back, heading, status);
+      mainContent.replaceChildren(page);
+
+      const { data: messages, error } = await supabaseClient
+        .from("admin_messages")
+        .select("id,user_id,message_text,attachment_path,attachment_name,attachment_size,created_at,expires_at")
+        .order("created_at", { ascending: false })
+        .limit(100);
+
+      if (error) {
+        status.textContent = "Could not load messages. Please try again.";
+        status.style.color = "#a12622";
+        return;
+      }
+
+      status.remove();
+      if (!messages || messages.length === 0) {
+        const empty = document.createElement("p");
+        empty.className = "profile-status";
+        empty.textContent = "No messages yet.";
+        page.append(empty);
+        return;
+      }
+
+      for (const message of messages) {
+        const card = document.createElement("article");
+        card.className = "admin-message-card";
+        const meta = document.createElement("p");
+        meta.className = "admin-message-meta";
+        const sender = document.createElement("span");
+        sender.textContent = "User ID: " + message.user_id;
+        const sentAt = document.createElement("span");
+        sentAt.textContent = "Sent: " + new Date(message.created_at).toLocaleString();
+        meta.append(sender, sentAt);
+        card.append(meta);
+
+        if (message.message_text) {
+          const body = document.createElement("p");
+          body.className = "admin-message-body";
+          body.textContent = message.message_text;
+          card.append(body);
+        }
+
+        if (message.attachment_path) {
+          const attachment = document.createElement("a");
+          attachment.className = "admin-message-file";
+          attachment.textContent = message.attachment_name || "View attachment";
+          attachment.href = "#";
+          attachment.addEventListener("click", async (event) => {
+            event.preventDefault();
+            attachment.textContent = "Opening attachment...";
+            const { data, error: signedError } = await supabaseClient.storage
+              .from("admin-message-attachments")
+              .createSignedUrl(message.attachment_path, 60);
+            if (signedError || !data?.signedUrl) {
+              attachment.textContent = "Could not open attachment";
+              return;
+            }
+            window.open(data.signedUrl, "_blank", "noopener");
+            attachment.textContent = message.attachment_name || "View attachment";
+          });
+          card.append(attachment, document.createElement("br"));
+        }
+
+        const expiry = document.createElement("p");
+        expiry.className = "admin-message-meta";
+        expiry.textContent = "Auto-deletes: " + new Date(message.expires_at).toLocaleString();
+        card.append(expiry);
+        page.append(card);
+      }
+    }
+
     async function renderMessage() {
-      const user=await getCurrentUser();
-      if(!user){renderPage("Login");history.replaceState(null,"","#login");return;}
-      const page=document.createElement("section");page.className="message-page";
-      const back=document.createElement("button");back.className="action-button back-profile";back.type="button";back.textContent="← Back to Profile";
-      back.addEventListener("click",()=>{renderPage("Profile");history.replaceState(null,"","#profile");});
-      const heading=document.createElement("h1");heading.className="message-heading";heading.textContent="Message to Admin";
-      const form=document.createElement("form");
-      const textArea=document.createElement("textarea");textArea.className="message-textarea";textArea.name="message";textArea.placeholder="Write your message here...";textArea.setAttribute("aria-label","Message to admin");
-      const attachmentLabel=document.createElement("label");attachmentLabel.className="attachment-picker";attachmentLabel.htmlFor="admin-message-attachment";
-      const icon=document.createElement("span");icon.className="attachment-icon";icon.setAttribute("aria-hidden","true");icon.textContent="＋";
-      const attachmentCopy=document.createElement("span");attachmentCopy.className="attachment-copy";
-      const attachmentTitle=document.createElement("span");attachmentTitle.className="attachment-title";attachmentTitle.textContent="Attach photo or image (optional)";
-      const attachmentSubtitle=document.createElement("span");attachmentSubtitle.className="attachment-subtitle";attachmentSubtitle.textContent="Choose an image from your device";
-      attachmentCopy.append(attachmentTitle,attachmentSubtitle);
-      const chooseButton=document.createElement("span");chooseButton.className="attachment-button";chooseButton.textContent="Choose file";
-      attachmentLabel.append(icon,attachmentCopy,chooseButton);
-      const file=document.createElement("input");file.type="file";file.id="admin-message-attachment";file.accept="image/*";file.className="attachment-input";file.setAttribute("aria-label","Choose photo or image attachment");
-      const fileName=document.createElement("p");fileName.className="attachment-filename";fileName.hidden=true;fileName.setAttribute("aria-live","polite");
-      file.addEventListener("change",()=>{const selected=file.files&&file.files[0];fileName.textContent=selected?selected.name:"";fileName.hidden=!selected;attachmentSubtitle.textContent=selected?"Image selected":"Choose an image from your device";});
-      const send=document.createElement("button");send.className="action-button primary";send.type="button";send.textContent="Send Message";send.disabled=true;
-      form.append(textArea,attachmentLabel,file,fileName,send);page.append(back,heading,form);mainContent.replaceChildren(page);
+      const user = await getCurrentUser();
+      if (!user) {
+        renderPage("Login");
+        history.replaceState(null, "", "#login");
+        return;
+      }
+
+      const page = document.createElement("section");
+      page.className = "message-page";
+      const back = document.createElement("button");
+      back.className = "action-button back-profile";
+      back.type = "button";
+      back.textContent = "← Back to Profile";
+      back.addEventListener("click", () => {
+        renderPage("Profile");
+        history.replaceState(null, "", "#profile");
+      });
+
+      const heading = document.createElement("h1");
+      heading.className = "message-heading";
+      heading.textContent = "Message to Admin";
+
+      const retentionNotice = document.createElement("div");
+      retentionNotice.className = "message-retention-notice";
+      retentionNotice.textContent = "আপনার এই মেসেজগুলো ৩০ দিন পর অটোমেটিক মুছে যাবে।";
+
+      const quotaBox = document.createElement("div");
+      quotaBox.className = "message-quota";
+      const quotaLabel = document.createElement("div");
+      quotaLabel.className = "message-quota-label";
+      const quotaTitle = document.createElement("span");
+      quotaTitle.textContent = "মেসেজ ও ফাইলের মোট সীমা";
+      const quotaValue = document.createElement("span");
+      quotaValue.textContent = "লোড হচ্ছে…";
+      quotaLabel.append(quotaTitle, quotaValue);
+      const quotaTrack = document.createElement("div");
+      quotaTrack.className = "message-quota-track";
+      quotaTrack.setAttribute("role", "progressbar");
+      quotaTrack.setAttribute("aria-label", "Message storage used");
+      quotaTrack.setAttribute("aria-valuemin", "0");
+      quotaTrack.setAttribute("aria-valuemax", "100");
+      const quotaFill = document.createElement("div");
+      quotaFill.className = "message-quota-fill";
+      quotaTrack.append(quotaFill);
+      quotaBox.append(quotaLabel, quotaTrack);
+
+      const form = document.createElement("form");
+      const textArea = document.createElement("textarea");
+      textArea.className = "message-textarea";
+      textArea.name = "message";
+      textArea.placeholder = "Write your message here...";
+      textArea.setAttribute("aria-label", "Message to admin");
+      textArea.maxLength = 1000000;
+
+      const attachmentLabel = document.createElement("label");
+      attachmentLabel.className = "attachment-picker";
+      attachmentLabel.htmlFor = "admin-message-attachment";
+      const icon = document.createElement("span");
+      icon.className = "attachment-icon";
+      icon.setAttribute("aria-hidden", "true");
+      icon.textContent = "＋";
+      const attachmentCopy = document.createElement("span");
+      attachmentCopy.className = "attachment-copy";
+      const attachmentTitle = document.createElement("span");
+      attachmentTitle.className = "attachment-title";
+      attachmentTitle.textContent = "Attach photo or image (optional)";
+      const attachmentSubtitle = document.createElement("span");
+      attachmentSubtitle.className = "attachment-subtitle";
+      attachmentSubtitle.textContent = "Choose an image from your device";
+      attachmentCopy.append(attachmentTitle, attachmentSubtitle);
+      const chooseButton = document.createElement("span");
+      chooseButton.className = "attachment-button";
+      chooseButton.textContent = "Choose file";
+      attachmentLabel.append(icon, attachmentCopy, chooseButton);
+
+      const file = document.createElement("input");
+      file.type = "file";
+      file.id = "admin-message-attachment";
+      file.accept = "image/*";
+      file.className = "attachment-input";
+      file.setAttribute("aria-label", "Choose photo or image attachment");
+      const fileName = document.createElement("p");
+      fileName.className = "attachment-filename";
+      fileName.hidden = true;
+      fileName.setAttribute("aria-live", "polite");
+
+      const status = document.createElement("p");
+      status.className = "message-send-status";
+      status.setAttribute("role", "status");
+      status.setAttribute("aria-live", "polite");
+
+      const send = document.createElement("button");
+      send.className = "action-button primary";
+      send.type = "submit";
+      send.textContent = "Send Message";
+
+      form.append(textArea, attachmentLabel, file, fileName, send, status);
+      page.append(back, heading, retentionNotice, quotaBox, form);
+      mainContent.replaceChildren(page);
+
+      const MAX_TOTAL_BYTES = 100 * 1024 * 1024;
+      const MAX_FILE_BYTES = 50 * 1024 * 1024;
+      let usedBytes = 0;
+
+      function formatBytes(bytes) {
+        return (bytes / (1024 * 1024)).toFixed(2) + " MB";
+      }
+
+      async function refreshQuota() {
+        const { data, error } = await supabaseClient
+          .from("admin_messages")
+          .select("payload_bytes")
+          .eq("user_id", user.id)
+          .gt("expires_at", new Date().toISOString());
+        if (error) {
+          quotaValue.textContent = "100 MB মোট সীমা";
+          return;
+        }
+        usedBytes = (data || []).reduce((sum, row) => sum + Number(row.payload_bytes || 0), 0);
+        const percent = Math.min(100, usedBytes / MAX_TOTAL_BYTES * 100);
+        quotaValue.textContent = formatBytes(usedBytes) + " / 100 MB";
+        quotaFill.style.width = percent + "%";
+        quotaTrack.setAttribute("aria-valuenow", String(Math.round(percent)));
+      }
+
+      function setStatus(message, type) {
+        status.textContent = message;
+        status.style.color = type === "error" ? "#a12622" : type === "success" ? "#176b43" : "#4b5563";
+      }
+
+      file.addEventListener("change", () => {
+        const selected = file.files && file.files[0];
+        if (selected && selected.size > MAX_FILE_BYTES) {
+          file.value = "";
+          fileName.hidden = true;
+          attachmentSubtitle.textContent = "Choose an image from your device";
+          setStatus("একটি ফাইল সর্বোচ্চ ৫০ MB হতে পারবে। মোট সক্রিয় মেসেজ ও ফাইলের সীমা ১০০ MB।", "error");
+          return;
+        }
+        fileName.textContent = selected ? selected.name + " (" + formatBytes(selected.size) + ")" : "";
+        fileName.hidden = !selected;
+        attachmentSubtitle.textContent = selected ? "Image selected" : "Choose an image from your device";
+        if (selected) setStatus("", "info");
+      });
+
+      await refreshQuota();
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const messageText = textArea.value.trim();
+        const selectedFile = file.files && file.files[0];
+
+        if (!messageText && !selectedFile) {
+          setStatus("মেসেজ লিখুন অথবা একটি ছবি যুক্ত করুন।", "error");
+          return;
+        }
+        if (selectedFile && selectedFile.size > MAX_FILE_BYTES) {
+          setStatus("একটি ফাইল সর্বোচ্চ ৫০ MB হতে পারবে।", "error");
+          return;
+        }
+
+        const textBytes = new TextEncoder().encode(messageText).length;
+        if (usedBytes + textBytes + (selectedFile ? selectedFile.size : 0) > MAX_TOTAL_BYTES) {
+          setStatus("আপনার মোট ১০০ MB সীমা পূর্ণ হয়ে যাবে। পুরোনো মেসেজ ৩০ দিন পর মুছে গেলে জায়গা খালি হবে।", "error");
+          return;
+        }
+
+        send.disabled = true;
+        send.textContent = "Sending...";
+        setStatus("", "info");
+        let uploadedPath = null;
+
+        try {
+          if (selectedFile) {
+            const safeName = selectedFile.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-100) || "image";
+            uploadedPath = user.id + "/" + crypto.randomUUID() + "-" + safeName;
+            const { error: uploadError } = await supabaseClient.storage
+              .from("admin-message-attachments")
+              .upload(uploadedPath, selectedFile, {
+                cacheControl: "3600",
+                upsert: false,
+                contentType: selectedFile.type || "application/octet-stream"
+              });
+            if (uploadError) throw uploadError;
+          }
+
+          const { error: insertError } = await supabaseClient
+            .from("admin_messages")
+            .insert({
+              user_id: user.id,
+              message_text: messageText,
+              attachment_path: uploadedPath,
+              attachment_name: selectedFile ? selectedFile.name : null
+            });
+
+          if (insertError) {
+            if (uploadedPath) await supabaseClient.storage.from("admin-message-attachments").remove([uploadedPath]);
+            if ((insertError.message || "").includes("MESSAGE_QUOTA_EXCEEDED")) {
+              throw new Error("আপনার মোট ১০০ MB সীমা পূর্ণ হয়েছে। ৩০ দিন পর পুরোনো মেসেজ মুছে গেলে আবার পাঠাতে পারবেন।");
+            }
+            throw insertError;
+          }
+
+          textArea.value = "";
+          file.value = "";
+          fileName.textContent = "";
+          fileName.hidden = true;
+          attachmentSubtitle.textContent = "Choose an image from your device";
+          setStatus("আপনার মেসেজ অ্যাডমিনের কাছে পাঠানো হয়েছে।", "success");
+          await refreshQuota();
+        } catch (error) {
+          if (uploadedPath) {
+            await supabaseClient.storage.from("admin-message-attachments").remove([uploadedPath]);
+          }
+          const errorText = error && error.message ? error.message : "";
+          if (errorText.includes("আপনার মোট ১০০ MB")) {
+            setStatus(errorText, "error");
+          } else if (errorText.includes("MESSAGE_QUOTA_EXCEEDED")) {
+            setStatus("আপনার মোট ১০০ MB সীমা পূর্ণ হয়েছে। ৩০ দিন পর পুরোনো মেসেজ মুছে গেলে আবার পাঠাতে পারবেন।", "error");
+          } else if (errorText.toLowerCase().includes("size") || errorText.toLowerCase().includes("payload")) {
+            setStatus("ফাইলটি আপলোড করা যায়নি। ফাইলের আকার কমিয়ে আবার চেষ্টা করুন।", "error");
+          } else {
+            setStatus("মেসেজ পাঠানো যায়নি। আবার চেষ্টা করুন।", "error");
+          }
+        } finally {
+          send.disabled = false;
+          send.textContent = "Send Message";
+        }
+      });
     }
 
     // When email verification completes, Supabase exchanges the callback code
