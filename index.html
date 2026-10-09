@@ -688,6 +688,20 @@
     }
     function metadataValue(user, key) { return (user.user_metadata && user.user_metadata[key]) || ""; }
 
+    async function applyUnreadMessageBadge(button, user, isAdmin) {
+      let query = supabaseClient.from("admin_messages").select("id", { count: "exact", head: true }).is("read_at", null);
+      if (isAdmin) query = query.is("recipient_id", null).neq("user_id", user.id);
+      else query = query.eq("recipient_id", user.id).neq("user_id", user.id);
+      const { count, error } = await query;
+      if (!error && Number(count || 0) > 0) {
+        button.classList.add("has-unread");
+        button.setAttribute("aria-label", "Message, unread messages");
+      } else {
+        button.classList.remove("has-unread");
+        button.removeAttribute("aria-label");
+      }
+    }
+
     async function renderProfile() {
       const user = await getCurrentUser();
       if (!user) { renderPage("Login"); history.replaceState(null, "", "#login"); setCurrentMenuPage("Login"); return; }
@@ -719,13 +733,13 @@
       edit.addEventListener("click",()=>{renderPage("EditProfile");history.replaceState(null,"","#edit-profile");});
       const msg=document.createElement("button");msg.className="action-button";msg.textContent="Message";msg.type="button";
       msg.addEventListener("click",()=>{renderPage("Message");history.replaceState(null,"","#message");});
-      actions.append(edit,msg);
+      actions.append(edit,msg); applyUnreadMessageBadge(msg,user,role === "ADMIN");
       if (role === "ADMIN") {
         const inbox=document.createElement("button");inbox.className="action-button";inbox.type="button";inbox.textContent="Admin Inbox";
         inbox.addEventListener("click",()=>{renderPage("AdminInbox");history.replaceState(null,"","#admin-inbox");});
         actions.append(inbox);
       }
-      actions.append(logout);page.append(heading,summary,info,actions);mainContent.replaceChildren(page);setCurrentMenuPage("Profile");
+      page.append(heading,summary,info,actions);mainContent.replaceChildren(page);setCurrentMenuPage("Profile");
     }
 
     async function renderEditProfile() {
