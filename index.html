@@ -273,7 +273,7 @@
     .profile-page,.message-page{width:min(100% - 32px,760px);margin:28px auto;padding:24px;border:1px solid #eee;border-radius:16px;background:#fff;box-shadow:0 10px 30px rgba(0,0,0,.06)}
     .profile-heading,.message-heading{margin:0 0 20px;color:#222;font-size:24px}
     .profile-summary{display:flex;align-items:center;gap:16px;padding:18px;border-radius:12px;background:#f8f9fb;margin-bottom:20px}
-    .profile-avatar{width:64px;height:64px;flex:0 0 64px;display:grid;place-items:center;border-radius:50%;background:#e5e7eb;color:#374151;font-size:24px;font-weight:700}
+    .profile-avatar{width:64px;height:64px;flex:0 0 64px;display:grid;place-items:center;border-radius:50%;overflow:hidden;background:#e5e7eb;color:#374151;font-size:24px;font-weight:700}.profile-avatar img{width:100%;height:100%;object-fit:cover}.avatar-controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:9px}.avatar-upload{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
     .profile-name{margin:0 0 5px;font-size:20px;overflow-wrap:anywhere}.profile-email{margin:0;color:#666;font-size:14px;overflow-wrap:anywhere}
     .role-badge{display:inline-block;margin-left:7px;padding:4px 8px;border-radius:999px;background:#e8eefc;color:#244a8f;font-size:10px;vertical-align:middle;letter-spacing:.4px}
     .profile-section{padding:18px;margin-bottom:16px;border:1px solid #eee;border-radius:12px}.profile-section h2{margin:0 0 14px;font-size:17px}
@@ -640,12 +640,47 @@
       const page = document.createElement("section"); page.className = "profile-page";
       const heading = document.createElement("h1"); heading.className = "profile-heading"; heading.textContent = "My Profile";
       const summary = document.createElement("div"); summary.className = "profile-summary";
-      const avatar = document.createElement("div"); avatar.className = "profile-avatar"; avatar.textContent = name.charAt(0).toUpperCase() || "M";
+      const avatar = document.createElement("div"); avatar.className = "profile-avatar";
+      const avatarUrl = metadataValue(user, "avatar_url");
+      if (avatarUrl) { const avatarImage = document.createElement("img"); avatarImage.src = avatarUrl; avatarImage.alt = "Profile picture"; avatar.append(avatarImage); }
+      else { avatar.textContent = name.charAt(0).toUpperCase() || "M"; }
       const identity = document.createElement("div");
       const nameLine = document.createElement("h2"); nameLine.className = "profile-name"; nameLine.append(document.createTextNode(name + " "));
       const badge = document.createElement("span"); badge.className = "role-badge"; badge.textContent = role; nameLine.append(badge);
       const email = document.createElement("p"); email.className = "profile-email"; email.textContent = user.email || "";
-      identity.append(nameLine, email); summary.append(avatar, identity);
+      identity.append(nameLine, email);
+      const avatarControls = document.createElement("div"); avatarControls.className = "avatar-controls";
+      const changePicture = document.createElement("button"); changePicture.type = "button"; changePicture.className = "action-button"; changePicture.textContent = "Change Profile Picture";
+      const pictureInput = document.createElement("input"); pictureInput.type = "file"; pictureInput.accept = "image/*"; pictureInput.className = "avatar-upload"; pictureInput.setAttribute("aria-label", "Choose profile picture");
+      changePicture.addEventListener("click", () => pictureInput.click());
+      pictureInput.addEventListener("change", async () => {
+        const file = pictureInput.files && pictureInput.files[0];
+        if (!file) return;
+        if (!file.type.startsWith("image/")) { alert("Please select an image file."); pictureInput.value = ""; return; }
+        changePicture.disabled = true; changePicture.textContent = "Updating...";
+        try {
+          const image = new Image();
+          const objectUrl = URL.createObjectURL(file);
+          await new Promise((resolve, reject) => { image.onload = resolve; image.onerror = reject; image.src = objectUrl; });
+          const canvas = document.createElement("canvas"); canvas.width = 256; canvas.height = 256;
+          const context = canvas.getContext("2d");
+          const side = Math.min(image.naturalWidth, image.naturalHeight);
+          const sx = (image.naturalWidth - side) / 2, sy = (image.naturalHeight - side) / 2;
+          context.drawImage(image, sx, sy, side, side, 0, 0, 256, 256);
+          URL.revokeObjectURL(objectUrl);
+          const compressedImage = canvas.toDataURL("image/jpeg", 0.8);
+          const { error } = await supabaseClient.auth.updateUser({ data: { avatar_url: compressedImage } });
+          if (error) throw error;
+          renderPage("Profile");
+        } catch (error) {
+          alert("Could not update your profile picture. Please try another image.");
+          changePicture.disabled = false; changePicture.textContent = "Change Profile Picture";
+        }
+        pictureInput.value = "";
+      });
+      avatarControls.append(changePicture, pictureInput);
+      identity.append(avatarControls);
+      summary.append(avatar, identity);
       const info = document.createElement("section"); info.className = "profile-section";
       const infoHeading = document.createElement("h2"); infoHeading.textContent = "Profile Information";
       const details = document.createElement("div"); details.className = "profile-details";
