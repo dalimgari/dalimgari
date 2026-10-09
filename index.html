@@ -272,7 +272,7 @@
     .role-badge{display:inline-block;margin-left:7px;padding:4px 8px;border-radius:999px;background:#e8eefc;color:#244a8f;font-size:10px;vertical-align:middle;letter-spacing:.4px}
     .profile-section{padding:18px;margin-bottom:16px;border:1px solid #eee;border-radius:12px}.profile-section h2{margin:0 0 14px;font-size:17px}
     .profile-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.detail-label{margin:0 0 5px;color:#777;font-size:12px}.detail-value{margin:0;color:#222;font-size:15px;overflow-wrap:anywhere;white-space:pre-wrap}
-    .profile-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.action-button{min-height:44px;padding:0 16px;border:1px solid #ddd;border-radius:9px;background:#fff;color:#222;font:inherit;font-weight:600;cursor:pointer}.action-button.primary{background:#222;border-color:#222;color:#fff}
+    .profile-actions{display:flex;flex-direction:column;align-items:flex-start;gap:10px;margin-top:18px}.action-button{min-height:44px;padding:0 16px;border:1px solid #ddd;border-radius:9px;background:#fff;color:#222;font:inherit;font-weight:600;cursor:pointer}.action-button.primary{background:#222;border-color:#222;color:#fff}
     .profile-input{width:100%;margin:0 0 15px;padding:12px 13px;border:1px solid #dcdcdc;border-radius:9px;background:#fff;color:#222;font:inherit;font-size:15px}
     .profile-picture-editor{margin-bottom:20px;background:linear-gradient(135deg,#fbfdff,#f7f9fc)}
     .profile-picture-editor h2{margin-bottom:16px}
@@ -377,6 +377,7 @@
       if (pageName === "CreateAccount") { renderCreateAccount(); return; }
       if (pageName === "Profile") { renderProfile(); return; }
       if (pageName === "EditProfile") { renderEditProfile(); return; }
+      if (pageName === "Dashboard") { renderDashboard(); return; }
       if (pageName !== "Login") return;
 
       const form = document.createElement("form");
@@ -702,7 +703,56 @@
       const edit=document.createElement("button");edit.className="action-button primary";edit.textContent="Edit Profile";edit.type="button";
       edit.addEventListener("click",()=>{renderPage("EditProfile");history.replaceState(null,"","#edit-profile");});
       actions.append(edit);
+      if (role === "ADMIN") {
+        const dashboard = document.createElement("button");
+        dashboard.className = "action-button";
+        dashboard.textContent = "Dashboard";
+        dashboard.type = "button";
+        dashboard.addEventListener("click", () => {
+          renderPage("Dashboard");
+          history.replaceState(null, "", "#dashboard");
+        });
+        actions.append(dashboard);
+      }
       page.append(heading,summary,info,actions);mainContent.replaceChildren(page);setCurrentMenuPage("Profile");
+    }
+
+    async function renderDashboard() {
+      const user = await getCurrentUser();
+      const role = String((user && user.app_metadata && user.app_metadata.role) || "").toLowerCase();
+      if (!user) {
+        renderPage("Login");
+        history.replaceState(null, "", "#login");
+        setCurrentMenuPage("Login");
+        return;
+      }
+      if (role !== "admin") {
+        renderPage("Profile");
+        history.replaceState(null, "", "#profile");
+        setCurrentMenuPage("Profile");
+        return;
+      }
+
+      const page = document.createElement("section");
+      page.className = "profile-page dashboard-page";
+      const heading = document.createElement("h1");
+      heading.className = "profile-heading";
+      heading.textContent = "Dashboard";
+      const description = document.createElement("p");
+      description.className = "detail-value";
+      description.textContent = "Admin dashboard";
+      const back = document.createElement("button");
+      back.className = "action-button primary";
+      back.type = "button";
+      back.textContent = "Back to Profile";
+      back.addEventListener("click", () => {
+        renderPage("Profile");
+        history.replaceState(null, "", "#profile");
+        setCurrentMenuPage("Profile");
+      });
+      page.append(heading, description, back);
+      mainContent.replaceChildren(page);
+      setCurrentMenuPage("Dashboard");
     }
 
     async function renderEditProfile() {
