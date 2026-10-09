@@ -1240,7 +1240,7 @@
         uploadHeading.textContent = "Upload Media to Library";
         const uploadHint = document.createElement("p");
         uploadHint.className = "dashboard-crud-hint";
-        uploadHint.textContent = "Upload a photo/video here once, then it will be available in Photo/Video management and can be attached to this post or album.";
+        uploadHint.textContent = "Upload one file per submission and add one caption for that file. Repeat for each additional photo or video; uploaded files appear in the shared Media Library.";
         const uploadForm = document.createElement("form");
         uploadForm.className = "dashboard-crud-form";
         const mediaTitle = document.createElement("input");
@@ -1253,6 +1253,18 @@
         const titleLabel = document.createElement("label");
         titleLabel.textContent = "Media title";
         titleHolder.append(titleLabel, mediaTitle);
+        const mediaCaption = document.createElement("textarea");
+        mediaCaption.className = "dashboard-crud-input";
+        mediaCaption.rows = 3;
+        mediaCaption.placeholder = "Write one caption for this file";
+        mediaCaption.setAttribute("aria-label", "Media caption");
+        const captionHolder = document.createElement("div");
+        captionHolder.className = "dashboard-crud-field full";
+        const captionLabel = document.createElement("label");
+        captionLabel.textContent = "Caption (for this file)";
+        captionLabel.htmlFor = "shared-media-caption";
+        mediaCaption.id = captionLabel.htmlFor;
+        captionHolder.append(captionLabel, mediaCaption);
         const mediaKind = document.createElement("select");
         mediaKind.className = "dashboard-crud-input";
         [["photo","Photo"],["video","Video"]].forEach(([v,t])=>{const o=document.createElement("option");o.value=v;o.textContent=t;mediaKind.append(o);});
@@ -1274,6 +1286,7 @@
         const mediaFile = document.createElement("input");
         mediaFile.className = "dashboard-crud-input";
         mediaFile.type = "file";
+        mediaFile.multiple = false;
         mediaFile.accept = "image/*";
         mediaFile.required = true;
         const fileHolder = document.createElement("div");
@@ -1302,7 +1315,7 @@
         uploadStatus.setAttribute("role","status");
         uploadStatus.setAttribute("aria-live","polite");
         uploadActions.append(uploadButton);
-        uploadForm.append(titleHolder,kindHolder,sourceHolder,fileHolder,urlHolder,uploadActions,uploadStatus);
+        uploadForm.append(titleHolder,captionHolder,kindHolder,sourceHolder,fileHolder,urlHolder,uploadActions,uploadStatus);
         uploadCard.append(uploadHeading,uploadHint,uploadForm);
         wrap.insertBefore(uploadCard, listCard);
         function syncUploadSource() {
@@ -1324,7 +1337,7 @@
           try {
             const title = mediaTitle.value.trim();
             if (!title) throw new Error("Enter a media title.");
-            const payload = {title,media_type:mediaKind.value,source_type:sourceKind.value,visibility:"public",created_by:user.id};
+            const payload = {title,description:mediaCaption.value.trim()||null,media_type:mediaKind.value,source_type:sourceKind.value,visibility:"public",created_by:user.id};
             if(section.id==="photo"||section.id==="video")payload.visibility="public";
             if (sourceKind.value === "upload") {
               const file = mediaFile.files && mediaFile.files[0];
@@ -1357,6 +1370,7 @@
               ? "Media added to the library and selected for this " + (section.id === "post" ? "post." : "album.")
               : "Media added to the shared library. It is now available in Post, Album, and media management.";
             mediaTitle.value = "";
+            mediaCaption.value = "";
             mediaFile.value = "";
             externalUrl.value = "";
             await loadRecords();
