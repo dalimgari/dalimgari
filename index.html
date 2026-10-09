@@ -284,6 +284,14 @@
     .profile-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.action-button{min-height:44px;padding:0 16px;border:1px solid #ddd;border-radius:9px;background:#fff;color:#222;font:inherit;font-weight:600;cursor:pointer}.action-button.primary{background:#222;border-color:#222;color:#fff}
     .profile-input,.message-textarea{width:100%;margin:0 0 15px;padding:12px 13px;border:1px solid #dcdcdc;border-radius:9px;background:#fff;color:#222;font:inherit;font-size:15px}.message-textarea{min-height:160px;resize:vertical}
     .edit-profile-form label,.message-page label{display:block;margin:0 0 6px;color:#444;font-size:14px}.profile-status{margin:12px 0;font-size:14px;line-height:1.5}.back-profile{margin-bottom:18px}.attachment-note{margin:-6px 0 15px;color:#777;font-size:13px}
+    .attachment-picker{display:flex;align-items:center;gap:14px;margin:4px 0 18px;padding:16px;border:1px dashed #bfc5ce;border-radius:12px;background:#f8fafc;cursor:pointer;transition:border-color .15s ease,background-color .15s ease}
+    .attachment-picker:hover,.attachment-picker:focus-within{border-color:#64748b;background:#f1f5f9}
+    .attachment-icon{display:grid;place-items:center;flex:0 0 44px;width:44px;height:44px;border-radius:10px;background:#e9eef5;color:#334155;font-size:23px}
+    .attachment-copy{min-width:0;flex:1}.attachment-title{display:block;margin:0 0 4px;color:#222;font-size:14px;font-weight:600}.attachment-subtitle{display:block;color:#6b7280;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+    .attachment-button{flex:0 0 auto;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;background:#fff;color:#222;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+    .attachment-button:hover{background:#f3f4f6}.attachment-filename{margin:-8px 0 14px;color:#475569;font-size:13px;overflow-wrap:anywhere}
+    .attachment-input{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    @media(max-width:420px){.attachment-picker{gap:10px;padding:12px}.attachment-icon{flex-basis:38px;width:38px;height:38px}.attachment-button{padding:8px;font-size:12px}}
     @media(max-width:560px){.profile-page,.message-page{padding:17px;margin:18px auto}.profile-details{grid-template-columns:1fr}.profile-actions .action-button{flex:1 1 100%}.profile-heading,.message-heading{font-size:22px}}
 
     footer {
@@ -744,10 +752,19 @@
       const heading=document.createElement("h1");heading.className="message-heading";heading.textContent="Message to Admin";
       const form=document.createElement("form");
       const textArea=document.createElement("textarea");textArea.className="message-textarea";textArea.name="message";textArea.placeholder="Write your message here...";textArea.setAttribute("aria-label","Message to admin");
-      const label=document.createElement("label");label.htmlFor="admin-message-attachment";label.textContent="Attach photo or image (optional)";
-      const file=document.createElement("input");file.type="file";file.id="admin-message-attachment";file.accept="image/*";file.style.display="block";file.style.marginBottom="12px";
+      const attachmentLabel=document.createElement("label");attachmentLabel.className="attachment-picker";attachmentLabel.htmlFor="admin-message-attachment";
+      const icon=document.createElement("span");icon.className="attachment-icon";icon.setAttribute("aria-hidden","true");icon.textContent="＋";
+      const attachmentCopy=document.createElement("span");attachmentCopy.className="attachment-copy";
+      const attachmentTitle=document.createElement("span");attachmentTitle.className="attachment-title";attachmentTitle.textContent="Attach photo or image (optional)";
+      const attachmentSubtitle=document.createElement("span");attachmentSubtitle.className="attachment-subtitle";attachmentSubtitle.textContent="Choose an image from your device";
+      attachmentCopy.append(attachmentTitle,attachmentSubtitle);
+      const chooseButton=document.createElement("span");chooseButton.className="attachment-button";chooseButton.textContent="Choose file";
+      attachmentLabel.append(icon,attachmentCopy,chooseButton);
+      const file=document.createElement("input");file.type="file";file.id="admin-message-attachment";file.accept="image/*";file.className="attachment-input";file.setAttribute("aria-label","Choose photo or image attachment");
+      const fileName=document.createElement("p");fileName.className="attachment-filename";fileName.hidden=true;fileName.setAttribute("aria-live","polite");
+      file.addEventListener("change",()=>{const selected=file.files&&file.files[0];fileName.textContent=selected?selected.name:"";fileName.hidden=!selected;attachmentSubtitle.textContent=selected?"Image selected":"Choose an image from your device";});
       const send=document.createElement("button");send.className="action-button primary";send.type="button";send.textContent="Send Message";send.disabled=true;
-      form.append(textArea,label,file,send);page.append(back,heading,form);mainContent.replaceChildren(page);
+      form.append(textArea,attachmentLabel,file,fileName,send);page.append(back,heading,form);mainContent.replaceChildren(page);
     }
 
     // When email verification completes, Supabase exchanges the callback code
