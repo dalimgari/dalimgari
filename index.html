@@ -1293,7 +1293,6 @@
           controls.post_media_method.dispatchEvent(new Event("change"));
           controls.post_external_url.value=record.external_url||"";
         }
-        if(section.id==="album"&&controls.media_ids){const {data}=await supabaseClient.from("album_media").select("media_id").eq("album_id",selectedId);const chosen=new Set((data||[]).map(x=>x.media_id));Array.from(controls.media_ids.options).forEach(o=>o.selected=chosen.has(o.value));}
         if(controls.source_type){controls.source_type.value=record.source_type||"external";controls.external_url.closest(".dashboard-crud-field").hidden=controls.source_type.value!=="external";controls.upload_file.closest(".dashboard-crud-field").hidden=controls.source_type.value!=="upload";if(mediaPreview){mediaPreview.hidden=true;controls.external_url.dispatchEvent(new Event("input"));}}
         save.textContent=config.readOnlyCreate?"Save Profile":"Update";save.disabled=false;remove.disabled=!!config.noDelete;setStatus("Selected record loaded into the form.");
       }
