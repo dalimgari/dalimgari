@@ -1109,11 +1109,6 @@
               if(!confirm("Permanently delete this item and its stored file, if any? This cannot be undone."))return;
               restore.disabled=true;purge.disabled=true;
               try{
-                if(item.storage_path){
-                  if(!item.storage_bucket)throw new Error("No storage bucket is associated with this item.");
-                  const {error:storageError}=await supabaseClient.storage.from(item.storage_bucket).remove([item.storage_path]);
-                  if(storageError)throw storageError;
-                }
                 const {error}=await supabaseClient.from("recycle_bin").delete().eq("id",item.id);
                 if(error)throw error;
                 recycleStatus("Item permanently deleted.");await loadTrash();
@@ -1278,8 +1273,6 @@
           }
           const trashPayload={
             original_table:tableName,original_id:String(selectedId),record_data:record,related_data:related,
-            storage_bucket:null,
-            storage_path:null,
             deleted_by:user.id
           };
           const {data:trash,error:trashError}=await supabaseClient.from("recycle_bin").insert(trashPayload).select("id").single();
