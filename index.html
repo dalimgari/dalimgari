@@ -306,6 +306,10 @@
     .attachment-progress-fill{width:0;height:100%;border-radius:999px;background:#2563eb;transition:width .15s ease}
     .attachment-item[data-state="success"] .attachment-progress-fill{background:#16a34a}
     .attachment-item[data-state="error"] .attachment-progress-fill{background:#dc2626}
+    .action-button.has-unread{background:#dc2626;border-color:#dc2626;color:#fff}.action-button.has-unread:hover{background:#b91c1c;border-color:#b91c1c}
+    .message-recipient-wrap{margin:0 0 18px}.message-recipient-wrap label{display:block;margin:0 0 7px;color:#444;font-size:14px}
+    .message-conversation-heading{margin:18px 0 12px;font-size:18px;color:#222}.message-conversation{display:grid;gap:10px;max-height:48vh;overflow:auto;margin:0 0 22px;padding:2px}
+    .message-delivery-status{font-weight:600;color:#4b5563}
     .admin-message-card{padding:16px;margin:0 0 12px;border:1px solid #e5e7eb;border-radius:12px;background:#fff;overflow-wrap:anywhere}
     .admin-message-meta{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin:0 0 10px;color:#6b7280;font-size:12px}
     .admin-message-body{margin:0 0 12px;color:#222;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6}
@@ -789,101 +793,7 @@
     }
 
     async function renderAdminInbox() {
-      const user = await getCurrentUser();
-      if (!user || String((user.app_metadata || {}).role || "").toLowerCase() !== "admin") {
-        renderPage("Profile");
-        history.replaceState(null, "", "#profile");
-        return;
-      }
-
-      const page = document.createElement("section");
-      page.className = "message-page";
-      const back = document.createElement("button");
-      back.className = "action-button back-profile";
-      back.type = "button";
-      back.textContent = "← Back to Profile";
-      back.addEventListener("click", () => {
-        renderPage("Profile");
-        history.replaceState(null, "", "#profile");
-      });
-
-      const heading = document.createElement("h1");
-      heading.className = "message-heading";
-      heading.textContent = "Admin Inbox";
-      const status = document.createElement("p");
-      status.className = "message-send-status";
-      status.setAttribute("role", "status");
-      status.textContent = "Loading messages...";
-      page.append(back, heading, status);
-      mainContent.replaceChildren(page);
-
-      const { data: messages, error } = await supabaseClient
-        .from("admin_messages")
-        .select("id,user_id,message_text,attachment_path,attachment_name,attachment_size,created_at,expires_at")
-        .order("created_at", { ascending: false })
-        .limit(100);
-
-      if (error) {
-        status.textContent = "Could not load messages. Please try again.";
-        status.style.color = "#a12622";
-        return;
-      }
-
-      status.remove();
-      if (!messages || messages.length === 0) {
-        const empty = document.createElement("p");
-        empty.className = "profile-status";
-        empty.textContent = "No messages yet.";
-        page.append(empty);
-        return;
-      }
-
-      for (const message of messages) {
-        const card = document.createElement("article");
-        card.className = "admin-message-card";
-        const meta = document.createElement("p");
-        meta.className = "admin-message-meta";
-        const sender = document.createElement("span");
-        sender.textContent = "User ID: " + message.user_id;
-        const sentAt = document.createElement("span");
-        sentAt.textContent = "Sent: " + new Date(message.created_at).toLocaleString();
-        meta.append(sender, sentAt);
-        card.append(meta);
-
-        if (message.message_text) {
-          const body = document.createElement("p");
-          body.className = "admin-message-body";
-          body.textContent = message.message_text;
-          card.append(body);
-        }
-
-        if (message.attachment_path) {
-          const attachment = document.createElement("a");
-          attachment.className = "admin-message-file";
-          attachment.textContent = message.attachment_name || "View attachment";
-          attachment.href = "#";
-          attachment.addEventListener("click", async (event) => {
-            event.preventDefault();
-            attachment.textContent = "Opening attachment...";
-            const { data, error: signedError } = await supabaseClient.storage
-              .from("admin-message-attachments")
-              .createSignedUrl(message.attachment_path, 60);
-            if (signedError || !data?.signedUrl) {
-              attachment.textContent = "Could not open attachment";
-              return;
-            }
-            window.open(data.signedUrl, "_blank", "noopener");
-            attachment.textContent = message.attachment_name || "View attachment";
-          });
-          card.append(attachment, document.createElement("br"));
-        }
-
-        const expiry = document.createElement("p");
-        expiry.className = "admin-message-meta";
-        expiry.textContent = "Auto-deletes: " + new Date(message.expires_at).toLocaleString();
-        card.append(expiry);
-        page.append(card);
-      }
+      return renderMessage();
     }
 
     async function renderMessage() {
@@ -893,7 +803,7 @@
         history.replaceState(null, "", "#login");
         return;
       }
-
+      const isAdmin = String((user.app_metadata || {}).role || "").toLowerCase() === "admin";
       const page = document.createElement("section");
       page.className = "message-page";
       const back = document.createElement("button");
@@ -904,15 +814,67 @@
         renderPage("Profile");
         history.replaceState(null, "", "#profile");
       });
-
       const heading = document.createElement("h1");
       heading.className = "message-heading";
-      heading.textContent = "Message to Admin";
+      heading.textContent = isAdmin ? "Messages" : "Messages to Admin";
+      page.append(back, heading);
+      mainContent.replaceChildren(page);
+
+      const recipientWrap = document.createElement("div");
+      recipientWrap.className = "message-recipient-wrap";
+      const recipientLabel = document.createElement("label");
+      recipientLabel.textContent = "Send message to";
+      const recipientSelect = document.createElement("select");
+      recipientSelect.className = "profile-input";
+      recipientSelect.setAttribute("aria-label", "Select registered user");
+      let registeredUsers = [];
+      let selectedRecipientId = null;
+
+      if (isAdmin) {
+        const { data, error } = await supabaseClient.rpc("admin_list_registered_users");
+        if (error) {
+          const errorStatus = document.createElement("p");
+          errorStatus.className = "message-send-status";
+          errorStatus.style.color = "#a12622";
+          errorStatus.textContent = "Could not load registered users.";
+          page.append(errorStatus);
+          return;
+        }
+        registeredUsers = data || [];
+        registeredUsers.forEach((registered) => {
+          const option = document.createElement("option");
+          option.value = registered.user_id;
+          option.textContent = (registered.full_name || registered.email || registered.user_id) + (registered.email ? " — " + registered.email : "");
+          recipientSelect.append(option);
+        });
+        selectedRecipientId = registeredUsers.length ? registeredUsers[0].user_id : null;
+        recipientSelect.value = selectedRecipientId || "";
+        recipientLabel.htmlFor = "message-recipient";
+        recipientSelect.id = "message-recipient";
+        recipientWrap.append(recipientLabel, recipientSelect);
+        page.append(recipientWrap);
+        if (!registeredUsers.length) {
+          const emptyUsers = document.createElement("p");
+          emptyUsers.className = "profile-status";
+          emptyUsers.textContent = "No registered users found.";
+          page.append(emptyUsers);
+        }
+      }
+
+      const conversationHeading = document.createElement("h2");
+      conversationHeading.className = "message-conversation-heading";
+      conversationHeading.textContent = isAdmin ? "Conversation" : "Conversation with Admin";
+      const conversation = document.createElement("div");
+      conversation.className = "message-conversation";
+      const conversationStatus = document.createElement("p");
+      conversationStatus.className = "message-send-status";
+      conversationStatus.textContent = "Loading messages…";
+      conversation.append(conversationStatus);
+      page.append(conversationHeading, conversation);
 
       const retentionNotice = document.createElement("div");
       retentionNotice.className = "message-retention-notice";
-      retentionNotice.textContent = "Your messages and attachments will be automatically deleted after 30 days.";
-
+      retentionNotice.textContent = "Messages and attachments are automatically deleted after 30 days.";
       const quotaBox = document.createElement("div");
       quotaBox.className = "message-quota";
       const quotaLabel = document.createElement("div");
@@ -937,8 +899,8 @@
       const textArea = document.createElement("textarea");
       textArea.className = "message-textarea";
       textArea.name = "message";
-      textArea.placeholder = "Write your message here...";
-      textArea.setAttribute("aria-label", "Message to admin");
+      textArea.placeholder = isAdmin ? "Write a message to the selected user…" : "Write your message here…";
+      textArea.setAttribute("aria-label", "Message");
       textArea.maxLength = 1000000;
 
       const attachmentLabel = document.createElement("label");
@@ -955,11 +917,10 @@
       attachmentTitle.textContent = "Attach photo or image (optional)";
       const attachmentSubtitle = document.createElement("span");
       attachmentSubtitle.className = "attachment-subtitle";
-      attachmentSubtitle.textContent = "";
-      attachmentCopy.append(attachmentTitle, attachmentSubtitle);
       const chooseButton = document.createElement("span");
       chooseButton.className = "attachment-button";
       chooseButton.textContent = "Choose files";
+      attachmentCopy.append(attachmentTitle, attachmentSubtitle);
       attachmentLabel.append(icon, attachmentCopy, chooseButton);
 
       const file = document.createElement("input");
@@ -969,35 +930,31 @@
       file.multiple = true;
       file.className = "attachment-input";
       file.setAttribute("aria-label", "Choose photo or image attachments");
-
       const fileList = document.createElement("div");
       fileList.className = "attachment-list";
       fileList.hidden = true;
       fileList.setAttribute("aria-live", "polite");
-
       const status = document.createElement("p");
       status.className = "message-send-status";
       status.setAttribute("role", "status");
       status.setAttribute("aria-live", "polite");
-
       const send = document.createElement("button");
       send.className = "action-button primary";
       send.type = "submit";
-      send.textContent = "Send Message";
-
+      send.textContent = isAdmin ? "Send to User" : "Send Message";
+      send.disabled = isAdmin && !selectedRecipientId;
       form.append(textArea, attachmentLabel, file, fileList, send, status);
-      page.append(back, heading, retentionNotice, quotaBox, form);
-      mainContent.replaceChildren(page);
+      page.append(retentionNotice, quotaBox, form);
 
       const MAX_TOTAL_BYTES = 100 * 1024 * 1024;
       const MAX_FILE_BYTES = 50 * 1024 * 1024;
       let usedBytes = 0;
       let selectedFiles = [];
+      let loadingConversation = false;
 
       function formatBytes(bytes) {
         return (bytes / (1024 * 1024)).toFixed(2) + " MB";
       }
-
       async function refreshQuota() {
         const { data, error } = await supabaseClient.rpc("get_admin_message_usage");
         if (error) {
@@ -1010,16 +967,14 @@
         quotaFill.style.width = percent + "%";
         quotaTrack.setAttribute("aria-valuenow", String(Math.round(percent)));
       }
-
       function setStatus(message, type) {
         status.textContent = message;
         status.style.color = type === "error" ? "#a12622" : type === "success" ? "#176b43" : "#4b5563";
       }
-
       function renderSelectedFiles() {
         fileList.replaceChildren();
         fileList.hidden = selectedFiles.length === 0;
-        selectedFiles.forEach((selected, index) => {
+        selectedFiles.forEach((selected) => {
           const item = document.createElement("div");
           item.className = "attachment-item";
           item.dataset.state = "selected";
@@ -1042,14 +997,12 @@
           selected._ui = { item, state, fill };
         });
       }
-
       function updateFileProgress(selected, percent, label, stateName) {
         if (!selected._ui) return;
         selected._ui.fill.style.width = Math.max(0, Math.min(100, percent)) + "%";
         selected._ui.state.textContent = label;
         selected._ui.item.dataset.state = stateName || "uploading";
       }
-
       function uploadFileWithProgress(path, selected, index, total, accessToken) {
         return new Promise((resolve, reject) => {
           const xhr = new XMLHttpRequest();
@@ -1080,6 +1033,115 @@
         });
       }
 
+      async function loadConversation() {
+        if (loadingConversation) return;
+        loadingConversation = true;
+        conversation.replaceChildren();
+        const loading = document.createElement("p");
+        loading.className = "message-send-status";
+        loading.textContent = "Loading messages…";
+        conversation.append(loading);
+        let query = supabaseClient.from("admin_messages")
+          .select("id,user_id,recipient_id,message_text,attachment_path,attachment_name,attachment_size,created_at,expires_at,delivered_at,read_at")
+          .order("created_at", { ascending: true })
+          .limit(300);
+        const { data, error } = await query;
+        if (error) {
+          conversation.replaceChildren();
+          const failed = document.createElement("p");
+          failed.className = "message-send-status";
+          failed.style.color = "#a12622";
+          failed.textContent = "Could not load messages. Please try again.";
+          conversation.append(failed);
+          loadingConversation = false;
+          return;
+        }
+        let messages = data || [];
+        if (isAdmin) {
+          messages = messages.filter((m) => m.user_id === selectedRecipientId || m.recipient_id === selectedRecipientId || (m.recipient_id == null && m.user_id === selectedRecipientId));
+        } else {
+          messages = messages.filter((m) => m.user_id === user.id || m.recipient_id === user.id);
+        }
+        const unread = messages.filter((m) => m.read_at == null && (isAdmin
+          ? m.recipient_id == null && m.user_id !== user.id
+          : m.recipient_id === user.id && m.user_id !== user.id));
+        if (unread.length) {
+          const unreadIds = unread.map((m) => m.id);
+          const { error: readError } = await supabaseClient.from("admin_messages")
+            .update({ read_at: new Date().toISOString() }).in("id", unreadIds);
+          if (!readError) {
+            const seenAt = new Date().toISOString();
+            messages.forEach((m) => { if (unreadIds.includes(m.id)) m.read_at = seenAt; });
+          }
+        }
+        conversation.replaceChildren();
+        if (!messages.length) {
+          const empty = document.createElement("p");
+          empty.className = "profile-status";
+          empty.textContent = isAdmin ? "No messages in this conversation yet." : "No messages yet.";
+          conversation.append(empty);
+          loadingConversation = false;
+          return;
+        }
+        const userMap = new Map(registeredUsers.map((u) => [u.user_id, u]));
+        for (const message of messages) {
+          const card = document.createElement("article");
+          card.className = "admin-message-card";
+          const meta = document.createElement("p");
+          meta.className = "admin-message-meta";
+          const sender = document.createElement("span");
+          if (message.user_id === user.id) sender.textContent = "You";
+          else if (isAdmin) {
+            const senderUser = userMap.get(message.user_id);
+            sender.textContent = senderUser ? (senderUser.full_name || senderUser.email || "Registered user") : "Registered user";
+          } else sender.textContent = "Admin";
+          const sentAt = document.createElement("span");
+          sentAt.textContent = new Date(message.created_at).toLocaleString();
+          meta.append(sender, sentAt);
+          card.append(meta);
+          if (message.message_text) {
+            const body = document.createElement("p");
+            body.className = "admin-message-body";
+            body.textContent = message.message_text;
+            card.append(body);
+          }
+          if (message.attachment_path) {
+            const attachment = document.createElement("a");
+            attachment.className = "admin-message-file";
+            attachment.href = "#";
+            attachment.textContent = message.attachment_name || "View attachment";
+            attachment.addEventListener("click", async (event) => {
+              event.preventDefault();
+              attachment.textContent = "Opening attachment…";
+              const { data: signedData, error: signedError } = await supabaseClient.storage
+                .from("admin-message-attachments").createSignedUrl(message.attachment_path, 60);
+              if (signedError || !signedData?.signedUrl) {
+                attachment.textContent = "Could not open attachment";
+                return;
+              }
+              window.open(signedData.signedUrl, "_blank", "noopener");
+              attachment.textContent = message.attachment_name || "View attachment";
+            });
+            card.append(attachment, document.createElement("br"));
+          }
+          if (message.user_id === user.id) {
+            const delivery = document.createElement("p");
+            delivery.className = "admin-message-meta message-delivery-status";
+            delivery.textContent = message.read_at
+              ? "Seen · " + new Date(message.read_at).toLocaleString()
+              : (message.delivered_at ? "Delivered · Unseen" : "Unseen");
+            card.append(delivery);
+          }
+          const expiry = document.createElement("p");
+          expiry.className = "admin-message-meta";
+          expiry.textContent = "Auto-deletes: " + new Date(message.expires_at).toLocaleString();
+          card.append(expiry);
+          conversation.append(card);
+        }
+        conversation.scrollTop = conversation.scrollHeight;
+        loadingConversation = false;
+      }
+
       file.addEventListener("change", () => {
         selectedFiles = Array.from(file.files || []);
         const tooLarge = selectedFiles.find((selected) => selected.size > MAX_FILE_BYTES);
@@ -1093,49 +1155,53 @@
         }
         renderSelectedFiles();
         const totalBytes = selectedFiles.reduce((sum, selected) => sum + selected.size, 0);
-        attachmentSubtitle.textContent = selectedFiles.length
-          ? selectedFiles.length + " images selected · " + formatBytes(totalBytes)
-          : "";
+        attachmentSubtitle.textContent = selectedFiles.length ? selectedFiles.length + " images selected · " + formatBytes(totalBytes) : "";
         if (selectedFiles.length) setStatus("", "info");
       });
 
+      if (isAdmin) {
+        recipientSelect.addEventListener("change", () => {
+          selectedRecipientId = recipientSelect.value || null;
+          send.disabled = !selectedRecipientId;
+          loadConversation();
+        });
+      }
       await refreshQuota();
+      await loadConversation();
 
       form.addEventListener("submit", async (event) => {
         event.preventDefault();
         const messageText = textArea.value.trim();
         const filesToUpload = selectedFiles.slice();
-
+        if (isAdmin && !selectedRecipientId) {
+          setStatus("Select a registered user first.", "error");
+          return;
+        }
         if (!messageText && filesToUpload.length === 0) {
           setStatus("Enter a message or attach one or more images.", "error");
           return;
         }
-        const oversized = filesToUpload.find((selected) => selected.size > MAX_FILE_BYTES);
-        if (oversized) {
+        if (filesToUpload.some((selected) => selected.size > MAX_FILE_BYTES)) {
           setStatus("Each file can be up to 50 MB.", "error");
           return;
         }
-
         const textBytes = new TextEncoder().encode(messageText).length;
         const filesBytes = filesToUpload.reduce((sum, selected) => sum + selected.size, 0);
         if (usedBytes + textBytes + filesBytes > MAX_TOTAL_BYTES) {
           setStatus("This would exceed your 100 MB total limit. Space will be freed when older messages are deleted after 30 days.", "error");
           return;
         }
-
         send.disabled = true;
         file.disabled = true;
         textArea.disabled = true;
-        send.textContent = "Uploading...";
-        setStatus(filesToUpload.length ? "Starting file uploads..." : "Sending message...", "info");
+        send.textContent = "Uploading…";
+        setStatus(filesToUpload.length ? "Starting file uploads…" : "Sending message…", "info");
         const uploadedPaths = [];
-
         try {
           if (filesToUpload.length) {
             const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
             const accessToken = sessionData?.session?.access_token;
             if (sessionError || !accessToken) throw new Error("Your session has expired. Please log in again and retry.");
-
             for (let i = 0; i < filesToUpload.length; i++) {
               const selected = filesToUpload[i];
               const safeName = selected.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-100) || "image";
@@ -1145,23 +1211,24 @@
               uploadedPaths.push(uploadedPath);
             }
           }
-
           setStatus("All files uploaded. Sending message…", "info");
-          send.textContent = "Sending...";
+          send.textContent = "Sending…";
+          const recipientId = isAdmin ? selectedRecipientId : null;
           const rows = filesToUpload.length
             ? filesToUpload.map((selected, index) => ({
                 user_id: user.id,
+                recipient_id: recipientId,
                 message_text: index === 0 ? messageText : "",
                 attachment_path: uploadedPaths[index],
                 attachment_name: selected.name
               }))
             : [{
                 user_id: user.id,
+                recipient_id: recipientId,
                 message_text: messageText,
                 attachment_path: null,
                 attachment_name: null
               }];
-
           const { error: insertError } = await supabaseClient.from("admin_messages").insert(rows);
           if (insertError) {
             if ((insertError.message || "").includes("MESSAGE_QUOTA_EXCEEDED")) {
@@ -1169,42 +1236,33 @@
             }
             throw new Error(insertError.message || insertError.details || insertError.hint || "Database insert failed");
           }
-
           textArea.value = "";
           file.value = "";
           selectedFiles = [];
           fileList.replaceChildren();
           fileList.hidden = true;
           attachmentSubtitle.textContent = "";
-          setStatus("✓ Message sent successfully to the admin.", "success");
+          setStatus(isAdmin ? "✓ Message sent successfully to the selected user." : "✓ Message sent successfully to the admin.", "success");
           await refreshQuota();
+          await loadConversation();
         } catch (error) {
-          if (uploadedPaths.length) {
-            await supabaseClient.storage.from("admin-message-attachments").remove(uploadedPaths);
-          }
+          if (uploadedPaths.length) await supabaseClient.storage.from("admin-message-attachments").remove(uploadedPaths);
           const errorText = error && error.message ? error.message : "";
-          if (errorText.includes("Your total 100 MB") || errorText.includes("session has expired")) {
-            setStatus(errorText, "error");
-          } else if (errorText.includes("MESSAGE_QUOTA_EXCEEDED")) {
-            setStatus("Your total 100 MB limit has been reached. You can send more after older messages are deleted in 30 days.", "error");
-          } else if (errorText.toLowerCase().includes("size") || errorText.toLowerCase().includes("payload")) {
-            setStatus("File upload failed. Reduce the file size and try again.", "error");
-          } else {
+          if (errorText.includes("Your total 100 MB") || errorText.includes("session has expired")) setStatus(errorText, "error");
+          else if (errorText.includes("MESSAGE_QUOTA_EXCEEDED")) setStatus("Your total 100 MB limit has been reached. Please try again later.", "error");
+          else if (errorText.toLowerCase().includes("size") || errorText.toLowerCase().includes("payload")) setStatus("File upload failed. Reduce the file size and try again.", "error");
+          else {
             const detail = errorText && errorText.length < 220 ? errorText : "";
             setStatus(detail ? "Failed to send: " + detail : "Message or file could not be sent. Please try again.", "error");
           }
-          if (selectedFiles.length) {
-            selectedFiles.forEach((selected) => {
-              if (selected._ui && selected._ui.item.dataset.state !== "success") {
-                updateFileProgress(selected, 0, "Failed", "error");
-              }
-            });
-          }
+          selectedFiles.forEach((selected) => {
+            if (selected._ui && selected._ui.item.dataset.state !== "success") updateFileProgress(selected, 0, "Failed", "error");
+          });
         } finally {
-          send.disabled = false;
+          send.disabled = isAdmin && !selectedRecipientId;
           file.disabled = false;
           textArea.disabled = false;
-          send.textContent = "Send Message";
+          send.textContent = isAdmin ? "Send to User" : "Send Message";
         }
       });
     }
