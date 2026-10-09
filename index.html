@@ -1101,7 +1101,12 @@
               try{
                 const original=item.record_data||{};
                 const {error:insertError}=await supabaseClient.from(item.original_table).insert(original);
-                if(insertError)throw insertError;
+                if(insertError){
+                  const keyColumn=original.id?"id":"key";
+                  const keyValue=original.id||original.key;
+                  const {data:existing,error:checkError}=await supabaseClient.from(item.original_table).select(keyColumn).eq(keyColumn,keyValue).maybeSingle();
+                  if(checkError||!existing)throw insertError;
+                }
                 const related=item.related_data||{};
                 async function restoreLinks(tableName,rows){
                   if(!Array.isArray(rows)||!rows.length)return;
@@ -1539,8 +1544,8 @@
           const {error}=await supabaseClient.from(tableName).delete().eq("id",selectedId);if(error)throw error;
           resetForm();setStatus("Moved to Recycle Bin. Scheduled for permanent deletion in 30 days.","success");await loadRecords();
         }catch(error){
-          if(trashId){const {error:cleanupError}=await supabaseClient.from("recycle_bin").delete().eq("id",trashId);if(cleanupError)console.warn("Could not remove incomplete recycle bin entry",cleanupError);}
-          setStatus(error.message||"Could not move record to Recycle Bin.","error");
+          if(trashId)console.warn("Recycle Bin entry retained for recovery after an incomplete move.",trashId);
+          setStatus((error.message||"Could not move record to Recycle Bin.")+(trashId?" The recycle entry was kept so the operation can be recovered.":""),"error");
         }
         finally{save.disabled=false;remove.disabled=true;}
       });
