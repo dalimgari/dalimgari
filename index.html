@@ -254,15 +254,6 @@
 
     .login-message[data-type="info"]::before { content: "i"; }
 
-    .message-link {
-      display: inline-block;
-      margin-left: 4px;
-      color: inherit;
-      font-weight: 700;
-      text-decoration: underline;
-      text-underline-offset: 2px;
-    }
-
     .create-account {
       display: block;
       margin-top: 20px;
@@ -273,8 +264,8 @@
     }
 
 
-    .profile-page,.message-page{width:min(100% - 32px,760px);margin:28px auto;padding:24px;border:1px solid #eee;border-radius:16px;background:#fff;box-shadow:0 10px 30px rgba(0,0,0,.06)}
-    .profile-heading,.message-heading{margin:0 0 20px;color:#222;font-size:24px}
+    .profile-page{width:min(100% - 32px,760px);margin:28px auto;padding:24px;border:1px solid #eee;border-radius:16px;background:#fff;box-shadow:0 10px 30px rgba(0,0,0,.06)}
+    .profile-heading{margin:0 0 20px;color:#222;font-size:24px}
     .profile-summary{display:flex;align-items:center;gap:16px;padding:18px;border-radius:12px;background:#f8f9fb;margin-bottom:20px}
     .profile-avatar{width:64px;height:64px;flex:0 0 64px;display:grid;place-items:center;border-radius:50%;overflow:hidden;background:#e5e7eb;color:#374151;font-size:24px;font-weight:700}.profile-avatar img{width:100%;height:100%;object-fit:cover}.avatar-controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:9px}.avatar-upload{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
     .profile-name{margin:0 0 5px;font-size:20px;overflow-wrap:anywhere}.profile-email{margin:0;color:#666;font-size:14px;overflow-wrap:anywhere}
@@ -282,7 +273,7 @@
     .profile-section{padding:18px;margin-bottom:16px;border:1px solid #eee;border-radius:12px}.profile-section h2{margin:0 0 14px;font-size:17px}
     .profile-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.detail-label{margin:0 0 5px;color:#777;font-size:12px}.detail-value{margin:0;color:#222;font-size:15px;overflow-wrap:anywhere;white-space:pre-wrap}
     .profile-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.action-button{min-height:44px;padding:0 16px;border:1px solid #ddd;border-radius:9px;background:#fff;color:#222;font:inherit;font-weight:600;cursor:pointer}.action-button.primary{background:#222;border-color:#222;color:#fff}
-    .profile-input,.message-textarea{width:100%;margin:0 0 15px;padding:12px 13px;border:1px solid #dcdcdc;border-radius:9px;background:#fff;color:#222;font:inherit;font-size:15px}.message-textarea{min-height:160px;resize:vertical}
+    .profile-input{width:100%;margin:0 0 15px;padding:12px 13px;border:1px solid #dcdcdc;border-radius:9px;background:#fff;color:#222;font:inherit;font-size:15px}
     .profile-picture-editor{margin-bottom:20px;background:linear-gradient(135deg,#fbfdff,#f7f9fc)}
     .profile-picture-editor h2{margin-bottom:16px}
     .profile-picture-editor-row{display:flex;align-items:center;gap:20px}
@@ -298,7 +289,7 @@
     .profile-picture-progress.is-active .attachment-progress-fill{width:35%;animation:profile-picture-progress 1.2s ease-in-out infinite alternate}
     @keyframes profile-picture-progress{from{transform:translateX(-15%)}to{transform:translateX(140%)}}
     @media(max-width:480px){.profile-picture-editor-row{align-items:flex-start;flex-direction:column;gap:14px}.profile-picture-upload-area{width:100%}.profile-avatar-large{width:88px;height:88px;flex-basis:88px}}
-    .edit-profile-form label,.message-page label{display:block;margin:0 0 6px;color:#444;font-size:14px}.profile-status{margin:12px 0;font-size:14px;line-height:1.5}.back-profile{margin-bottom:18px}.attachment-note{margin:-6px 0 15px;color:#777;font-size:13px}
+    .edit-profile-form label{display:block;margin:0 0 6px;color:#444;font-size:14px}.profile-status{margin:12px 0;font-size:14px;line-height:1.5}.back-profile{margin-bottom:18px}.attachment-note{margin:-6px 0 15px;color:#777;font-size:13px}
     .attachment-picker{display:flex;align-items:center;gap:14px;margin:4px 0 18px;padding:16px;border:1px dashed #bfc5ce;border-radius:12px;background:#f8fafc;cursor:pointer;transition:border-color .15s ease,background-color .15s ease}
     .attachment-picker:hover,.attachment-picker:focus-within{border-color:#64748b;background:#f1f5f9}
     .attachment-icon{display:grid;place-items:center;flex:0 0 44px;width:44px;height:44px;border-radius:10px;background:#e9eef5;color:#334155;font-size:23px}
@@ -306,31 +297,7 @@
     .attachment-button{flex:0 0 auto;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;background:#fff;color:#222;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
     .attachment-button:hover{background:#f3f4f6}.attachment-filename{margin:-8px 0 14px;color:#475569;font-size:13px;overflow-wrap:anywhere}
     .attachment-input{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-    .message-retention-notice{margin:0 0 22px;padding:14px 16px;border:1px solid #dbeafe;border-radius:12px;background:#eff6ff;color:#1e40af;text-align:center;font-size:14px;font-weight:600;line-height:1.6}
-    .message-quota{margin:4px 0 18px;padding:13px 14px;border:1px solid #e5e7eb;border-radius:10px;background:#fafafa}
-    .message-quota-label{display:flex;justify-content:space-between;gap:10px;margin-bottom:8px;color:#4b5563;font-size:13px}
-    .message-quota-track{height:7px;overflow:hidden;border-radius:999px;background:#e5e7eb}
-    .message-quota-fill{width:0;height:100%;border-radius:999px;background:#475569;transition:width .2s ease}
-    .message-send-status{margin:12px 0 0;font-size:14px;line-height:1.5;overflow-wrap:anywhere}
-    .attachment-list{display:grid;gap:9px;margin:-4px 0 18px}
-    .attachment-item{padding:10px 12px;border:1px solid #e5e7eb;border-radius:9px;background:#fafafa}
-    .attachment-item-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:7px;font-size:13px}
-    .attachment-item-name{min-width:0;overflow-wrap:anywhere;color:#374151}
-    .attachment-item-state{flex:0 0 auto;color:#6b7280;font-size:12px}
-    .attachment-progress{height:6px;overflow:hidden;border-radius:999px;background:#e5e7eb}
-    .attachment-progress-fill{width:0;height:100%;border-radius:999px;background:#2563eb;transition:width .15s ease}
-    .attachment-item[data-state="success"] .attachment-progress-fill{background:#16a34a}
-    .attachment-item[data-state="error"] .attachment-progress-fill{background:#dc2626}
-    .action-button.has-unread{background:#dc2626;border-color:#dc2626;color:#fff}.action-button.has-unread:hover{background:#b91c1c;border-color:#b91c1c}
-    .message-recipient-wrap{margin:0 0 18px}.message-recipient-wrap label{display:block;margin:0 0 7px;color:#444;font-size:14px}
-    .message-conversation-heading{margin:18px 0 12px;font-size:18px;color:#222}.message-conversation{display:grid;gap:10px;max-height:48vh;overflow:auto;margin:0 0 22px;padding:2px}
-    .message-delivery-status{font-weight:600;color:#4b5563}
-    .admin-message-card{padding:16px;margin:0 0 12px;border:1px solid #e5e7eb;border-radius:12px;background:#fff;overflow-wrap:anywhere}
-    .admin-message-meta{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin:0 0 10px;color:#6b7280;font-size:12px}
-    .admin-message-body{margin:0 0 12px;color:#222;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6}
-    .admin-message-file{display:inline-block;margin:0 0 8px;color:#1d4ed8;font-size:14px;overflow-wrap:anywhere}
-    @media(max-width:420px){.attachment-picker{gap:10px;padding:12px}.attachment-icon{flex-basis:38px;width:38px;height:38px}.attachment-button{padding:8px;font-size:12px}.message-quota-label{flex-direction:column;gap:4px}}
-    @media(max-width:560px){.profile-page,.message-page{padding:17px;margin:18px auto}.profile-details{grid-template-columns:1fr}.profile-actions .action-button{flex:1 1 100%}.profile-heading,.message-heading{font-size:22px}}
+    @media(max-width:560px){.profile-page{padding:17px;margin:18px auto}.profile-details{grid-template-columns:1fr}.profile-actions .action-button{flex:1 1 100%}.profile-heading{font-size:22px}}
 
     footer {
       position: relative;
@@ -410,8 +377,6 @@
       if (pageName === "CreateAccount") { renderCreateAccount(); return; }
       if (pageName === "Profile") { renderProfile(); return; }
       if (pageName === "EditProfile") { renderEditProfile(); return; }
-      if (pageName === "Message") { renderMessage(); return; }
-      if (pageName === "AdminInbox") { renderAdminInbox(); return; }
       if (pageName !== "Login") return;
 
       const form = document.createElement("form");
@@ -707,22 +672,6 @@
       return (bytes / (1024 * 1024)).toFixed(1) + " MB";
     }
 
-    let unreadBadgeTimer = null;
-
-    async function applyUnreadMessageBadge(button, user, isAdmin) {
-      let query = supabaseClient.from("admin_messages").select("id", { count: "exact", head: true }).is("read_at", null);
-      if (isAdmin) query = query.is("recipient_id", null).neq("user_id", user.id);
-      else query = query.eq("recipient_id", user.id).neq("user_id", user.id);
-      const { count, error } = await query;
-      if (!error && Number(count || 0) > 0) {
-        button.classList.add("has-unread");
-        button.setAttribute("aria-label", "Message, unread messages");
-      } else {
-        button.classList.remove("has-unread");
-        button.removeAttribute("aria-label");
-      }
-    }
-
     async function renderProfile() {
       const user = await getCurrentUser();
       if (!user) { renderPage("Login"); history.replaceState(null, "", "#login"); setCurrentMenuPage("Login"); return; }
@@ -752,24 +701,7 @@
       const actions=document.createElement("div");actions.className="profile-actions";
       const edit=document.createElement("button");edit.className="action-button primary";edit.textContent="Edit Profile";edit.type="button";
       edit.addEventListener("click",()=>{renderPage("EditProfile");history.replaceState(null,"","#edit-profile");});
-      const msg=document.createElement("button");msg.className="action-button";msg.textContent="Message";msg.type="button";
-      msg.addEventListener("click",()=>{renderPage("Message");history.replaceState(null,"","#message");});
-      actions.append(edit,msg);
-      applyUnreadMessageBadge(msg,user,role === "ADMIN");
-      if (unreadBadgeTimer) clearInterval(unreadBadgeTimer);
-      unreadBadgeTimer = setInterval(() => {
-        if (!mainContent.contains(msg)) {
-          clearInterval(unreadBadgeTimer);
-          unreadBadgeTimer = null;
-          return;
-        }
-        applyUnreadMessageBadge(msg,user,role === "ADMIN");
-      }, 5000);
-      if (role === "ADMIN") {
-        const inbox=document.createElement("button");inbox.className="action-button";inbox.type="button";inbox.textContent="Admin Inbox";
-        inbox.addEventListener("click",()=>{renderPage("AdminInbox");history.replaceState(null,"","#admin-inbox");});
-        actions.append(inbox);
-      }
+      actions.append(edit);
       page.append(heading,summary,info,actions);mainContent.replaceChildren(page);setCurrentMenuPage("Profile");
     }
 
@@ -864,483 +796,7 @@
       page.append(heading,form);mainContent.replaceChildren(page);
     }
 
-    async function renderAdminInbox() {
-      return renderMessage();
-    }
-
-    async function renderMessage() {
-      const user = await getCurrentUser();
-      if (!user) {
-        renderPage("Login");
-        history.replaceState(null, "", "#login");
-        return;
-      }
-      const isAdmin = String((user.app_metadata || {}).role || "").toLowerCase() === "admin";
-      const page = document.createElement("section");
-      page.className = "message-page";
-      const back = document.createElement("button");
-      back.className = "action-button back-profile";
-      back.type = "button";
-      back.textContent = "← Back to Profile";
-      back.addEventListener("click", () => {
-        renderPage("Profile");
-        history.replaceState(null, "", "#profile");
-      });
-      if (isAdmin) {
-        const heading = document.createElement("h1");
-        heading.className = "message-heading";
-        heading.textContent = "Messages";
-        page.append(back, heading);
-      } else {
-        page.append(back);
-      }
-      mainContent.replaceChildren(page);
-
-      const recipientWrap = document.createElement("div");
-      recipientWrap.className = "message-recipient-wrap";
-      const recipientLabel = document.createElement("label");
-      recipientLabel.textContent = "Send message to";
-      const recipientSelect = document.createElement("select");
-      recipientSelect.className = "profile-input";
-      recipientSelect.setAttribute("aria-label", "Select registered user");
-      let registeredUsers = [];
-      let selectedRecipientId = null;
-
-      if (isAdmin) {
-        const { data, error } = await supabaseClient.rpc("admin_list_registered_users");
-        if (error) {
-          const errorStatus = document.createElement("p");
-          errorStatus.className = "message-send-status";
-          errorStatus.style.color = "#a12622";
-          errorStatus.textContent = "Could not load registered users.";
-          page.append(errorStatus);
-          return;
-        }
-        registeredUsers = data || [];
-        registeredUsers.forEach((registered) => {
-          const option = document.createElement("option");
-          option.value = registered.user_id;
-          option.textContent = (registered.full_name || registered.email || registered.user_id) + (registered.email ? " — " + registered.email : "");
-          recipientSelect.append(option);
-        });
-        selectedRecipientId = registeredUsers.length ? registeredUsers[0].user_id : null;
-        recipientSelect.value = selectedRecipientId || "";
-        recipientLabel.htmlFor = "message-recipient";
-        recipientSelect.id = "message-recipient";
-        recipientWrap.append(recipientLabel, recipientSelect);
-        page.append(recipientWrap);
-        if (!registeredUsers.length) {
-          const emptyUsers = document.createElement("p");
-          emptyUsers.className = "profile-status";
-          emptyUsers.textContent = "No registered users found.";
-          page.append(emptyUsers);
-        }
-      }
-
-      const conversation = document.createElement("div");
-      conversation.className = "message-conversation";
-      const conversationStatus = document.createElement("p");
-      conversationStatus.className = "message-send-status";
-      conversationStatus.textContent = "Loading messages…";
-      conversation.append(conversationStatus);
-      page.append(conversation);
-
-      const retentionNotice = document.createElement("div");
-      retentionNotice.className = "message-retention-notice";
-      retentionNotice.textContent = "Messages and attachments are automatically deleted after 30 days.";
-      const quotaBox = document.createElement("div");
-      quotaBox.className = "message-quota";
-      const quotaLabel = document.createElement("div");
-      quotaLabel.className = "message-quota-label";
-      const quotaTitle = document.createElement("span");
-      quotaTitle.textContent = "Total message and file limit";
-      const quotaValue = document.createElement("span");
-      quotaValue.textContent = "Loading…";
-      quotaLabel.append(quotaTitle, quotaValue);
-      const quotaTrack = document.createElement("div");
-      quotaTrack.className = "message-quota-track";
-      quotaTrack.setAttribute("role", "progressbar");
-      quotaTrack.setAttribute("aria-label", "Message storage used");
-      quotaTrack.setAttribute("aria-valuemin", "0");
-      quotaTrack.setAttribute("aria-valuemax", "100");
-      const quotaFill = document.createElement("div");
-      quotaFill.className = "message-quota-fill";
-      quotaTrack.append(quotaFill);
-      quotaBox.append(quotaLabel, quotaTrack);
-
-      const form = document.createElement("form");
-      const textArea = document.createElement("textarea");
-      textArea.className = "message-textarea";
-      textArea.name = "message";
-      textArea.placeholder = isAdmin ? "Write a message to the selected user…" : "Write your message here…";
-      textArea.setAttribute("aria-label", "Message");
-      textArea.maxLength = 1000000;
-
-      const attachmentLabel = document.createElement("label");
-      attachmentLabel.className = "attachment-picker";
-      attachmentLabel.htmlFor = "admin-message-attachment";
-      const icon = document.createElement("span");
-      icon.className = "attachment-icon";
-      icon.setAttribute("aria-hidden", "true");
-      icon.textContent = "＋";
-      const attachmentCopy = document.createElement("span");
-      attachmentCopy.className = "attachment-copy";
-      const attachmentTitle = document.createElement("span");
-      attachmentTitle.className = "attachment-title";
-      attachmentTitle.textContent = "Attach photo or image (optional)";
-      const attachmentSubtitle = document.createElement("span");
-      attachmentSubtitle.className = "attachment-subtitle";
-      const chooseButton = document.createElement("span");
-      chooseButton.className = "attachment-button";
-      chooseButton.textContent = "Choose files";
-      attachmentCopy.append(attachmentTitle, attachmentSubtitle);
-      attachmentLabel.append(icon, attachmentCopy, chooseButton);
-
-      const file = document.createElement("input");
-      file.type = "file";
-      file.id = "admin-message-attachment";
-      file.accept = "image/*";
-      file.multiple = true;
-      file.className = "attachment-input";
-      file.setAttribute("aria-label", "Choose photo or image attachments");
-      const fileList = document.createElement("div");
-      fileList.className = "attachment-list";
-      fileList.hidden = true;
-      fileList.setAttribute("aria-live", "polite");
-      const status = document.createElement("p");
-      status.className = "message-send-status";
-      status.setAttribute("role", "status");
-      status.setAttribute("aria-live", "polite");
-      const send = document.createElement("button");
-      send.className = "action-button primary";
-      send.type = "submit";
-      send.textContent = isAdmin ? "Send to User" : "Send Message";
-      send.disabled = isAdmin && !selectedRecipientId;
-      form.append(textArea, attachmentLabel, file, fileList, send, status);
-      page.append(form);
-
-      const MAX_TOTAL_BYTES = 100 * 1024 * 1024;
-      const MAX_FILE_BYTES = 50 * 1024 * 1024;
-      let usedBytes = 0;
-      let selectedFiles = [];
-      let loadingConversation = false;
-
-      function formatBytes(bytes) {
-        return (bytes / (1024 * 1024)).toFixed(2) + " MB";
-      }
-      async function refreshQuota() {
-        const { data, error } = await supabaseClient.rpc("get_admin_message_usage");
-        if (error) {
-          quotaValue.textContent = "100 MB total limit";
-          return;
-        }
-        usedBytes = Number(data || 0);
-        const percent = Math.min(100, usedBytes / MAX_TOTAL_BYTES * 100);
-        quotaValue.textContent = formatBytes(usedBytes) + " / 100 MB";
-        quotaFill.style.width = percent + "%";
-        quotaTrack.setAttribute("aria-valuenow", String(Math.round(percent)));
-      }
-      function setStatus(message, type) {
-        status.textContent = message;
-        status.style.color = type === "error" ? "#a12622" : type === "success" ? "#176b43" : "#4b5563";
-      }
-      function renderSelectedFiles() {
-        fileList.replaceChildren();
-        fileList.hidden = selectedFiles.length === 0;
-        selectedFiles.forEach((selected) => {
-          const item = document.createElement("div");
-          item.className = "attachment-item";
-          item.dataset.state = "selected";
-          const top = document.createElement("div");
-          top.className = "attachment-item-top";
-          const name = document.createElement("span");
-          name.className = "attachment-item-name";
-          name.textContent = selected.name + " · " + formatBytes(selected.size);
-          const state = document.createElement("span");
-          state.className = "attachment-item-state";
-          state.textContent = "Selected";
-          const track = document.createElement("div");
-          track.className = "attachment-progress";
-          const fill = document.createElement("div");
-          fill.className = "attachment-progress-fill";
-          track.append(fill);
-          top.append(name, state);
-          item.append(top, track);
-          fileList.append(item);
-          selected._ui = { item, state, fill };
-        });
-      }
-      function updateFileProgress(selected, percent, label, stateName) {
-        if (!selected._ui) return;
-        selected._ui.fill.style.width = Math.max(0, Math.min(100, percent)) + "%";
-        selected._ui.state.textContent = label;
-        selected._ui.item.dataset.state = stateName || "uploading";
-      }
-      function uploadFileWithProgress(path, selected, index, total, accessToken) {
-        return new Promise((resolve, reject) => {
-          const xhr = new XMLHttpRequest();
-          const encodedPath = path.split("/").map(encodeURIComponent).join("/");
-          xhr.open("POST", "https://yopfogoyjxwxplnabqii.supabase.co/storage/v1/object/admin-message-attachments/" + encodedPath);
-          xhr.setRequestHeader("apikey", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6InlvcGZvZ295anh3eHBsbmFicWlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyOTMyNjQsImV4cCI6MjEwNDg2OTI2NH0.dIVH8sp3qyD_AGmt1bNFVOpQKdrgcX734HkrEuOacB4");
-          xhr.setRequestHeader("Authorization", "Bearer " + accessToken);
-          xhr.setRequestHeader("Content-Type", selected.type || "application/octet-stream");
-          xhr.upload.addEventListener("progress", (event) => {
-            if (!event.lengthComputable) return;
-            const percent = Math.round(event.loaded / event.total * 100);
-            updateFileProgress(selected, percent, percent + "%", "uploading");
-            setStatus("Uploading file (" + (index + 1) + "/" + total + "): " + selected.name + " — " + percent + "%", "info");
-          });
-          xhr.addEventListener("load", () => {
-            if (xhr.status >= 200 && xhr.status < 300) {
-              updateFileProgress(selected, 100, "Upload complete", "success");
-              resolve();
-              return;
-            }
-            let details = "";
-            try { const body = JSON.parse(xhr.responseText); details = body.message || body.error || body.statusCode || ""; } catch (_) { details = xhr.responseText || ""; }
-            reject(new Error(details || "File upload failed (" + xhr.status + ")"));
-          });
-          xhr.addEventListener("error", () => reject(new Error("Network error during file upload")));
-          xhr.addEventListener("abort", () => reject(new Error("File upload was cancelled")));
-          xhr.send(selected);
-        });
-      }
-
-      async function loadConversation() {
-        if (loadingConversation) return;
-        loadingConversation = true;
-        conversation.replaceChildren();
-        const loading = document.createElement("p");
-        loading.className = "message-send-status";
-        loading.textContent = "Loading messages…";
-        conversation.append(loading);
-        let query = supabaseClient.from("admin_messages")
-          .select("id,user_id,recipient_id,message_text,attachment_path,attachment_name,attachment_size,created_at,expires_at,delivered_at,read_at")
-          .order("created_at", { ascending: true })
-          .limit(300);
-        const { data, error } = await query;
-        if (error) {
-          conversation.replaceChildren();
-          const failed = document.createElement("p");
-          failed.className = "message-send-status";
-          failed.style.color = "#a12622";
-          failed.textContent = "Could not load messages. Please try again.";
-          conversation.append(failed);
-          loadingConversation = false;
-          return;
-        }
-        let messages = data || [];
-        if (isAdmin) {
-          messages = messages.filter((m) => m.user_id === selectedRecipientId || m.recipient_id === selectedRecipientId || (m.recipient_id == null && m.user_id === selectedRecipientId));
-        } else {
-          messages = messages.filter((m) => m.user_id === user.id || m.recipient_id === user.id);
-        }
-        const unread = messages.filter((m) => m.read_at == null && (isAdmin
-          ? m.recipient_id == null && m.user_id !== user.id
-          : m.recipient_id === user.id && m.user_id !== user.id));
-        if (unread.length) {
-          const unreadIds = unread.map((m) => m.id);
-          const { error: readError } = await supabaseClient.from("admin_messages")
-            .update({ read_at: new Date().toISOString() }).in("id", unreadIds);
-          if (!readError) {
-            const seenAt = new Date().toISOString();
-            messages.forEach((m) => { if (unreadIds.includes(m.id)) m.read_at = seenAt; });
-          }
-        }
-        conversation.replaceChildren();
-        if (!messages.length) {
-          const empty = document.createElement("p");
-          empty.className = "profile-status";
-          empty.textContent = "";
-          conversation.append(empty);
-          loadingConversation = false;
-          return;
-        }
-        const userMap = new Map(registeredUsers.map((u) => [u.user_id, u]));
-        for (const message of messages) {
-          const card = document.createElement("article");
-          card.className = "admin-message-card";
-          const meta = document.createElement("p");
-          meta.className = "admin-message-meta";
-          const sender = document.createElement("span");
-          if (message.user_id === user.id) sender.textContent = "You";
-          else if (isAdmin) {
-            const senderUser = userMap.get(message.user_id);
-            sender.textContent = senderUser ? (senderUser.full_name || senderUser.email || "Registered user") : "Registered user";
-          } else sender.textContent = "Admin";
-          const sentAt = document.createElement("span");
-          sentAt.textContent = new Date(message.created_at).toLocaleString();
-          meta.append(sender, sentAt);
-          card.append(meta);
-          if (message.message_text) {
-            const body = document.createElement("p");
-            body.className = "admin-message-body";
-            body.textContent = message.message_text;
-            card.append(body);
-          }
-          if (message.attachment_path) {
-            const attachment = document.createElement("a");
-            attachment.className = "admin-message-file";
-            attachment.href = "#";
-            attachment.textContent = message.attachment_name || "View attachment";
-            attachment.addEventListener("click", async (event) => {
-              event.preventDefault();
-              attachment.textContent = "Opening attachment…";
-              const { data: signedData, error: signedError } = await supabaseClient.storage
-                .from("admin-message-attachments").createSignedUrl(message.attachment_path, 60);
-              if (signedError || !signedData?.signedUrl) {
-                attachment.textContent = "Could not open attachment";
-                return;
-              }
-              window.open(signedData.signedUrl, "_blank", "noopener");
-              attachment.textContent = message.attachment_name || "View attachment";
-            });
-            card.append(attachment, document.createElement("br"));
-          }
-          if (message.user_id === user.id) {
-            const delivery = document.createElement("p");
-            delivery.className = "admin-message-meta message-delivery-status";
-            delivery.textContent = message.read_at
-              ? "Seen · " + new Date(message.read_at).toLocaleString()
-              : (message.delivered_at ? "Delivered · Unseen" : "Unseen");
-            card.append(delivery);
-          }
-          const expiry = document.createElement("p");
-          expiry.className = "admin-message-meta";
-          expiry.textContent = "Auto-deletes: " + new Date(message.expires_at).toLocaleString();
-          card.append(expiry);
-          conversation.append(card);
-        }
-        conversation.scrollTop = conversation.scrollHeight;
-        loadingConversation = false;
-      }
-
-      file.addEventListener("change", () => {
-        selectedFiles = Array.from(file.files || []);
-        const tooLarge = selectedFiles.find((selected) => selected.size > MAX_FILE_BYTES);
-        if (tooLarge) {
-          selectedFiles = [];
-          file.value = "";
-          renderSelectedFiles();
-          attachmentSubtitle.textContent = "";
-          setStatus("Each file can be up to 50 MB. The total limit for active messages and files is 100 MB.", "error");
-          return;
-        }
-        renderSelectedFiles();
-        const totalBytes = selectedFiles.reduce((sum, selected) => sum + selected.size, 0);
-        attachmentSubtitle.textContent = selectedFiles.length ? selectedFiles.length + " images selected · " + formatBytes(totalBytes) : "";
-        if (selectedFiles.length) setStatus("", "info");
-      });
-
-      if (isAdmin) {
-        recipientSelect.addEventListener("change", () => {
-          selectedRecipientId = recipientSelect.value || null;
-          send.disabled = !selectedRecipientId;
-          loadConversation();
-        });
-      }
-      await refreshQuota();
-      await loadConversation();
-
-      form.addEventListener("submit", async (event) => {
-        event.preventDefault();
-        const messageText = textArea.value.trim();
-        const filesToUpload = selectedFiles.slice();
-        if (isAdmin && !selectedRecipientId) {
-          setStatus("Select a registered user first.", "error");
-          return;
-        }
-        if (!messageText && filesToUpload.length === 0) {
-          setStatus("Enter a message or attach one or more images.", "error");
-          return;
-        }
-        if (filesToUpload.some((selected) => selected.size > MAX_FILE_BYTES)) {
-          setStatus("Each file can be up to 50 MB.", "error");
-          return;
-        }
-        const textBytes = new TextEncoder().encode(messageText).length;
-        const filesBytes = filesToUpload.reduce((sum, selected) => sum + selected.size, 0);
-        if (usedBytes + textBytes + filesBytes > MAX_TOTAL_BYTES) {
-          setStatus("This would exceed your 100 MB total limit. Space will be freed when older messages are deleted after 30 days.", "error");
-          return;
-        }
-        send.disabled = true;
-        file.disabled = true;
-        textArea.disabled = true;
-        send.textContent = "Uploading…";
-        setStatus(filesToUpload.length ? "Starting file uploads…" : "Sending message…", "info");
-        const uploadedPaths = [];
-        try {
-          if (filesToUpload.length) {
-            const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
-            const accessToken = sessionData?.session?.access_token;
-            if (sessionError || !accessToken) throw new Error("Your session has expired. Please log in again and retry.");
-            for (let i = 0; i < filesToUpload.length; i++) {
-              const selected = filesToUpload[i];
-              const safeName = selected.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-100) || "image";
-              const uploadedPath = user.id + "/" + crypto.randomUUID() + "-" + safeName;
-              updateFileProgress(selected, 0, "Uploading…", "uploading");
-              await uploadFileWithProgress(uploadedPath, selected, i, filesToUpload.length, accessToken);
-              uploadedPaths.push(uploadedPath);
-            }
-          }
-          setStatus("All files uploaded. Sending message…", "info");
-          send.textContent = "Sending…";
-          const recipientId = isAdmin ? selectedRecipientId : null;
-          const rows = filesToUpload.length
-            ? filesToUpload.map((selected, index) => ({
-                user_id: user.id,
-                recipient_id: recipientId,
-                message_text: index === 0 ? messageText : "",
-                attachment_path: uploadedPaths[index],
-                attachment_name: selected.name
-              }))
-            : [{
-                user_id: user.id,
-                recipient_id: recipientId,
-                message_text: messageText,
-                attachment_path: null,
-                attachment_name: null
-              }];
-          const { error: insertError } = await supabaseClient.from("admin_messages").insert(rows);
-          if (insertError) {
-            if ((insertError.message || "").includes("MESSAGE_QUOTA_EXCEEDED")) {
-              throw new Error("Your total 100 MB limit has been reached. You can send more after older messages are deleted in 30 days.");
-            }
-            throw new Error(insertError.message || insertError.details || insertError.hint || "Database insert failed");
-          }
-          textArea.value = "";
-          file.value = "";
-          selectedFiles = [];
-          fileList.replaceChildren();
-          fileList.hidden = true;
-          attachmentSubtitle.textContent = "";
-          setStatus(isAdmin ? "✓ Message sent successfully to the selected user." : "✓ Message sent successfully to the admin.", "success");
-          await refreshQuota();
-          await loadConversation();
-        } catch (error) {
-          if (uploadedPaths.length) await supabaseClient.storage.from("admin-message-attachments").remove(uploadedPaths);
-          const errorText = error && error.message ? error.message : "";
-          if (errorText.includes("Your total 100 MB") || errorText.includes("session has expired")) setStatus(errorText, "error");
-          else if (errorText.includes("MESSAGE_QUOTA_EXCEEDED")) setStatus("Your total 100 MB limit has been reached. Please try again later.", "error");
-          else if (errorText.toLowerCase().includes("size") || errorText.toLowerCase().includes("payload")) setStatus("File upload failed. Reduce the file size and try again.", "error");
-          else {
-            const detail = errorText && errorText.length < 220 ? errorText : "";
-            setStatus(detail ? "Failed to send: " + detail : "Message or file could not be sent. Please try again.", "error");
-          }
-          selectedFiles.forEach((selected) => {
-            if (selected._ui && selected._ui.item.dataset.state !== "success") updateFileProgress(selected, 0, "Failed", "error");
-          });
-        } finally {
-          send.disabled = isAdmin && !selectedRecipientId;
-          file.disabled = false;
-          textArea.disabled = false;
-          send.textContent = isAdmin ? "Send to User" : "Send Message";
-        }
-      });
-    }
-
-    // Keep menu actions synchronized with the real Supabase session.
+    // Keep menu actions synchronized with the real Supabase session.    // Keep menu actions synchronized with the real Supabase session.
     supabaseClient.auth.onAuthStateChange((event, session) => {
       updateAuthMenu(session);
       if (session && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) {
