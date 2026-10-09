@@ -715,8 +715,6 @@
       edit.addEventListener("click",()=>{renderPage("EditProfile");history.replaceState(null,"","#edit-profile");});
       const msg=document.createElement("button");msg.className="action-button";msg.textContent="Message";msg.type="button";
       msg.addEventListener("click",()=>{renderPage("Message");history.replaceState(null,"","#message");});
-      const logout=document.createElement("button");logout.className="action-button";logout.textContent="Logout";logout.type="button";
-      logout.addEventListener("click",async()=>{const {error}=await supabaseClient.auth.signOut();if(!error){renderPage("Login");history.replaceState(null,"","#login");setCurrentMenuPage("Login");}});
       actions.append(edit,msg);
       if (role === "ADMIN") {
         const inbox=document.createElement("button");inbox.className="action-button";inbox.type="button";inbox.textContent="Admin Inbox";
