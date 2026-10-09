@@ -1084,7 +1084,7 @@
           const tbody=document.createElement("tbody");
           for(const item of data){
             const row=document.createElement("tr");
-            const name=item.record_data?.title||item.record_data?.name||item.record_data?.key||item.record_data?.full_name||item.original_id;
+            const name=item.record_data?.caption||item.record_data?.title||item.record_data?.name||item.record_data?.key||item.record_data?.full_name||item.original_id;
             [String(name),String(item.original_table),new Date(item.deleted_at).toLocaleString(),new Date(item.purge_after).toLocaleString()].forEach(value=>{const td=document.createElement("td");td.textContent=value;row.append(td);});
             const actionCell=document.createElement("td");
             const restore=document.createElement("button");restore.type="button";restore.className="action-button primary";restore.textContent="Restore";
@@ -1108,6 +1108,7 @@
                   if(error)throw error;
                 }
                 if(item.original_table==="posts") await restoreLinks("post_media",related.post_media);
+                if(item.original_table==="albums") { const postIds=(related.posts_in_album||[]).map(p=>p.id).filter(Boolean); if(postIds.length){const {error}=await supabaseClient.from("post_media").update({album_id:original.id}).in("id",postIds);if(error)throw error;} }
                 if(item.original_table==="albums"){
                   await restoreLinks("album_media",related.album_media);
                   const postIds=(related.posts_in_album||[]).map(p=>p.id).filter(Boolean);
@@ -1594,13 +1595,10 @@
         try{
           const related={};
           const tableName=config.table;
-          if(tableName==="post_media"){
-            const {data,error}=await supabaseClient.from("post_media").select("*").eq("post_id",selectedId);if(error)throw error;
-            related.post_media=data||[];
-          }else if(tableName==="albums"){
+          if(tableName==="albums"){
             const [links,posts]=await Promise.all([
               supabaseClient.from("album_media").select("*").eq("album_id",selectedId),
-              supabaseClient.from("posts").select("id").eq("album_id",selectedId)
+              supabaseClient.from("post_media").select("id").eq("album_id",selectedId)
             ]);
             if(links.error)throw links.error;if(posts.error)throw posts.error;
             related.album_media=links.data||[];related.posts_in_album=posts.data||[];
@@ -1630,10 +1628,9 @@
           };
           const {data:trash,error:trashError}=await supabaseClient.from("recycle_bin").insert(trashPayload).select("id").single();
           if(trashError)throw trashError;trashId=trash.id;
-          if(tableName==="posts"){const {error}=await supabaseClient.from("post_media").delete().eq("post_id",selectedId);if(error)throw error;}
           if(tableName==="albums"){
             const {error:linkError}=await supabaseClient.from("album_media").delete().eq("album_id",selectedId);if(linkError)throw linkError;
-            const {error:postError}=await supabaseClient.from("posts").update({album_id:null}).eq("album_id",selectedId);if(postError)throw postError;
+            const {error:postError}=await supabaseClient.from("post_media").update({album_id:null}).eq("album_id",selectedId);if(postError)throw postError;
           }
           if(tableName==="media"){
             const {error:postError}=await supabaseClient.from("post_media").delete().eq("media_id",selectedId);if(postError)throw postError;
