@@ -177,6 +177,13 @@
       background: #444444;
     }
 
+    .login-message {
+      margin: 14px 0 0;
+      color: #b42318;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
     .create-account {
       display: block;
       margin-top: 20px;
@@ -225,7 +232,13 @@
     © 2026 Dalimgari. All rights reserved.
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
+    const supabaseClient = window.supabase.createClient(
+      "https://yopfogoyjxwxplnabqii.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvcGZvZ295anh3eHBsbmFicWlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyOTMyNjQsImV4cCI6MjEwNDg2OTI2NH0.dIVH8sp3qyD_AGmt1bNFVOpQKdrgcX734HkrEuOacB4"
+    );
+
     const menuButton = document.querySelector(".menu-button");
     const floatingMenu = document.querySelector("#floating-menu");
     const mainContent = document.querySelector("#main-content");
@@ -238,10 +251,29 @@
 
       const form = document.createElement("form");
       form.className = "login-form";
-      form.addEventListener("submit", (event) => {
+      form.addEventListener("submit", async (event) => {
         event.preventDefault();
-        renderPage("Profile");
+        const submitButton = form.querySelector(".login-submit");
+        const message = form.querySelector(".login-message");
+        submitButton.disabled = true;
+        submitButton.textContent = "Logging in...";
+        message.textContent = "";
 
+        const { error } = await supabaseClient.auth.signInWithPassword({
+          email: email.value.trim(),
+          password: password.value
+        });
+
+        if (error) {
+          message.textContent = error.message === "Invalid login credentials"
+            ? "Email or password is incorrect."
+            : error.message;
+          submitButton.disabled = false;
+          submitButton.textContent = "Login";
+          return;
+        }
+
+        renderPage("Profile");
         menuLinks.forEach((item) => {
           if (item.dataset.page === "Profile") {
             item.setAttribute("aria-current", "page");
@@ -284,7 +316,11 @@
       createAccount.href = "#create-account";
       createAccount.textContent = "Create new account?";
 
-      form.append(email, password, forgot, submit, createAccount);
+      const message = document.createElement("p");
+      message.className = "login-message";
+      message.setAttribute("role", "alert");
+
+      form.append(email, password, forgot, submit, message, createAccount);
       mainContent.append(form);
     }
 
