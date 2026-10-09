@@ -426,7 +426,7 @@
             email: email.value.trim(),
             password: password.value,
             options: {
-              emailRedirectTo: "https://dalimgari.github.io/dalimgari/"
+              emailRedirectTo: "https://dalimgari.github.io/dalimgari/#login"
             }
           });
 
@@ -458,7 +458,9 @@
       });
     }
 
-    if (window.location.hash === "#login") {
+    if (window.location.hash === "#create-account") {
+      renderPage("CreateAccount");
+    } else if (window.location.hash === "#login") {
       renderPage("Login");
       menuLinks.forEach((item) => {
         if (item.dataset.page === "Login") item.setAttribute("aria-current", "page");
