@@ -688,6 +688,8 @@
     }
     function metadataValue(user, key) { return (user.user_metadata && user.user_metadata[key]) || ""; }
 
+    let unreadBadgeTimer = null;
+
     async function applyUnreadMessageBadge(button, user, isAdmin) {
       let query = supabaseClient.from("admin_messages").select("id", { count: "exact", head: true }).is("read_at", null);
       if (isAdmin) query = query.is("recipient_id", null).neq("user_id", user.id);
@@ -733,7 +735,17 @@
       edit.addEventListener("click",()=>{renderPage("EditProfile");history.replaceState(null,"","#edit-profile");});
       const msg=document.createElement("button");msg.className="action-button";msg.textContent="Message";msg.type="button";
       msg.addEventListener("click",()=>{renderPage("Message");history.replaceState(null,"","#message");});
-      actions.append(edit,msg); applyUnreadMessageBadge(msg,user,role === "ADMIN");
+      actions.append(edit,msg);
+      applyUnreadMessageBadge(msg,user,role === "ADMIN");
+      if (unreadBadgeTimer) clearInterval(unreadBadgeTimer);
+      unreadBadgeTimer = setInterval(() => {
+        if (!mainContent.contains(msg)) {
+          clearInterval(unreadBadgeTimer);
+          unreadBadgeTimer = null;
+          return;
+        }
+        applyUnreadMessageBadge(msg,user,role === "ADMIN");
+      }, 5000);
       if (role === "ADMIN") {
         const inbox=document.createElement("button");inbox.className="action-button";inbox.type="button";inbox.textContent="Admin Inbox";
         inbox.addEventListener("click",()=>{renderPage("AdminInbox");history.replaceState(null,"","#admin-inbox");});
