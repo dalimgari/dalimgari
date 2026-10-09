@@ -1179,7 +1179,6 @@
         if(def.type==="textarea"){input=document.createElement("textarea");input.rows=4;}
         else if(def.type==="select"){input=document.createElement("select");(def.options||[]).forEach(([value,labelText])=>{const opt=document.createElement("option");opt.value=value;opt.textContent=labelText;input.append(opt);});}
         else if(def.type==="album"){input=document.createElement("select");const blank=document.createElement("option");blank.value="";blank.textContent="No album";input.append(blank);albums.forEach(a=>{const opt=document.createElement("option");opt.value=a.id;opt.textContent=a.title;input.append(opt);});}
-        else if(def.type==="media_multi"){input=document.createElement("select");input.multiple=true;input.size=Math.min(5,Math.max(3,mediaItems.length));mediaItems.forEach(m=>{const opt=document.createElement("option");opt.value=m.id;opt.textContent=(m.media_type==="video"?"Video · ":"Photo · ")+m.title;input.append(opt);});}
         else {input=document.createElement("input");input.type=def.type==="file"?"file":def.type;if(def.accept)input.accept=def.accept;}
         input.className="dashboard-crud-input";input.id=label.htmlFor;input.name=def.name;
         if(def.required)input.required=true;if(def.readonly)input.readOnly=true;
@@ -1251,7 +1250,7 @@
         controls.source_type?.addEventListener("change",updatePreview);
       }
       function resetForm(){
-        selectedId=null;form.reset();if(controls.source_type){controls.source_type.value="external";controls.external_url.closest(".dashboard-crud-field").hidden=false;controls.upload_file.closest(".dashboard-crud-field").hidden=true;}
+        selectedId=null;form.reset();if(controls.post_media_method)controls.post_media_method.dispatchEvent(new Event("change"));if(controls.source_type){controls.source_type.value="external";controls.external_url.closest(".dashboard-crud-field").hidden=false;controls.upload_file.closest(".dashboard-crud-field").hidden=true;}
         save.textContent=config.editOnly?"Select a media item":(config.readOnlyCreate?"Save Profile":(section.id==="post"?"Publish":"Create"));save.disabled=!!config.editOnly;remove.disabled=true;setStatus("");
         list.querySelectorAll(".dashboard-crud-row").forEach(row=>row.classList.remove("is-selected"));
       }
@@ -1297,12 +1296,8 @@
         });
         if(section.id==="post"){
           controls.post_media_method.value=record.source_type==="external"?"external":(record.media_type==="video"?"video":"photo");
+          controls.post_media_method.dispatchEvent(new Event("change"));
           controls.post_external_url.value=record.external_url||"";
-          controls.post_media_file.value="";
-          const external=controls.post_media_method.value==="external";
-          controls.post_external_url.closest(".dashboard-crud-field").hidden=!external;
-          controls.post_media_file.closest(".dashboard-crud-field").hidden=external;
-          controls.post_media_file.accept=controls.post_media_method.value==="video"?"video/*":"image/*";
         }
         if(section.id==="album"&&controls.media_ids){const {data}=await supabaseClient.from("album_media").select("media_id").eq("album_id",selectedId);const chosen=new Set((data||[]).map(x=>x.media_id));Array.from(controls.media_ids.options).forEach(o=>o.selected=chosen.has(o.value));}
         if(controls.source_type){controls.source_type.value=record.source_type||"external";controls.external_url.closest(".dashboard-crud-field").hidden=controls.source_type.value!=="external";controls.upload_file.closest(".dashboard-crud-field").hidden=controls.source_type.value!=="upload";if(mediaPreview){mediaPreview.hidden=true;controls.external_url.dispatchEvent(new Event("input"));}}
