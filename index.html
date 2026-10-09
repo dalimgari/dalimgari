@@ -989,6 +989,7 @@
           {name:"title",label:"Title",type:"text",required:true},
           {name:"description",label:"Description",type:"textarea",full:true},
           {name:"url_slug",label:"URL slug",type:"text",required:true,help:"Automatically suggested from the title; you can edit it."},
+          {name:"media_ids",label:"Attach existing photo/video media",type:"media_multi",full:true},
           {name:"album_id",label:"Album",type:"album"},
           {name:"visibility",label:"Visibility",type:"select",options:[["public","Public"],["private","Only Me"]]}
         ]},
@@ -1011,6 +1012,7 @@
         album: { table:"albums", label:"Albums", fields:[
           {name:"title",label:"Album title",type:"text",required:true},
           {name:"description",label:"Description",type:"textarea",full:true},
+          {name:"media_ids",label:"Photos/videos in this album",type:"media_multi",full:true},
           {name:"visibility",label:"Visibility",type:"select",options:[["public","Public"],["private","Only Me"]]}
         ]},
         page: { table:"pages", label:"Pages", fields:[
@@ -1064,6 +1066,10 @@
       }
       const config=configs[section.id];
       if (!config) return;
+      let availableAlbums=[], availableMedia=[];
+      if(section.id==="post"){const {data}=await supabaseClient.from("albums").select("id,title").order("title").limit(200);availableAlbums=data||[];}
+      if(section.id==="post"||section.id==="album"){const {data}=await supabaseClient.from("media").select("id,title,media_type,source_type,external_url,storage_path").order("created_at",{ascending:false}).limit(200);availableMedia=data||[];}
+      if(!isCurrent())return;
       content.replaceChildren();
       const wrap=document.createElement("div");wrap.className="dashboard-crud";
       const formCard=document.createElement("section");formCard.className="dashboard-crud-card";
@@ -1080,7 +1086,9 @@
       const listHeading=document.createElement("h3");listHeading.textContent="Existing "+config.label;
       const list=document.createElement("div");list.className="dashboard-crud-list";
       listCard.append(listHeading,list);formCard.append(formHeading,hint,form);wrap.append(formCard,listCard);content.append(wrap);
-      let selectedId=null, records=[], albums=[];
+      let selectedId=null, records=[];
+      const albums=availableAlbums;
+      const mediaItems=availableMedia;
       const controls={};
       function setStatus(message,type){status.textContent=message;status.style.color=type==="error"?"#a12622":type==="success"?"#176b43":"#555";}
       function makeField(def){
@@ -1090,6 +1098,7 @@
         if(def.type==="textarea"){input=document.createElement("textarea");input.rows=4;}
         else if(def.type==="select"){input=document.createElement("select");(def.options||[]).forEach(([value,labelText])=>{const opt=document.createElement("option");opt.value=value;opt.textContent=labelText;input.append(opt);});}
         else if(def.type==="album"){input=document.createElement("select");const blank=document.createElement("option");blank.value="";blank.textContent="No album";input.append(blank);albums.forEach(a=>{const opt=document.createElement("option");opt.value=a.id;opt.textContent=a.title;input.append(opt);});}
+        else if(def.type==="media_multi"){input=document.createElement("select");input.multiple=true;input.size=Math.min(5,Math.max(3,mediaItems.length));mediaItems.forEach(m=>{const opt=document.createElement("option");opt.value=m.id;opt.textContent=(m.media_type==="video"?"Video · ":"Photo · ")+m.title;input.append(opt);});}
         else {input=document.createElement("input");input.type=def.type==="file"?"file":def.type;if(def.accept)input.accept=def.accept;}
         input.className="dashboard-crud-input";input.id=label.htmlFor;input.name=def.name;
         if(def.required)input.required=true;if(def.readonly)input.readOnly=true;
@@ -1145,15 +1154,17 @@
         });
         table.append(tbody);list.append(table);
       }
-      function selectRecord(record,row){
+      async function selectRecord(record,row){
         selectedId=record.id||record.key||record.id;resetSelectionHighlight();row.classList.add("is-selected");
         config.fields.forEach(def=>{
           const input=controls[def.name];if(!input)return;
           let value=record[def.name];
           if((section.id==="customization"||section.id==="settings")&&def.name==="value")value=JSON.stringify(value??null,null,2);
-          if(def.type==="file")return;
+          if(def.type==="file"||def.type==="media_multi")return;
           input.value=value==null?"":String(value);
         });
+        if(section.id==="post"&&controls.media_ids){const {data}=await supabaseClient.from("post_media").select("media_id").eq("post_id",selectedId);const chosen=new Set((data||[]).map(x=>x.media_id));Array.from(controls.media_ids.options).forEach(o=>o.selected=chosen.has(o.value));}
+        if(section.id==="album"&&controls.media_ids){const {data}=await supabaseClient.from("album_media").select("media_id").eq("album_id",selectedId);const chosen=new Set((data||[]).map(x=>x.media_id));Array.from(controls.media_ids.options).forEach(o=>o.selected=chosen.has(o.value));}
         if(controls.source_type){controls.source_type.value=record.source_type||"external";controls.external_url.closest(".dashboard-crud-field").hidden=controls.source_type.value!=="external";controls.upload_file.closest(".dashboard-crud-field").hidden=controls.source_type.value!=="upload";}
         save.textContent=config.readOnlyCreate?"Save Profile":"Update";remove.disabled=!!config.noDelete;setStatus("Selected record loaded into the form.");
       }
@@ -1162,7 +1173,7 @@
         event.preventDefault();save.disabled=true;remove.disabled=true;save.textContent="Saving…";setStatus("");
         try{
           const payload={};
-          config.fields.forEach(def=>{if(def.type==="file")return;let value=controls[def.name].value;if(def.name==="value"&&(section.id==="customization"||section.id==="settings")){try{value=JSON.parse(value);}catch{throw new Error("Value must be valid JSON.");}}else if(value==="")value=null;payload[def.name]=value;});
+          config.fields.forEach(def=>{if(def.type==="file"||def.type==="media_multi")return;let value=controls[def.name].value;if(def.name==="value"&&(section.id==="customization"||section.id==="settings")){try{value=JSON.parse(value);}catch{throw new Error("Value must be valid JSON.");}}else if(value==="")value=null;payload[def.name]=value;});
           if(config.mediaType){payload.media_type=config.mediaType;payload.source_type=controls.source_type.value;
             if(payload.source_type==="upload"){
               const file=controls.upload_file.files?.[0];if(file){const ext=(file.name.split(".").pop()||"bin").replace(/[^a-zA-Z0-9]/g,"");const path=user.id+"/"+crypto.randomUUID()+"."+ext;
@@ -1187,7 +1198,18 @@
             result=await supabaseClient.from(config.table).insert(payload).select().single();
           }
           if(result.error)throw result.error;
-          setStatus(selectedId?"Record updated successfully.":"Record created successfully.","success");resetForm();await loadRecords();
+          const savedId=result.data?.id||selectedId;
+          if(section.id==="post"&&savedId){
+            await supabaseClient.from("post_media").delete().eq("post_id",savedId);
+            const mediaIds=Array.from(controls.media_ids.selectedOptions).map(o=>o.value);
+            if(mediaIds.length){const {error:relationError}=await supabaseClient.from("post_media").insert(mediaIds.map(media_id=>({post_id:savedId,media_id})));if(relationError)throw relationError;}
+          }
+          if(section.id==="album"&&savedId){
+            await supabaseClient.from("album_media").delete().eq("album_id",savedId);
+            const mediaIds=Array.from(controls.media_ids.selectedOptions).map(o=>o.value);
+            if(mediaIds.length){const {error:relationError}=await supabaseClient.from("album_media").insert(mediaIds.map(media_id=>({album_id:savedId,media_id})));if(relationError)throw relationError;}
+          }
+          resetForm();setStatus(selectedId?"Record updated successfully.":"Record created successfully.","success");await loadRecords();
         }catch(error){setStatus(error.message||"Could not save record.","error");}
         finally{save.disabled=false;save.textContent=selectedId?"Update":(config.readOnlyCreate?"Save Profile":"Create");remove.disabled=!selectedId||!!config.noDelete;}
       });
@@ -1203,10 +1225,6 @@
         }catch(error){setStatus(error.message||"Could not delete record.","error");}
         finally{save.disabled=false;remove.disabled=true;}
       });
-      if(section.id==="post"){
-        const {data}=await supabaseClient.from("albums").select("id,title").order("title").limit(200);albums=data||[];
-        const select=controls.album_id;if(select){select.replaceChildren();const blank=document.createElement("option");blank.value="";blank.textContent="No album";select.append(blank);albums.forEach(a=>{const opt=document.createElement("option");opt.value=a.id;opt.textContent=a.title;select.append(opt);});}
-      }
       if(!isCurrent())return;
       resetForm();await loadRecords();
     }
