@@ -324,6 +324,14 @@
       mainContent.append(form);
     }
 
+    if (window.location.hash === "#login") {
+      renderPage("Login");
+      menuLinks.forEach((item) => {
+        if (item.dataset.page === "Login") item.setAttribute("aria-current", "page");
+        else item.removeAttribute("aria-current");
+      });
+    }
+
     menuLinks.forEach((link) => {
       link.addEventListener("click", () => {
         const pageName = link.dataset.page;
