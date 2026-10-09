@@ -637,7 +637,7 @@
     async function renderProfile() {
       const user = await getCurrentUser();
       if (!user) { renderPage("Login"); history.replaceState(null, "", "#login"); setCurrentMenuPage("Login"); return; }
-      const name = metadataValue(user, "full_name") || metadataValue(user, "name") || (user.email || "Member").split("@")[0];
+      const name = metadataValue(user, "full_name") || metadataValue(user, "name") || "";
       const role = user.app_metadata && String(user.app_metadata.role || "").toLowerCase() === "admin" ? "ADMIN" : "MEMBER";
       const page = document.createElement("section"); page.className = "profile-page";
       const heading = document.createElement("h1"); heading.className = "profile-heading"; heading.textContent = "My Profile";
@@ -645,9 +645,9 @@
       const avatar = document.createElement("div"); avatar.className = "profile-avatar";
       const avatarUrl = metadataValue(user, "avatar_url");
       if (avatarUrl) { const avatarImage = document.createElement("img"); avatarImage.src = avatarUrl; avatarImage.alt = "Profile picture"; avatar.append(avatarImage); }
-      else { avatar.textContent = name.charAt(0).toUpperCase() || "M"; }
+      else { avatar.textContent = name.charAt(0).toUpperCase() || "?"; }
       const identity = document.createElement("div");
-      const nameLine = document.createElement("h2"); nameLine.className = "profile-name"; nameLine.append(document.createTextNode(name + " "));
+      const nameLine = document.createElement("h2"); nameLine.className = "profile-name"; nameLine.append(document.createTextNode(name || "Not added"));
       const badge = document.createElement("span"); badge.className = "role-badge"; badge.textContent = role; nameLine.append(badge);
       const email = document.createElement("p"); email.className = "profile-email"; email.textContent = user.email || "";
       identity.append(nameLine, email);
