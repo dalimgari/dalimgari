@@ -986,7 +986,7 @@
       }
       if (!isCurrent()) return;
       const configs = {
-        post: { table:"posts", label:"Posts", fields:[
+        post: { table:"post", label:"Posts", fields:[
           {name:"caption",label:"Caption",type:"text",required:true},
           {name:"description",label:"Description",type:"textarea",full:true},
           {name:"post_media_method",label:"Choose exactly one media method",type:"select",options:[["photo","Photo upload"],["video","Video upload"],["external","External link"]]},
@@ -995,12 +995,12 @@
           {name:"album_id",label:"Album",type:"album"},
           {name:"visibility",label:"Visibility",type:"select",options:[["public","Public"],["private","Only Me"]]}
         ]},
-        photo: { table:"posts", label:"Photos", mediaType:"photo", editOnly:true, fields:[
+        photo: { table:"post", label:"Photos", mediaType:"photo", editOnly:true, fields:[
           {name:"caption",label:"Caption",type:"text",required:true},
           {name:"description",label:"Description",type:"textarea",full:true},
           {name:"visibility",label:"Visibility",type:"select",options:[["public","Public"],["private","Only Me"]]}
         ]},
-        video: { table:"posts", label:"Videos", mediaType:"video", editOnly:true, fields:[
+        video: { table:"post", label:"Videos", mediaType:"video", editOnly:true, fields:[
           {name:"caption",label:"Caption",type:"text",required:true},
           {name:"description",label:"Description",type:"textarea",full:true},
           {name:"visibility",label:"Visibility",type:"select",options:[["public","Public"],["private","Only Me"]]}
@@ -1050,7 +1050,7 @@
         const intro = document.createElement("p"); intro.className="dashboard-section-description"; intro.textContent="Content management and database summary.";
         const stats = document.createElement("div"); stats.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-top:18px";
         content.append(title,intro,stats);
-        const targets=[["Posts","posts"],["Media","media"],["Albums","albums"],["Pages","pages"],["Users","profiles"],["Roles","roles"],["Permissions","permissions"]];
+        const targets=[["Posts","post"],["Media","media"],["Albums","albums"],["Pages","pages"],["Users","profiles"],["Roles","roles"],["Permissions","permissions"]];
         for (const [label,table] of targets) {
           const card=document.createElement("div");card.style.cssText="padding:16px;border:1px solid #e5e7eb;border-radius:10px;background:#fff";
           const l=document.createElement("div");l.style.cssText="font-size:13px;color:#666";l.textContent=label;
@@ -1109,7 +1109,7 @@
                 }
                 if(item.original_table==="albums"){
                   const postIds=(related.posts_in_album||[]).map(p=>p.id).filter(Boolean);
-                  if(postIds.length){const {error}=await supabaseClient.from("posts").update({album_id:original.id}).in("id",postIds);if(error)throw error;}
+                  if(postIds.length){const {error}=await supabaseClient.from("post").update({album_id:original.id}).in("id",postIds);if(error)throw error;}
                 }
                 if(item.original_table==="roles"){
                   await restoreLinks("user_roles",related.user_roles);
@@ -1361,11 +1361,11 @@
               };
               let saved;
               if(existing){
-                const {data,error}=await supabaseClient.from("posts").update(postPayload).eq("id",selectedId).select().single();
+                const {data,error}=await supabaseClient.from("post").update(postPayload).eq("id",selectedId).select().single();
                 if(error)throw error;
                 saved=data;
               }else{
-                const {data,error}=await supabaseClient.from("posts").insert(postPayload).select().single();
+                const {data,error}=await supabaseClient.from("post").insert(postPayload).select().single();
                 if(error)throw error;
                 saved=data;
               }
@@ -1382,7 +1382,7 @@
             }
             resetForm();setStatus(existing?"Post updated successfully.":"Post published successfully with one media item.","success");await loadRecords();return;
           }
-          if(config.table==="posts"&&section.id!=="post"&&payload.caption)payload.title=payload.caption;
+          if(config.table==="post"&&section.id!=="post"&&payload.caption)payload.title=payload.caption;
           if(config.table==="pages"){payload.url=generateUrlValue(payload.url||payload.title);if(!payload.url)throw new Error("Title or URL is required.");}
           if(config.table==="site_customizations"||config.table==="site_settings")payload.updated_by=user.id;
           if(config.table!=="profiles")payload.updated_at=new Date().toISOString();
@@ -1390,7 +1390,7 @@
           if(selectedId){result=await supabaseClient.from(config.table).update(payload).eq(config.table==="site_settings"||config.table==="site_customizations"?"id":"id",selectedId).select().single();}
           else{
             if(config.readOnlyCreate)throw new Error("Profiles are created through the account registration flow.");
-            if(["posts","media","albums","pages"].includes(config.table))payload.created_by=user.id;
+            if(["post","media","albums","pages"].includes(config.table))payload.created_by=user.id;
             result=await supabaseClient.from(config.table).insert(payload).select().single();
           }
           if(result.error)throw result.error;
@@ -1409,7 +1409,7 @@
           const related={};
           const tableName=config.table;
           if(tableName==="albums"){
-            const {data:posts,error:postsError}=await supabaseClient.from("posts").select("id").eq("album_id",selectedId);
+            const {data:posts,error:postsError}=await supabaseClient.from("post").select("id").eq("album_id",selectedId);
             if(postsError)throw postsError;
             related.posts_in_album=posts||[];
           }else if(tableName==="roles"){
@@ -1425,14 +1425,14 @@
           }
           const trashPayload={
             original_table:tableName,original_id:String(selectedId),record_data:record,related_data:related,
-            storage_bucket:(tableName==="media"||tableName==="posts")&&record.storage_path?"site-media":null,
-            storage_path:(tableName==="media"||tableName==="posts")?record.storage_path||null:null,
+            storage_bucket:(tableName==="media"||tableName==="post")&&record.storage_path?"site-media":null,
+            storage_path:(tableName==="media"||tableName==="post")?record.storage_path||null:null,
             deleted_by:user.id
           };
           const {data:trash,error:trashError}=await supabaseClient.from("recycle_bin").insert(trashPayload).select("id").single();
           if(trashError)throw trashError;trashId=trash.id;
           if(tableName==="albums"){
-            const {error:postError}=await supabaseClient.from("posts").update({album_id:null}).eq("album_id",selectedId);if(postError)throw postError;
+            const {error:postError}=await supabaseClient.from("post").update({album_id:null}).eq("album_id",selectedId);if(postError)throw postError;
           }
           if(tableName==="roles"){
             const {error:userError}=await supabaseClient.from("user_roles").delete().eq("role_id",selectedId);if(userError)throw userError;
