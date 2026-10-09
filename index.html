@@ -1108,11 +1108,10 @@
                   if(error)throw error;
                 }
                 if(item.original_table==="posts") await restoreLinks("post_media",related.post_media);
-                if(item.original_table==="albums") { const postIds=(related.posts_in_album||[]).map(p=>p.id).filter(Boolean); if(postIds.length){const {error}=await supabaseClient.from("post_media").update({album_id:original.id}).in("id",postIds);if(error)throw error;} }
                 if(item.original_table==="albums"){
                   await restoreLinks("album_media",related.album_media);
                   const postIds=(related.posts_in_album||[]).map(p=>p.id).filter(Boolean);
-                  if(postIds.length){const {error}=await supabaseClient.from("posts").update({album_id:original.id}).in("id",postIds);if(error)throw error;}
+                  if(postIds.length){const {error}=await supabaseClient.from("post_media").update({album_id:original.id}).in("id",postIds);if(error)throw error;}
                 }
                 if(item.original_table==="media"){
                   await restoreLinks("post_media",related.post_media);
