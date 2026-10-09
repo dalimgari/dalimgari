@@ -1149,6 +1149,140 @@
         controls.external_url?.addEventListener("input",updatePreview);
         controls.source_type?.addEventListener("change",updatePreview);
       }
+      // Shared Media Library uploader for Post and Album forms.
+      if ((section.id === "post" || section.id === "album") && controls.media_ids) {
+        const uploadCard = document.createElement("section");
+        uploadCard.className = "dashboard-crud-card";
+        const uploadHeading = document.createElement("h3");
+        uploadHeading.textContent = "Upload Media to Library";
+        const uploadHint = document.createElement("p");
+        uploadHint.className = "dashboard-crud-hint";
+        uploadHint.textContent = "Upload a photo/video here once, then it will be available in Photo/Video management and can be attached to this post or album.";
+        const uploadForm = document.createElement("form");
+        uploadForm.className = "dashboard-crud-form";
+        const mediaTitle = document.createElement("input");
+        mediaTitle.className = "dashboard-crud-input";
+        mediaTitle.required = true;
+        mediaTitle.placeholder = "Media title";
+        mediaTitle.setAttribute("aria-label", "Media title");
+        const titleHolder = document.createElement("div");
+        titleHolder.className = "dashboard-crud-field";
+        const titleLabel = document.createElement("label");
+        titleLabel.textContent = "Media title";
+        titleHolder.append(titleLabel, mediaTitle);
+        const mediaKind = document.createElement("select");
+        mediaKind.className = "dashboard-crud-input";
+        [["photo","Photo"],["video","Video"]].forEach(([v,t])=>{const o=document.createElement("option");o.value=v;o.textContent=t;mediaKind.append(o);});
+        const kindHolder = document.createElement("div");
+        kindHolder.className = "dashboard-crud-field";
+        const kindLabel = document.createElement("label");
+        kindLabel.textContent = "Media type";
+        kindHolder.append(kindLabel,mediaKind);
+        const sourceKind = document.createElement("select");
+        sourceKind.className = "dashboard-crud-input";
+        [["upload","Upload file"],["external","External URL (YouTube/direct link)"]].forEach(([v,t])=>{const o=document.createElement("option");o.value=v;o.textContent=t;sourceKind.append(o);});
+        const sourceHolder = document.createElement("div");
+        sourceHolder.className = "dashboard-crud-field";
+        const sourceLabel = document.createElement("label");
+        sourceLabel.textContent = "Source";
+        sourceHolder.append(sourceLabel,sourceKind);
+        const mediaFile = document.createElement("input");
+        mediaFile.className = "dashboard-crud-input";
+        mediaFile.type = "file";
+        mediaFile.accept = "image/*";
+        mediaFile.required = true;
+        const fileHolder = document.createElement("div");
+        fileHolder.className = "dashboard-crud-field full";
+        const fileLabel = document.createElement("label");
+        fileLabel.textContent = "Choose file";
+        fileHolder.append(fileLabel,mediaFile);
+        const externalUrl = document.createElement("input");
+        externalUrl.className = "dashboard-crud-input";
+        externalUrl.type = "url";
+        externalUrl.placeholder = "https://…";
+        const urlHolder = document.createElement("div");
+        urlHolder.className = "dashboard-crud-field full";
+        const urlLabel = document.createElement("label");
+        urlLabel.textContent = "External media URL";
+        urlHolder.append(urlLabel,externalUrl);
+        urlHolder.hidden = true;
+        const uploadActions = document.createElement("div");
+        uploadActions.className = "dashboard-crud-actions dashboard-crud-field full";
+        const uploadButton = document.createElement("button");
+        uploadButton.type = "submit";
+        uploadButton.className = "action-button primary";
+        uploadButton.textContent = "Upload and Attach";
+        const uploadStatus = document.createElement("p");
+        uploadStatus.className = "dashboard-crud-status dashboard-crud-field full";
+        uploadStatus.setAttribute("role","status");
+        uploadStatus.setAttribute("aria-live","polite");
+        uploadActions.append(uploadButton);
+        uploadForm.append(titleHolder,kindHolder,sourceHolder,fileHolder,urlHolder,uploadActions,uploadStatus);
+        uploadCard.append(uploadHeading,uploadHint,uploadForm);
+        wrap.insertBefore(uploadCard, listCard);
+        function syncUploadSource() {
+          const isUpload = sourceKind.value === "upload";
+          fileHolder.hidden = !isUpload;
+          urlHolder.hidden = isUpload;
+          mediaFile.required = isUpload;
+          externalUrl.required = !isUpload;
+          mediaFile.accept = mediaKind.value === "photo" ? "image/*" : "video/*";
+        }
+        sourceKind.addEventListener("change",syncUploadSource);
+        mediaKind.addEventListener("change",syncUploadSource);
+        uploadForm.addEventListener("submit",async event=>{
+          event.preventDefault();
+          uploadButton.disabled = true;
+          uploadStatus.style.color = "#555";
+          uploadStatus.textContent = "Saving media…";
+          let uploadedPath = null;
+          try {
+            const title = mediaTitle.value.trim();
+            if (!title) throw new Error("Enter a media title.");
+            const payload = {title,media_type:mediaKind.value,source_type:sourceKind.value,visibility:"public",created_by:user.id};
+            if (sourceKind.value === "upload") {
+              const file = mediaFile.files && mediaFile.files[0];
+              if (!file) throw new Error("Choose a file to upload.");
+              if (mediaKind.value === "photo" && !file.type.startsWith("image/")) throw new Error("Choose an image file.");
+              if (mediaKind.value === "video" && !file.type.startsWith("video/")) throw new Error("Choose a video file.");
+              const ext = (file.name.split(".").pop() || "bin").replace(/[^a-zA-Z0-9]/g,"").toLowerCase();
+              uploadedPath = user.id + "/" + crypto.randomUUID() + "." + (ext || "bin");
+              const {error:storageError} = await supabaseClient.storage.from("site-media").upload(uploadedPath,file,{upsert:false,contentType:file.type || "application/octet-stream"});
+              if (storageError) throw storageError;
+              payload.storage_path = uploadedPath;
+              payload.external_url = null;
+            } else {
+              const url = externalUrl.value.trim();
+              if (!/^https?:\/\//i.test(url)) throw new Error("Enter a valid http:// or https:// URL.");
+              payload.external_url = url;
+              payload.storage_path = null;
+            }
+            const {data:newMedia,error:mediaError} = await supabaseClient.from("media").insert(payload).select("id,title,media_type,source_type,external_url,storage_path").single();
+            if (mediaError) throw mediaError;
+            const option = document.createElement("option");
+            option.value = newMedia.id;
+            option.textContent = (newMedia.media_type === "video" ? "Video · " : "Photo · ") + newMedia.title;
+            controls.media_ids.append(option);
+            option.selected = true;
+            uploadStatus.style.color = "#176b43";
+            uploadStatus.textContent = "Media added to the library and selected for this " + (section.id === "post" ? "post." : "album.");
+            mediaTitle.value = "";
+            mediaFile.value = "";
+            externalUrl.value = "";
+            await loadRecords();
+          } catch(error) {
+            if (uploadedPath) {
+              const {error:cleanupError} = await supabaseClient.storage.from("site-media").remove([uploadedPath]);
+              if (cleanupError) console.warn("Uploaded file cleanup failed",cleanupError);
+            }
+            uploadStatus.style.color = "#a12622";
+            uploadStatus.textContent = error.message || "Could not upload media.";
+          } finally {
+            uploadButton.disabled = false;
+          }
+        });
+        syncUploadSource();
+      }
       function resetForm(){
         selectedId=null;form.reset();if(controls.source_type){controls.source_type.value="external";controls.external_url.closest(".dashboard-crud-field").hidden=false;controls.upload_file.closest(".dashboard-crud-field").hidden=true;}
         save.textContent=config.readOnlyCreate?"Save Profile":"Create";save.disabled=false;remove.disabled=true;setStatus("");
@@ -1166,16 +1300,33 @@
         list.replaceChildren();
         if(error){const p=document.createElement("p");p.className="dashboard-crud-empty";p.textContent="Could not load records: "+error.message;list.append(p);return;}
         records=data||[];
+        const usageByMedia = new Map();
+        if (config.mediaType && records.length) {
+          const ids = records.map(record=>record.id);
+          const [postLinks,albumLinks,postNames,albumNames] = await Promise.all([
+            supabaseClient.from("post_media").select("media_id,post_id").in("media_id",ids),
+            supabaseClient.from("album_media").select("media_id,album_id").in("media_id",ids),
+            supabaseClient.from("posts").select("id,title").limit(500),
+            supabaseClient.from("albums").select("id,title").limit(500)
+          ]);
+          const postTitleById = new Map((postNames.data||[]).map(item=>[item.id,item.title]));
+          const albumTitleById = new Map((albumNames.data||[]).map(item=>[item.id,item.title]));
+          (postLinks.data||[]).forEach(link=>{if(!usageByMedia.has(link.media_id))usageByMedia.set(link.media_id,[]);usageByMedia.get(link.media_id).push("Post: "+(postTitleById.get(link.post_id)||"Untitled"));});
+          (albumLinks.data||[]).forEach(link=>{if(!usageByMedia.has(link.media_id))usageByMedia.set(link.media_id,[]);usageByMedia.get(link.media_id).push("Album: "+(albumTitleById.get(link.album_id)||"Untitled"));});
+        }
         if(!records.length){const p=document.createElement("p");p.className="dashboard-crud-empty";p.textContent="No records found yet.";list.append(p);return;}
         const table=document.createElement("table");table.className="dashboard-crud-table";
         const thead=document.createElement("thead"),trh=document.createElement("tr");
-        ["Select","Title / Name","Details","Visibility","Created"].forEach(label=>{const th=document.createElement("th");th.textContent=label;trh.append(th);});thead.append(trh);table.append(thead);
+        ["Select","Title / Name","Details",...(config.mediaType?["Used In"]:[]),"Visibility","Created"].forEach(label=>{const th=document.createElement("th");th.textContent=label;trh.append(th);});thead.append(trh);table.append(thead);
         const tbody=document.createElement("tbody");
         records.forEach(record=>{
           const row=document.createElement("tr");row.className="dashboard-crud-row";row.tabIndex=0;
           const title=record.title||record.name||record.key||record.full_name||record.id||"Record";
-          const details=record.external_url||record.url||record.description||record.phone||record.source_type||"";
-          [String(record.id||"").slice(0,8)||"—",title,details,record.visibility==="private"?"Only Me":record.visibility==="public"?"Public":"—",record.created_at?new Date(record.created_at).toLocaleString():"—"].forEach(value=>{const td=document.createElement("td");td.textContent=String(value);row.append(td);});
+          const details=record.external_url||record.storage_path||record.url||record.description||record.phone||record.source_type||"";
+          const values=[String(record.id||"").slice(0,8)||"—",title,details];
+          if(config.mediaType) values.push((usageByMedia.get(record.id)||[]).join(", ")||"Not attached to a post or album");
+          values.push(record.visibility==="private"?"Only Me":record.visibility==="public"?"Public":"—",record.created_at?new Date(record.created_at).toLocaleString():"—");
+          values.forEach(value=>{const td=document.createElement("td");td.textContent=String(value);row.append(td);});
           const first=row.firstElementChild;first.textContent="Select";
           row.addEventListener("click",()=>selectRecord(record,row));
           row.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();selectRecord(record,row);}});
@@ -1231,12 +1382,12 @@
           if(section.id==="post"&&savedId){
             await supabaseClient.from("post_media").delete().eq("post_id",savedId);
             const mediaIds=Array.from(controls.media_ids.selectedOptions).map(o=>o.value);
-            if(mediaIds.length){const {error:relationError}=await supabaseClient.from("post_media").insert(mediaIds.map(media_id=>({post_id:savedId,media_id})));if(relationError)throw relationError;}
+            if(mediaIds.length){const {error:relationError}=await supabaseClient.from("post_media").insert(mediaIds.map((media_id,sort_order)=>({post_id:savedId,media_id,sort_order})));if(relationError)throw relationError;}
           }
           if(section.id==="album"&&savedId){
             await supabaseClient.from("album_media").delete().eq("album_id",savedId);
             const mediaIds=Array.from(controls.media_ids.selectedOptions).map(o=>o.value);
-            if(mediaIds.length){const {error:relationError}=await supabaseClient.from("album_media").insert(mediaIds.map(media_id=>({album_id:savedId,media_id})));if(relationError)throw relationError;}
+            if(mediaIds.length){const {error:relationError}=await supabaseClient.from("album_media").insert(mediaIds.map((media_id,sort_order)=>({album_id:savedId,media_id,sort_order})));if(relationError)throw relationError;}
           }
           const wasUpdating=Boolean(selectedId);resetForm();setStatus(wasUpdating?"Record updated successfully.":"Record created successfully.","success");await loadRecords();
         }catch(error){setStatus(error.message||"Could not save record.","error");}
@@ -1248,6 +1399,15 @@
         if(!confirm("Delete this record? This action cannot be undone."))return;
         remove.disabled=true;save.disabled=true;
         try{
+          if(config.table==="media"){
+            const [postUse,albumUse]=await Promise.all([
+              supabaseClient.from("post_media").select("post_id",{count:"exact",head:true}).eq("media_id",selectedId),
+              supabaseClient.from("album_media").select("album_id",{count:"exact",head:true}).eq("media_id",selectedId)
+            ]);
+            if(postUse.error)throw postUse.error;
+            if(albumUse.error)throw albumUse.error;
+            if((postUse.count||0)+(albumUse.count||0)>0)throw new Error("This media is attached to a post or album. Detach it first, then delete it.");
+          }
           const {error}=await supabaseClient.from(config.table).delete().eq("id",selectedId);if(error)throw error;
           if(config.table==="media"&&record.storage_path){const {error:storageError}=await supabaseClient.storage.from("site-media").remove([record.storage_path]);if(storageError)console.warn("Storage cleanup failed",storageError);}
           resetForm();setStatus("Record deleted successfully.","success");await loadRecords();
