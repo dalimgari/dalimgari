@@ -886,10 +886,14 @@
         renderPage("Profile");
         history.replaceState(null, "", "#profile");
       });
-      const heading = document.createElement("h1");
-      heading.className = "message-heading";
-      heading.textContent = isAdmin ? "Messages" : "Messages to Admin";
-      page.append(back, heading);
+      if (isAdmin) {
+        const heading = document.createElement("h1");
+        heading.className = "message-heading";
+        heading.textContent = "Messages";
+        page.append(back, heading);
+      } else {
+        page.append(back);
+      }
       mainContent.replaceChildren(page);
 
       const recipientWrap = document.createElement("div");
@@ -933,16 +937,13 @@
         }
       }
 
-      const conversationHeading = document.createElement("h2");
-      conversationHeading.className = "message-conversation-heading";
-      conversationHeading.textContent = isAdmin ? "Conversation" : "Conversation with Admin";
       const conversation = document.createElement("div");
       conversation.className = "message-conversation";
       const conversationStatus = document.createElement("p");
       conversationStatus.className = "message-send-status";
       conversationStatus.textContent = "Loading messages…";
       conversation.append(conversationStatus);
-      page.append(conversationHeading, conversation);
+      page.append(conversation);
 
       const retentionNotice = document.createElement("div");
       retentionNotice.className = "message-retention-notice";
@@ -1150,7 +1151,7 @@
         if (!messages.length) {
           const empty = document.createElement("p");
           empty.className = "profile-status";
-          empty.textContent = isAdmin ? "No messages in this conversation yet." : "No messages yet.";
+          empty.textContent = "";
           conversation.append(empty);
           loadingConversation = false;
           return;
