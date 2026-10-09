@@ -26,13 +26,62 @@
 
     header {
       position: relative;
-      z-index: 1;
+      z-index: 10;
       flex: 0 0 80px;
       width: calc(100% - 32px);
       margin: 12px 16px 0;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
       background-color: #ffffff;
       border-radius: 12px;
       box-shadow: 0 8px 20px -8px rgba(0, 0, 0, 0.16);
+    }
+
+    .menu-button {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 0;
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .menu-button:hover,
+    .menu-button:focus-visible {
+      background-color: #f5f5f5;
+      outline: none;
+    }
+
+    .menu-button span {
+      display: block;
+      width: 20px;
+      height: 2px;
+      border-radius: 2px;
+      background-color: #333333;
+    }
+
+    .floating-menu {
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      width: min(260px, calc(100vw - 32px));
+      height: 180px;
+      border: 1px solid #eeeeee;
+      border-radius: 14px;
+      background-color: #ffffff;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14);
+    }
+
+    .floating-menu[hidden] {
+      display: none;
     }
 
     main {
@@ -63,6 +112,12 @@
 </head>
 <body>
   <header>
+    <button class="menu-button" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="floating-menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <div class="floating-menu" id="floating-menu" hidden></div>
   </header>
 
   <main>
@@ -71,5 +126,33 @@
   <footer>
     © 2026 Dalimgari. All rights reserved.
   </footer>
+
+  <script>
+    const menuButton = document.querySelector(".menu-button");
+    const floatingMenu = document.querySelector("#floating-menu");
+
+    menuButton.addEventListener("click", () => {
+      const isOpening = floatingMenu.hidden;
+      floatingMenu.hidden = !isOpening;
+      menuButton.setAttribute("aria-expanded", String(isOpening));
+      menuButton.setAttribute("aria-label", isOpening ? "Close menu" : "Open menu");
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!menuButton.contains(event.target) && !floatingMenu.contains(event.target)) {
+        floatingMenu.hidden = true;
+        menuButton.setAttribute("aria-expanded", "false");
+        menuButton.setAttribute("aria-label", "Open menu");
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        floatingMenu.hidden = true;
+        menuButton.setAttribute("aria-expanded", "false");
+        menuButton.setAttribute("aria-label", "Open menu");
+      }
+    });
+  </script>
 </body>
 </html>
