@@ -739,14 +739,12 @@
       const back=document.createElement("button");back.className="action-button back-profile";back.type="button";back.textContent="← Back to Profile";
       back.addEventListener("click",()=>{renderPage("Profile");history.replaceState(null,"","#profile");});
       const heading=document.createElement("h1");heading.className="message-heading";heading.textContent="Message to Admin";
-      const note=document.createElement("p");note.className="profile-email";note.textContent="Send a text message or attach a photo for the site administrator.";
       const form=document.createElement("form");
       const textArea=document.createElement("textarea");textArea.className="message-textarea";textArea.name="message";textArea.placeholder="Write your message here...";textArea.setAttribute("aria-label","Message to admin");
       const label=document.createElement("label");label.htmlFor="admin-message-attachment";label.textContent="Attach photo or image (optional)";
       const file=document.createElement("input");file.type="file";file.id="admin-message-attachment";file.accept="image/*";file.style.display="block";file.style.marginBottom="12px";
-      const status=document.createElement("p");status.className="profile-status";status.textContent="Secure message delivery and image uploads will be enabled after the admin messaging database and storage permissions are configured.";
       const send=document.createElement("button");send.className="action-button primary";send.type="button";send.textContent="Send Message";send.disabled=true;
-      form.append(textArea,label,file,status,send);page.append(back,heading,note,form);mainContent.replaceChildren(page);
+      form.append(textArea,label,file,send);page.append(back,heading,form);mainContent.replaceChildren(page);
     }
 
     // When email verification completes, Supabase exchanges the callback code
