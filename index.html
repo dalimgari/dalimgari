@@ -152,6 +152,27 @@
       outline: 2px solid rgba(0, 0, 0, 0.06);
     }
 
+    .remember-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin: 0 0 12px;
+      color: #444444;
+      font-size: 14px;
+    }
+
+    .remember-row input {
+      width: 16px;
+      height: 16px;
+      margin: 0;
+      accent-color: #222222;
+      cursor: pointer;
+    }
+
+    .remember-row label {
+      cursor: pointer;
+    }
+
     .forgot-password {
       display: block;
       margin: 2px 0 20px;
@@ -292,6 +313,14 @@
           return;
         }
 
+        if (remember.checked) {
+          localStorage.setItem("dalimgari-remember-email", "true");
+          localStorage.setItem("dalimgari-saved-email", email.value.trim());
+        } else {
+          localStorage.removeItem("dalimgari-remember-email");
+          localStorage.removeItem("dalimgari-saved-email");
+        }
+
         renderPage("Profile");
         menuLinks.forEach((item) => {
           if (item.dataset.page === "Profile") {
@@ -310,6 +339,9 @@
       email.setAttribute("aria-label", "Email Address");
       email.autocomplete = "email";
       email.required = true;
+      if (localStorage.getItem("dalimgari-remember-email") === "true") {
+        email.value = localStorage.getItem("dalimgari-saved-email") || "";
+      }
 
       const password = document.createElement("input");
       password.className = "login-field";
@@ -319,6 +351,21 @@
       password.setAttribute("aria-label", "Password");
       password.autocomplete = "current-password";
       password.required = true;
+
+      const rememberRow = document.createElement("div");
+      rememberRow.className = "remember-row";
+
+      const remember = document.createElement("input");
+      remember.type = "checkbox";
+      remember.id = "remember-password";
+      remember.name = "remember-password";
+      remember.checked = localStorage.getItem("dalimgari-remember-email") === "true";
+
+      const rememberLabel = document.createElement("label");
+      rememberLabel.htmlFor = "remember-password";
+      rememberLabel.textContent = "Remember me";
+
+      rememberRow.append(remember, rememberLabel);
 
       const forgot = document.createElement("a");
       forgot.className = "forgot-password";
@@ -345,7 +392,7 @@
       message.className = "login-message";
       message.setAttribute("role", "alert");
 
-      form.append(email, password, forgot, submit, message, createAccount);
+      form.append(email, password, rememberRow, forgot, submit, message, createAccount);
       mainContent.append(form);
     }
 
