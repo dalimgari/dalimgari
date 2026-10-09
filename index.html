@@ -283,6 +283,21 @@
     .profile-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.detail-label{margin:0 0 5px;color:#777;font-size:12px}.detail-value{margin:0;color:#222;font-size:15px;overflow-wrap:anywhere;white-space:pre-wrap}
     .profile-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.action-button{min-height:44px;padding:0 16px;border:1px solid #ddd;border-radius:9px;background:#fff;color:#222;font:inherit;font-weight:600;cursor:pointer}.action-button.primary{background:#222;border-color:#222;color:#fff}
     .profile-input,.message-textarea{width:100%;margin:0 0 15px;padding:12px 13px;border:1px solid #dcdcdc;border-radius:9px;background:#fff;color:#222;font:inherit;font-size:15px}.message-textarea{min-height:160px;resize:vertical}
+    .profile-picture-editor{margin-bottom:20px;background:linear-gradient(135deg,#fbfdff,#f7f9fc)}
+    .profile-picture-editor h2{margin-bottom:16px}
+    .profile-picture-editor-row{display:flex;align-items:center;gap:20px}
+    .profile-avatar-large{width:104px;height:104px;flex:0 0 104px;font-size:36px;border:3px solid #fff;box-shadow:0 3px 14px rgba(15,23,42,.12)}
+    .profile-picture-upload-area{min-width:0;flex:1}
+    .profile-picture-picker{margin:0 0 12px;padding:12px;gap:10px}
+    .profile-picture-picker .attachment-icon{flex-basis:38px;width:38px;height:38px}
+    .profile-picture-picker .attachment-button{white-space:nowrap}
+    .profile-picture-picker.is-uploading{opacity:.75;cursor:wait}
+    .profile-picture-picker .avatar-upload{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+    .profile-picture-progress{margin:0 0 10px}
+    .profile-picture-progress[hidden]{display:none}
+    .profile-picture-progress.is-active .attachment-progress-fill{width:35%;animation:profile-picture-progress 1.2s ease-in-out infinite alternate}
+    @keyframes profile-picture-progress{from{transform:translateX(-15%)}to{transform:translateX(140%)}}
+    @media(max-width:480px){.profile-picture-editor-row{align-items:flex-start;flex-direction:column;gap:14px}.profile-picture-upload-area{width:100%}.profile-avatar-large{width:88px;height:88px;flex-basis:88px}}
     .edit-profile-form label,.message-page label{display:block;margin:0 0 6px;color:#444;font-size:14px}.profile-status{margin:12px 0;font-size:14px;line-height:1.5}.back-profile{margin-bottom:18px}.attachment-note{margin:-6px 0 15px;color:#777;font-size:13px}
     .attachment-picker{display:flex;align-items:center;gap:14px;margin:4px 0 18px;padding:16px;border:1px dashed #bfc5ce;border-radius:12px;background:#f8fafc;cursor:pointer;transition:border-color .15s ease,background-color .15s ease}
     .attachment-picker:hover,.attachment-picker:focus-within{border-color:#64748b;background:#f1f5f9}
@@ -687,6 +702,10 @@
       return data.user || null;
     }
     function metadataValue(user, key) { return (user.user_metadata && user.user_metadata[key]) || ""; }
+    function formatProfileImageSize(bytes) {
+      if (bytes < 1024 * 1024) return Math.max(1, Math.round(bytes / 1024)) + " KB";
+      return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+    }
 
     let unreadBadgeTimer = null;
 
@@ -765,20 +784,45 @@
         let input;if(type==="textarea"){input=document.createElement("textarea");input.rows=4;}else{input=document.createElement("input");input.type=type;}
         input.className="profile-input";input.id="edit-"+name;input.name=name;input.value=value||"";form.append(label,input);return input;
       }
-      const fullName=field("Full Name","full_name","text",metadataValue(user,"full_name")||metadataValue(user,"name"));
-      const avatarSection = document.createElement("div"); avatarSection.style.marginBottom = "16px";
-      const avatarLabel = document.createElement("label"); avatarLabel.textContent = "Profile Picture";
-      const avatarPreview = document.createElement("div"); avatarPreview.className = "profile-avatar"; avatarPreview.style.margin = "8px 0 12px";
+      const avatarSection = document.createElement("section"); avatarSection.className = "profile-section profile-picture-editor";
+      const avatarHeading = document.createElement("h2"); avatarHeading.textContent = "Profile Picture";
+      const avatarEditorRow = document.createElement("div"); avatarEditorRow.className = "profile-picture-editor-row";
+      const avatarPreview = document.createElement("div"); avatarPreview.className = "profile-avatar profile-avatar-large";
       const currentAvatarUrl = metadataValue(user, "avatar_url");
       if (currentAvatarUrl) { const previewImage = document.createElement("img"); previewImage.src = currentAvatarUrl; previewImage.alt = "Profile picture"; avatarPreview.append(previewImage); }
       else { avatarPreview.textContent = (metadataValue(user, "full_name") || metadataValue(user, "name") || (user.email || "M").split("@")[0]).charAt(0).toUpperCase(); }
-      const pictureInput = document.createElement("input"); pictureInput.type = "file"; pictureInput.accept = "image/*"; pictureInput.className = "profile-input"; pictureInput.setAttribute("aria-label", "Choose profile picture");
-      const pictureStatus = document.createElement("p"); pictureStatus.className = "profile-status"; pictureStatus.setAttribute("role", "status");
+      const avatarUploadArea = document.createElement("div"); avatarUploadArea.className = "profile-picture-upload-area";
+      const pictureInput = document.createElement("input"); pictureInput.type = "file"; pictureInput.accept = "image/*"; pictureInput.className = "avatar-upload"; pictureInput.setAttribute("aria-label", "Choose profile picture");
+      const picturePicker = document.createElement("label"); picturePicker.className = "attachment-picker profile-picture-picker";
+      const pictureIcon = document.createElement("span"); pictureIcon.className = "attachment-icon"; pictureIcon.setAttribute("aria-hidden", "true"); pictureIcon.textContent = "↑";
+      const pictureCopy = document.createElement("span"); pictureCopy.className = "attachment-copy";
+      const pictureTitle = document.createElement("span"); pictureTitle.className = "attachment-title"; pictureTitle.textContent = "Change profile picture";
+      const pictureSubtitle = document.createElement("span"); pictureSubtitle.className = "attachment-subtitle"; pictureSubtitle.textContent = "Choose an image from your device";
+      pictureCopy.append(pictureTitle, pictureSubtitle);
+      const pictureButton = document.createElement("span"); pictureButton.className = "attachment-button"; pictureButton.textContent = "Choose image";
+      picturePicker.append(pictureIcon, pictureCopy, pictureButton);
+      const pictureFileName = document.createElement("p"); pictureFileName.className = "attachment-filename"; pictureFileName.hidden = true;
+      const pictureProgress = document.createElement("div"); pictureProgress.className = "attachment-progress profile-picture-progress"; pictureProgress.hidden = true;
+      const pictureProgressFill = document.createElement("div"); pictureProgressFill.className = "attachment-progress-fill";
+      pictureProgress.append(pictureProgressFill);
+      const pictureStatus = document.createElement("p"); pictureStatus.className = "profile-status message-send-status"; pictureStatus.setAttribute("role", "status"); pictureStatus.setAttribute("aria-live", "polite");
+      picturePicker.htmlFor = "edit-profile-picture";
+      pictureInput.id = "edit-profile-picture";
+      picturePicker.append(pictureInput);
+      avatarUploadArea.append(picturePicker, pictureFileName, pictureProgress, pictureStatus);
+      avatarEditorRow.append(avatarPreview, avatarUploadArea);
+      avatarSection.append(avatarHeading, avatarEditorRow);
+      form.append(avatarSection);
+      const fullName=field("Full Name","full_name","text",metadataValue(user,"full_name")||metadataValue(user,"name"));
       pictureInput.addEventListener("change", async () => {
         const file = pictureInput.files && pictureInput.files[0];
         if (!file) return;
         if (!file.type.startsWith("image/")) { pictureStatus.style.color = "#a12622"; pictureStatus.textContent = "Please select an image file."; pictureInput.value = ""; return; }
-        pictureInput.disabled = true; pictureStatus.style.color = ""; pictureStatus.textContent = "Updating profile picture...";
+        if (file.size > 10 * 1024 * 1024) { pictureStatus.style.color = "#a12622"; pictureStatus.textContent = "Image must be 10 MB or smaller."; pictureInput.value = ""; return; }
+        pictureInput.disabled = true; picturePicker.classList.add("is-uploading"); pictureButton.textContent = "Processing…";
+        pictureFileName.hidden = false; pictureFileName.textContent = file.name + " · " + formatProfileImageSize(file.size);
+        pictureProgress.hidden = false; pictureProgress.classList.add("is-active"); pictureProgressFill.style.width = "35%";
+        pictureStatus.style.color = "#245b8f"; pictureStatus.textContent = "Preparing your profile picture…";
         let objectUrl = "";
         try {
           const image = new Image(); objectUrl = URL.createObjectURL(file);
@@ -787,19 +831,21 @@
           const context = canvas.getContext("2d"); const side = Math.min(image.naturalWidth, image.naturalHeight);
           context.drawImage(image, (image.naturalWidth - side) / 2, (image.naturalHeight - side) / 2, side, side, 0, 0, 256, 256);
           const compressedImage = canvas.toDataURL("image/jpeg", 0.8);
+          pictureStatus.textContent = "Saving your profile picture…"; pictureProgressFill.style.width = "70%";
           const { error } = await supabaseClient.auth.updateUser({ data: { avatar_url: compressedImage } });
           if (error) throw error;
-          pictureStatus.style.color = "#176b43"; pictureStatus.textContent = "Profile picture updated.";
+          pictureProgressFill.style.width = "100%"; pictureProgress.classList.remove("is-active");
+          pictureStatus.style.color = "#176b43"; pictureStatus.textContent = "✓ Profile picture updated successfully.";
           avatarPreview.replaceChildren(); const previewImage = document.createElement("img"); previewImage.src = compressedImage; previewImage.alt = "Profile picture"; avatarPreview.append(previewImage);
+          pictureSubtitle.textContent = "Your new profile picture is saved";
         } catch (error) {
+          pictureProgress.classList.remove("is-active"); pictureProgressFill.style.width = "0%";
           pictureStatus.style.color = "#a12622"; pictureStatus.textContent = "Could not update your profile picture. Please try another image.";
         } finally {
           if (objectUrl) URL.revokeObjectURL(objectUrl);
-          pictureInput.disabled = false; pictureInput.value = "";
+          pictureInput.disabled = false; picturePicker.classList.remove("is-uploading"); pictureButton.textContent = "Choose image"; pictureInput.value = "";
         }
       });
-      avatarSection.append(avatarLabel, avatarPreview, pictureInput, pictureStatus);
-      form.append(avatarSection);
       field("Phone Number","phone","tel",metadataValue(user,"phone"));
       field("Date of Birth","date_of_birth","date",metadataValue(user,"date_of_birth"));
       field("Bio","bio","textarea",metadataValue(user,"bio"));
