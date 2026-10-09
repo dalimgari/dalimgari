@@ -439,7 +439,6 @@
     .dashboard-crud-row:hover,.dashboard-crud-row.is-selected { background:#f1f5f9; }
     .dashboard-crud-row:focus { outline:2px solid #94a3b8; outline-offset:-2px; }
     .dashboard-crud-empty { padding:20px 10px; color:#777; text-align:center; }
-    .dashboard-crud-preview { max-width:100%; max-height:220px; border-radius:8px; margin-top:8px; }
     .dashboard-crud-hint { margin:0 0 14px; color:#666; font-size:13px; line-height:1.5; }
     @media(max-width:600px) { .dashboard-crud-form { grid-template-columns:1fr; } .dashboard-crud-field.full { grid-column:auto; } .dashboard-crud-card { padding:14px; } }
 
@@ -874,8 +873,6 @@
       const sections = [
         { id: "overview", label: "Overview", description: "Dashboard overview." },
         { id: "post", label: "Post", description: "Post management section." },
-        { id: "photo", label: "Photo", description: "Photo management section." },
-        { id: "video", label: "Video", description: "Video management section." },
         { id: "album", label: "Album", description: "Album management section." },
         { id: "page", label: "Page", description: "Page management section." },
         { id: "user", label: "User", description: "User management section." },
@@ -989,20 +986,7 @@
         post: { table:"post", label:"Posts", fields:[
           {name:"caption",label:"Caption",type:"text",required:true},
           {name:"description",label:"Description",type:"textarea",full:true},
-          {name:"post_media_method",label:"Choose exactly one media method",type:"select",options:[["photo","Photo upload"],["video","Video upload"],["external","External link"]]},
-          {name:"post_media_file",label:"Choose one photo or video",type:"file",accept:"image/*",full:true},
-          {name:"post_external_url",label:"External media link",type:"url",full:true},
           {name:"album_id",label:"Album",type:"album"},
-          {name:"visibility",label:"Visibility",type:"select",options:[["public","Public"],["private","Only Me"]]}
-        ]},
-        photo: { table:"post", label:"Photos", mediaType:"photo", editOnly:true, fields:[
-          {name:"caption",label:"Caption",type:"text",required:true},
-          {name:"description",label:"Description",type:"textarea",full:true},
-          {name:"visibility",label:"Visibility",type:"select",options:[["public","Public"],["private","Only Me"]]}
-        ]},
-        video: { table:"post", label:"Videos", mediaType:"video", editOnly:true, fields:[
-          {name:"caption",label:"Caption",type:"text",required:true},
-          {name:"description",label:"Description",type:"textarea",full:true},
           {name:"visibility",label:"Visibility",type:"select",options:[["public","Public"],["private","Only Me"]]}
         ]},
         album: { table:"albums", label:"Albums", fields:[
@@ -1126,7 +1110,8 @@
               restore.disabled=true;purge.disabled=true;
               try{
                 if(item.storage_path){
-                  const {error:storageError}=await supabaseClient.storage.from(item.storage_bucket||"site-media").remove([item.storage_path]);
+                  if(!item.storage_bucket)throw new Error("No storage bucket is associated with this item.");
+                  const {error:storageError}=await supabaseClient.storage.from(item.storage_bucket).remove([item.storage_path]);
                   if(storageError)throw storageError;
                 }
                 const {error}=await supabaseClient.from("recycle_bin").delete().eq("id",item.id);
@@ -1185,66 +1170,13 @@
           titleInput().addEventListener("input",()=>{if(!urlEdited&&!selectedId)input.value=generateUrlValue(titleInput().value);});
           input.addEventListener("blur",()=>{if(!input.value.trim()&&titleInput().value.trim())input.value=generateUrlValue(titleInput().value);});
         }
-        if(def.name==="source_type"){
-          input.addEventListener("change",()=>{const external=controls.external_url?.closest(".dashboard-crud-field");const file=controls.upload_file?.closest(".dashboard-crud-field");if(external)external.hidden=input.value!=="external";if(file)file.hidden=input.value!=="upload";});
-        }
         return input;
       }
       function generateUrlValue(value){return String(value||"").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");}
       if(section.id==="post"||section.id==="page"){} 
       for(const def of config.fields)makeField(def);
-      if(section.id==="post"){
-        const method=controls.post_media_method;
-        const file=controls.post_media_file;
-        const url=controls.post_external_url;
-        const fileHolder=file.closest(".dashboard-crud-field");
-        const urlHolder=url.closest(".dashboard-crud-field");
-        file.multiple=false;
-        url.placeholder="https://…";
-        function syncPostMediaMethod(){
-          fileHolder.hidden=method.value==="external";
-          urlHolder.hidden=method.value!=="external";
-          file.accept=method.value==="photo"?"image/*":"video/*";
-          file.required=method.value!=="external";
-          url.required=method.value==="external";
-          file.value="";
-          url.value="";
-        }
-        method.addEventListener("change",syncPostMediaMethod);
-        syncPostMediaMethod();
-      }
-      let mediaPreview=null;
-      if(config.mediaType && controls.source_type && controls.external_url){
-        controls.media_type=document.createElement("input");controls.media_type.type="hidden";controls.media_type.value=config.mediaType;form.append(controls.media_type);
-        mediaPreview=document.createElement("div");mediaPreview.className="dashboard-crud-field full";mediaPreview.hidden=true;
-        const previewLabel=document.createElement("label");previewLabel.textContent="Media preview";
-        const previewBody=document.createElement("div");previewBody.className="dashboard-crud-media-preview";
-        mediaPreview.append(previewLabel,previewBody);form.insertBefore(mediaPreview,actions);
-        const updatePreview=()=>{
-          if(!mediaPreview)return;const body=mediaPreview.querySelector(".dashboard-crud-media-preview");body.replaceChildren();
-          const url=String(controls.external_url?.value||"").trim();
-          if(controls.source_type?.value!=="external"||!/^https?:\/\//i.test(url)){mediaPreview.hidden=true;return;}
-          let parsed;try{parsed=new URL(url);}catch{mediaPreview.hidden=true;return;}
-          const host=parsed.hostname.toLowerCase().replace(/^www\./,"");
-          if(config.mediaType==="photo"){
-            const img=document.createElement("img");img.src=url;img.alt="External photo preview";img.className="dashboard-crud-preview";img.referrerPolicy="no-referrer";img.onerror=()=>{body.textContent="Preview unavailable for this URL.";};body.append(img);
-          }else{
-            let videoId="";
-            if(host==="youtu.be")videoId=parsed.pathname.split("/").filter(Boolean)[0]||"";
-            else if(host==="youtube.com"||host==="m.youtube.com"||host==="youtube-nocookie.com"){videoId=parsed.searchParams.get("v")||parsed.pathname.match(/\/(?:embed|shorts)\/([^/?]+)/)?.[1]||"";}
-            if(videoId&&/^[a-zA-Z0-9_-]{6,20}$/.test(videoId)){
-              const frame=document.createElement("iframe");frame.src="https://www.youtube-nocookie.com/embed/"+encodeURIComponent(videoId);frame.title="YouTube video preview";frame.loading="lazy";frame.referrerPolicy="strict-origin-when-cross-origin";frame.allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";frame.allowFullscreen=true;frame.style.cssText="width:100%;max-width:560px;aspect-ratio:16/9;border:0;border-radius:8px";body.append(frame);
-            }else{
-              const video=document.createElement("video");video.src=url;video.controls=true;video.preload="metadata";video.className="dashboard-crud-preview";video.onerror=()=>{body.textContent="Preview unavailable. The URL may not point to a directly playable video.";};body.append(video);
-            }
-          }
-          mediaPreview.hidden=false;
-        };
-        controls.external_url?.addEventListener("input",updatePreview);
-        controls.source_type?.addEventListener("change",updatePreview);
-      }
       function resetForm(){
-        selectedId=null;form.reset();if(controls.post_media_method)controls.post_media_method.dispatchEvent(new Event("change"));if(controls.source_type){controls.source_type.value="external";controls.external_url.closest(".dashboard-crud-field").hidden=false;controls.upload_file.closest(".dashboard-crud-field").hidden=true;}
+        selectedId=null;form.reset();
         save.textContent=config.editOnly?"Select a media item":(config.readOnlyCreate?"Save Profile":(section.id==="post"?"Publish":"Create"));save.disabled=!!config.editOnly;remove.disabled=true;setStatus("");
         list.querySelectorAll(".dashboard-crud-row").forEach(row=>row.classList.remove("is-selected"));
       }
@@ -1253,7 +1185,6 @@
         if(!isCurrent())return;
         list.replaceChildren();const loading=document.createElement("p");loading.className="dashboard-crud-empty";loading.textContent="Loading records…";list.append(loading);
         let query=supabaseClient.from(config.table).select("*").order("created_at",{ascending:false}).limit(200);
-        if(config.mediaType)query=query.eq("media_type",config.mediaType);
         if(config.table==="site_customizations"||config.table==="site_settings")query=supabaseClient.from(config.table).select("*").order("key").limit(200);
         const {data,error}=await query;
         if(!isCurrent())return;
@@ -1268,7 +1199,7 @@
         records.forEach(record=>{
           const row=document.createElement("tr");row.className="dashboard-crud-row";row.tabIndex=0;
           const title=record.caption||record.title||record.name||record.key||record.full_name||record.id||"Record";
-          const details=record.external_url||record.storage_path||record.url||record.description||record.phone||record.source_type||"";
+          const details=record.url||record.description||record.phone||"";
           const values=[String(record.id||"").slice(0,8)||"—",title,details];
           values.push(record.visibility==="private"?"Only Me":record.visibility==="public"?"Public":"—",record.created_at?new Date(record.created_at).toLocaleString():"—");
           values.forEach(value=>{const td=document.createElement("td");td.textContent=String(value);row.append(td);});
@@ -1285,104 +1216,26 @@
           const input=controls[def.name];if(!input)return;
           let value=record[def.name];
           if((section.id==="customization"||section.id==="settings")&&def.name==="value")value=JSON.stringify(value??null,null,2);
-          if(def.type==="file"||def.type==="media_multi")return;
           input.value=value==null?"":String(value);
         });
-        if(section.id==="post"){
-          controls.post_media_method.value=record.source_type==="external"?"external":(record.media_type==="video"?"video":"photo");
-          controls.post_media_method.dispatchEvent(new Event("change"));
-          controls.post_external_url.value=record.external_url||"";
-          controls.post_media_file.required=controls.post_media_method.value!=="external"&&!record.storage_path;
-        }
-        if(controls.source_type){controls.source_type.value=record.source_type||"external";controls.external_url.closest(".dashboard-crud-field").hidden=controls.source_type.value!=="external";controls.upload_file.closest(".dashboard-crud-field").hidden=controls.source_type.value!=="upload";if(mediaPreview){mediaPreview.hidden=true;controls.external_url.dispatchEvent(new Event("input"));}}
         save.textContent=config.readOnlyCreate?"Save Profile":"Update";save.disabled=false;remove.disabled=!!config.noDelete;setStatus("Selected record loaded into the form.");
       }
       function resetSelectionHighlight(){list.querySelectorAll(".dashboard-crud-row").forEach(row=>row.classList.remove("is-selected"));}
       form.addEventListener("submit",async event=>{
         event.preventDefault();
-        if(config.editOnly&&!selectedId){setStatus("Select a media item from the list to edit it. New media must be added through the shared uploader.");return;}
         save.disabled=true;remove.disabled=true;save.textContent="Saving…";setStatus("");
         try{
           const payload={};
-          config.fields.forEach(def=>{if(def.type==="file"||def.type==="media_multi"||def.name==="post_media_method"||def.name==="post_external_url")return;let value=controls[def.name].value;if(def.name==="value"&&(section.id==="customization"||section.id==="settings")){try{value=JSON.parse(value);}catch{throw new Error("Value must be valid JSON.");}}else if(value==="")value=null;payload[def.name]=value;});
-          if(config.mediaType && controls.source_type && controls.external_url){payload.media_type=config.mediaType;payload.source_type=controls.source_type.value;
-            if(payload.source_type==="upload"){
-              const file=controls.upload_file.files?.[0];if(file){const ext=(file.name.split(".").pop()||"bin").replace(/[^a-zA-Z0-9]/g,"");const path=user.id+"/"+crypto.randomUUID()+"."+ext;
-                const {error:uploadError}=await supabaseClient.storage.from("site-media").upload(path,file,{upsert:false,contentType:file.type||"application/octet-stream"});if(uploadError)throw uploadError;
-                payload.storage_path=path;payload.external_url=null;
-              }else if(!selectedId||!records.find(r=>r.id===selectedId)?.storage_path)throw new Error("Choose a file to upload.");
-              else {payload.storage_path=records.find(r=>r.id===selectedId).storage_path;payload.external_url=null;}
-            }else{
-              const url=String(payload.external_url||"").trim();if(!/^https?:\/\//i.test(url))throw new Error("Enter a valid http:// or https:// URL.");
-              payload.external_url=url;payload.storage_path=null;
-            }
-          }
+          config.fields.forEach(def=>{let value=controls[def.name].value;if(def.name==="value"&&(section.id==="customization"||section.id==="settings")){try{value=JSON.parse(value);}catch{throw new Error("Value must be valid JSON.");}}else if(value==="")value=null;payload[def.name]=value;});
           if(section.id==="post"){
-            const caption=String(controls.caption.value||"").trim();
-            if(!caption)throw new Error("Enter a caption.");
-            const method=controls.post_media_method.value;
-            const file=controls.post_media_file.files?.[0]||null;
-            const externalUrl=String(controls.post_external_url.value||"").trim();
-            const existing=selectedId?records.find(r=>r.id===selectedId):null;
-            if(!["photo","video","external"].includes(method))throw new Error("Choose Photo upload, Video upload, or External link.");
-            if(method==="external"){
-              if(!/^https?:\/\//i.test(externalUrl))throw new Error("Enter a valid external http:// or https:// link.");
-            }else{
-              if(file && method==="photo"&&!file.type.startsWith("image/"))throw new Error("For Photo upload, choose an image file.");
-              if(file && method==="video"&&!file.type.startsWith("video/"))throw new Error("For Video upload, choose a video file.");
-              if(!file && !(existing&&existing.source_type==="upload"&&existing.storage_path&&existing.media_type===method))throw new Error("Choose exactly one photo or video.");
-            }
-            const slug=generateUrlValue(caption);
-            if(!slug)throw new Error("Caption must contain letters or numbers to create a post URL.");
-            let uploadedPath=null;
-            const oldPath=existing?.storage_path||null;
-            try{
-              let storagePath=method==="external"?null:(existing?.storage_path||null);
-              if(method!=="external"&&file){
-                const ext=(file.name.split(".").pop()||"bin").replace(/[^a-zA-Z0-9]/g,"").toLowerCase()||"bin";
-                uploadedPath=user.id+"/"+crypto.randomUUID()+"."+ext;
-                const {error:storageError}=await supabaseClient.storage.from("site-media").upload(uploadedPath,file,{upsert:false,contentType:file.type||"application/octet-stream"});
-                if(storageError)throw storageError;
-                storagePath=uploadedPath;
-              }
-              const postPayload={
-                title:caption,
-                caption,
-                description:controls.description.value.trim()||null,
-                url:slug,
-                media_type:method==="external"?"other":method,
-                source_type:method==="external"?"external":"upload",
-                storage_path:storagePath,
-                external_url:method==="external"?externalUrl:null,
-                album_id:controls.album_id.value||null,
-                visibility:controls.visibility.value||"public",
-                created_by:existing?.created_by||user.id,
-                updated_at:new Date().toISOString()
-              };
-              let saved;
-              if(existing){
-                const {data,error}=await supabaseClient.from("post").update(postPayload).eq("id",selectedId).select().single();
-                if(error)throw error;
-                saved=data;
-              }else{
-                const {data,error}=await supabaseClient.from("post").insert(postPayload).select().single();
-                if(error)throw error;
-                saved=data;
-              }
-              if(oldPath&&oldPath!==saved.storage_path){
-                const {error:cleanupError}=await supabaseClient.storage.from("site-media").remove([oldPath]);
-                if(cleanupError)console.warn("Old media cleanup failed",cleanupError);
-              }
-            }catch(postError){
-              if(uploadedPath){
-                const {error:cleanupError}=await supabaseClient.storage.from("site-media").remove([uploadedPath]);
-                if(cleanupError)console.warn("Uploaded file cleanup failed",cleanupError);
-              }
-              throw postError;
-            }
-            resetForm();setStatus(existing?"Post updated successfully.":"Post published successfully with one media item.","success");await loadRecords();return;
-          }
-          if(config.table==="post"&&section.id!=="post"&&payload.caption)payload.title=payload.caption;
+          const caption=String(controls.caption.value||"").trim();
+          if(!caption)throw new Error("Enter a caption.");
+          const slug=generateUrlValue(caption);
+          if(!slug)throw new Error("Caption must contain letters or numbers to create a post URL.");
+          payload.title=caption;
+          payload.caption=caption;
+          payload.url=slug;
+        }
           if(config.table==="pages"){payload.url=generateUrlValue(payload.url||payload.title);if(!payload.url)throw new Error("Title or URL is required.");}
           if(config.table==="site_customizations"||config.table==="site_settings")payload.updated_by=user.id;
           if(config.table!=="profiles")payload.updated_at=new Date().toISOString();
@@ -1390,7 +1243,7 @@
           if(selectedId){result=await supabaseClient.from(config.table).update(payload).eq(config.table==="site_settings"||config.table==="site_customizations"?"id":"id",selectedId).select().single();}
           else{
             if(config.readOnlyCreate)throw new Error("Profiles are created through the account registration flow.");
-            if(["post","media","albums","pages"].includes(config.table))payload.created_by=user.id;
+            if(["post","albums","pages"].includes(config.table))payload.created_by=user.id;
             result=await supabaseClient.from(config.table).insert(payload).select().single();
           }
           if(result.error)throw result.error;
@@ -1425,8 +1278,8 @@
           }
           const trashPayload={
             original_table:tableName,original_id:String(selectedId),record_data:record,related_data:related,
-            storage_bucket:(tableName==="media"||tableName==="post")&&record.storage_path?"site-media":null,
-            storage_path:(tableName==="media"||tableName==="post")?record.storage_path||null:null,
+            storage_bucket:null,
+            storage_path:null,
             deleted_by:user.id
           };
           const {data:trash,error:trashError}=await supabaseClient.from("recycle_bin").insert(trashPayload).select("id").single();
