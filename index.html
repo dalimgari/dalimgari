@@ -721,9 +721,9 @@
       const user = await getCurrentUser();
       const role = String((user && user.app_metadata && user.app_metadata.role) || "").toLowerCase();
       if (!user) {
-        renderPage("Login");
-        history.replaceState(null, "", "#login");
-        setCurrentMenuPage("Login");
+        renderPage("Profile");
+        history.replaceState(null, "", "#profile");
+        setCurrentMenuPage("Profile");
         return;
       }
       if (role !== "admin") {
@@ -868,6 +868,10 @@
       } else if (window.location.hash === "#login") {
         renderPage("Login");
         setCurrentMenuPage("Login");
+      } else if (window.location.hash === "#dashboard") {
+        renderPage("Profile");
+        history.replaceState(null, "", "#profile");
+        setCurrentMenuPage("Profile");
       }
     })();
 
