@@ -1119,7 +1119,36 @@
       function slugify(value){return String(value||"").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");}
       if(section.id==="post"||section.id==="page"){} 
       for(const def of config.fields)makeField(def);
-      if(config.mediaType){controls.media_type=document.createElement("input");controls.media_type.type="hidden";controls.media_type.value=config.mediaType;form.append(controls.media_type);}
+      let mediaPreview=null;
+      if(config.mediaType){
+        controls.media_type=document.createElement("input");controls.media_type.type="hidden";controls.media_type.value=config.mediaType;form.append(controls.media_type);
+        mediaPreview=document.createElement("div");mediaPreview.className="dashboard-crud-field full";mediaPreview.hidden=true;
+        const previewLabel=document.createElement("label");previewLabel.textContent="Media preview";
+        const previewBody=document.createElement("div");previewBody.className="dashboard-crud-media-preview";
+        mediaPreview.append(previewLabel,previewBody);form.insertBefore(mediaPreview,actions);
+        const updatePreview=()=>{
+          if(!mediaPreview)return;const body=mediaPreview.querySelector(".dashboard-crud-media-preview");body.replaceChildren();
+          const url=String(controls.external_url?.value||"").trim();
+          if(controls.source_type?.value!=="external"||!/^https?:\/\//i.test(url)){mediaPreview.hidden=true;return;}
+          let parsed;try{parsed=new URL(url);}catch{mediaPreview.hidden=true;return;}
+          const host=parsed.hostname.toLowerCase().replace(/^www\./,"");
+          if(config.mediaType==="photo"){
+            const img=document.createElement("img");img.src=url;img.alt="External photo preview";img.className="dashboard-crud-preview";img.referrerPolicy="no-referrer";img.onerror=()=>{body.textContent="Preview unavailable for this URL.";};body.append(img);
+          }else{
+            let videoId="";
+            if(host==="youtu.be")videoId=parsed.pathname.split("/").filter(Boolean)[0]||"";
+            else if(host==="youtube.com"||host==="m.youtube.com"||host==="youtube-nocookie.com"){videoId=parsed.searchParams.get("v")||parsed.pathname.match(/\/(?:embed|shorts)\/([^/?]+)/)?.[1]||"";}
+            if(videoId&&/^[a-zA-Z0-9_-]{6,20}$/.test(videoId)){
+              const frame=document.createElement("iframe");frame.src="https://www.youtube-nocookie.com/embed/"+encodeURIComponent(videoId);frame.title="YouTube video preview";frame.loading="lazy";frame.referrerPolicy="strict-origin-when-cross-origin";frame.allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";frame.allowFullscreen=true;frame.style.cssText="width:100%;max-width:560px;aspect-ratio:16/9;border:0;border-radius:8px";body.append(frame);
+            }else{
+              const video=document.createElement("video");video.src=url;video.controls=true;video.preload="metadata";video.className="dashboard-crud-preview";video.onerror=()=>{body.textContent="Preview unavailable. The URL may not point to a directly playable video.";};body.append(video);
+            }
+          }
+          mediaPreview.hidden=false;
+        };
+        controls.external_url?.addEventListener("input",updatePreview);
+        controls.source_type?.addEventListener("change",updatePreview);
+      }
       function resetForm(){
         selectedId=null;form.reset();if(controls.source_type){controls.source_type.value="external";controls.external_url.closest(".dashboard-crud-field").hidden=false;controls.upload_file.closest(".dashboard-crud-field").hidden=true;}
         save.textContent=config.readOnlyCreate?"Save Profile":"Create";save.disabled=false;remove.disabled=true;setStatus("");
@@ -1165,7 +1194,7 @@
         });
         if(section.id==="post"&&controls.media_ids){const {data}=await supabaseClient.from("post_media").select("media_id").eq("post_id",selectedId);const chosen=new Set((data||[]).map(x=>x.media_id));Array.from(controls.media_ids.options).forEach(o=>o.selected=chosen.has(o.value));}
         if(section.id==="album"&&controls.media_ids){const {data}=await supabaseClient.from("album_media").select("media_id").eq("album_id",selectedId);const chosen=new Set((data||[]).map(x=>x.media_id));Array.from(controls.media_ids.options).forEach(o=>o.selected=chosen.has(o.value));}
-        if(controls.source_type){controls.source_type.value=record.source_type||"external";controls.external_url.closest(".dashboard-crud-field").hidden=controls.source_type.value!=="external";controls.upload_file.closest(".dashboard-crud-field").hidden=controls.source_type.value!=="upload";}
+        if(controls.source_type){controls.source_type.value=record.source_type||"external";controls.external_url.closest(".dashboard-crud-field").hidden=controls.source_type.value!=="external";controls.upload_file.closest(".dashboard-crud-field").hidden=controls.source_type.value!=="upload";if(mediaPreview){mediaPreview.hidden=true;controls.external_url.dispatchEvent(new Event("input"));}}
         save.textContent=config.readOnlyCreate?"Save Profile":"Update";remove.disabled=!!config.noDelete;setStatus("Selected record loaded into the form.");
       }
       function resetSelectionHighlight(){list.querySelectorAll(".dashboard-crud-row").forEach(row=>row.classList.remove("is-selected"));}
@@ -1209,7 +1238,7 @@
             const mediaIds=Array.from(controls.media_ids.selectedOptions).map(o=>o.value);
             if(mediaIds.length){const {error:relationError}=await supabaseClient.from("album_media").insert(mediaIds.map(media_id=>({album_id:savedId,media_id})));if(relationError)throw relationError;}
           }
-          resetForm();setStatus(selectedId?"Record updated successfully.":"Record created successfully.","success");await loadRecords();
+          const wasUpdating=Boolean(selectedId);resetForm();setStatus(wasUpdating?"Record updated successfully.":"Record created successfully.","success");await loadRecords();
         }catch(error){setStatus(error.message||"Could not save record.","error");}
         finally{save.disabled=false;save.textContent=selectedId?"Update":(config.readOnlyCreate?"Save Profile":"Create");remove.disabled=!selectedId||!!config.noDelete;}
       });
