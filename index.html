@@ -238,7 +238,18 @@
 
       const form = document.createElement("form");
       form.className = "login-form";
-      form.addEventListener("submit", (event) => event.preventDefault());
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        renderPage("Profile");
+
+        menuLinks.forEach((item) => {
+          if (item.dataset.page === "Profile") {
+            item.setAttribute("aria-current", "page");
+          } else {
+            item.removeAttribute("aria-current");
+          }
+        });
+      });
 
       const email = document.createElement("input");
       email.className = "login-field";
