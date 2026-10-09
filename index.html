@@ -566,7 +566,7 @@
             } else {
               const errorText = (error.message || "").toLowerCase();
               if (errorText.includes("rate limit") || errorText.includes("email rate limit")) {
-                setStatus("Email limit reached. Please wait before trying again.", "error");
+                setStatus("Email limit reached. Please try again after one hour.", "error");
               } else if (errorText.includes("password")) {
                 setStatus("Please choose a stronger valid password.", "error");
               } else if (errorText.includes("fetch") || errorText.includes("network")) {
