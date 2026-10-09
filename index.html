@@ -661,7 +661,7 @@
       msg.addEventListener("click",()=>{renderPage("Message");history.replaceState(null,"","#message");});
       const logout=document.createElement("button");logout.className="action-button";logout.textContent="Logout";logout.type="button";
       logout.addEventListener("click",async()=>{const {error}=await supabaseClient.auth.signOut();if(!error){renderPage("Login");history.replaceState(null,"","#login");setCurrentMenuPage("Login");}});
-      actions.append(edit,msg,logout);page.append(heading,summary,info,actions);mainContent.append(page);setCurrentMenuPage("Profile");
+      actions.append(edit,msg,logout);page.append(heading,summary,info,actions);mainContent.replaceChildren(page);setCurrentMenuPage("Profile");
     }
 
     async function renderEditProfile() {
@@ -691,7 +691,7 @@
         if(error){status.style.color="#a12622";status.textContent="Could not save your profile. Please try again.";save.disabled=false;save.textContent="Save Changes";return;}
         renderPage("Profile");history.replaceState(null,"","#profile");
       });
-      page.append(heading,form);mainContent.append(page);
+      page.append(heading,form);mainContent.replaceChildren(page);
     }
 
     async function renderMessage() {
@@ -708,7 +708,7 @@
       const file=document.createElement("input");file.type="file";file.id="admin-message-attachment";file.accept="image/*";file.style.display="block";file.style.marginBottom="12px";
       const status=document.createElement("p");status.className="profile-status";status.textContent="Secure message delivery and image uploads will be enabled after the admin messaging database and storage permissions are configured.";
       const send=document.createElement("button");send.className="action-button primary";send.type="button";send.textContent="Send Message";send.disabled=true;
-      form.append(textArea,label,file,status,send);page.append(back,heading,note,form);mainContent.append(page);
+      form.append(textArea,label,file,status,send);page.append(back,heading,note,form);mainContent.replaceChildren(page);
     }
 
     // When email verification completes, Supabase exchanges the callback code
