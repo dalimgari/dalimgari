@@ -1039,7 +1039,6 @@
           xhr.setRequestHeader("apikey", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6InlvcGZvZ295anh3eHBsbmFicWlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyOTMyNjQsImV4cCI6MjEwNDg2OTI2NH0.dIVH8sp3qyD_AGmt1bNFVOpQKdrgcX734HkrEuOacB4");
           xhr.setRequestHeader("Authorization", "Bearer " + accessToken);
           xhr.setRequestHeader("Content-Type", selected.type || "application/octet-stream");
-          xhr.setRequestHeader("x-upsert", "false");
           xhr.upload.addEventListener("progress", (event) => {
             if (!event.lengthComputable) return;
             const percent = Math.round(event.loaded / event.total * 100);
@@ -1053,7 +1052,7 @@
               return;
             }
             let details = "";
-            try { details = JSON.parse(xhr.responseText).message || ""; } catch (_) {}
+            try { const body = JSON.parse(xhr.responseText); details = body.message || body.error || body.statusCode || ""; } catch (_) { details = xhr.responseText || ""; }
             reject(new Error(details || "File upload failed (" + xhr.status + ")"));
           });
           xhr.addEventListener("error", () => reject(new Error("Network error during file upload")));
@@ -1149,7 +1148,7 @@
             if ((insertError.message || "").includes("MESSAGE_QUOTA_EXCEEDED")) {
               throw new Error("আপনার মোট ১০০ MB সীমা পূর্ণ হয়েছে। ৩০ দিন পর পুরোনো মেসেজ মুছে গেলে আবার পাঠাতে পারবেন।");
             }
-            throw insertError;
+            throw new Error(insertError.message || insertError.details || insertError.hint || "Database insert failed");
           }
 
           textArea.value = "";
@@ -1172,7 +1171,8 @@
           } else if (errorText.toLowerCase().includes("size") || errorText.toLowerCase().includes("payload")) {
             setStatus("ফাইল আপলোড করা যায়নি। ফাইলের আকার কমিয়ে আবার চেষ্টা করুন।", "error");
           } else {
-            setStatus("মেসেজ বা ফাইল পাঠানো যায়নি। আবার চেষ্টা করুন।", "error");
+            const detail = errorText && errorText.length < 220 ? errorText : "";
+            setStatus(detail ? "পাঠানো যায়নি: " + detail : "মেসেজ বা ফাইল পাঠানো যায়নি। আবার চেষ্টা করুন।", "error");
           }
           if (selectedFiles.length) {
             selectedFiles.forEach((selected) => {
