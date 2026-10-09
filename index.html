@@ -269,6 +269,20 @@
       text-decoration: none;
     }
 
+
+    .profile-page,.message-page{width:min(100% - 32px,760px);margin:28px auto;padding:24px;border:1px solid #eee;border-radius:16px;background:#fff;box-shadow:0 10px 30px rgba(0,0,0,.06)}
+    .profile-heading,.message-heading{margin:0 0 20px;color:#222;font-size:24px}
+    .profile-summary{display:flex;align-items:center;gap:16px;padding:18px;border-radius:12px;background:#f8f9fb;margin-bottom:20px}
+    .profile-avatar{width:64px;height:64px;flex:0 0 64px;display:grid;place-items:center;border-radius:50%;background:#e5e7eb;color:#374151;font-size:24px;font-weight:700}
+    .profile-name{margin:0 0 5px;font-size:20px;overflow-wrap:anywhere}.profile-email{margin:0;color:#666;font-size:14px;overflow-wrap:anywhere}
+    .role-badge{display:inline-block;margin-left:7px;padding:4px 8px;border-radius:999px;background:#e8eefc;color:#244a8f;font-size:10px;vertical-align:middle;letter-spacing:.4px}
+    .profile-section{padding:18px;margin-bottom:16px;border:1px solid #eee;border-radius:12px}.profile-section h2{margin:0 0 14px;font-size:17px}
+    .profile-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.detail-label{margin:0 0 5px;color:#777;font-size:12px}.detail-value{margin:0;color:#222;font-size:15px;overflow-wrap:anywhere;white-space:pre-wrap}
+    .profile-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.action-button{min-height:44px;padding:0 16px;border:1px solid #ddd;border-radius:9px;background:#fff;color:#222;font:inherit;font-weight:600;cursor:pointer}.action-button.primary{background:#222;border-color:#222;color:#fff}
+    .profile-input,.message-textarea{width:100%;margin:0 0 15px;padding:12px 13px;border:1px solid #dcdcdc;border-radius:9px;background:#fff;color:#222;font:inherit;font-size:15px}.message-textarea{min-height:160px;resize:vertical}
+    .edit-profile-form label,.message-page label{display:block;margin:0 0 6px;color:#444;font-size:14px}.profile-status{margin:12px 0;font-size:14px;line-height:1.5}.back-profile{margin-bottom:18px}.attachment-note{margin:-6px 0 15px;color:#777;font-size:13px}
+    @media(max-width:560px){.profile-page,.message-page{padding:17px;margin:18px auto}.profile-details{grid-template-columns:1fr}.profile-actions .action-button{flex:1 1 100%}.profile-heading,.message-heading{font-size:22px}}
+
     footer {
       position: relative;
       flex: 0 0 auto;
@@ -323,10 +337,10 @@
     function renderPage(pageName) {
       mainContent.replaceChildren();
 
-      if (pageName === "CreateAccount") {
-        renderCreateAccount();
-        return;
-      }
+      if (pageName === "CreateAccount") { renderCreateAccount(); return; }
+      if (pageName === "Profile") { renderProfile(); return; }
+      if (pageName === "EditProfile") { renderEditProfile(); return; }
+      if (pageName === "Message") { renderMessage(); return; }
       if (pageName !== "Login") return;
 
       const form = document.createElement("form");
@@ -606,6 +620,95 @@
           submit.textContent = "Create Account";
         }
       });
+    }
+
+
+    function setCurrentMenuPage(pageName) {
+      menuLinks.forEach((item) => item.dataset.page === pageName ? item.setAttribute("aria-current", "page") : item.removeAttribute("aria-current"));
+    }
+    async function getCurrentUser() {
+      const { data } = await supabaseClient.auth.getUser();
+      return data.user || null;
+    }
+    function metadataValue(user, key) { return (user.user_metadata && user.user_metadata[key]) || ""; }
+
+    async function renderProfile() {
+      const user = await getCurrentUser();
+      if (!user) { renderPage("Login"); history.replaceState(null, "", "#login"); setCurrentMenuPage("Login"); return; }
+      const name = metadataValue(user, "full_name") || metadataValue(user, "name") || (user.email || "Member").split("@")[0];
+      const role = user.app_metadata && String(user.app_metadata.role || "").toLowerCase() === "admin" ? "ADMIN" : "MEMBER";
+      const page = document.createElement("section"); page.className = "profile-page";
+      const heading = document.createElement("h1"); heading.className = "profile-heading"; heading.textContent = "My Profile";
+      const summary = document.createElement("div"); summary.className = "profile-summary";
+      const avatar = document.createElement("div"); avatar.className = "profile-avatar"; avatar.textContent = name.charAt(0).toUpperCase() || "M";
+      const identity = document.createElement("div");
+      const nameLine = document.createElement("h2"); nameLine.className = "profile-name"; nameLine.append(document.createTextNode(name + " "));
+      const badge = document.createElement("span"); badge.className = "role-badge"; badge.textContent = role; nameLine.append(badge);
+      const email = document.createElement("p"); email.className = "profile-email"; email.textContent = user.email || "";
+      identity.append(nameLine, email); summary.append(avatar, identity);
+      const info = document.createElement("section"); info.className = "profile-section";
+      const infoHeading = document.createElement("h2"); infoHeading.textContent = "Profile Information";
+      const details = document.createElement("div"); details.className = "profile-details";
+      [["Full Name",name],["Phone Number",metadataValue(user,"phone")||"Not added"],["Date of Birth",metadataValue(user,"date_of_birth")||"Not added"],["Bio",metadataValue(user,"bio")||"No bio yet"]].forEach(([label,value])=>{
+        const item=document.createElement("div"), l=document.createElement("p"), v=document.createElement("p");
+        l.className="detail-label";l.textContent=label;v.className="detail-value";v.textContent=value;item.append(l,v);details.append(item);
+      });
+      info.append(infoHeading,details);
+      const actions=document.createElement("div");actions.className="profile-actions";
+      const edit=document.createElement("button");edit.className="action-button primary";edit.textContent="Edit Profile";edit.type="button";
+      edit.addEventListener("click",()=>{renderPage("EditProfile");history.replaceState(null,"","#edit-profile");});
+      const msg=document.createElement("button");msg.className="action-button";msg.textContent="Message";msg.type="button";
+      msg.addEventListener("click",()=>{renderPage("Message");history.replaceState(null,"","#message");});
+      const logout=document.createElement("button");logout.className="action-button";logout.textContent="Logout";logout.type="button";
+      logout.addEventListener("click",async()=>{const {error}=await supabaseClient.auth.signOut();if(!error){renderPage("Login");history.replaceState(null,"","#login");setCurrentMenuPage("Login");}});
+      actions.append(edit,msg,logout);page.append(heading,summary,info,actions);mainContent.append(page);setCurrentMenuPage("Profile");
+    }
+
+    async function renderEditProfile() {
+      const user=await getCurrentUser();
+      if(!user){renderPage("Login");history.replaceState(null,"","#login");return;}
+      const page=document.createElement("section");page.className="profile-page";
+      const heading=document.createElement("h1");heading.className="profile-heading";heading.textContent="Edit Profile";
+      const form=document.createElement("form");form.className="edit-profile-form";
+      function field(labelText,name,type,value){
+        const label=document.createElement("label");label.htmlFor="edit-"+name;label.textContent=labelText;
+        let input;if(type==="textarea"){input=document.createElement("textarea");input.rows=4;}else{input=document.createElement("input");input.type=type;}
+        input.className="profile-input";input.id="edit-"+name;input.name=name;input.value=value||"";form.append(label,input);return input;
+      }
+      const fullName=field("Full Name","full_name","text",metadataValue(user,"full_name")||metadataValue(user,"name"));
+      field("Phone Number","phone","tel",metadataValue(user,"phone"));
+      field("Date of Birth","date_of_birth","date",metadataValue(user,"date_of_birth"));
+      field("Bio","bio","textarea",metadataValue(user,"bio"));
+      const status=document.createElement("p");status.className="profile-status";status.setAttribute("role","status");
+      const actions=document.createElement("div");actions.className="profile-actions";
+      const save=document.createElement("button");save.className="action-button primary";save.type="submit";save.textContent="Save Changes";
+      const cancel=document.createElement("button");cancel.className="action-button";cancel.type="button";cancel.textContent="Cancel";
+      cancel.addEventListener("click",()=>{renderPage("Profile");history.replaceState(null,"","#profile");});
+      actions.append(save,cancel);form.append(status,actions);
+      form.addEventListener("submit",async(event)=>{
+        event.preventDefault();save.disabled=true;save.textContent="Saving...";
+        const {error}=await supabaseClient.auth.updateUser({data:{full_name:fullName.value.trim(),phone:form.elements.phone.value.trim(),date_of_birth:form.elements.date_of_birth.value,bio:form.elements.bio.value.trim()}});
+        if(error){status.style.color="#a12622";status.textContent="Could not save your profile. Please try again.";save.disabled=false;save.textContent="Save Changes";return;}
+        renderPage("Profile");history.replaceState(null,"","#profile");
+      });
+      page.append(heading,form);mainContent.append(page);
+    }
+
+    async function renderMessage() {
+      const user=await getCurrentUser();
+      if(!user){renderPage("Login");history.replaceState(null,"","#login");return;}
+      const page=document.createElement("section");page.className="message-page";
+      const back=document.createElement("button");back.className="action-button back-profile";back.type="button";back.textContent="← Back to Profile";
+      back.addEventListener("click",()=>{renderPage("Profile");history.replaceState(null,"","#profile");});
+      const heading=document.createElement("h1");heading.className="message-heading";heading.textContent="Message to Admin";
+      const note=document.createElement("p");note.className="profile-email";note.textContent="Send a text message or attach a photo for the site administrator.";
+      const form=document.createElement("form");
+      const textArea=document.createElement("textarea");textArea.className="message-textarea";textArea.name="message";textArea.placeholder="Write your message here...";textArea.setAttribute("aria-label","Message to admin");
+      const label=document.createElement("label");label.htmlFor="admin-message-attachment";label.textContent="Attach photo or image (optional)";
+      const file=document.createElement("input");file.type="file";file.id="admin-message-attachment";file.accept="image/*";file.style.display="block";file.style.marginBottom="12px";
+      const status=document.createElement("p");status.className="profile-status";status.textContent="Secure message delivery and image uploads will be enabled after the admin messaging database and storage permissions are configured.";
+      const send=document.createElement("button");send.className="action-button primary";send.type="button";send.textContent="Send Message";send.disabled=true;
+      form.append(textArea,label,file,status,send);page.append(back,heading,note,form);mainContent.append(page);
     }
 
     // When email verification completes, Supabase exchanges the callback code
