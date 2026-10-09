@@ -994,20 +994,14 @@
           {name:"album_id",label:"Album",type:"album"},
           {name:"visibility",label:"Visibility",type:"select",options:[["public","Public"],["private","Only Me"]]}
         ]},
-        photo: { table:"media", label:"Photos", mediaType:"photo", fields:[
+        photo: { table:"media", label:"Photos", mediaType:"photo", editOnly:true, fields:[
           {name:"title",label:"Title",type:"text",required:true},
           {name:"description",label:"Description",type:"textarea",full:true},
-          {name:"source_type",label:"Media source",type:"select",options:[["external","External URL"],["upload","Upload file"]]},
-          {name:"external_url",label:"External photo URL",type:"url",full:true,help:"Use a direct image URL from another server, or choose Upload file."},
-          {name:"upload_file",label:"Upload image",type:"file",accept:"image/*",full:true},
           {name:"visibility",label:"Visibility",type:"select",options:[["public","Public"],["private","Only Me"]]}
         ]},
-        video: { table:"media", label:"Videos", mediaType:"video", fields:[
+        video: { table:"media", label:"Videos", mediaType:"video", editOnly:true, fields:[
           {name:"title",label:"Title",type:"text",required:true},
           {name:"description",label:"Description",type:"textarea",full:true},
-          {name:"source_type",label:"Media source",type:"select",options:[["external","External URL (YouTube etc.)"],["upload","Upload file"]]},
-          {name:"external_url",label:"Video URL",type:"url",full:true,help:"Paste a YouTube, youtu.be or direct video URL."},
-          {name:"upload_file",label:"Upload video",type:"file",accept:"video/*",full:true},
           {name:"visibility",label:"Visibility",type:"select",options:[["public","Public"],["private","Only Me"]]}
         ]},
         album: { table:"albums", label:"Albums", fields:[
@@ -1209,7 +1203,7 @@
       if(section.id==="post"||section.id==="page"){} 
       for(const def of config.fields)makeField(def);
       let mediaPreview=null;
-      if(config.mediaType){
+      if(config.mediaType && controls.source_type && controls.external_url){
         controls.media_type=document.createElement("input");controls.media_type.type="hidden";controls.media_type.value=config.mediaType;form.append(controls.media_type);
         mediaPreview=document.createElement("div");mediaPreview.className="dashboard-crud-field full";mediaPreview.hidden=true;
         const previewLabel=document.createElement("label");previewLabel.textContent="Media preview";
@@ -1238,8 +1232,8 @@
         controls.external_url?.addEventListener("input",updatePreview);
         controls.source_type?.addEventListener("change",updatePreview);
       }
-      // Shared Media Library uploader for Post and Album forms.
-      if ((section.id === "post" || section.id === "album") && controls.media_ids) {
+      // One shared Media Library uploader for all media-related Dashboard sections.
+      if (["post","photo","video","album"].includes(section.id)) {
         const uploadCard = document.createElement("section");
         uploadCard.className = "dashboard-crud-card";
         const uploadHeading = document.createElement("h3");
@@ -1262,11 +1256,13 @@
         const mediaKind = document.createElement("select");
         mediaKind.className = "dashboard-crud-input";
         [["photo","Photo"],["video","Video"]].forEach(([v,t])=>{const o=document.createElement("option");o.value=v;o.textContent=t;mediaKind.append(o);});
+        if(section.id==="photo"||section.id==="video"){mediaKind.value=section.id;}
         const kindHolder = document.createElement("div");
         kindHolder.className = "dashboard-crud-field";
         const kindLabel = document.createElement("label");
         kindLabel.textContent = "Media type";
         kindHolder.append(kindLabel,mediaKind);
+        if(section.id==="photo"||section.id==="video")kindHolder.hidden=true;
         const sourceKind = document.createElement("select");
         sourceKind.className = "dashboard-crud-input";
         [["upload","Upload file"],["external","External URL (YouTube/direct link)"]].forEach(([v,t])=>{const o=document.createElement("option");o.value=v;o.textContent=t;sourceKind.append(o);});
@@ -1300,7 +1296,7 @@
         const uploadButton = document.createElement("button");
         uploadButton.type = "submit";
         uploadButton.className = "action-button primary";
-        uploadButton.textContent = "Upload and Attach";
+        uploadButton.textContent = (section.id==="post"||section.id==="album") ? "Upload and Attach" : "Add to Media Library";
         const uploadStatus = document.createElement("p");
         uploadStatus.className = "dashboard-crud-status dashboard-crud-field full";
         uploadStatus.setAttribute("role","status");
@@ -1329,6 +1325,7 @@
             const title = mediaTitle.value.trim();
             if (!title) throw new Error("Enter a media title.");
             const payload = {title,media_type:mediaKind.value,source_type:sourceKind.value,visibility:"public",created_by:user.id};
+            if(section.id==="photo"||section.id==="video")payload.visibility="public";
             if (sourceKind.value === "upload") {
               const file = mediaFile.files && mediaFile.files[0];
               if (!file) throw new Error("Choose a file to upload.");
@@ -1348,13 +1345,17 @@
             }
             const {data:newMedia,error:mediaError} = await supabaseClient.from("media").insert(payload).select("id,title,media_type,source_type,external_url,storage_path").single();
             if (mediaError) throw mediaError;
-            const option = document.createElement("option");
-            option.value = newMedia.id;
-            option.textContent = (newMedia.media_type === "video" ? "Video · " : "Photo · ") + newMedia.title;
-            controls.media_ids.append(option);
-            option.selected = true;
+            if(controls.media_ids){
+              const option = document.createElement("option");
+              option.value = newMedia.id;
+              option.textContent = (newMedia.media_type === "video" ? "Video · " : "Photo · ") + newMedia.title;
+              controls.media_ids.append(option);
+              option.selected = true;
+            }
             uploadStatus.style.color = "#176b43";
-            uploadStatus.textContent = "Media added to the library and selected for this " + (section.id === "post" ? "post." : "album.");
+            uploadStatus.textContent = (section.id==="post"||section.id==="album")
+              ? "Media added to the library and selected for this " + (section.id === "post" ? "post." : "album.")
+              : "Media added to the shared library. It is now available in Post, Album, and media management.";
             mediaTitle.value = "";
             mediaFile.value = "";
             externalUrl.value = "";
@@ -1374,7 +1375,7 @@
       }
       function resetForm(){
         selectedId=null;form.reset();if(controls.source_type){controls.source_type.value="external";controls.external_url.closest(".dashboard-crud-field").hidden=false;controls.upload_file.closest(".dashboard-crud-field").hidden=true;}
-        save.textContent=config.readOnlyCreate?"Save Profile":"Create";save.disabled=false;remove.disabled=true;setStatus("");
+        save.textContent=config.editOnly?"Select a media item":(config.readOnlyCreate?"Save Profile":"Create");save.disabled=!!config.editOnly;remove.disabled=true;setStatus("");
         list.querySelectorAll(".dashboard-crud-row").forEach(row=>row.classList.remove("is-selected"));
       }
       clear.addEventListener("click",resetForm);
@@ -1435,15 +1436,17 @@
         if(section.id==="post"&&controls.media_ids){const {data}=await supabaseClient.from("post_media").select("media_id").eq("post_id",selectedId);const chosen=new Set((data||[]).map(x=>x.media_id));Array.from(controls.media_ids.options).forEach(o=>o.selected=chosen.has(o.value));}
         if(section.id==="album"&&controls.media_ids){const {data}=await supabaseClient.from("album_media").select("media_id").eq("album_id",selectedId);const chosen=new Set((data||[]).map(x=>x.media_id));Array.from(controls.media_ids.options).forEach(o=>o.selected=chosen.has(o.value));}
         if(controls.source_type){controls.source_type.value=record.source_type||"external";controls.external_url.closest(".dashboard-crud-field").hidden=controls.source_type.value!=="external";controls.upload_file.closest(".dashboard-crud-field").hidden=controls.source_type.value!=="upload";if(mediaPreview){mediaPreview.hidden=true;controls.external_url.dispatchEvent(new Event("input"));}}
-        save.textContent=config.readOnlyCreate?"Save Profile":"Update";remove.disabled=!!config.noDelete;setStatus("Selected record loaded into the form.");
+        save.textContent=config.readOnlyCreate?"Save Profile":"Update";save.disabled=false;remove.disabled=!!config.noDelete;setStatus("Selected record loaded into the form.");
       }
       function resetSelectionHighlight(){list.querySelectorAll(".dashboard-crud-row").forEach(row=>row.classList.remove("is-selected"));}
       form.addEventListener("submit",async event=>{
-        event.preventDefault();save.disabled=true;remove.disabled=true;save.textContent="Saving…";setStatus("");
+        event.preventDefault();
+        if(config.editOnly&&!selectedId){setStatus("Select a media item from the list to edit it. New media must be added through the shared uploader.");return;}
+        save.disabled=true;remove.disabled=true;save.textContent="Saving…";setStatus("");
         try{
           const payload={};
           config.fields.forEach(def=>{if(def.type==="file"||def.type==="media_multi")return;let value=controls[def.name].value;if(def.name==="value"&&(section.id==="customization"||section.id==="settings")){try{value=JSON.parse(value);}catch{throw new Error("Value must be valid JSON.");}}else if(value==="")value=null;payload[def.name]=value;});
-          if(config.mediaType){payload.media_type=config.mediaType;payload.source_type=controls.source_type.value;
+          if(config.mediaType && controls.source_type && controls.external_url){payload.media_type=config.mediaType;payload.source_type=controls.source_type.value;
             if(payload.source_type==="upload"){
               const file=controls.upload_file.files?.[0];if(file){const ext=(file.name.split(".").pop()||"bin").replace(/[^a-zA-Z0-9]/g,"");const path=user.id+"/"+crypto.randomUUID()+"."+ext;
                 const {error:uploadError}=await supabaseClient.storage.from("site-media").upload(path,file,{upsert:false,contentType:file.type||"application/octet-stream"});if(uploadError)throw uploadError;
