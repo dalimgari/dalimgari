@@ -968,16 +968,12 @@
       }
 
       async function refreshQuota() {
-        const { data, error } = await supabaseClient
-          .from("admin_messages")
-          .select("payload_bytes")
-          .eq("user_id", user.id)
-          .gt("expires_at", new Date().toISOString());
+        const { data, error } = await supabaseClient.rpc("get_admin_message_usage");
         if (error) {
           quotaValue.textContent = "100 MB মোট সীমা";
           return;
         }
-        usedBytes = (data || []).reduce((sum, row) => sum + Number(row.payload_bytes || 0), 0);
+        usedBytes = Number(data || 0);
         const percent = Math.min(100, usedBytes / MAX_TOTAL_BYTES * 100);
         quotaValue.textContent = formatBytes(usedBytes) + " / 100 MB";
         quotaFill.style.width = percent + "%";
