@@ -892,16 +892,16 @@
 
       const retentionNotice = document.createElement("div");
       retentionNotice.className = "message-retention-notice";
-      retentionNotice.textContent = "আপনার এই মেসেজগুলো ৩০ দিন পর অটোমেটিক মুছে যাবে।";
+      retentionNotice.textContent = "Your messages and attachments will be automatically deleted after 30 days.";
 
       const quotaBox = document.createElement("div");
       quotaBox.className = "message-quota";
       const quotaLabel = document.createElement("div");
       quotaLabel.className = "message-quota-label";
       const quotaTitle = document.createElement("span");
-      quotaTitle.textContent = "মেসেজ ও ফাইলের মোট সীমা";
+      quotaTitle.textContent = "Total message and file limit";
       const quotaValue = document.createElement("span");
-      quotaValue.textContent = "লোড হচ্ছে…";
+      quotaValue.textContent = "Loading…";
       quotaLabel.append(quotaTitle, quotaValue);
       const quotaTrack = document.createElement("div");
       quotaTrack.className = "message-quota-track";
@@ -936,7 +936,7 @@
       attachmentTitle.textContent = "Attach photo or image (optional)";
       const attachmentSubtitle = document.createElement("span");
       attachmentSubtitle.className = "attachment-subtitle";
-      attachmentSubtitle.textContent = "একসঙ্গে একাধিক ছবি নির্বাচন করতে পারবেন";
+      attachmentSubtitle.textContent = "Select multiple images";
       attachmentCopy.append(attachmentTitle, attachmentSubtitle);
       const chooseButton = document.createElement("span");
       chooseButton.className = "attachment-button";
@@ -1011,7 +1011,7 @@
           name.textContent = selected.name + " · " + formatBytes(selected.size);
           const state = document.createElement("span");
           state.className = "attachment-item-state";
-          state.textContent = "নির্বাচিত";
+          state.textContent = "Selected";
           const track = document.createElement("div");
           track.className = "attachment-progress";
           const fill = document.createElement("div");
@@ -1043,11 +1043,11 @@
             if (!event.lengthComputable) return;
             const percent = Math.round(event.loaded / event.total * 100);
             updateFileProgress(selected, percent, percent + "%", "uploading");
-            setStatus("ফাইল আপলোড হচ্ছে (" + (index + 1) + "/" + total + "): " + selected.name + " — " + percent + "%", "info");
+            setStatus("Uploading file (" + (index + 1) + "/" + total + "): " + selected.name + " — " + percent + "%", "info");
           });
           xhr.addEventListener("load", () => {
             if (xhr.status >= 200 && xhr.status < 300) {
-              updateFileProgress(selected, 100, "আপলোড সম্পন্ন", "success");
+              updateFileProgress(selected, 100, "Upload complete", "success");
               resolve();
               return;
             }
@@ -1068,15 +1068,15 @@
           selectedFiles = [];
           file.value = "";
           renderSelectedFiles();
-          attachmentSubtitle.textContent = "একসঙ্গে একাধিক ছবি নির্বাচন করতে পারবেন";
-          setStatus("প্রতিটি ফাইল সর্বোচ্চ ৫০ MB হতে পারবে। মোট সক্রিয় মেসেজ ও ফাইলের সীমা ১০০ MB।", "error");
+          attachmentSubtitle.textContent = "Select multiple images";
+          setStatus("Each file can be up to 50 MB. The total limit for active messages and files is 100 MB.", "error");
           return;
         }
         renderSelectedFiles();
         const totalBytes = selectedFiles.reduce((sum, selected) => sum + selected.size, 0);
         attachmentSubtitle.textContent = selectedFiles.length
-          ? selectedFiles.length + "টি ছবি নির্বাচিত · " + formatBytes(totalBytes)
-          : "একসঙ্গে একাধিক ছবি নির্বাচন করতে পারবেন";
+          ? selectedFiles.length + "টি ছবি Selected · " + formatBytes(totalBytes)
+          : "Select multiple images";
         if (selectedFiles.length) setStatus("", "info");
       });
 
@@ -1088,19 +1088,19 @@
         const filesToUpload = selectedFiles.slice();
 
         if (!messageText && filesToUpload.length === 0) {
-          setStatus("মেসেজ লিখুন অথবা এক বা একাধিক ছবি যুক্ত করুন।", "error");
+          setStatus("Enter a message or attach one or more images.", "error");
           return;
         }
         const oversized = filesToUpload.find((selected) => selected.size > MAX_FILE_BYTES);
         if (oversized) {
-          setStatus("প্রতিটি ফাইল সর্বোচ্চ ৫০ MB হতে পারবে।", "error");
+          setStatus("Each file can be up to 50 MB.", "error");
           return;
         }
 
         const textBytes = new TextEncoder().encode(messageText).length;
         const filesBytes = filesToUpload.reduce((sum, selected) => sum + selected.size, 0);
         if (usedBytes + textBytes + filesBytes > MAX_TOTAL_BYTES) {
-          setStatus("আপনার মোট ১০০ MB সীমা পূর্ণ হয়ে যাবে। পুরোনো মেসেজ ৩০ দিন পর মুছে গেলে জায়গা খালি হবে।", "error");
+          setStatus("This would exceed your 100 MB total limit. Space will be freed when older messages are deleted after 30 days.", "error");
           return;
         }
 
@@ -1108,26 +1108,26 @@
         file.disabled = true;
         textArea.disabled = true;
         send.textContent = "Uploading...";
-        setStatus(filesToUpload.length ? "ফাইল আপলোড শুরু হচ্ছে..." : "মেসেজ পাঠানো হচ্ছে...", "info");
+        setStatus(filesToUpload.length ? "Starting file uploads..." : "মেসেজ পাঠানো হচ্ছে...", "info");
         const uploadedPaths = [];
 
         try {
           if (filesToUpload.length) {
             const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
             const accessToken = sessionData?.session?.access_token;
-            if (sessionError || !accessToken) throw new Error("আপনার সেশন শেষ হয়েছে। আবার লগইন করে চেষ্টা করুন।");
+            if (sessionError || !accessToken) throw new Error("Your session has expired. Please log in again and retry.");
 
             for (let i = 0; i < filesToUpload.length; i++) {
               const selected = filesToUpload[i];
               const safeName = selected.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-100) || "image";
               const uploadedPath = user.id + "/" + crypto.randomUUID() + "-" + safeName;
-              updateFileProgress(selected, 0, "আপলোড হচ্ছে…", "uploading");
+              updateFileProgress(selected, 0, "আপLoading…", "uploading");
               await uploadFileWithProgress(uploadedPath, selected, i, filesToUpload.length, accessToken);
               uploadedPaths.push(uploadedPath);
             }
           }
 
-          setStatus("সব ফাইল আপলোড সম্পন্ন। মেসেজ পাঠানো হচ্ছে…", "info");
+          setStatus("সব ফাইল Upload complete। মেসেজ পাঠানো হচ্ছে…", "info");
           send.textContent = "Sending...";
           const rows = filesToUpload.length
             ? filesToUpload.map((selected, index) => ({
@@ -1146,7 +1146,7 @@
           const { error: insertError } = await supabaseClient.from("admin_messages").insert(rows);
           if (insertError) {
             if ((insertError.message || "").includes("MESSAGE_QUOTA_EXCEEDED")) {
-              throw new Error("আপনার মোট ১০০ MB সীমা পূর্ণ হয়েছে। ৩০ দিন পর পুরোনো মেসেজ মুছে গেলে আবার পাঠাতে পারবেন।");
+              throw new Error("Your total 100 MB limit has been reached. You can send more after older messages are deleted in 30 days.");
             }
             throw new Error(insertError.message || insertError.details || insertError.hint || "Database insert failed");
           }
@@ -1156,28 +1156,28 @@
           selectedFiles = [];
           fileList.replaceChildren();
           fileList.hidden = true;
-          attachmentSubtitle.textContent = "একসঙ্গে একাধিক ছবি নির্বাচন করতে পারবেন";
-          setStatus("✓ মেসেজ সফলভাবে অ্যাডমিনের কাছে পাঠানো হয়েছে।", "success");
+          attachmentSubtitle.textContent = "Select multiple images";
+          setStatus("✓ Message sent successfully to the admin.", "success");
           await refreshQuota();
         } catch (error) {
           if (uploadedPaths.length) {
             await supabaseClient.storage.from("admin-message-attachments").remove(uploadedPaths);
           }
           const errorText = error && error.message ? error.message : "";
-          if (errorText.includes("আপনার মোট ১০০ MB") || errorText.includes("সেশন শেষ")) {
+          if (errorText.includes("আপনার মোট ১০০ MB") || errorText.includes("session has expired")) {
             setStatus(errorText, "error");
           } else if (errorText.includes("MESSAGE_QUOTA_EXCEEDED")) {
-            setStatus("আপনার মোট ১০০ MB সীমা পূর্ণ হয়েছে। ৩০ দিন পর পুরোনো মেসেজ মুছে গেলে আবার পাঠাতে পারবেন।", "error");
+            setStatus("Your total 100 MB limit has been reached. You can send more after older messages are deleted in 30 days.", "error");
           } else if (errorText.toLowerCase().includes("size") || errorText.toLowerCase().includes("payload")) {
-            setStatus("ফাইল আপলোড করা যায়নি। ফাইলের আকার কমিয়ে আবার চেষ্টা করুন।", "error");
+            setStatus("File upload failed. Reduce the file size and try again.", "error");
           } else {
             const detail = errorText && errorText.length < 220 ? errorText : "";
-            setStatus(detail ? "পাঠানো যায়নি: " + detail : "মেসেজ বা ফাইল পাঠানো যায়নি। আবার চেষ্টা করুন।", "error");
+            setStatus(detail ? "Failed to send: " + detail : "Message or file could not be sent. Please try again.", "error");
           }
           if (selectedFiles.length) {
             selectedFiles.forEach((selected) => {
               if (selected._ui && selected._ui.item.dataset.state !== "success") {
-                updateFileProgress(selected, 0, "ব্যর্থ", "error");
+                updateFileProgress(selected, 0, "Failed", "error");
               }
             });
           }
