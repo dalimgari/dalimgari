@@ -608,6 +608,19 @@
       });
     }
 
+    // When email verification completes, Supabase exchanges the callback code
+    // for a session and emits SIGNED_IN. Open the Profile automatically.
+    supabaseClient.auth.onAuthStateChange((event, session) => {
+      if (session && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) {
+        renderPage("Profile");
+        history.replaceState(null, "", "#profile");
+        menuLinks.forEach((item) => {
+          if (item.dataset.page === "Profile") item.setAttribute("aria-current", "page");
+          else item.removeAttribute("aria-current");
+        });
+      }
+    });
+
     if (window.location.hash === "#create-account") {
       renderPage("CreateAccount");
     } else if (window.location.hash === "#login") {
