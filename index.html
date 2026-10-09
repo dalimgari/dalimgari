@@ -117,6 +117,75 @@
       background-color: #ffffff;
     }
 
+    .login-form {
+      width: min(100% - 32px, 400px);
+      padding: 28px;
+      border: 1px solid #eeeeee;
+      border-radius: 16px;
+      background: #ffffff;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
+    }
+
+    .login-field {
+      display: block;
+      width: 100%;
+      height: 48px;
+      margin-bottom: 14px;
+      padding: 0 14px;
+      border: 1px solid #dcdcdc;
+      border-radius: 9px;
+      background: #ffffff;
+      color: #222222;
+      font: inherit;
+      font-size: 15px;
+    }
+
+    .login-field:focus {
+      border-color: #777777;
+      outline: 2px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .forgot-password {
+      display: block;
+      margin: 2px 0 20px;
+      color: #333333;
+      font-size: 14px;
+      text-align: right;
+      text-decoration: none;
+    }
+
+    .forgot-password:hover,
+    .create-account:hover {
+      text-decoration: underline;
+    }
+
+    .login-submit {
+      display: block;
+      width: 100%;
+      min-height: 48px;
+      border: 0;
+      border-radius: 9px;
+      background: #222222;
+      color: #ffffff;
+      font: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .login-submit:hover {
+      background: #444444;
+    }
+
+    .create-account {
+      display: block;
+      margin-top: 20px;
+      color: #333333;
+      font-size: 14px;
+      text-align: center;
+      text-decoration: none;
+    }
+
     footer {
       position: relative;
       flex: 0 0 auto;
@@ -162,10 +231,56 @@
     const mainContent = document.querySelector("#main-content");
     const menuLinks = document.querySelectorAll(".menu-link");
 
+    function renderPage(pageName) {
+      mainContent.replaceChildren();
+
+      if (pageName !== "Login") return;
+
+      const form = document.createElement("form");
+      form.className = "login-form";
+      form.addEventListener("submit", (event) => event.preventDefault());
+
+      const email = document.createElement("input");
+      email.className = "login-field";
+      email.type = "email";
+      email.name = "email";
+      email.placeholder = "Email Address";
+      email.setAttribute("aria-label", "Email Address");
+      email.autocomplete = "email";
+      email.required = true;
+
+      const password = document.createElement("input");
+      password.className = "login-field";
+      password.type = "password";
+      password.name = "password";
+      password.placeholder = "Password";
+      password.setAttribute("aria-label", "Password");
+      password.autocomplete = "current-password";
+      password.required = true;
+
+      const forgot = document.createElement("a");
+      forgot.className = "forgot-password";
+      forgot.href = "#forgot-password";
+      forgot.textContent = "Forgot password?";
+
+      const submit = document.createElement("button");
+      submit.className = "login-submit";
+      submit.type = "submit";
+      submit.textContent = "Login";
+
+      const createAccount = document.createElement("a");
+      createAccount.className = "create-account";
+      createAccount.href = "#create-account";
+      createAccount.textContent = "Create new account?";
+
+      form.append(email, password, forgot, submit, createAccount);
+      mainContent.append(form);
+    }
+
     menuLinks.forEach((link) => {
       link.addEventListener("click", () => {
         const pageName = link.dataset.page;
-        mainContent.textContent = "";
+        renderPage(pageName);
 
         menuLinks.forEach((item) => {
           if (item === link) {
