@@ -191,6 +191,14 @@
       line-height: 1.4;
     }
 
+    .message-link {
+      display: inline-block;
+      margin-top: 8px;
+      color: #222222;
+      font-weight: 600;
+      text-decoration: underline;
+    }
+
     .create-account {
       display: block;
       margin-top: 20px;
@@ -402,10 +410,22 @@
       form.append(heading, email, password, confirmPassword, submit, message, backToLogin);
       mainContent.append(form);
 
+      function showExistingAccountMessage() {
+        message.style.color = "#b42318";
+        message.replaceChildren(
+          document.createTextNode("An account may already exist with this email. Please reset your password before trying again. ")
+        );
+        const resetLink = document.createElement("a");
+        resetLink.className = "message-link";
+        resetLink.href = "forgot-password.html";
+        resetLink.textContent = "Reset password";
+        message.append(resetLink);
+      }
+
       form.addEventListener("submit", async (event) => {
         event.preventDefault();
         message.style.color = "#b42318";
-        message.textContent = "";
+        message.replaceChildren();
 
         if (password.value.length < 8) {
           message.textContent = "Password must be at least 8 characters long.";
@@ -431,7 +451,25 @@
           });
 
           if (error) {
-            message.textContent = error.message;
+            const errorText = (error.message || "").toLowerCase();
+            if (
+              errorText.includes("already registered") ||
+              errorText.includes("already exists") ||
+              errorText.includes("user already")
+            ) {
+              showExistingAccountMessage();
+            } else {
+              message.textContent = error.message;
+            }
+            submit.disabled = false;
+            submit.textContent = "Create Account";
+            return;
+          }
+
+          // Supabase can return an obfuscated user with no identities when
+          // the submitted email already belongs to an account.
+          if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+            showExistingAccountMessage();
             submit.disabled = false;
             submit.textContent = "Create Account";
             return;
@@ -446,7 +484,7 @@
           }
 
           message.style.color = "#16794b";
-          message.textContent = "Registration request received. If email confirmation is enabled, check your inbox and spam folder to confirm your email before logging in. If an account already exists for this email, try logging in.";
+          message.textContent = "Registration request received. Check your inbox and spam folder for the confirmation email. If you do not receive it, verify the email address and try again.";
           form.reset();
           submit.disabled = false;
           submit.textContent = "Create Account";
