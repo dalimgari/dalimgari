@@ -882,7 +882,8 @@
         { id: "role", label: "Role", description: "Role management section." },
         { id: "permission", label: "Permission", description: "Permission management section." },
         { id: "customization", label: "Customization", description: "Website customization section." },
-        { id: "settings", label: "Settings", description: "Dashboard settings section." }
+        { id: "settings", label: "Settings", description: "Dashboard settings section." },
+        { id: "recycle", label: "Recycle Bin", description: "Restore deleted items or permanently remove them after the retention period." }
       ];
 
       const page = document.createElement("section");
@@ -1062,6 +1063,89 @@
           const n=document.createElement("strong");n.style.cssText="display:block;font-size:25px;margin-top:8px";n.textContent="—";card.append(l,n);stats.append(card);
           supabaseClient.from(table).select("id",{count:"exact",head:true}).then(({count,error})=>{if(isCurrent())n.textContent=error?"—":String(count??0);});
         }
+        return;
+      }
+      if (section.id === "recycle") {
+        content.replaceChildren();
+        const wrap = document.createElement("div"); wrap.className = "dashboard-crud";
+        const card = document.createElement("section"); card.className = "dashboard-crud-card";
+        const h = document.createElement("h3"); h.textContent = "Recycle Bin";
+        const note = document.createElement("p"); note.className = "dashboard-crud-hint";
+        note.textContent = "Deleted items are kept here for 30 days. Restore returns an item to its original section. Items are scheduled for permanent cleanup after the retention period.";
+        const status = document.createElement("p"); status.className = "dashboard-crud-status"; status.setAttribute("role","status");
+        const list = document.createElement("div"); list.className = "dashboard-crud-list";
+        card.append(h,note,status,list); wrap.append(card); content.append(wrap);
+        function recycleStatus(message,isError=false){status.textContent=message;status.style.color=isError?"#a12622":"#176b43";}
+        async function loadTrash(){
+          list.replaceChildren();
+          const loading=document.createElement("p");loading.className="dashboard-crud-empty";loading.textContent="Loading deleted items…";list.append(loading);
+          const {data,error}=await supabaseClient.from("recycle_bin").select("*").order("deleted_at",{ascending:false}).limit(500);
+          if(!isCurrent())return;
+          list.replaceChildren();
+          if(error){const p=document.createElement("p");p.className="dashboard-crud-empty";p.textContent="Could not load recycle bin: "+error.message;list.append(p);return;}
+          if(!data?.length){const p=document.createElement("p");p.className="dashboard-crud-empty";p.textContent="Recycle Bin is empty.";list.append(p);return;}
+          const table=document.createElement("table");table.className="dashboard-crud-table";
+          const thead=document.createElement("thead"),trh=document.createElement("tr");
+          ["Item","Original Section","Deleted","Scheduled permanent deletion","Actions"].forEach(label=>{const th=document.createElement("th");th.textContent=label;trh.append(th);});thead.append(trh);table.append(thead);
+          const tbody=document.createElement("tbody");
+          for(const item of data){
+            const row=document.createElement("tr");
+            const name=item.record_data?.title||item.record_data?.name||item.record_data?.key||item.record_data?.full_name||item.original_id;
+            [String(name),String(item.original_table),new Date(item.deleted_at).toLocaleString(),new Date(item.purge_after).toLocaleString()].forEach(value=>{const td=document.createElement("td");td.textContent=value;row.append(td);});
+            const actionCell=document.createElement("td");
+            const restore=document.createElement("button");restore.type="button";restore.className="action-button primary";restore.textContent="Restore";
+            const purge=document.createElement("button");purge.type="button";purge.className="action-button";purge.textContent="Delete permanently";purge.style.marginLeft="6px";
+            restore.addEventListener("click",async()=>{
+              if(!confirm("Restore this item to its original section?"))return;
+              restore.disabled=true;purge.disabled=true;
+              try{
+                const original=item.record_data||{};
+                const {error:insertError}=await supabaseClient.from(item.original_table).insert(original);
+                if(insertError)throw insertError;
+                const related=item.related_data||{};
+                async function restoreLinks(tableName,rows){
+                  if(!Array.isArray(rows)||!rows.length)return;
+                  const {error}=await supabaseClient.from(tableName).upsert(rows,{ignoreDuplicates:true});
+                  if(error)throw error;
+                }
+                if(item.original_table==="posts") await restoreLinks("post_media",related.post_media);
+                if(item.original_table==="albums"){
+                  await restoreLinks("album_media",related.album_media);
+                  const postIds=(related.posts_in_album||[]).map(p=>p.id).filter(Boolean);
+                  if(postIds.length){const {error}=await supabaseClient.from("posts").update({album_id:original.id}).in("id",postIds);if(error)throw error;}
+                }
+                if(item.original_table==="media"){
+                  await restoreLinks("post_media",related.post_media);
+                  await restoreLinks("album_media",related.album_media);
+                }
+                if(item.original_table==="roles"){
+                  await restoreLinks("user_roles",related.user_roles);
+                  await restoreLinks("role_permissions",related.role_permissions);
+                }
+                if(item.original_table==="permissions") await restoreLinks("role_permissions",related.role_permissions);
+                const {error:trashError}=await supabaseClient.from("recycle_bin").delete().eq("id",item.id);
+                if(trashError)throw trashError;
+                recycleStatus("Item restored successfully.");await loadTrash();
+              }catch(error){recycleStatus(error.message||"Could not restore item.",true);restore.disabled=false;purge.disabled=false;}
+            });
+            purge.addEventListener("click",async()=>{
+              if(!confirm("Permanently delete this item and its stored file, if any? This cannot be undone."))return;
+              restore.disabled=true;purge.disabled=true;
+              try{
+                if(item.storage_path){
+                  const {error:storageError}=await supabaseClient.storage.from(item.storage_bucket||"site-media").remove([item.storage_path]);
+                  if(storageError)throw storageError;
+                }
+                const {error}=await supabaseClient.from("recycle_bin").delete().eq("id",item.id);
+                if(error)throw error;
+                recycleStatus("Item permanently deleted.");await loadTrash();
+              }catch(error){recycleStatus(error.message||"Could not permanently delete item.",true);restore.disabled=false;purge.disabled=false;}
+            });
+            actionCell.append(restore,purge);row.append(actionCell);tbody.append(row);
+          }
+          table.append(tbody);list.append(table);
+        }
+        await loadTrash();
         return;
       }
       const config=configs[section.id];
@@ -1396,22 +1480,68 @@
       remove.addEventListener("click",async()=>{
         if(!selectedId||config.noDelete)return;
         const record=records.find(r=>(r.id||r.key)===selectedId);if(!record)return;
-        if(!confirm("Delete this record? This action cannot be undone."))return;
+        if(!confirm("Move this record to Recycle Bin? It can be restored within 30 days."))return;
         remove.disabled=true;save.disabled=true;
+        let trashId=null;
         try{
-          if(config.table==="media"){
-            const [postUse,albumUse]=await Promise.all([
-              supabaseClient.from("post_media").select("post_id",{count:"exact",head:true}).eq("media_id",selectedId),
-              supabaseClient.from("album_media").select("album_id",{count:"exact",head:true}).eq("media_id",selectedId)
+          const related={};
+          const tableName=config.table;
+          if(tableName==="posts"){
+            const {data,error}=await supabaseClient.from("post_media").select("*").eq("post_id",selectedId);if(error)throw error;
+            related.post_media=data||[];
+          }else if(tableName==="albums"){
+            const [links,posts]=await Promise.all([
+              supabaseClient.from("album_media").select("*").eq("album_id",selectedId),
+              supabaseClient.from("posts").select("id").eq("album_id",selectedId)
             ]);
-            if(postUse.error)throw postUse.error;
-            if(albumUse.error)throw albumUse.error;
-            if((postUse.count||0)+(albumUse.count||0)>0)throw new Error("This media is attached to a post or album. Detach it first, then delete it.");
+            if(links.error)throw links.error;if(posts.error)throw posts.error;
+            related.album_media=links.data||[];related.posts_in_album=posts.data||[];
+          }else if(tableName==="media"){
+            const [posts,albums]=await Promise.all([
+              supabaseClient.from("post_media").select("*").eq("media_id",selectedId),
+              supabaseClient.from("album_media").select("*").eq("media_id",selectedId)
+            ]);
+            if(posts.error)throw posts.error;if(albums.error)throw albums.error;
+            related.post_media=posts.data||[];related.album_media=albums.data||[];
+          }else if(tableName==="roles"){
+            const [users,permissions]=await Promise.all([
+              supabaseClient.from("user_roles").select("*").eq("role_id",selectedId),
+              supabaseClient.from("role_permissions").select("*").eq("role_id",selectedId)
+            ]);
+            if(users.error)throw users.error;if(permissions.error)throw permissions.error;
+            related.user_roles=users.data||[];related.role_permissions=permissions.data||[];
+          }else if(tableName==="permissions"){
+            const {data,error}=await supabaseClient.from("role_permissions").select("*").eq("permission_id",selectedId);if(error)throw error;
+            related.role_permissions=data||[];
           }
-          const {error}=await supabaseClient.from(config.table).delete().eq("id",selectedId);if(error)throw error;
-          if(config.table==="media"&&record.storage_path){const {error:storageError}=await supabaseClient.storage.from("site-media").remove([record.storage_path]);if(storageError)console.warn("Storage cleanup failed",storageError);}
-          resetForm();setStatus("Record deleted successfully.","success");await loadRecords();
-        }catch(error){setStatus(error.message||"Could not delete record.","error");}
+          const trashPayload={
+            original_table:tableName,original_id:String(selectedId),record_data:record,related_data:related,
+            storage_bucket:tableName==="media"&&record.storage_path?"site-media":null,
+            storage_path:tableName==="media"?record.storage_path||null:null,
+            deleted_by:user.id
+          };
+          const {data:trash,error:trashError}=await supabaseClient.from("recycle_bin").insert(trashPayload).select("id").single();
+          if(trashError)throw trashError;trashId=trash.id;
+          if(tableName==="posts"){const {error}=await supabaseClient.from("post_media").delete().eq("post_id",selectedId);if(error)throw error;}
+          if(tableName==="albums"){
+            const {error:linkError}=await supabaseClient.from("album_media").delete().eq("album_id",selectedId);if(linkError)throw linkError;
+            const {error:postError}=await supabaseClient.from("posts").update({album_id:null}).eq("album_id",selectedId);if(postError)throw postError;
+          }
+          if(tableName==="media"){
+            const {error:postError}=await supabaseClient.from("post_media").delete().eq("media_id",selectedId);if(postError)throw postError;
+            const {error:albumError}=await supabaseClient.from("album_media").delete().eq("media_id",selectedId);if(albumError)throw albumError;
+          }
+          if(tableName==="roles"){
+            const {error:userError}=await supabaseClient.from("user_roles").delete().eq("role_id",selectedId);if(userError)throw userError;
+            const {error:permError}=await supabaseClient.from("role_permissions").delete().eq("role_id",selectedId);if(permError)throw permError;
+          }
+          if(tableName==="permissions"){const {error}=await supabaseClient.from("role_permissions").delete().eq("permission_id",selectedId);if(error)throw error;}
+          const {error}=await supabaseClient.from(tableName).delete().eq("id",selectedId);if(error)throw error;
+          resetForm();setStatus("Moved to Recycle Bin. Scheduled for permanent deletion in 30 days.","success");await loadRecords();
+        }catch(error){
+          if(trashId){const {error:cleanupError}=await supabaseClient.from("recycle_bin").delete().eq("id",trashId);if(cleanupError)console.warn("Could not remove incomplete recycle bin entry",cleanupError);}
+          setStatus(error.message||"Could not move record to Recycle Bin.","error");
+        }
         finally{save.disabled=false;remove.disabled=true;}
       });
       if(!isCurrent())return;
