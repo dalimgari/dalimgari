@@ -206,18 +206,58 @@
     }
 
     .login-message {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
       margin: 14px 0 0;
-      color: #b42318;
+      padding: 12px 13px;
+      border: 1px solid transparent;
+      border-radius: 10px;
       font-size: 14px;
-      line-height: 1.4;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
     }
+
+    .login-message:empty {
+      display: none;
+    }
+
+    .login-message::before {
+      flex: 0 0 auto;
+      font-weight: 700;
+    }
+
+    .login-message[data-type="error"] {
+      color: #a12622;
+      background: #fff4f2;
+      border-color: #f6d5d1;
+    }
+
+    .login-message[data-type="error"]::before { content: "×"; }
+
+    .login-message[data-type="success"] {
+      color: #176b43;
+      background: #effaf3;
+      border-color: #ccebd7;
+    }
+
+    .login-message[data-type="success"]::before { content: "✓"; }
+
+    .login-message[data-type="info"] {
+      color: #245b8f;
+      background: #f1f7ff;
+      border-color: #d7e8fb;
+    }
+
+    .login-message[data-type="info"]::before { content: "i"; }
 
     .message-link {
       display: inline-block;
-      margin-top: 8px;
-      color: #222222;
-      font-weight: 600;
+      margin-left: 4px;
+      color: inherit;
+      font-weight: 700;
       text-decoration: underline;
+      text-underline-offset: 2px;
     }
 
     .create-account {
@@ -298,16 +338,33 @@
         submitButton.disabled = true;
         submitButton.textContent = "Logging in...";
         message.textContent = "";
+        message.removeAttribute("data-type");
 
-        const { error } = await supabaseClient.auth.signInWithPassword({
-          email: email.value.trim(),
-          password: password.value
-        });
+        let loginResult;
+        try {
+          loginResult = await supabaseClient.auth.signInWithPassword({
+            email: email.value.trim(),
+            password: password.value
+          });
+        } catch (error) {
+          loginResult = { error };
+        }
 
+        const { error } = loginResult;
         if (error) {
-          message.textContent = error.message === "Invalid login credentials"
-            ? "Email or password is incorrect."
-            : error.message;
+          const errorText = (error.message || "").toLowerCase();
+          message.dataset.type = "error";
+          if (errorText.includes("invalid login credentials")) {
+            message.textContent = "Email or password is incorrect.";
+          } else if (errorText.includes("email not confirmed")) {
+            message.textContent = "Please confirm your email before logging in.";
+          } else if (errorText.includes("rate limit") || errorText.includes("too many requests")) {
+            message.textContent = "Too many attempts. Please wait a little and try again.";
+          } else if (errorText.includes("fetch") || errorText.includes("network")) {
+            message.textContent = "Connection problem. Check your internet and try again.";
+          } else {
+            message.textContent = "We couldn’t log you in. Please try again.";
+          }
           submitButton.disabled = false;
           submitButton.textContent = "Login";
           return;
@@ -457,11 +514,13 @@
       form.append(heading, email, password, confirmPassword, submit, message, backToLogin);
       mainContent.append(form);
 
+      function setStatus(text, type) {
+        message.dataset.type = type;
+        message.replaceChildren(document.createTextNode(text));
+      }
+
       function showExistingAccountMessage() {
-        message.style.color = "#b42318";
-        message.replaceChildren(
-          document.createTextNode("An account may already exist with this email. Please reset your password before trying again. ")
-        );
+        setStatus("This email may already be registered. Reset your password to continue.", "info");
         const resetLink = document.createElement("a");
         resetLink.className = "message-link";
         resetLink.href = "forgot-password.html";
@@ -471,16 +530,15 @@
 
       form.addEventListener("submit", async (event) => {
         event.preventDefault();
-        message.style.color = "#b42318";
-        message.replaceChildren();
+        setStatus("", "error");
 
         if (password.value.length < 8) {
-          message.textContent = "Password must be at least 8 characters long.";
+          setStatus("Use at least 8 characters for your password.", "error");
           password.focus();
           return;
         }
         if (password.value !== confirmPassword.value) {
-          message.textContent = "The passwords do not match.";
+          setStatus("Passwords don’t match. Please try again.", "error");
           confirmPassword.focus();
           return;
         }
@@ -506,7 +564,16 @@
             ) {
               showExistingAccountMessage();
             } else {
-              message.textContent = error.message;
+              const errorText = (error.message || "").toLowerCase();
+              if (errorText.includes("rate limit") || errorText.includes("email rate limit")) {
+                setStatus("Email limit reached. Please wait before trying again.", "error");
+              } else if (errorText.includes("password")) {
+                setStatus("Please choose a stronger valid password.", "error");
+              } else if (errorText.includes("fetch") || errorText.includes("network")) {
+                setStatus("Connection problem. Check your internet and try again.", "error");
+              } else {
+                setStatus("We couldn’t create your account. Please check your details and try again.", "error");
+              }
             }
             submit.disabled = false;
             submit.textContent = "Create Account";
@@ -523,20 +590,18 @@
           }
 
           if (data.session) {
-            message.style.color = "#16794b";
-            message.textContent = "Account created successfully.";
+            setStatus("Your account is ready.", "success");
             renderPage("Profile");
             history.replaceState(null, "", "#profile");
             return;
           }
 
-          message.style.color = "#16794b";
-          message.textContent = "Registration request received. Check your inbox and spam folder for the confirmation email. If you do not receive it, verify the email address and try again.";
+          setStatus("Check your inbox to confirm your email.", "success");
           form.reset();
           submit.disabled = false;
           submit.textContent = "Create Account";
         } catch (error) {
-          message.textContent = "Unable to connect. Check your internet connection and try again.";
+          setStatus("Connection problem. Please try again.", "error");
           submit.disabled = false;
           submit.textContent = "Create Account";
         }
