@@ -1076,7 +1076,7 @@
         const totalBytes = selectedFiles.reduce((sum, selected) => sum + selected.size, 0);
         attachmentSubtitle.textContent = selectedFiles.length
           ? selectedFiles.length + " images selected · " + formatBytes(totalBytes)
-          : "Select multiple images";
+          : "";
         if (selectedFiles.length) setStatus("", "info");
       });
 
