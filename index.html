@@ -166,7 +166,7 @@
     menuLinks.forEach((link) => {
       link.addEventListener("click", () => {
         const pageName = link.dataset.page;
-        mainContent.textContent = pageName;
+        mainContent.textContent = "";
 
         menuLinks.forEach((item) => {
           if (item === link) {
