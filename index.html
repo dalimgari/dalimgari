@@ -43,10 +43,24 @@
     }
 
     footer {
+      position: relative;
       flex: 0 0 80px;
       width: 100%;
-      background-color: #f5f5f5;
-      border-top: 1px solid #eeeeee;
+      background-color: #fafafa;
+      border-top: 1px solid #f0f0f0;
+      box-shadow: 0 -5px 18px rgba(0, 0, 0, 0.035);
+    }
+
+    footer::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 44px;
+      height: 3px;
+      border-radius: 0 0 3px 3px;
+      background-color: #e5e5e5;
+      transform: translateX(-50%);
     }
   </style>
 </head>
