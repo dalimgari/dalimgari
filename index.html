@@ -299,6 +299,126 @@
     .attachment-input{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
     @media(max-width:560px){.profile-page{padding:17px;margin:18px auto}.profile-details{grid-template-columns:1fr}.profile-actions .action-button{flex:1 1 100%}.profile-heading{font-size:22px}}
 
+    .dashboard-page {
+      display: block;
+      align-self: flex-start;
+      width: calc(100% - 32px);
+      max-width: 1200px;
+      margin: 28px auto;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .dashboard-heading {
+      margin: 0 0 18px;
+      color: #222222;
+      font-size: 26px;
+      line-height: 1.3;
+    }
+
+    .dashboard-navigation-area {
+      width: 100%;
+      margin: 0 0 22px;
+      padding: 12px 0 16px;
+      border-bottom: 1px solid #eeeeee;
+    }
+
+    .dashboard-navigation {
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 2px 2px 8px;
+      overscroll-behavior-x: contain;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: #c7c7c7 #f5f5f5;
+    }
+
+    .dashboard-nav-button {
+      flex: 0 0 auto;
+      min-height: 42px;
+      padding: 0 17px;
+      border: 1px solid #dedede;
+      border-radius: 999px;
+      background: #ffffff;
+      color: #333333;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+
+    .dashboard-nav-button:hover,
+    .dashboard-nav-button:focus-visible {
+      border-color: #999999;
+      outline: none;
+    }
+
+    .dashboard-nav-button[aria-selected="true"] {
+      border-color: #222222;
+      background: #222222;
+      color: #ffffff;
+    }
+
+    .dashboard-section-content {
+      min-height: 220px;
+      padding: 22px;
+      border: 1px solid #eeeeee;
+      border-radius: 14px;
+      background: #ffffff;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+    }
+
+    .dashboard-section-title {
+      margin: 0 0 10px;
+      color: #222222;
+      font-size: 21px;
+      line-height: 1.35;
+    }
+
+    .dashboard-section-description {
+      margin: 0;
+      color: #666666;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 560px) {
+      .dashboard-page {
+        width: calc(100% - 24px);
+        margin: 20px auto;
+      }
+
+      .dashboard-navigation-area {
+        margin-bottom: 16px;
+        padding-top: 8px;
+      }
+
+      .dashboard-navigation {
+        gap: 8px;
+      }
+
+      .dashboard-nav-button {
+        min-height: 40px;
+        padding: 0 14px;
+        font-size: 13px;
+      }
+
+      .dashboard-section-content {
+        min-height: 180px;
+        padding: 17px;
+      }
+    }
+
     footer {
       position: relative;
       flex: 0 0 auto;
@@ -720,37 +840,111 @@
     async function renderDashboard() {
       const user = await getCurrentUser();
       const role = String((user && user.app_metadata && user.app_metadata.role) || "").toLowerCase();
-      if (!user) {
-        renderPage("Profile");
-        history.replaceState(null, "", "#profile");
-        setCurrentMenuPage("Profile");
-        return;
-      }
-      if (role !== "admin") {
+      if (!user || role !== "admin") {
         renderPage("Profile");
         history.replaceState(null, "", "#profile");
         setCurrentMenuPage("Profile");
         return;
       }
 
+      const sections = [
+        { id: "overview", label: "Overview", description: "Dashboard overview." },
+        { id: "post", label: "Post", description: "Post management section." },
+        { id: "photo", label: "Photo", description: "Photo management section." },
+        { id: "video", label: "Video", description: "Video management section." },
+        { id: "album", label: "Album", description: "Album management section." },
+        { id: "page", label: "Page", description: "Page management section." },
+        { id: "user", label: "User", description: "User management section." },
+        { id: "role", label: "Role", description: "Role management section." },
+        { id: "permission", label: "Permission", description: "Permission management section." },
+        { id: "customization", label: "Customization", description: "Website customization section." },
+        { id: "settings", label: "Settings", description: "Dashboard settings section." }
+      ];
+
       const page = document.createElement("section");
-      page.className = "profile-page dashboard-page";
+      page.className = "dashboard-page";
+      page.setAttribute("aria-label", "Admin Dashboard");
+
       const heading = document.createElement("h1");
-      heading.className = "profile-heading";
+      heading.className = "dashboard-heading";
       heading.textContent = "Dashboard";
-      const description = document.createElement("p");
-      description.className = "detail-value";
-      description.textContent = "Admin dashboard";
+
+      const navigationArea = document.createElement("div");
+      navigationArea.className = "dashboard-navigation-area";
+
+      const navigation = document.createElement("div");
+      navigation.className = "dashboard-navigation";
+      navigation.setAttribute("role", "tablist");
+      navigation.setAttribute("aria-label", "Dashboard sections");
+
+      const content = document.createElement("section");
+      content.className = "dashboard-section-content";
+      content.setAttribute("role", "tabpanel");
+      content.setAttribute("aria-live", "polite");
+
+      const sectionTitle = document.createElement("h2");
+      sectionTitle.className = "dashboard-section-title";
+
+      const sectionDescription = document.createElement("p");
+      sectionDescription.className = "dashboard-section-description";
+
+      content.append(sectionTitle, sectionDescription);
+
+      function selectSection(section) {
+        sectionTitle.textContent = section.label;
+        sectionDescription.textContent = section.description;
+        navigation.querySelectorAll(".dashboard-nav-button").forEach((button) => {
+          const selected = button.dataset.section === section.id;
+          button.setAttribute("aria-selected", String(selected));
+          button.tabIndex = selected ? 0 : -1;
+        });
+      }
+
+      sections.forEach((section, index) => {
+        const button = document.createElement("button");
+        button.className = "dashboard-nav-button";
+        button.type = "button";
+        button.textContent = section.label;
+        button.dataset.section = section.id;
+        button.id = "dashboard-tab-" + section.id;
+        button.setAttribute("role", "tab");
+        button.setAttribute("aria-controls", "dashboard-section-panel");
+        button.setAttribute("aria-selected", String(index === 0));
+        button.tabIndex = index === 0 ? 0 : -1;
+        button.addEventListener("click", () => selectSection(section));
+        button.addEventListener("keydown", (event) => {
+          if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
+          event.preventDefault();
+          const currentIndex = sections.findIndex((item) => item.id === section.id);
+          const nextIndex = event.key === "ArrowRight"
+            ? (currentIndex + 1) % sections.length
+            : (currentIndex - 1 + sections.length) % sections.length;
+          const nextButton = navigation.querySelector('[data-section="' + sections[nextIndex].id + '"]');
+          selectSection(sections[nextIndex]);
+          nextButton.focus();
+          nextButton.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
+        });
+        navigation.append(button);
+      });
+
+      content.id = "dashboard-section-panel";
+      content.setAttribute("aria-labelledby", "dashboard-tab-overview");
+      navigationArea.append(navigation);
+      page.append(heading, navigationArea, content);
+
       const back = document.createElement("button");
-      back.className = "action-button primary";
+      back.className = "action-button";
       back.type = "button";
       back.textContent = "Back to Profile";
+      back.style.marginTop = "18px";
       back.addEventListener("click", () => {
         renderPage("Profile");
         history.replaceState(null, "", "#profile");
         setCurrentMenuPage("Profile");
       });
-      page.append(heading, description, back);
+      page.append(back);
+
+      selectSection(sections[0]);
       mainContent.replaceChildren(page);
       setCurrentMenuPage("Dashboard");
     }
