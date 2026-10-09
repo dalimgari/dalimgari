@@ -649,37 +649,6 @@
       const badge = document.createElement("span"); badge.className = "role-badge"; badge.textContent = role; nameLine.append(badge);
       const email = document.createElement("p"); email.className = "profile-email"; email.textContent = user.email || "";
       identity.append(nameLine, email);
-      const avatarControls = document.createElement("div"); avatarControls.className = "avatar-controls";
-      const changePicture = document.createElement("button"); changePicture.type = "button"; changePicture.className = "action-button"; changePicture.textContent = "Change Profile Picture";
-      const pictureInput = document.createElement("input"); pictureInput.type = "file"; pictureInput.accept = "image/*"; pictureInput.className = "avatar-upload"; pictureInput.setAttribute("aria-label", "Choose profile picture");
-      changePicture.addEventListener("click", () => pictureInput.click());
-      pictureInput.addEventListener("change", async () => {
-        const file = pictureInput.files && pictureInput.files[0];
-        if (!file) return;
-        if (!file.type.startsWith("image/")) { alert("Please select an image file."); pictureInput.value = ""; return; }
-        changePicture.disabled = true; changePicture.textContent = "Updating...";
-        try {
-          const image = new Image();
-          const objectUrl = URL.createObjectURL(file);
-          await new Promise((resolve, reject) => { image.onload = resolve; image.onerror = reject; image.src = objectUrl; });
-          const canvas = document.createElement("canvas"); canvas.width = 256; canvas.height = 256;
-          const context = canvas.getContext("2d");
-          const side = Math.min(image.naturalWidth, image.naturalHeight);
-          const sx = (image.naturalWidth - side) / 2, sy = (image.naturalHeight - side) / 2;
-          context.drawImage(image, sx, sy, side, side, 0, 0, 256, 256);
-          URL.revokeObjectURL(objectUrl);
-          const compressedImage = canvas.toDataURL("image/jpeg", 0.8);
-          const { error } = await supabaseClient.auth.updateUser({ data: { avatar_url: compressedImage } });
-          if (error) throw error;
-          renderPage("Profile");
-        } catch (error) {
-          alert("Could not update your profile picture. Please try another image.");
-          changePicture.disabled = false; changePicture.textContent = "Change Profile Picture";
-        }
-        pictureInput.value = "";
-      });
-      avatarControls.append(changePicture, pictureInput);
-      identity.append(avatarControls);
       summary.append(avatar, identity);
       const info = document.createElement("section"); info.className = "profile-section";
       const infoHeading = document.createElement("h2"); infoHeading.textContent = "Profile Information";
@@ -711,6 +680,40 @@
         input.className="profile-input";input.id="edit-"+name;input.name=name;input.value=value||"";form.append(label,input);return input;
       }
       const fullName=field("Full Name","full_name","text",metadataValue(user,"full_name")||metadataValue(user,"name"));
+      const avatarSection = document.createElement("div"); avatarSection.style.marginBottom = "16px";
+      const avatarLabel = document.createElement("label"); avatarLabel.textContent = "Profile Picture";
+      const avatarPreview = document.createElement("div"); avatarPreview.className = "profile-avatar"; avatarPreview.style.margin = "8px 0 12px";
+      const currentAvatarUrl = metadataValue(user, "avatar_url");
+      if (currentAvatarUrl) { const previewImage = document.createElement("img"); previewImage.src = currentAvatarUrl; previewImage.alt = "Profile picture"; avatarPreview.append(previewImage); }
+      else { avatarPreview.textContent = (metadataValue(user, "full_name") || metadataValue(user, "name") || (user.email || "M").split("@")[0]).charAt(0).toUpperCase(); }
+      const pictureInput = document.createElement("input"); pictureInput.type = "file"; pictureInput.accept = "image/*"; pictureInput.className = "profile-input"; pictureInput.setAttribute("aria-label", "Choose profile picture");
+      const pictureStatus = document.createElement("p"); pictureStatus.className = "profile-status"; pictureStatus.setAttribute("role", "status");
+      pictureInput.addEventListener("change", async () => {
+        const file = pictureInput.files && pictureInput.files[0];
+        if (!file) return;
+        if (!file.type.startsWith("image/")) { pictureStatus.style.color = "#a12622"; pictureStatus.textContent = "Please select an image file."; pictureInput.value = ""; return; }
+        pictureInput.disabled = true; pictureStatus.style.color = ""; pictureStatus.textContent = "Updating profile picture...";
+        let objectUrl = "";
+        try {
+          const image = new Image(); objectUrl = URL.createObjectURL(file);
+          await new Promise((resolve, reject) => { image.onload = resolve; image.onerror = reject; image.src = objectUrl; });
+          const canvas = document.createElement("canvas"); canvas.width = 256; canvas.height = 256;
+          const context = canvas.getContext("2d"); const side = Math.min(image.naturalWidth, image.naturalHeight);
+          context.drawImage(image, (image.naturalWidth - side) / 2, (image.naturalHeight - side) / 2, side, side, 0, 0, 256, 256);
+          const compressedImage = canvas.toDataURL("image/jpeg", 0.8);
+          const { error } = await supabaseClient.auth.updateUser({ data: { avatar_url: compressedImage } });
+          if (error) throw error;
+          pictureStatus.style.color = "#176b43"; pictureStatus.textContent = "Profile picture updated.";
+          avatarPreview.replaceChildren(); const previewImage = document.createElement("img"); previewImage.src = compressedImage; previewImage.alt = "Profile picture"; avatarPreview.append(previewImage);
+        } catch (error) {
+          pictureStatus.style.color = "#a12622"; pictureStatus.textContent = "Could not update your profile picture. Please try another image.";
+        } finally {
+          if (objectUrl) URL.revokeObjectURL(objectUrl);
+          pictureInput.disabled = false; pictureInput.value = "";
+        }
+      });
+      avatarSection.append(avatarLabel, avatarPreview, pictureInput, pictureStatus);
+      form.append(avatarSection);
       field("Phone Number","phone","tel",metadataValue(user,"phone"));
       field("Date of Birth","date_of_birth","date",metadataValue(user,"date_of_birth"));
       field("Bio","bio","textarea",metadataValue(user,"bio"));
