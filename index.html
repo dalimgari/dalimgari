@@ -364,7 +364,28 @@
     const mainContent = document.querySelector("#main-content");
     const menuLinks = document.querySelectorAll(".menu-link");
 
+    let activeSession = null;
+
+    function updateAuthMenu(session) {
+      activeSession = session || null;
+      const authLink = Array.from(menuLinks).find((item) =>
+        item.dataset.page === "Login" || item.dataset.page === "Logout"
+      );
+      if (!authLink) return;
+      if (activeSession) {
+        authLink.dataset.page = "Logout";
+        authLink.textContent = "Logout";
+      } else {
+        authLink.dataset.page = "Login";
+        authLink.textContent = "Login";
+      }
+    }
+
     function renderPage(pageName) {
+      if (activeSession && (pageName === "Login" || pageName === "CreateAccount")) {
+        pageName = "Profile";
+        history.replaceState(null, "", "#profile");
+      }
       mainContent.replaceChildren();
 
       if (pageName === "CreateAccount") { renderCreateAccount(); return; }
@@ -1190,41 +1211,59 @@
       });
     }
 
-    // When email verification completes, Supabase exchanges the callback code
-    // for a session and emits SIGNED_IN. Open the Profile automatically.
+    // Keep menu actions synchronized with the real Supabase session.
     supabaseClient.auth.onAuthStateChange((event, session) => {
+      updateAuthMenu(session);
       if (session && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) {
         renderPage("Profile");
         history.replaceState(null, "", "#profile");
-        menuLinks.forEach((item) => {
-          if (item.dataset.page === "Profile") item.setAttribute("aria-current", "page");
-          else item.removeAttribute("aria-current");
-        });
+        setCurrentMenuPage("Profile");
       }
     });
 
-    if (window.location.hash === "#create-account") {
-      renderPage("CreateAccount");
-    } else if (window.location.hash === "#login") {
-      renderPage("Login");
-      menuLinks.forEach((item) => {
-        if (item.dataset.page === "Login") item.setAttribute("aria-current", "page");
-        else item.removeAttribute("aria-current");
-      });
-    }
+    (async () => {
+      const { data } = await supabaseClient.auth.getSession();
+      updateAuthMenu(data.session);
+      if (data.session) {
+        renderPage("Profile");
+        history.replaceState(null, "", "#profile");
+        setCurrentMenuPage("Profile");
+      } else if (window.location.hash === "#create-account") {
+        renderPage("CreateAccount");
+      } else if (window.location.hash === "#login") {
+        renderPage("Login");
+        setCurrentMenuPage("Login");
+      }
+    })();
 
     menuLinks.forEach((link) => {
-      link.addEventListener("click", () => {
+      link.addEventListener("click", async () => {
         const pageName = link.dataset.page;
-        renderPage(pageName);
-
-        menuLinks.forEach((item) => {
-          if (item === link) {
-            item.setAttribute("aria-current", "page");
-          } else {
-            item.removeAttribute("aria-current");
+        if (pageName === "Logout") {
+          link.disabled = true;
+          link.textContent = "Logging out...";
+          const { error } = await supabaseClient.auth.signOut();
+          link.disabled = false;
+          if (error) {
+            link.textContent = "Logout";
+            return;
           }
-        });
+          updateAuthMenu(null);
+          renderPage("Login");
+          history.replaceState(null, "", "#login");
+          setCurrentMenuPage("Login");
+        } else {
+          const { data } = await supabaseClient.auth.getSession();
+          updateAuthMenu(data.session);
+          if (data.session && (pageName === "Login" || pageName === "CreateAccount")) {
+            renderPage("Profile");
+            history.replaceState(null, "", "#profile");
+            setCurrentMenuPage("Profile");
+          } else {
+            renderPage(pageName);
+            setCurrentMenuPage(pageName);
+          }
+        }
 
         floatingMenu.hidden = true;
         menuButton.setAttribute("aria-expanded", "false");
