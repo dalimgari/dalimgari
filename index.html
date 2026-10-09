@@ -1107,15 +1107,9 @@
                   const {error}=await supabaseClient.from(tableName).upsert(rows,{ignoreDuplicates:true});
                   if(error)throw error;
                 }
-                if(item.original_table==="posts") await restoreLinks("post_media",related.post_media);
                 if(item.original_table==="albums"){
-                  await restoreLinks("album_media",related.album_media);
                   const postIds=(related.posts_in_album||[]).map(p=>p.id).filter(Boolean);
                   if(postIds.length){const {error}=await supabaseClient.from("post_media").update({album_id:original.id}).in("id",postIds);if(error)throw error;}
-                }
-                if(item.original_table==="media"){
-                  await restoreLinks("post_media",related.post_media);
-                  await restoreLinks("album_media",related.album_media);
                 }
                 if(item.original_table==="roles"){
                   await restoreLinks("user_roles",related.user_roles);
@@ -1399,11 +1393,6 @@
           }
           if(result.error)throw result.error;
           const savedId=result.data?.id||selectedId;
-          if(section.id==="album"&&savedId){
-            await supabaseClient.from("album_media").delete().eq("album_id",savedId);
-            const mediaIds=Array.from(controls.media_ids.selectedOptions).map(o=>o.value);
-            if(mediaIds.length){const {error:relationError}=await supabaseClient.from("album_media").insert(mediaIds.map((media_id,sort_order)=>({album_id:savedId,media_id,sort_order})));if(relationError)throw relationError;}
-          }
           const wasUpdating=Boolean(selectedId);resetForm();setStatus(wasUpdating?"Record updated successfully.":"Record created successfully.","success");await loadRecords();
         }catch(error){setStatus(error.message||"Could not save record.","error");}
         finally{save.disabled=false;save.textContent=selectedId?"Update":(config.readOnlyCreate?"Save Profile":(section.id==="post"?"Publish":"Create"));remove.disabled=!selectedId||!!config.noDelete;}
@@ -1418,19 +1407,9 @@
           const related={};
           const tableName=config.table;
           if(tableName==="albums"){
-            const [links,posts]=await Promise.all([
-              supabaseClient.from("album_media").select("*").eq("album_id",selectedId),
-              supabaseClient.from("post_media").select("id").eq("album_id",selectedId)
-            ]);
-            if(links.error)throw links.error;if(posts.error)throw posts.error;
-            related.album_media=links.data||[];related.posts_in_album=posts.data||[];
-          }else if(tableName==="media"){
-            const [posts,albums]=await Promise.all([
-              supabaseClient.from("post_media").select("*").eq("media_id",selectedId),
-              supabaseClient.from("album_media").select("*").eq("media_id",selectedId)
-            ]);
-            if(posts.error)throw posts.error;if(albums.error)throw albums.error;
-            related.post_media=posts.data||[];related.album_media=albums.data||[];
+            const {data:posts,error:postsError}=await supabaseClient.from("post_media").select("id").eq("album_id",selectedId);
+            if(postsError)throw postsError;
+            related.posts_in_album=posts||[];
           }else if(tableName==="roles"){
             const [users,permissions]=await Promise.all([
               supabaseClient.from("user_roles").select("*").eq("role_id",selectedId),
@@ -1451,12 +1430,7 @@
           const {data:trash,error:trashError}=await supabaseClient.from("recycle_bin").insert(trashPayload).select("id").single();
           if(trashError)throw trashError;trashId=trash.id;
           if(tableName==="albums"){
-            const {error:linkError}=await supabaseClient.from("album_media").delete().eq("album_id",selectedId);if(linkError)throw linkError;
             const {error:postError}=await supabaseClient.from("post_media").update({album_id:null}).eq("album_id",selectedId);if(postError)throw postError;
-          }
-          if(tableName==="media"){
-            const {error:postError}=await supabaseClient.from("post_media").delete().eq("media_id",selectedId);if(postError)throw postError;
-            const {error:albumError}=await supabaseClient.from("album_media").delete().eq("media_id",selectedId);if(albumError)throw albumError;
           }
           if(tableName==="roles"){
             const {error:userError}=await supabaseClient.from("user_roles").delete().eq("role_id",selectedId);if(userError)throw userError;
