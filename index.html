@@ -419,6 +419,30 @@
       }
     }
 
+
+    .dashboard-crud { display:grid; gap:22px; }
+    .dashboard-crud-card { padding:18px; border:1px solid #e5e7eb; border-radius:12px; background:#fff; }
+    .dashboard-crud-card h3 { margin:0 0 16px; font-size:17px; color:#222; }
+    .dashboard-crud-form { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+    .dashboard-crud-field { display:flex; flex-direction:column; gap:6px; min-width:0; }
+    .dashboard-crud-field.full { grid-column:1/-1; }
+    .dashboard-crud-field label { color:#444; font-size:13px; font-weight:600; }
+    .dashboard-crud-input { width:100%; min-height:42px; padding:10px 12px; border:1px solid #d1d5db; border-radius:8px; background:#fff; color:#222; font:inherit; font-size:14px; }
+    .dashboard-crud-input:focus { outline:2px solid #dbeafe; border-color:#64748b; }
+    .dashboard-crud-actions { display:flex; flex-wrap:wrap; gap:9px; margin-top:16px; }
+    .dashboard-crud-status { min-height:20px; margin:12px 0 0; font-size:13px; line-height:1.5; overflow-wrap:anywhere; }
+    .dashboard-crud-list { width:100%; overflow-x:auto; }
+    .dashboard-crud-table { width:100%; border-collapse:collapse; font-size:13px; }
+    .dashboard-crud-table th,.dashboard-crud-table td { padding:11px 10px; border-bottom:1px solid #eee; text-align:left; vertical-align:top; }
+    .dashboard-crud-table th { color:#555; background:#f8fafc; white-space:nowrap; }
+    .dashboard-crud-row { cursor:pointer; }
+    .dashboard-crud-row:hover,.dashboard-crud-row.is-selected { background:#f1f5f9; }
+    .dashboard-crud-row:focus { outline:2px solid #94a3b8; outline-offset:-2px; }
+    .dashboard-crud-empty { padding:20px 10px; color:#777; text-align:center; }
+    .dashboard-crud-preview { max-width:100%; max-height:220px; border-radius:8px; margin-top:8px; }
+    .dashboard-crud-hint { margin:0 0 14px; color:#666; font-size:13px; line-height:1.5; }
+    @media(max-width:600px) { .dashboard-crud-form { grid-template-columns:1fr; } .dashboard-crud-field.full { grid-column:auto; } .dashboard-crud-card { padding:14px; } }
+
     footer {
       position: relative;
       flex: 0 0 auto;
@@ -890,14 +914,18 @@
 
       content.append(sectionTitle, sectionDescription);
 
+      let sectionRenderToken = 0;
       function selectSection(section) {
         sectionTitle.textContent = section.label;
         sectionDescription.textContent = section.description;
+        content.setAttribute("aria-labelledby", "dashboard-tab-" + section.id);
         navigation.querySelectorAll(".dashboard-nav-button").forEach((button) => {
           const selected = button.dataset.section === section.id;
           button.setAttribute("aria-selected", String(selected));
           button.tabIndex = selected ? 0 : -1;
         });
+        const token = ++sectionRenderToken;
+        renderDashboardSection(section, content, token, () => token === sectionRenderToken);
       }
 
       sections.forEach((section, index) => {
@@ -947,6 +975,240 @@
       selectSection(sections[0]);
       mainContent.replaceChildren(page);
       setCurrentMenuPage("Dashboard");
+    }
+
+
+    async function renderDashboardSection(section, content, renderToken, isCurrent) {
+      const user = await getCurrentUser();
+      if (!user || String(user.app_metadata?.role || "").toLowerCase() !== "admin") {
+        renderPage("Profile"); history.replaceState(null, "", "#profile"); return;
+      }
+      if (!isCurrent()) return;
+      const configs = {
+        post: { table:"posts", label:"Posts", fields:[
+          {name:"title",label:"Title",type:"text",required:true},
+          {name:"description",label:"Description",type:"textarea",full:true},
+          {name:"url_slug",label:"URL slug",type:"text",required:true,help:"Automatically suggested from the title; you can edit it."},
+          {name:"album_id",label:"Album",type:"album"},
+          {name:"visibility",label:"Visibility",type:"select",options:[["public","Public"],["private","Only Me"]]}
+        ]},
+        photo: { table:"media", label:"Photos", mediaType:"photo", fields:[
+          {name:"title",label:"Title",type:"text",required:true},
+          {name:"description",label:"Description",type:"textarea",full:true},
+          {name:"source_type",label:"Media source",type:"select",options:[["external","External URL"],["upload","Upload file"]]},
+          {name:"external_url",label:"External photo URL",type:"url",full:true,help:"Use a direct image URL from another server, or choose Upload file."},
+          {name:"upload_file",label:"Upload image",type:"file",accept:"image/*",full:true},
+          {name:"visibility",label:"Visibility",type:"select",options:[["public","Public"],["private","Only Me"]]}
+        ]},
+        video: { table:"media", label:"Videos", mediaType:"video", fields:[
+          {name:"title",label:"Title",type:"text",required:true},
+          {name:"description",label:"Description",type:"textarea",full:true},
+          {name:"source_type",label:"Media source",type:"select",options:[["external","External URL (YouTube etc.)"],["upload","Upload file"]]},
+          {name:"external_url",label:"Video URL",type:"url",full:true,help:"Paste a YouTube, youtu.be or direct video URL."},
+          {name:"upload_file",label:"Upload video",type:"file",accept:"video/*",full:true},
+          {name:"visibility",label:"Visibility",type:"select",options:[["public","Public"],["private","Only Me"]]}
+        ]},
+        album: { table:"albums", label:"Albums", fields:[
+          {name:"title",label:"Album title",type:"text",required:true},
+          {name:"description",label:"Description",type:"textarea",full:true},
+          {name:"visibility",label:"Visibility",type:"select",options:[["public","Public"],["private","Only Me"]]}
+        ]},
+        page: { table:"pages", label:"Pages", fields:[
+          {name:"title",label:"Title",type:"text",required:true},
+          {name:"description",label:"Description",type:"textarea",full:true},
+          {name:"content",label:"Page content",type:"textarea",full:true},
+          {name:"url_slug",label:"URL slug",type:"text",required:true,help:"Suggested from the title; you can override it."},
+          {name:"visibility",label:"Visibility",type:"select",options:[["public","Public"],["private","Only Me"]]}
+        ]},
+        role: { table:"roles", label:"Roles", fields:[
+          {name:"name",label:"Role name",type:"text",required:true},
+          {name:"description",label:"Description",type:"textarea",full:true}
+        ]},
+        permission: { table:"permissions", label:"Permissions", fields:[
+          {name:"name",label:"Permission name",type:"text",required:true},
+          {name:"description",label:"Description",type:"textarea",full:true}
+        ]},
+        customization: { table:"site_customizations", label:"Customizations", fields:[
+          {name:"key",label:"Setting key",type:"text",required:true},
+          {name:"value",label:"Value (JSON)",type:"textarea",required:true,full:true},
+          {name:"description",label:"Description",type:"textarea",full:true}
+        ]},
+        settings: { table:"site_settings", label:"Settings", fields:[
+          {name:"key",label:"Setting key",type:"text",required:true},
+          {name:"value",label:"Value (JSON)",type:"textarea",required:true,full:true},
+          {name:"description",label:"Description",type:"textarea",full:true}
+        ]},
+        user: { table:"profiles", label:"User profiles", readOnlyCreate:true, noDelete:true, fields:[
+          {name:"id",label:"Auth user ID",type:"text",readonly:true,required:true,full:true},
+          {name:"full_name",label:"Full name",type:"text"},
+          {name:"phone",label:"Phone",type:"tel"},
+          {name:"date_of_birth",label:"Date of birth",type:"date"},
+          {name:"bio",label:"Bio",type:"textarea",full:true},
+          {name:"avatar_url",label:"Avatar URL",type:"url",full:true}
+        ]}
+      };
+      if (section.id === "overview") {
+        content.replaceChildren();
+        const title = document.createElement("h2"); title.className="dashboard-section-title"; title.textContent="Overview";
+        const intro = document.createElement("p"); intro.className="dashboard-section-description"; intro.textContent="Content management and database summary.";
+        const stats = document.createElement("div"); stats.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-top:18px";
+        content.append(title,intro,stats);
+        const targets=[["Posts","posts"],["Media","media"],["Albums","albums"],["Pages","pages"],["Users","profiles"],["Roles","roles"],["Permissions","permissions"]];
+        for (const [label,table] of targets) {
+          const card=document.createElement("div");card.style.cssText="padding:16px;border:1px solid #e5e7eb;border-radius:10px;background:#fff";
+          const l=document.createElement("div");l.style.cssText="font-size:13px;color:#666";l.textContent=label;
+          const n=document.createElement("strong");n.style.cssText="display:block;font-size:25px;margin-top:8px";n.textContent="—";card.append(l,n);stats.append(card);
+          supabaseClient.from(table).select("id",{count:"exact",head:true}).then(({count,error})=>{if(isCurrent())n.textContent=error?"—":String(count??0);});
+        }
+        return;
+      }
+      const config=configs[section.id];
+      if (!config) return;
+      content.replaceChildren();
+      const wrap=document.createElement("div");wrap.className="dashboard-crud";
+      const formCard=document.createElement("section");formCard.className="dashboard-crud-card";
+      const formHeading=document.createElement("h3");formHeading.textContent="Create / Edit "+config.label;
+      const hint=document.createElement("p");hint.className="dashboard-crud-hint";hint.textContent=section.id==="user"?"This section edits profile records only. Creating or deleting Supabase Auth accounts requires a secured server-side function.":"Select a row below to load its values here. Save changes to update, or use Delete to remove the selected record.";
+      const form=document.createElement("form");form.className="dashboard-crud-form";
+      const status=document.createElement("p");status.className="dashboard-crud-status";status.setAttribute("role","status");status.setAttribute("aria-live","polite");
+      const actions=document.createElement("div");actions.className="dashboard-crud-actions dashboard-crud-field full";
+      const save=document.createElement("button");save.className="action-button primary";save.type="submit";save.textContent="Create";
+      const remove=document.createElement("button");remove.className="action-button";remove.type="button";remove.textContent="Delete";remove.disabled=true;
+      const clear=document.createElement("button");clear.className="action-button";clear.type="button";clear.textContent="New / Clear";
+      actions.append(save,remove,clear);form.append(actions,status);
+      const listCard=document.createElement("section");listCard.className="dashboard-crud-card";
+      const listHeading=document.createElement("h3");listHeading.textContent="Existing "+config.label;
+      const list=document.createElement("div");list.className="dashboard-crud-list";
+      listCard.append(listHeading,list);formCard.append(formHeading,hint,form);wrap.append(formCard,listCard);content.append(wrap);
+      let selectedId=null, records=[], albums=[];
+      const controls={};
+      function setStatus(message,type){status.textContent=message;status.style.color=type==="error"?"#a12622":type==="success"?"#176b43":"#555";}
+      function makeField(def){
+        const holder=document.createElement("div");holder.className="dashboard-crud-field"+(def.full?" full":"");
+        const label=document.createElement("label");label.textContent=def.label;label.htmlFor="dash-"+section.id+"-"+def.name;
+        let input;
+        if(def.type==="textarea"){input=document.createElement("textarea");input.rows=4;}
+        else if(def.type==="select"){input=document.createElement("select");(def.options||[]).forEach(([value,labelText])=>{const opt=document.createElement("option");opt.value=value;opt.textContent=labelText;input.append(opt);});}
+        else if(def.type==="album"){input=document.createElement("select");const blank=document.createElement("option");blank.value="";blank.textContent="No album";input.append(blank);albums.forEach(a=>{const opt=document.createElement("option");opt.value=a.id;opt.textContent=a.title;input.append(opt);});}
+        else {input=document.createElement("input");input.type=def.type==="file"?"file":def.type;if(def.accept)input.accept=def.accept;}
+        input.className="dashboard-crud-input";input.id=label.htmlFor;input.name=def.name;
+        if(def.required)input.required=true;if(def.readonly)input.readOnly=true;
+        holder.append(label,input);
+        if(def.help){const help=document.createElement("small");help.className="dashboard-crud-hint";help.textContent=def.help;holder.append(help);}
+        form.insertBefore(holder,actions);controls[def.name]=input;
+        if((def.name==="url_slug")&&(section.id==="post"||section.id==="page")) {
+          let slugTouched=false;input.addEventListener("input",()=>{slugTouched=true;});
+          const titleInput=()=>controls.title;
+          titleInput().addEventListener("input",()=>{if(!slugTouched&&!selectedId)input.value=slugify(titleInput().value);});
+          input.addEventListener("blur",()=>{if(!input.value.trim()&&titleInput().value.trim())input.value=slugify(titleInput().value);});
+        }
+        if(def.name==="source_type"){
+          input.addEventListener("change",()=>{const external=controls.external_url?.closest(".dashboard-crud-field");const file=controls.upload_file?.closest(".dashboard-crud-field");if(external)external.hidden=input.value!=="external";if(file)file.hidden=input.value!=="upload";});
+        }
+        return input;
+      }
+      function slugify(value){return String(value||"").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");}
+      if(section.id==="post"||section.id==="page"){} 
+      for(const def of config.fields)makeField(def);
+      if(config.mediaType){controls.media_type=document.createElement("input");controls.media_type.type="hidden";controls.media_type.value=config.mediaType;form.append(controls.media_type);}
+      function resetForm(){
+        selectedId=null;form.reset();if(controls.source_type){controls.source_type.value="external";controls.external_url.closest(".dashboard-crud-field").hidden=false;controls.upload_file.closest(".dashboard-crud-field").hidden=true;}
+        save.textContent=config.readOnlyCreate?"Save Profile":"Create";save.disabled=false;remove.disabled=true;setStatus("");
+        list.querySelectorAll(".dashboard-crud-row").forEach(row=>row.classList.remove("is-selected"));
+      }
+      clear.addEventListener("click",resetForm);
+      async function loadRecords(){
+        if(!isCurrent())return;
+        list.replaceChildren();const loading=document.createElement("p");loading.className="dashboard-crud-empty";loading.textContent="Loading records…";list.append(loading);
+        let query=supabaseClient.from(config.table).select("*").order("created_at",{ascending:false}).limit(200);
+        if(config.mediaType)query=query.eq("media_type",config.mediaType);
+        if(config.table==="site_customizations"||config.table==="site_settings")query=supabaseClient.from(config.table).select("*").order("key").limit(200);
+        const {data,error}=await query;
+        if(!isCurrent())return;
+        list.replaceChildren();
+        if(error){const p=document.createElement("p");p.className="dashboard-crud-empty";p.textContent="Could not load records: "+error.message;list.append(p);return;}
+        records=data||[];
+        if(!records.length){const p=document.createElement("p");p.className="dashboard-crud-empty";p.textContent="No records found yet.";list.append(p);return;}
+        const table=document.createElement("table");table.className="dashboard-crud-table";
+        const thead=document.createElement("thead"),trh=document.createElement("tr");
+        ["Select","Title / Name","Details","Visibility","Created"].forEach(label=>{const th=document.createElement("th");th.textContent=label;trh.append(th);});thead.append(trh);table.append(thead);
+        const tbody=document.createElement("tbody");
+        records.forEach(record=>{
+          const row=document.createElement("tr");row.className="dashboard-crud-row";row.tabIndex=0;
+          const title=record.title||record.name||record.key||record.full_name||record.id||"Record";
+          const details=record.external_url||record.url_slug||record.description||record.phone||record.source_type||"";
+          [String(record.id||"").slice(0,8)||"—",title,details,record.visibility==="private"?"Only Me":record.visibility==="public"?"Public":"—",record.created_at?new Date(record.created_at).toLocaleString():"—"].forEach(value=>{const td=document.createElement("td");td.textContent=String(value);row.append(td);});
+          const first=row.firstElementChild;first.textContent="Select";
+          row.addEventListener("click",()=>selectRecord(record,row));
+          row.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();selectRecord(record,row);}});
+          tbody.append(row);
+        });
+        table.append(tbody);list.append(table);
+      }
+      function selectRecord(record,row){
+        selectedId=record.id||record.key||record.id;resetSelectionHighlight();row.classList.add("is-selected");
+        config.fields.forEach(def=>{
+          const input=controls[def.name];if(!input)return;
+          let value=record[def.name];
+          if((section.id==="customization"||section.id==="settings")&&def.name==="value")value=JSON.stringify(value??null,null,2);
+          if(def.type==="file")return;
+          input.value=value==null?"":String(value);
+        });
+        if(controls.source_type){controls.source_type.value=record.source_type||"external";controls.external_url.closest(".dashboard-crud-field").hidden=controls.source_type.value!=="external";controls.upload_file.closest(".dashboard-crud-field").hidden=controls.source_type.value!=="upload";}
+        save.textContent=config.readOnlyCreate?"Save Profile":"Update";remove.disabled=!!config.noDelete;setStatus("Selected record loaded into the form.");
+      }
+      function resetSelectionHighlight(){list.querySelectorAll(".dashboard-crud-row").forEach(row=>row.classList.remove("is-selected"));}
+      form.addEventListener("submit",async event=>{
+        event.preventDefault();save.disabled=true;remove.disabled=true;save.textContent="Saving…";setStatus("");
+        try{
+          const payload={};
+          config.fields.forEach(def=>{if(def.type==="file")return;let value=controls[def.name].value;if(def.name==="value"&&(section.id==="customization"||section.id==="settings")){try{value=JSON.parse(value);}catch{throw new Error("Value must be valid JSON.");}}else if(value==="")value=null;payload[def.name]=value;});
+          if(config.mediaType){payload.media_type=config.mediaType;payload.source_type=controls.source_type.value;
+            if(payload.source_type==="upload"){
+              const file=controls.upload_file.files?.[0];if(file){const ext=(file.name.split(".").pop()||"bin").replace(/[^a-zA-Z0-9]/g,"");const path=user.id+"/"+crypto.randomUUID()+"."+ext;
+                const {error:uploadError}=await supabaseClient.storage.from("site-media").upload(path,file,{upsert:false,contentType:file.type||"application/octet-stream"});if(uploadError)throw uploadError;
+                payload.storage_path=path;payload.external_url=null;
+              }else if(!selectedId||!records.find(r=>r.id===selectedId)?.storage_path)throw new Error("Choose a file to upload.");
+              else {payload.storage_path=records.find(r=>r.id===selectedId).storage_path;payload.external_url=null;}
+            }else{
+              const url=String(payload.external_url||"").trim();if(!/^https?:\/\//i.test(url))throw new Error("Enter a valid http:// or https:// URL.");
+              payload.external_url=url;payload.storage_path=null;
+            }
+          }
+          if(config.table==="posts"||config.table==="pages"){payload.url_slug=slugify(payload.url_slug||payload.title);if(!payload.url_slug)throw new Error("Title or URL slug is required.");}
+          if(config.table==="posts"&&payload.album_id==="")payload.album_id=null;
+          if(config.table==="site_customizations"||config.table==="site_settings")payload.updated_by=user.id;
+          if(config.table!=="profiles")payload.updated_at=new Date().toISOString();
+          let result;
+          if(selectedId){result=await supabaseClient.from(config.table).update(payload).eq(config.table==="site_settings"||config.table==="site_customizations"?"id":"id",selectedId).select().single();}
+          else{
+            if(config.readOnlyCreate)throw new Error("Profiles are created through the account registration flow.");
+            if(["posts","media","albums","pages"].includes(config.table))payload.created_by=user.id;
+            result=await supabaseClient.from(config.table).insert(payload).select().single();
+          }
+          if(result.error)throw result.error;
+          setStatus(selectedId?"Record updated successfully.":"Record created successfully.","success");resetForm();await loadRecords();
+        }catch(error){setStatus(error.message||"Could not save record.","error");}
+        finally{save.disabled=false;save.textContent=selectedId?"Update":(config.readOnlyCreate?"Save Profile":"Create");remove.disabled=!selectedId||!!config.noDelete;}
+      });
+      remove.addEventListener("click",async()=>{
+        if(!selectedId||config.noDelete)return;
+        const record=records.find(r=>(r.id||r.key)===selectedId);if(!record)return;
+        if(!confirm("Delete this record? This action cannot be undone."))return;
+        remove.disabled=true;save.disabled=true;
+        try{
+          const {error}=await supabaseClient.from(config.table).delete().eq("id",selectedId);if(error)throw error;
+          if(config.table==="media"&&record.storage_path){const {error:storageError}=await supabaseClient.storage.from("site-media").remove([record.storage_path]);if(storageError)console.warn("Storage cleanup failed",storageError);}
+          resetForm();setStatus("Record deleted successfully.","success");await loadRecords();
+        }catch(error){setStatus(error.message||"Could not delete record.","error");}
+        finally{save.disabled=false;remove.disabled=true;}
+      });
+      if(section.id==="post"){
+        const {data}=await supabaseClient.from("albums").select("id,title").order("title").limit(200);albums=data||[];
+        const select=controls.album_id;if(select){select.replaceChildren();const blank=document.createElement("option");blank.value="";blank.textContent="No album";select.append(blank);albums.forEach(a=>{const opt=document.createElement("option");opt.value=a.id;opt.textContent=a.title;select.append(opt);});}
+      }
+      if(!isCurrent())return;
+      resetForm();await loadRecords();
     }
 
     async function renderEditProfile() {
