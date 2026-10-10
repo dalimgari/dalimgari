@@ -445,6 +445,48 @@
     .dashboard-crud-hint { margin:0 0 14px; color:#666; font-size:13px; line-height:1.5; }
     @media(max-width:600px) { .dashboard-crud-form { grid-template-columns:1fr; } .dashboard-crud-field.full { grid-column:auto; } .dashboard-crud-card { padding:14px; } }
 
+    /* Consistent sizing and overflow handling for every dashboard control. */
+    .dashboard-page, .dashboard-page * { box-sizing:border-box; min-width:0; }
+    .dashboard-page { max-width:100%; overflow-wrap:anywhere; }
+    .dashboard-page button, .dashboard-page input, .dashboard-page select,
+    .dashboard-page textarea, .dashboard-page table { max-width:100%; }
+    .dashboard-page button { white-space:normal; overflow-wrap:anywhere; }
+    .dashboard-page input, .dashboard-page select, .dashboard-page textarea {
+      font:inherit; line-height:1.45;
+    }
+    .dashboard-page input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+    .dashboard-page select, .dashboard-page textarea {
+      display:block; width:100%; max-width:100%; min-height:42px;
+    }
+    .dashboard-page textarea {
+      height:auto; min-height:112px; max-height:60vh; overflow:auto;
+      resize:vertical; white-space:pre-wrap; overflow-wrap:anywhere;
+    }
+    .dashboard-page .dashboard-crud-form,
+    .dashboard-page .dashboard-crud-field,
+    .dashboard-page .dashboard-crud-card,
+    .dashboard-page .dashboard-section-content { min-width:0; max-width:100%; }
+    .dashboard-page .dashboard-crud-list {
+      display:block; width:100%; max-width:100%; overflow-x:auto; overflow-y:hidden;
+      overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch;
+    }
+    .dashboard-page .dashboard-crud-table {
+      width:100%; min-width:640px; max-width:none; table-layout:auto;
+    }
+    .dashboard-page .dashboard-crud-table th,
+    .dashboard-page .dashboard-crud-table td {
+      max-width:320px; white-space:normal; overflow-wrap:anywhere; word-break:break-word;
+    }
+    .dashboard-page :is(input, select, textarea, button, [tabindex]):focus-visible {
+      scroll-margin-block:24px; scroll-margin-inline:16px;
+    }
+    @media(max-width:600px) {
+      .dashboard-page { width:calc(100% - 24px); }
+      .dashboard-page .dashboard-section-content { padding:14px; }
+      .dashboard-page .dashboard-crud-card { padding:12px; }
+      .dashboard-page .dashboard-crud-table { min-width:600px; }
+    }
+
     footer {
       position: relative;
       flex: 0 0 auto;
@@ -1190,6 +1232,22 @@
       const page = document.createElement("section");
       page.className = "dashboard-page";
       page.setAttribute("aria-label", "Admin Dashboard");
+      // Bring focused controls into view when forms are long or content overflows.
+      page.addEventListener("focusin", (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement) ||
+            !target.matches("input, select, textarea, button, [tabindex]")) return;
+        requestAnimationFrame(() => {
+          if (!target.isConnected) return;
+          const rect = target.getBoundingClientRect();
+          const viewportHeight = document.documentElement.clientHeight;
+          const viewportWidth = document.documentElement.clientWidth;
+          if (rect.top < 8 || rect.bottom > viewportHeight - 8 ||
+              rect.left < 8 || rect.right > viewportWidth - 8) {
+            target.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+          }
+        });
+      });
 
       const heading = document.createElement("h1");
       heading.className = "dashboard-heading";
