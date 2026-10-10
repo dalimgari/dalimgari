@@ -1171,6 +1171,8 @@
         return input;
       }
       function generateUrlValue(value){return String(value||"").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");}
+      if(section.id==="post"||section.id==="page"){} 
+      for(const def of config.fields)makeField(def);
       if(section.id==="post"){
         controls.media_file.addEventListener("change",async()=>{
           const file=controls.media_file.files?.[0];
@@ -1196,10 +1198,8 @@
           finally{controls.media_file.disabled=false;}
         });
       }
-      if(section.id==="post"||section.id==="page"){} 
-      for(const def of config.fields)makeField(def);
       function resetForm(){
-        selectedId=null;form.reset();
+        selectedId=null;selectedRecordData=null;selectedUploadedPath="";selectedUploadedUrl="";form.reset();
         save.textContent=config.editOnly?"Select a media item":(config.readOnlyCreate?"Save Profile":(section.id==="post"?"Publish":"Create"));save.disabled=!!config.editOnly;remove.disabled=true;setStatus("");
         list.querySelectorAll(".dashboard-crud-row").forEach(row=>row.classList.remove("is-selected"));
       }
