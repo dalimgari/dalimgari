@@ -1154,7 +1154,16 @@
     }
 
 
-    function renderCreateAccount() {
+    async function renderCreateAccount() {
+      const { data: accessRow, error: accessError } = await supabaseClient.from("site_customizations").select("value").eq("key", "ui_settings_users_access").maybeSingle();
+      let accessConfig = accessRow && accessRow.value ? accessRow.value : {};
+      if (typeof accessConfig === "string") { try { accessConfig = JSON.parse(accessConfig); } catch (_) { accessConfig = {}; } }
+      if (!accessError && accessConfig.allow_account_creation === false) {
+        const notice = document.createElement("section"); notice.className = "login-form";
+        const heading = document.createElement("h1"); heading.className = "login-title"; heading.textContent = "Account creation is disabled";
+        const detail = document.createElement("p"); detail.className = "login-message"; detail.dataset.type = "info"; detail.textContent = "New account registration is currently disabled.";
+        notice.append(heading, detail); mainContent.replaceChildren(notice); return;
+      }
       const form = document.createElement("form");
       form.className = "login-form";
 
