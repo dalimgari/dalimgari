@@ -288,36 +288,14 @@
     .profile-page{width:min(100% - 32px,760px);margin:28px auto;padding:24px;border:1px solid #eee;border-radius:16px;background:#fff;box-shadow:0 10px 30px rgba(0,0,0,.06)}
     .profile-heading{margin:0 0 20px;color:#222;font-size:24px}
     .profile-summary{display:flex;align-items:center;gap:16px;padding:18px;border-radius:12px;background:#f8f9fb;margin-bottom:20px}
-    .profile-avatar{width:64px;height:64px;flex:0 0 64px;display:grid;place-items:center;border-radius:50%;overflow:hidden;background:#e5e7eb;color:#374151;font-size:24px;font-weight:700}.profile-avatar img{width:100%;height:100%;object-fit:cover}.avatar-controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:9px}.avatar-upload{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+    .profile-avatar{width:64px;height:64px;flex:0 0 64px;display:grid;place-items:center;border-radius:50%;overflow:hidden;background:#e5e7eb;color:#374151;font-size:24px;font-weight:700}
     .profile-name{margin:0 0 5px;font-size:20px;overflow-wrap:anywhere}.profile-email{margin:0;color:#666;font-size:14px;overflow-wrap:anywhere}
     .role-badge{display:inline-block;margin-left:7px;padding:4px 8px;border-radius:999px;background:#e8eefc;color:#244a8f;font-size:10px;vertical-align:middle;letter-spacing:.4px}
     .profile-section{padding:18px;margin-bottom:16px;border:1px solid #eee;border-radius:12px}.profile-section h2{margin:0 0 14px;font-size:17px}
     .profile-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.detail-label{margin:0 0 5px;color:#777;font-size:12px}.detail-value{margin:0;color:#222;font-size:15px;overflow-wrap:anywhere;white-space:pre-wrap}
     .profile-actions{display:flex;flex-direction:column;align-items:flex-start;gap:10px;margin-top:18px}.action-button{min-height:44px;padding:0 16px;border:1px solid #ddd;border-radius:9px;background:#fff;color:#222;font:inherit;font-weight:600;cursor:pointer}.action-button.primary{background:#222;border-color:#222;color:#fff}
     .profile-input{width:100%;margin:0 0 15px;padding:12px 13px;border:1px solid #dcdcdc;border-radius:9px;background:#fff;color:#222;font:inherit;font-size:15px}
-    .profile-picture-editor{margin-bottom:20px;background:linear-gradient(135deg,#fbfdff,#f7f9fc)}
-    .profile-picture-editor h2{margin-bottom:16px}
-    .profile-picture-editor-row{display:flex;align-items:center;gap:20px}
-    .profile-avatar-large{width:104px;height:104px;flex:0 0 104px;font-size:36px;border:3px solid #fff;box-shadow:0 3px 14px rgba(15,23,42,.12)}
-    .profile-picture-upload-area{min-width:0;flex:1}
-    .attachment-picker.profile-picture-picker{display:grid;grid-template-columns:38px minmax(0,1fr);align-items:center;column-gap:10px;row-gap:8px;margin:0 0 12px;padding:12px}
-    .attachment-picker.profile-picture-picker .attachment-icon{grid-column:1;grid-row:1 / span 2;flex-basis:38px;width:38px;height:38px}
-    .attachment-picker.profile-picture-picker .attachment-copy{grid-column:2;grid-row:1;min-width:0}
-    .attachment-picker.profile-picture-picker .attachment-title{overflow-wrap:anywhere}
-    .attachment-picker.profile-picture-picker .attachment-button{grid-column:2;grid-row:2;justify-self:start;white-space:nowrap}
-    .profile-picture-picker.is-uploading{opacity:.75;cursor:wait}
-    .profile-picture-picker .avatar-upload{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
-    .profile-picture-progress{margin:0 0 10px}
-    .profile-picture-progress[hidden]{display:none}
-    .profile-picture-progress.is-active .attachment-progress-fill{width:35%;animation:profile-picture-progress 1.2s ease-in-out infinite alternate}
-    @keyframes profile-picture-progress{from{transform:translateX(-15%)}to{transform:translateX(140%)}}
-    @media(max-width:480px){.profile-picture-editor-row{align-items:flex-start;flex-direction:column;gap:14px}.profile-picture-upload-area{width:100%}.profile-avatar-large{width:88px;height:88px;flex-basis:88px}}
     .edit-profile-form label{display:block;margin:0 0 6px;color:#444;font-size:14px}.profile-status{margin:12px 0;font-size:14px;line-height:1.5}.back-profile{margin-bottom:18px}.attachment-note{margin:-6px 0 15px;color:#777;font-size:13px}
-    .attachment-picker{display:flex;align-items:center;gap:14px;margin:4px 0 18px;padding:16px;border:1px dashed #bfc5ce;border-radius:12px;background:#f8fafc;cursor:pointer;transition:border-color .15s ease,background-color .15s ease}
-    .attachment-picker:hover,.attachment-picker:focus-within{border-color:#64748b;background:#f1f5f9}
-    .attachment-icon{display:grid;place-items:center;flex:0 0 44px;width:44px;height:44px;border-radius:10px;background:#e9eef5;color:#334155;font-size:23px}
-    .attachment-copy{min-width:0;flex:1}.attachment-title{display:block;margin:0 0 4px;color:#222;font-size:14px;font-weight:600}.attachment-subtitle{display:block;color:#6b7280;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
-    .attachment-button{flex:0 0 auto;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;background:#fff;color:#222;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
     .attachment-button:hover{background:#f3f4f6}.attachment-filename{margin:-8px 0 14px;color:#475569;font-size:13px;overflow-wrap:anywhere}
     .attachment-input{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
     @media(max-width:560px){.profile-page{padding:17px;margin:18px auto}.profile-details{grid-template-columns:1fr}.profile-actions .action-button{flex:1 1 100%}.profile-heading{font-size:22px}}
@@ -539,23 +517,16 @@
       heading.textContent="Welcome to Dalimgari";
       heading.style.cssText="font-size:clamp(28px,5vw,42px);margin:0 0 10px";
       const intro=document.createElement("p");
-      intro.textContent="Explore public posts and albums.";
+      intro.textContent="Explore public posts.";
       intro.style.cssText="color:#666;line-height:1.6;margin:0 0 28px";
       page.append(heading,intro);
       const postsHeading=document.createElement("h2");postsHeading.textContent="Latest Posts";
       postsHeading.style.cssText="font-size:22px;margin:24px 0 12px";
       const postsList=document.createElement("div");postsList.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px";
       page.append(postsHeading,postsList);
-      const albumsHeading=document.createElement("h2");albumsHeading.textContent="Albums";
-      albumsHeading.style.cssText="font-size:22px;margin:30px 0 12px";
-      const albumsList=document.createElement("div");albumsList.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px";
-      page.append(albumsHeading,albumsList);
       mainContent.replaceChildren(page);
       const cardStyle="border:1px solid #e7e7e7;border-radius:12px;padding:16px;background:#fff;min-width:0";
-      const [postsResult,albumsResult]=await Promise.all([
-        supabaseClient.from("post").select("id,title,caption,description,media_url,storage_path,external_url,media_type,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(12),
-        supabaseClient.from("albums").select("id,title,description,url,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(12)
-      ]);
+      const postsResult=await supabaseClient.from("post").select("id,title,caption,description,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(12);
       if(!postsResult.error && postsResult.data && postsResult.data.length){
         for (const post of postsResult.data) {
           const card=document.createElement("article");card.style.cssText=cardStyle;
@@ -563,33 +534,10 @@
           card.append(title);
           const description=document.createElement("p");description.textContent=post.description||"";description.style.cssText="color:#666;line-height:1.5;margin:0";
           if(description.textContent)card.append(description);
-          let mediaUrl=String(post.external_url||post.media_url||"");
-          if(post.storage_path||mediaUrl.startsWith("posts/")){
-            const {data:signedMedia,error:signError}=await supabaseClient.functions.invoke("public-post-media",{body:{post_id:post.id}});
-            mediaUrl=!signError&&signedMedia&&signedMedia.url?signedMedia.url:"";
-          }
-          if(/^https?:\/\//i.test(mediaUrl)){
-            const cleanUrl=mediaUrl.split("?")[0];
-            if((post.media_type==="video")||/\.(mp4|webm|mov|m4v|ogv)$/i.test(cleanUrl)){
-              const video=document.createElement("video");video.src=mediaUrl;video.controls=true;video.playsInline=true;video.preload="metadata";video.style.cssText="display:block;width:100%;max-height:240px;object-fit:contain;margin:0 0 12px;border-radius:8px";card.insertBefore(video,title);
-            }else if((post.media_type==="photo")||/\.(jpe?g|png|gif|webp|avif|bmp)$/i.test(cleanUrl)){
-              const image=document.createElement("img");image.src=mediaUrl;image.alt=title.textContent;image.loading="lazy";image.style.cssText="display:block;width:100%;max-height:240px;object-fit:cover;margin:0 0 12px;border-radius:8px";card.insertBefore(image,title);
-            }
-          }
           postsList.append(card);
         }
       }else{
         const empty=document.createElement("p");empty.textContent=postsResult.error?"Public posts could not be loaded.":"No public posts yet.";empty.style.color="#777";postsList.append(empty);
-      }
-      if(!albumsResult.error && albumsResult.data && albumsResult.data.length){
-        albumsResult.data.forEach(album=>{
-          const card=document.createElement("article");card.style.cssText=cardStyle;
-          const title=document.createElement("h3");title.textContent=album.title||"Album";title.style.cssText="font-size:18px;margin:0 0 8px";
-          const description=document.createElement("p");description.textContent=album.description||"";description.style.cssText="color:#666;line-height:1.5;margin:0";
-          card.append(title);if(description.textContent)card.append(description);albumsList.append(card);
-        });
-      }else{
-        const empty=document.createElement("p");empty.textContent=albumsResult.error?"Albums could not be loaded.":"No public albums yet.";empty.style.color="#777";albumsList.append(empty);
       }
     }
 
@@ -1123,74 +1071,13 @@
 
     async function loadUserProfile(user) {
       const { data, error } = await supabaseClient.from("profiles")
-        .select("id,full_name,phone,date_of_birth,bio,avatar_url")
+        .select("id,full_name,phone,date_of_birth,bio")
         .eq("id", user.id).maybeSingle();
       if (error) {
         console.error("Could not load the user record from the profiles table:", error);
-        return { id: user.id, full_name: "", phone: "", date_of_birth: null, bio: "", avatar_url: "" };
+        return { id: user.id, full_name: "", phone: "", date_of_birth: null, bio: "" };
       }
-      return data || { id: user.id, full_name: "", phone: "", date_of_birth: null, bio: "", avatar_url: "" };
-    }
-
-    function profileImageExtension(mimeType) {
-      const extensions = {
-        "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp",
-        "image/gif": "gif", "image/avif": "avif", "image/bmp": "bmp"
-      };
-      return extensions[String(mimeType || "").toLowerCase()] || "";
-    }
-
-    async function uploadProfileImageFile(user, file) {
-      const extension = profileImageExtension(file.type);
-      if (!extension) throw new Error("Use a JPG, JPEG, PNG, WebP, GIF, AVIF, or BMP image.");
-      const path = user.id + "/profile." + extension;
-      const { error: uploadError } = await supabaseClient.storage.from("site-media").upload(path, file, {
-        contentType: file.type, upsert: true, cacheControl: "3600"
-      });
-      if (uploadError) throw uploadError;
-      const { error: profileError } = await supabaseClient.from("profiles").update({ avatar_url: path, updated_at: new Date().toISOString() }).eq("id", user.id);
-      if (profileError) throw profileError;
-      const { error: metadataCleanupError } = await supabaseClient.auth.updateUser({ data: { avatar_url: null } });
-      if (metadataCleanupError) console.warn("Profile image saved, but legacy Auth metadata cleanup failed:", metadataCleanupError);
-      return getProfileImageSignedUrl(path);
-    }
-
-    async function getProfileImageSignedUrl(path) {
-      const { data, error } = await supabaseClient.storage.from("site-media").createSignedUrl(path, 3600);
-      if (error) throw error;
-      return data.signedUrl;
-    }
-
-    async function resolveProfileAvatarUrl(user, profile = null) {
-      const legacyAvatar = metadataValue(user, "avatar_url");
-      const raw = (profile && profile.avatar_url) || (legacyAvatar.startsWith("data:image/") ? legacyAvatar : "");
-      if (!raw) return "";
-      if (raw.startsWith("data:image/")) {
-        try {
-          const match = /^data:(image\/[a-zA-Z0-9.+-]+);base64,([\s\S]+)$/.exec(raw);
-          if (!match) throw new Error("Unsupported legacy image data.");
-          const extension = profileImageExtension(match[1]);
-          if (!extension) throw new Error("Unsupported legacy image format.");
-          const binary = atob(match[2]);
-          const bytes = new Uint8Array(binary.length);
-          for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-          const file = new File([bytes], "profile." + extension, { type: match[1] });
-          return await uploadProfileImageFile(user, file);
-        } catch (error) {
-          console.error("Could not migrate the existing profile image; original image data is retained:", error);
-          return raw;
-        }
-      }
-      if (raw.startsWith(user.id + "/")) {
-        try { return await getProfileImageSignedUrl(raw); }
-        catch (error) { console.error("Could not create profile image URL:", error); return ""; }
-      }
-      return raw;
-    }
-
-    function formatProfileImageSize(bytes) {
-      if (bytes < 1024 * 1024) return Math.max(1, Math.round(bytes / 1024)) + " KB";
-      return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+      return data || { id: user.id, full_name: "", phone: "", date_of_birth: null, bio: "" };
     }
 
     async function renderProfile() {
@@ -1203,9 +1090,7 @@
       const heading = document.createElement("h1"); heading.className = "profile-heading"; heading.textContent = "My Profile";
       const summary = document.createElement("div"); summary.className = "profile-summary";
       const avatar = document.createElement("div"); avatar.className = "profile-avatar";
-      const avatarUrl = await resolveProfileAvatarUrl(user, profile);
-      if (avatarUrl) { const avatarImage = document.createElement("img"); avatarImage.src = avatarUrl; avatarImage.alt = "Profile picture"; avatar.append(avatarImage); }
-      else { avatar.textContent = name.charAt(0).toUpperCase() || "?"; }
+      avatar.textContent = name.charAt(0).toUpperCase() || "?";
       const identity = document.createElement("div");
       const nameLine = document.createElement("h2"); nameLine.className = "profile-name"; nameLine.append(document.createTextNode(name || "Not added"));
       const badge = document.createElement("span"); badge.className = "role-badge"; badge.textContent = role; nameLine.append(badge);
@@ -1248,22 +1133,9 @@
         return;
       }
 
-      async function dashboardMediaUrl(record) {
-        const rawMediaUrl=String(record.media_url||"");
-        const storagePath=String(record.storage_path||(rawMediaUrl.startsWith("posts/")?rawMediaUrl:""));
-        if(storagePath){
-          const {data,error}=await supabaseClient.storage.from("site-media").createSignedUrl(storagePath,3600);
-          if(!error&&data&&data.signedUrl)return data.signedUrl;
-        }
-        const externalUrl=String(record.external_url||rawMediaUrl||"");
-        return /^https?:\/\//i.test(externalUrl)?externalUrl:"";
-      }
-
       const sections = [
         { id: "overview", label: "Overview", description: "Dashboard overview." },
         { id: "post", label: "Post", description: "Post management section." },
-        { id: "upload-test", label: "Upload Test", description: "Test photo/video uploads without creating a post." },
-        { id: "album", label: "Album", description: "Album management section." },
         { id: "page", label: "Page", description: "Page management section." },
         { id: "user", label: "User", description: "User management section." },
         { id: "role", label: "Role", description: "Role management section." },
@@ -1379,87 +1251,10 @@
         renderPage("Profile"); history.replaceState(null, "", "#profile"); return;
       }
       if (!isCurrent()) return;
-      if(section.id==="upload-test"){
-        content.replaceChildren();
-        const wrap=document.createElement("div");wrap.style.cssText="display:grid;gap:16px";
-        const form=document.createElement("form");form.style.cssText="display:grid;gap:12px;max-width:620px";
-        const note=document.createElement("p");note.textContent="এখানে শুধু Storage upload পরীক্ষা হবে। কোনো Post তৈরি বা পরিবর্তন হবে না। পরীক্ষার ফাইল সফল হলে স্বয়ংক্রিয়ভাবে মুছে ফেলা হবে।";note.style.cssText="margin:0;color:#555";
-        const fileLabel=document.createElement("label");fileLabel.textContent="Photo or video file";
-        const fileInput=document.createElement("input");fileInput.type="file";fileInput.accept="image/*,video/*";fileInput.required=true;fileInput.style.cssText="display:block;width:100%;margin-top:6px";
-        const run=document.createElement("button");run.type="submit";run.className="action-button";run.textContent="Test Upload";
-        const status=document.createElement("p");status.setAttribute("role","status");status.style.cssText="margin:0;overflow-wrap:anywhere";
-        fileLabel.append(fileInput);form.append(note,fileLabel,run,status);wrap.append(form);
-        const tableTitle=document.createElement("h3");tableTitle.textContent="Upload Test History";tableTitle.style.margin="12px 0 0";
-        const tableWrap=document.createElement("div");tableWrap.style.cssText="overflow-x:auto";
-        const table=document.createElement("table");table.style.cssText="width:100%;border-collapse:collapse;min-width:650px";
-        const thead=document.createElement("thead"),hr=document.createElement("tr");
-        ["Time","File","Size","Result","HTTP / Error","Cleanup"].forEach(label=>{const th=document.createElement("th");th.textContent=label;th.style.cssText="text-align:left;padding:9px;border-bottom:1px solid #ddd";hr.append(th);});
-        thead.append(hr);const tbody=document.createElement("tbody");table.append(thead,tbody);tableWrap.append(table);wrap.append(tableTitle,tableWrap);content.append(wrap);
-        const escCell=(value)=>String(value??"—");
-        async function loadTests(){
-          const {data,error}=await supabaseClient.from("media_upload_tests").select("*").order("created_at",{ascending:false}).limit(30);
-          if(!isCurrent())return;
-          tbody.replaceChildren();
-          if(error){const tr=document.createElement("tr"),td=document.createElement("td");td.colSpan=6;td.textContent="Could not load test history: "+error.message;td.style.padding="10px";tr.append(td);tbody.append(tr);return;}
-          if(!data?.length){const tr=document.createElement("tr"),td=document.createElement("td");td.colSpan=6;td.textContent="No upload tests yet.";td.style.padding="10px";tr.append(td);tbody.append(tr);return;}
-          data.forEach(item=>{const tr=document.createElement("tr");const vals=[new Date(item.created_at).toLocaleString(),item.file_name,(Number(item.file_size||0)/1024/1024).toFixed(2)+" MB",item.upload_status==="success"?"Success":"Failed",[item.http_status,item.error_name,item.error_message].filter(Boolean).join(" | ")||"—",item.cleanup_status||"—"];vals.forEach((value,index)=>{const td=document.createElement("td");td.textContent=escCell(value);td.style.cssText="padding:9px;border-bottom:1px solid #eee;vertical-align:top;overflow-wrap:anywhere;max-width:320px";if(index===3)td.style.fontWeight="600";tr.append(td);});tbody.append(tr);});
-        }
-        form.addEventListener("submit",async event=>{
-          event.preventDefault();const file=fileInput.files?.[0];if(!file)return;
-          if(!/^(image|video)\//i.test(file.type)){status.textContent="শুধু photo বা video নির্বাচন করুন।";return;}
-          if(file.size>104857600){status.textContent="ফাইল 100 MB-এর বেশি।";return;}
-          run.disabled=true;status.style.color="#555";status.textContent="Upload test চলছে…";
-          let path=null, resultRow={tested_by:user.id,file_name:file.name,file_type:file.type,file_size:file.size,upload_status:"failed",http_status:null,error_name:null,error_message:null,cleanup_status:"not needed"};
-          try{
-            const {data:sessionData,error:sessionError}=await supabaseClient.auth.refreshSession();
-            if(sessionError)throw new Error("Session refresh failed: "+sessionError.message);
-            if(sessionData.session?.user?.app_metadata?.role!=="admin")throw new Error("Admin role is missing from the current session. Sign out and sign in again.");
-            const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,"_").slice(-100)||"test-media";
-            path="posts/"+crypto.randomUUID()+"/"+safeName;
-            const accessToken=sessionData.session?.access_token;
-            if(!accessToken)throw new Error("No active access token after session refresh.");
-            const storageUrl="https://yopfogoyjxwxplnabqii.supabase.co/storage/v1/object/site-media/"+path.split("/").map(encodeURIComponent).join("/");
-            const uploadResponse=await fetch(storageUrl,{method:"POST",headers:{"apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvcGZvZ295anh3eHBsbmFicWlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyOTMyNjQsImV4cCI6MjEwNDg2OTI2NH0.dIVH8sp3qyD_AGmt1bNFVOpQKdrgcX734HkrEuOacB4","Authorization":"Bearer "+accessToken,"Content-Type":file.type||"application/octet-stream","Cache-Control":"max-age=60","x-upsert":"false"},body:file});
-            const uploadBody=await uploadResponse.text();
-            if(!uploadResponse.ok){
-              resultRow.http_status=String(uploadResponse.status);
-              resultRow.error_name="StorageRESTError";
-              resultRow.error_message=uploadBody.slice(0,1200)||uploadResponse.statusText||"No response body";
-              throw new Error(resultRow.error_name+" | "+resultRow.http_status+" | "+resultRow.error_message);
-            }
-            resultRow.upload_status="success";resultRow.http_status=String(uploadResponse.status);
-            const deleteResponse=await fetch("https://yopfogoyjxwxplnabqii.supabase.co/storage/v1/object/site-media",{method:"DELETE",headers:{"apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvcGZvZ295anh3eHBsbmFicWlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyOTMyNjQsImV4cCI6MjEwNDg2OTI2NH0.dIVH8sp3qyD_AGmt1bNFVOpQKdrgcX734HkrEuOacB4","Authorization":"Bearer "+accessToken,"Content-Type":"application/json"},body:JSON.stringify({prefixes:[path]})});
-            const deleteBody=await deleteResponse.text();
-            if(!deleteResponse.ok){resultRow.cleanup_status="FAILED ("+deleteResponse.status+"): "+(deleteBody.slice(0,500)||deleteResponse.statusText);resultRow.error_message="Upload succeeded; cleanup failed: "+resultRow.cleanup_status;}
-            else{resultRow.cleanup_status="Removed test file ("+deleteResponse.status+")";}
-            status.style.color=resultRow.cleanup_status.startsWith("FAILED")?"#a12622":"#176b43";
-            status.textContent=resultRow.cleanup_status.startsWith("FAILED")?"Upload succeeded, but test file cleanup failed: "+resultRow.cleanup_status:"Upload test successful. Test file was removed.";
-          }catch(error){
-            resultRow.upload_status="failed";resultRow.error_message=String(error?.message||error).slice(0,1500);
-            status.style.color="#a12622";status.textContent="Upload test failed: "+resultRow.error_message;
-            if(path&&resultRow.upload_status==="failed"){
-              resultRow.cleanup_status="Upload failed before a test object was confirmed; no cleanup request sent.";
-            }
-          }finally{
-            const {error:logError}=await supabaseClient.from("media_upload_tests").insert(resultRow);
-            if(logError){status.textContent+=" | Test log could not be saved: "+logError.message;}
-            await loadTests();run.disabled=false;
-          }
-        });
-        await loadTests();return;
-      }
       const configs = {
         post: { table:"post", label:"Posts", fields:[
           {name:"title",label:"Title",type:"text",required:true},
           {name:"description",label:"Description (optional)",type:"textarea",full:true},
-          {name:"album_id",label:"Album (optional)",type:"album"},
-          {name:"media_file",label:"Upload photo or video (optional)",type:"file",accept:"image/*,video/*",full:true,help:"Uploaded media is stored in private Supabase Storage."},
-          {name:"visibility",label:"Visibility",type:"select",options:[["public","Public"],["private","Only Me"]]}
-        ]},
-        album: { table:"albums", label:"Albums", fields:[
-          {name:"title",label:"Title",type:"text",required:true},
-          {name:"description",label:"Description",type:"textarea",full:true},
-          {name:"url",label:"URL (based on title)",type:"text",required:true,help:"Generated from the title; you can edit it."},
           {name:"visibility",label:"Visibility",type:"select",options:[["public","Public"],["private","Only Me"]]}
         ]},
         page: { table:"pages", label:"Pages", fields:[
@@ -1493,7 +1288,6 @@
           {name:"phone",label:"Phone",type:"tel"},
           {name:"date_of_birth",label:"Date of birth",type:"date"},
           {name:"bio",label:"Bio",type:"textarea",full:true},
-          {name:"avatar_url",label:"Avatar path / URL",type:"text",full:true}
         ]}
       };
       if (section.id === "overview") {
@@ -1502,25 +1296,13 @@
         const intro = document.createElement("p"); intro.className="dashboard-section-description"; intro.textContent="Content management and database summary.";
         const stats = document.createElement("div"); stats.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-top:18px";
         content.append(title,intro,stats);
-        const targets=[["Posts","post"],["Albums","albums"],["Pages","pages"],["Users","profiles"],["Roles","roles"],["Permissions","permissions"]];
+        const targets=[["Posts","post"],["Pages","pages"],["Users","profiles"],["Roles","roles"],["Permissions","permissions"]];
         for (const [label,table] of targets) {
           const card=document.createElement("div");card.style.cssText="padding:16px;border:1px solid #e5e7eb;border-radius:10px;background:#fff";
           const l=document.createElement("div");l.style.cssText="font-size:13px;color:#666";l.textContent=label;
           const n=document.createElement("strong");n.style.cssText="display:block;font-size:25px;margin-top:8px";n.textContent="—";card.append(l,n);stats.append(card);
           supabaseClient.from(table).select("id",{count:"exact",head:true}).then(({count,error})=>{if(isCurrent())n.textContent=error?"—":String(count??0);});
         }
-        const mediaCard=document.createElement("div");mediaCard.style.cssText="padding:16px;border:1px solid #e5e7eb;border-radius:10px;background:#fff";
-        const mediaLabel=document.createElement("div");mediaLabel.style.cssText="font-size:13px;color:#666";mediaLabel.textContent="Media";
-        const mediaCount=document.createElement("strong");mediaCount.style.cssText="display:block;font-size:25px;margin-top:8px";mediaCount.textContent="—";
-        mediaCard.append(mediaLabel,mediaCount);stats.insertBefore(mediaCard,stats.children[1]||null);
-        Promise.all([
-          supabaseClient.from("post").select("id",{count:"exact",head:true}).or("media_url.not.is.null,storage_path.not.is.null,external_url.not.is.null"),
-          supabaseClient.from("albums").select("id",{count:"exact",head:true}).or("media_url.not.is.null,storage_path.not.is.null")
-        ]).then(([postsResult,albumsResult])=>{
-          if(!isCurrent())return;
-          if(postsResult.error||albumsResult.error){mediaCount.textContent="—";return;}
-          mediaCount.textContent=String((postsResult.count||0)+(albumsResult.count||0));
-        }).catch(()=>{if(isCurrent())mediaCount.textContent="—";});
         return;
       }
       if (section.id === "recycle") {
@@ -1570,11 +1352,6 @@
                   if(!Array.isArray(rows)||!rows.length)return;
                   const {error}=await supabaseClient.from(tableName).upsert(rows,{ignoreDuplicates:true});
                   if(error)throw error;
-                }
-                if(item.original_table==="albums"){
-                  const postIds=(related.posts_in_album||[]).map(p=>p.id).filter(Boolean);
-                  if(postIds.length){const {error}=await supabaseClient.from("post").update({album_id:original.id}).in("id",postIds);if(error)throw error;}
-                }
                 if(item.original_table==="roles"){
                   await restoreLinks("user_roles",related.user_roles);
                   await restoreLinks("role_permissions",related.role_permissions);
@@ -1603,8 +1380,6 @@
       }
       const config=configs[section.id];
       if (!config) return;
-      let availableAlbums=[];
-      if(section.id==="post"){const {data}=await supabaseClient.from("albums").select("id,title").order("title").limit(200);availableAlbums=data||[];}
       if(!isCurrent())return;
       content.replaceChildren();
       const wrap=document.createElement("div");wrap.className="dashboard-crud";
@@ -1622,24 +1397,8 @@
       const listHeading=document.createElement("h3");listHeading.textContent="Existing "+config.label;
       const list=document.createElement("div");list.className="dashboard-crud-list";
       listCard.append(listHeading,list);formCard.append(formHeading,hint,form);wrap.append(formCard,listCard);
-      let albumMediaCard=null,albumMediaList=null,albumMediaStatus=null,albumMediaAddButton=null,albumMediaRemoveButton=null;
-      let albumPreviewTimers=[];
-      if(section.id==="album"){
-        albumMediaCard=document.createElement("section");albumMediaCard.className="dashboard-crud-card";
-        const mediaHeading=document.createElement("h3");mediaHeading.textContent="Manage Album Media";
-        const mediaHint=document.createElement("p");mediaHint.className="dashboard-crud-hint";mediaHint.textContent="Select media already saved in the Post table, then add it to this album or remove it. The original Post record and media file will be kept; only album_id is updated.";
-        albumMediaStatus=document.createElement("p");albumMediaStatus.className="dashboard-crud-status";albumMediaStatus.setAttribute("role","status");albumMediaStatus.setAttribute("aria-live","polite");
-        albumMediaList=document.createElement("div");albumMediaList.className="dashboard-crud-list";
-        const mediaActions=document.createElement("div");mediaActions.className="dashboard-crud-actions";
-        albumMediaAddButton=document.createElement("button");albumMediaAddButton.type="button";albumMediaAddButton.className="action-button primary";albumMediaAddButton.textContent="Add selected to album";albumMediaAddButton.disabled=true;
-        albumMediaRemoveButton=document.createElement("button");albumMediaRemoveButton.type="button";albumMediaRemoveButton.className="action-button";albumMediaRemoveButton.textContent="Remove selected from album";albumMediaRemoveButton.disabled=true;
-        mediaActions.append(albumMediaAddButton,albumMediaRemoveButton);
-        albumMediaCard.append(mediaHeading,mediaHint,albumMediaList,mediaActions,albumMediaStatus);
-        albumMediaCard.hidden=true;wrap.append(albumMediaCard);
-      }
       content.append(wrap);
       let selectedId=null, records=[], selectedRecordData=null;
-      const albums=availableAlbums;
       const controls={};
       function setStatus(message,type){status.textContent=message;status.style.color=type==="error"?"#a12622":type==="success"?"#176b43":"#555";}
       function makeField(def){
@@ -1648,17 +1407,16 @@
         let input;
         if(def.type==="textarea"){input=document.createElement("textarea");input.rows=4;}
         else if(def.type==="select"){input=document.createElement("select");(def.options||[]).forEach(([value,labelText])=>{const opt=document.createElement("option");opt.value=value;opt.textContent=labelText;input.append(opt);});}
-        else if(def.type==="album"){input=document.createElement("select");const blank=document.createElement("option");blank.value="";blank.textContent="No album";input.append(blank);albums.forEach(a=>{const opt=document.createElement("option");opt.value=a.id;opt.textContent=a.title;input.append(opt);});}
         else {input=document.createElement("input");input.type=def.type==="file"?"file":def.type;if(def.accept)input.accept=def.accept;}
         input.className="dashboard-crud-input";input.id=label.htmlFor;input.name=def.name;
         if(def.required)input.required=true;if(def.readonly)input.readOnly=true;
         holder.append(label,input);
         if(def.help){const help=document.createElement("small");help.className="dashboard-crud-hint";help.textContent=def.help;holder.append(help);}
         form.insertBefore(holder,actions);controls[def.name]=input;
-        if((def.name==="url")&&(section.id==="page"||section.id==="album")) {
+        if((def.name==="url")&&section.id==="page") {
           let urlEdited=false;input.addEventListener("input",()=>{urlEdited=true;});
           const titleInput=()=>controls.title;
-          const makeSlug=()=>section.id==="album"?generateAlbumUrlValue(titleInput().value):generateUrlValue(titleInput().value);
+          const makeSlug=()=>generateUrlValue(titleInput().value);
           titleInput().addEventListener("input",()=>{if(!urlEdited&&!selectedId)input.value=makeSlug();});
           input.addEventListener("blur",()=>{if(!input.value.trim()&&titleInput().value.trim())input.value=makeSlug();});
         }
@@ -1669,19 +1427,15 @@
         return Array.from(bytes,b=>b.toString(16).padStart(2,"0")).join("");
       }
       function generateUrlValue(value){return String(value||"").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");}
-      function generateAlbumUrlValue(value){return String(value||"").toLowerCase().normalize("NFKC").replace(/[^\p{L}\p{N}]+/gu,"-").replace(/^-|-$/g,"");}
-      if(section.id==="post"||section.id==="page"){} 
       for(const def of config.fields)makeField(def);
       function resetForm(){
         selectedId=null;selectedRecordData=null;form.reset();
-        save.textContent=config.editOnly?"Select a media item":(config.readOnlyCreate?"Save Profile":(section.id==="post"?"Publish":"Create"));save.disabled=!!config.editOnly;remove.disabled=true;setStatus("");
+        save.textContent=config.readOnlyCreate?"Save Profile":(section.id==="post"?"Publish":"Create");save.disabled=false;remove.disabled=true;setStatus("");
         list.querySelectorAll(".dashboard-crud-row").forEach(row=>row.classList.remove("is-selected"));
-        if(albumMediaCard){albumMediaCard.hidden=true;albumMediaList.replaceChildren();albumMediaStatus.textContent="";albumMediaAddButton.disabled=true;albumMediaRemoveButton.disabled=true;}
       }
       clear.addEventListener("click",resetForm);
       async function loadRecords(){
         if(!isCurrent())return;
-        albumPreviewTimers.forEach(timer=>clearInterval(timer));albumPreviewTimers=[];
         list.replaceChildren();const loading=document.createElement("p");loading.className="dashboard-crud-empty";loading.textContent="Loading records…";list.append(loading);
         let query=supabaseClient.from(config.table).select("*").order("created_at",{ascending:false}).limit(200);
         if(config.table==="site_customizations"||config.table==="site_settings")query=supabaseClient.from(config.table).select("*").order("key").limit(200);
@@ -1693,27 +1447,10 @@
         if(!records.length){const p=document.createElement("p");p.className="dashboard-crud-empty";p.textContent="No records found yet.";list.append(p);return;}
         const table=document.createElement("table");table.className="dashboard-crud-table";
         const thead=document.createElement("thead"),trh=document.createElement("tr");
-        const headerLabels=["Select","Title / Name",...(section.id==="album"?["Random Photo Preview"]:[]),"Details","Visibility","Created"];
+        const headerLabels=["Select","Title / Name","Details","Visibility","Created"];
         headerLabels.forEach(label=>{const th=document.createElement("th");th.textContent=label;trh.append(th);});
         thead.append(trh);table.append(thead);
         const tbody=document.createElement("tbody");
-        let albumMediaById={};
-        if(section.id==="album"&&records.length){
-          const albumIds=records.map(record=>record.id).filter(Boolean);
-          const {data:albumPosts,error:albumPostsError}=await supabaseClient.from("post").select("id,album_id,media_url,storage_path,external_url,media_type").in("album_id",albumIds).not("media_url","is",null);
-          if(!isCurrent())return;
-          if(!albumPostsError){
-            for(const post of (albumPosts||[])){
-              const mediaUrl=await dashboardMediaUrl(post);
-              if(!mediaUrl)continue;
-              const mediaType=String(post.media_type||"").toLowerCase();
-              const mediaPath=String(post.storage_path||post.media_url||mediaUrl).split("?")[0];
-              const isVideo=mediaType==="video"||/\.(mp4|webm|mov|m4v|ogv)$/i.test(mediaPath);
-              const isPhoto=mediaType==="photo"||/\.(jpe?g|png|gif|webp|avif|bmp)$/i.test(mediaPath);
-              if(isVideo||isPhoto)(albumMediaById[post.album_id] ||= []).push({url:mediaUrl,type:isVideo?"video":"photo"});
-            }
-          }
-        }
         records.forEach(record=>{
           const row=document.createElement("tr");row.className="dashboard-crud-row";row.tabIndex=0;
           const title=record.caption||record.title||record.name||record.key||record.full_name||record.id||"Record";
@@ -1722,39 +1459,6 @@
           values.push(record.visibility==="private"?"Only Me":record.visibility==="public"?"Public":"—",record.created_at?new Date(record.created_at).toLocaleString():"—");
           values.forEach((value,index)=>{
             const td=document.createElement("td");td.textContent=String(value);
-            if(section.id==="album"&&index===2){
-              td.textContent="";
-              const mediaItems=albumMediaById[record.id]||[];
-              if(mediaItems.length){
-                let currentIndex=Math.floor(Math.random()*mediaItems.length);
-                const preview=document.createElement("div");
-                preview.style.cssText="width:96px;height:64px;overflow:hidden;border-radius:6px;background:#f3f4f6";
-                const showMedia=()=>{
-                  const item=mediaItems[currentIndex];
-                  const media=item.type==="video"?document.createElement("video"):document.createElement("img");
-                  media.style.cssText="width:100%;height:100%;object-fit:cover;display:block";
-                  if(item.type==="video"){
-                    media.muted=true;media.autoplay=true;media.loop=true;media.playsInline=true;media.preload="metadata";
-                    media.setAttribute("aria-label","Random video from "+(record.title||"album"));
-                    media.src=item.url;
-                    media.play().catch(()=>{});
-                  }else{
-                    media.alt="Random photo from "+(record.title||"album");media.loading="lazy";media.src=item.url;
-                  }
-                  preview.replaceChildren(media);
-                };
-                showMedia();td.append(preview);
-                if(mediaItems.length>1){
-                  const timer=setInterval(()=>{
-                    if(!preview.isConnected){clearInterval(timer);return;}
-                    let nextIndex=currentIndex;
-                    while(nextIndex===currentIndex)nextIndex=Math.floor(Math.random()*mediaItems.length);
-                    currentIndex=nextIndex;showMedia();
-                  },5000);
-                  albumPreviewTimers.push(timer);
-                }
-              }else td.textContent="No photos or videos in album";
-            }
             row.append(td);
           });
           const first=row.firstElementChild;first.textContent="Select";
@@ -1774,61 +1478,9 @@
           input.value=value==null?"":String(value);
         });
         save.textContent=config.readOnlyCreate?"Save Profile":"Update";save.disabled=false;remove.disabled=!!config.noDelete;setStatus("Selected record loaded into the form.");
-        if(section.id==="album")await refreshAlbumMedia();
+        
       }
       function resetSelectionHighlight(){list.querySelectorAll(".dashboard-crud-row").forEach(row=>row.classList.remove("is-selected"));}
-      async function refreshAlbumMedia(){
-        if(section.id!=="album"||!albumMediaCard)return;
-        albumMediaCard.hidden=!selectedId;
-        albumMediaList.replaceChildren();
-        albumMediaStatus.textContent="";
-        albumMediaAddButton.disabled=!selectedId;
-        albumMediaRemoveButton.disabled=!selectedId;
-        if(!selectedId)return;
-        const loading=document.createElement("p");loading.className="dashboard-crud-empty";loading.textContent="Loading Post media…";albumMediaList.append(loading);
-        const {data:media,error}=await supabaseClient.from("post").select("id,title,caption,media_url,media_type,album_id,created_at").not("media_url","is",null).order("created_at",{ascending:false}).limit(500);
-        if(!isCurrent())return;
-        albumMediaList.replaceChildren();
-        if(error){const p=document.createElement("p");p.className="dashboard-crud-empty";p.textContent="Could not load Post media: "+error.message;albumMediaList.append(p);return;}
-        const items=(media||[]).filter(item=>String(item.media_url||"").trim());
-        if(!items.length){const p=document.createElement("p");p.className="dashboard-crud-empty";p.textContent="No Post media found. Upload media in the Post section first.";albumMediaList.append(p);return;}
-        const table=document.createElement("table");table.className="dashboard-crud-table";
-        const thead=document.createElement("thead"),headRow=document.createElement("tr");
-        ["Select","Post","Media type","Current album"].forEach(label=>{const th=document.createElement("th");th.textContent=label;headRow.append(th);});thead.append(headRow);table.append(thead);
-        const tbody=document.createElement("tbody");
-        items.forEach(item=>{
-          const row=document.createElement("tr");
-          const pickCell=document.createElement("td"),pick=document.createElement("input");pick.type="checkbox";pick.value=item.id;pick.setAttribute("aria-label","Select "+(item.title||item.caption||"Post media"));pickCell.append(pick);
-          const titleCell=document.createElement("td");titleCell.textContent=item.title||item.caption||String(item.id).slice(0,8);
-          const typeCell=document.createElement("td");typeCell.textContent=item.media_type||"Media";
-          const albumCell=document.createElement("td");const assigned=records.find(a=>a.id===item.album_id);albumCell.textContent=item.album_id?(assigned?.title||"Assigned to another album"):"Not in an album";
-          row.append(pickCell,titleCell,typeCell,albumCell);tbody.append(row);
-        });
-        table.append(tbody);albumMediaList.append(table);
-        const updateActionState=()=>{const count=albumMediaList.querySelectorAll('input[type="checkbox"]:checked').length;albumMediaAddButton.disabled=!count;albumMediaRemoveButton.disabled=!count;};
-        albumMediaList.querySelectorAll('input[type="checkbox"]').forEach(input=>input.addEventListener("change",updateActionState));
-      }
-      async function updateSelectedAlbumMedia(removeFromAlbum){
-        if(!selectedId){albumMediaStatus.textContent="Select an album above first.";return;}
-        const ids=Array.from(albumMediaList.querySelectorAll('input[type="checkbox"]:checked')).map(input=>input.value);
-        if(!ids.length){albumMediaStatus.textContent="Select at least one Post media item.";return;}
-        albumMediaAddButton.disabled=true;albumMediaRemoveButton.disabled=true;
-        try{
-          let query=supabaseClient.from("post").update({album_id:removeFromAlbum?null:selectedId}).in("id",ids);
-          if(removeFromAlbum)query=query.eq("album_id",selectedId);
-          const {data,error}=await query.select("id");
-          if(error)throw error;
-          const updated=(data||[]).length;
-          await refreshAlbumMedia();
-          albumMediaStatus.style.color="#176b43";
-          albumMediaStatus.textContent=removeFromAlbum?("Removed "+updated+" media item(s) from this album."):("Added "+updated+" media item(s) to this album. Any previous album assignment was updated.");
-          await loadRecords();
-        }catch(error){
-          albumMediaStatus.style.color="#a12622";albumMediaStatus.textContent=error.message||"Could not update album media.";
-        }finally{albumMediaAddButton.disabled=false;albumMediaRemoveButton.disabled=false;}
-      }
-      if(albumMediaAddButton)albumMediaAddButton.addEventListener("click",()=>updateSelectedAlbumMedia(false));
-      if(albumMediaRemoveButton)albumMediaRemoveButton.addEventListener("click",()=>updateSelectedAlbumMedia(true));
       form.addEventListener("submit",async event=>{
         event.preventDefault();
         save.disabled=true;remove.disabled=true;save.textContent="Saving…";setStatus("");
@@ -1842,20 +1494,12 @@
             else if(value==="")value=null;
             payload[def.name]=value;
           });
-          const mediaFile=section.id==="post"&&controls.media_file?controls.media_file.files[0]:null;
-          if(mediaFile&&!(/^(image|video)\//i.test(mediaFile.type)))throw new Error("Choose an image or video file.");
           if(section.id==="post"){
             const title=String(controls.title.value||"").trim();
             if(!title)throw new Error("Enter a title.");
             const slug=selectedId?String(selectedRecordData?.url||"").trim():("p-"+generateOpaqueToken(16));
             if(!slug)throw new Error("Could not generate a secure Post URL. Please try again.");
             payload.caption=title;payload.url=slug;payload.title=title;
-          }else if(section.id==="album"){
-            const title=String(controls.title.value||"").trim();
-            if(!title)throw new Error("Enter an album title.");
-            const slug=String(controls.url.value||"").trim()||generateAlbumUrlValue(title);
-            if(!slug)throw new Error("Enter an album title containing letters or numbers to generate its URL.");
-            payload.title=title;payload.url=slug;
           }
           if(config.table==="pages"){payload.url=generateUrlValue(payload.url||payload.title);if(!payload.url)throw new Error("Title or URL is required.");}
           if(config.table==="site_customizations"||config.table==="site_settings")payload.updated_by=user.id;
@@ -1864,42 +1508,11 @@
           if(selectedId){result=await supabaseClient.from(config.table).update(payload).eq(config.table==="site_settings"||config.table==="site_customizations"?"id":"id",selectedId).select().single();}
           else{
             if(config.readOnlyCreate)throw new Error("Profiles are created through the account registration flow.");
-            if(["post","albums","pages"].includes(config.table))payload.created_by=user.id;
+            if(["post","pages"].includes(config.table))payload.created_by=user.id;
             result=await supabaseClient.from(config.table).insert(payload).select().single();
           }
           if(result.error)throw result.error;
           const savedId=result.data?.id||selectedId;
-          if(section.id==="post"&&mediaFile){
-            if(mediaFile.size>104857600)throw new Error("The selected file exceeds the 100 MB upload limit.");
-            if(!/^(image|video)\//i.test(mediaFile.type))throw new Error("Choose a valid photo or video file.");
-            // Refresh the JWT so the Storage RLS policy sees the latest admin role.
-            const {data:refreshedSession,error:refreshError}=await supabaseClient.auth.refreshSession();
-            if(refreshError)throw new Error("Could not refresh your login before uploading: "+refreshError.message);
-            if(refreshedSession.session?.user?.app_metadata?.role!=="admin")throw new Error("Your current login token does not have the admin role. Sign out and sign in again, then retry the upload.");
-            const safeName=mediaFile.name.replace(/[^a-zA-Z0-9._-]/g,"_").slice(-120)||"media";
-            const storagePath="posts/"+savedId+"/"+Date.now()+"-"+safeName;
-            const {error:uploadError}=await supabaseClient.storage.from("site-media").upload(storagePath,mediaFile,{contentType:mediaFile.type,upsert:false,cacheControl:"3600"});
-            if(uploadError){
-              const safeError={
-                name:uploadError?.name||null,
-                statusCode:uploadError?.statusCode||uploadError?.status||null,
-                error:uploadError?.error||null,
-                message:uploadError?.message||null,
-                details:uploadError?.details||null,
-                hint:uploadError?.hint||null,
-                ownKeys:uploadError?Object.getOwnPropertyNames(uploadError):[]
-              };
-              console.error("Supabase Storage photo/video upload error:",safeError,{storagePath,fileName:mediaFile.name,fileType:mediaFile.type,fileSize:mediaFile.size});
-              const uploadDetails=Object.entries(safeError).filter(([key,value])=>key!=="ownKeys"&&value!==null&&value!=="").map(([key,value])=>key+": "+(typeof value==="string"?value:JSON.stringify(value))).join(" | ");
-              throw new Error("Photo/video upload failed — "+(uploadDetails||"Storage returned HTTP 400 without a readable error body")+" . Post text may already be saved; retrying can create a duplicate post.");
-            }
-            const mediaType=mediaFile.type.toLowerCase().startsWith("video/")?"video":"photo";
-            const {error:mediaUpdateError}=await supabaseClient.from("post").update({storage_path:storagePath,media_url:storagePath,media_type:mediaType,source_type:"upload",updated_at:new Date().toISOString()}).eq("id",savedId);
-            if(mediaUpdateError){
-              await supabaseClient.storage.from("site-media").remove([storagePath]);
-              throw new Error("File uploaded but could not be attached to the post: "+mediaUpdateError.message);
-            }
-          }
           const wasUpdating=Boolean(selectedId);resetForm();setStatus(wasUpdating?"Record updated successfully.":"Record created successfully.","success");await loadRecords();
         }catch(error){setStatus(error.message||"Could not save record.","error");}
         finally{save.disabled=false;save.textContent=selectedId?"Update":(config.readOnlyCreate?"Save Profile":(section.id==="post"?"Publish":"Create"));remove.disabled=!selectedId||!!config.noDelete;}
@@ -1913,11 +1526,7 @@
         try{
           const related={};
           const tableName=config.table;
-          if(tableName==="albums"){
-            const {data:posts,error:postsError}=await supabaseClient.from("post").select("id").eq("album_id",selectedId);
-            if(postsError)throw postsError;
-            related.posts_in_album=posts||[];
-          }else if(tableName==="roles"){
+          if(tableName==="roles"){
             const [users,permissions]=await Promise.all([
               supabaseClient.from("user_roles").select("*").eq("role_id",selectedId),
               supabaseClient.from("role_permissions").select("*").eq("role_id",selectedId)
@@ -1934,9 +1543,6 @@
           };
           const {data:trash,error:trashError}=await supabaseClient.from("recycle_bin").insert(trashPayload).select("id").single();
           if(trashError)throw trashError;trashId=trash.id;
-          if(tableName==="albums"){
-            const {error:postError}=await supabaseClient.from("post").update({album_id:null}).eq("album_id",selectedId);if(postError)throw postError;
-          }
           if(tableName==="roles"){
             const {error:userError}=await supabaseClient.from("user_roles").delete().eq("role_id",selectedId);if(userError)throw userError;
             const {error:permError}=await supabaseClient.from("role_permissions").delete().eq("role_id",selectedId);if(permError)throw permError;
@@ -1966,62 +1572,7 @@
         let input;if(type==="textarea"){input=document.createElement("textarea");input.rows=4;}else{input=document.createElement("input");input.type=type;}
         input.className="profile-input";input.id="edit-"+name;input.name=name;input.value=value||"";form.append(label,input);return input;
       }
-      const avatarSection = document.createElement("section"); avatarSection.className = "profile-section profile-picture-editor";
-      const avatarHeading = document.createElement("h2"); avatarHeading.textContent = "Profile Picture";
-      const avatarEditorRow = document.createElement("div"); avatarEditorRow.className = "profile-picture-editor-row";
-      const avatarPreview = document.createElement("div"); avatarPreview.className = "profile-avatar profile-avatar-large";
-      const currentAvatarUrl = await resolveProfileAvatarUrl(user, profile);
-      if (currentAvatarUrl) { const previewImage = document.createElement("img"); previewImage.src = currentAvatarUrl; previewImage.alt = "Profile picture"; avatarPreview.append(previewImage); }
-      else { avatarPreview.textContent = (profile.full_name || metadataValue(user, "full_name") || metadataValue(user, "name") || (user.email || "M").split("@")[0]).charAt(0).toUpperCase(); }
-      const avatarUploadArea = document.createElement("div"); avatarUploadArea.className = "profile-picture-upload-area";
-      const pictureInput = document.createElement("input"); pictureInput.type = "file"; pictureInput.accept = "image/*"; pictureInput.className = "avatar-upload"; pictureInput.setAttribute("aria-label", "Choose profile picture");
-      const picturePicker = document.createElement("label"); picturePicker.className = "attachment-picker profile-picture-picker";
-      const pictureIcon = document.createElement("span"); pictureIcon.className = "attachment-icon"; pictureIcon.setAttribute("aria-hidden", "true"); pictureIcon.textContent = "↑";
-      const pictureCopy = document.createElement("span"); pictureCopy.className = "attachment-copy";
-      const pictureTitle = document.createElement("span"); pictureTitle.className = "attachment-title"; pictureTitle.textContent = "Change profile picture";
-      pictureCopy.append(pictureTitle);
-      const pictureButton = document.createElement("span"); pictureButton.className = "attachment-button"; pictureButton.textContent = "Choose image";
-      picturePicker.append(pictureIcon, pictureCopy, pictureButton);
-      const pictureFileName = document.createElement("p"); pictureFileName.className = "attachment-filename"; pictureFileName.hidden = true;
-      const pictureProgress = document.createElement("div"); pictureProgress.className = "attachment-progress profile-picture-progress"; pictureProgress.hidden = true;
-      const pictureProgressFill = document.createElement("div"); pictureProgressFill.className = "attachment-progress-fill";
-      pictureProgress.append(pictureProgressFill);
-      const pictureStatus = document.createElement("p"); pictureStatus.className = "profile-status message-send-status"; pictureStatus.setAttribute("role", "status"); pictureStatus.setAttribute("aria-live", "polite");
-      picturePicker.htmlFor = "edit-profile-picture";
-      pictureInput.id = "edit-profile-picture";
-      picturePicker.append(pictureInput);
-      avatarUploadArea.append(picturePicker, pictureFileName, pictureProgress, pictureStatus);
-      avatarEditorRow.append(avatarPreview, avatarUploadArea);
-      avatarSection.append(avatarHeading, avatarEditorRow);
-      form.append(avatarSection);
       const fullName=field("Full Name","full_name","text",profile.full_name||metadataValue(user,"full_name")||metadataValue(user,"name"));
-      pictureInput.addEventListener("change", async () => {
-        const file = pictureInput.files && pictureInput.files[0];
-        if (!file) return;
-        if (!file.type.startsWith("image/")) { pictureStatus.style.color = "#a12622"; pictureStatus.textContent = "Please select an image file."; pictureInput.value = ""; return; }
-        if (file.size > 10 * 1024 * 1024) { pictureStatus.style.color = "#a12622"; pictureStatus.textContent = "Image must be 10 MB or smaller."; pictureInput.value = ""; return; }
-        pictureInput.disabled = true; picturePicker.classList.add("is-uploading"); pictureButton.textContent = "Processing…";
-        pictureFileName.hidden = false; pictureFileName.textContent = file.name + " · " + formatProfileImageSize(file.size);
-        pictureProgress.hidden = false; pictureProgress.classList.add("is-active"); pictureProgressFill.style.width = "35%";
-        pictureStatus.style.color = "#245b8f"; pictureStatus.textContent = "Preparing your profile picture…";
-        let objectUrl = "";
-        try {
-          const extension = profileImageExtension(file.type);
-          if (!extension) throw new Error("Unsupported image format.");
-          pictureStatus.textContent = "Saving your profile picture…"; pictureProgressFill.style.width = "70%";
-          const signedAvatarUrl = await uploadProfileImageFile(user, file);
-          pictureProgressFill.style.width = "100%"; pictureProgress.classList.remove("is-active");
-          pictureStatus.style.color = "#176b43"; pictureStatus.textContent = "✓ Profile picture updated successfully.";
-          avatarPreview.replaceChildren(); const previewImage = document.createElement("img"); previewImage.src = signedAvatarUrl; previewImage.alt = "Profile picture"; avatarPreview.append(previewImage);
-          // The status message above is the single upload confirmation; no separate subtitle element is required.
-        } catch (error) {
-          pictureProgress.classList.remove("is-active"); pictureProgressFill.style.width = "0%";
-          pictureStatus.style.color = "#a12622"; pictureStatus.textContent = "Could not update your profile picture. Please try another image.";
-        } finally {
-          if (objectUrl) URL.revokeObjectURL(objectUrl);
-          pictureInput.disabled = false; picturePicker.classList.remove("is-uploading"); pictureButton.textContent = "Choose image"; pictureInput.value = "";
-        }
-      });
       field("Phone Number","phone","tel",profile.phone);
       field("Date of Birth","date_of_birth","date",profile.date_of_birth);
       field("Bio","bio","textarea",profile.bio);
