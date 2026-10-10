@@ -1530,13 +1530,13 @@
 
       const sections = [
         { id: "overview", label: "Overview", description: "Dashboard overview." },
-        { id: "hero", label: "Hero", description: "Manage the homepage hero headline and welcome message." },
-        { id: "post", label: "Post", description: "Post management section." },
-        { id: "page", label: "Page", description: "Page management section." },
-        { id: "user", label: "User", description: "Create accounts, delete accounts, and grant or remove administrator access." },
+        { id: "hero", label: "Hero", description: "Create and manage homepage hero content." },
+        { id: "post", label: "Post", description: "Create and manage posts." },
+        { id: "page", label: "Page", description: "Create and manage pages." },
+        { id: "album", label: "Album", description: "Group related content and media." }
+        { id: "user", label: "User", description: "Manage accounts and administrator access." },
         { id: "role", label: "Role", description: "Role management section." },
-        { id: "permission", label: "Permission", description: "Permission management section." },
-        { id: "customization", label: "Customization", description: "Website customization section." },
+                { id: "customization", label: "Customization", description: "Website customization section." },
         { id: "settings", label: "Settings", description: "Dashboard settings section." },
         { id: "recycle", label: "Recycle Bin", description: "Restore deleted items or permanently remove them after the retention period." }
       ];
@@ -1821,41 +1821,61 @@
       }
 
       const configs = {
-        post: { table:"post", label:"Posts", fields:[
+        hero:{table:"hero_items",label:"Hero",fields:[
           {name:"title",label:"Title",type:"text",required:true},
-          {name:"description",label:"Description (optional)",type:"textarea",full:true},
-          {name:"visibility",label:"Visibility",type:"select",options:[["public","Public"],["private","Only Me"]]}
+          {name:"description",label:"Description",type:"textarea",full:true},
+          {name:"url",label:"URL",type:"text"},
+          {name:"content",label:"Content",type:"textarea",full:true,help:"Text or HTML content. Uploaded files are added below."},
+          {name:"media",label:"Content Files (Image, Video, Other)",type:"files",full:true,accept:"image/jpeg,image/png,image/webp,image/gif,image/avif,image/svg+xml,video/mp4,video/webm,video/quicktime,audio/mpeg,audio/mp4,audio/wav,audio/ogg,application/pdf"},
+          {name:"album_id",label:"Album",type:"select",options:[["","No album"]]},
+          {name:"visibility",label:"Visibility",type:"select",required:true,options:[["public","Public"],["private","Private"]]}
         ]},
-        page: { table:"pages", label:"Pages", fields:[
-          {name:"title",label:"Page Title",type:"text",required:true},
-          {name:"url",label:"Page URL",type:"text",required:true,help:"Use a unique slug, e.g. about-us. The page link will use ?page=about-us."},
-          {name:"content",label:"HTML Code",type:"textarea",rows:12,full:true,help:"Enter page body content only; the Page Title field supplies the page heading. Do not add a separate <title> tag or repeat the same title as a heading. Scripts and unsafe attributes are removed. To include another page, use <div data-dalimgari-include=\"about-us\"></div>."},
-          {name:"visibility",label:"Visibility",type:"select",options:[["public","Public"],["private","Only Me"]]}
+        post:{table:"post",label:"Posts",fields:[
+          {name:"title",label:"Title",type:"text",required:true},
+          {name:"description",label:"Description",type:"textarea",full:true},
+          {name:"url",label:"URL",type:"text",required:true,help:"A unique URL slug. Generated from the title; you can edit it."},
+          {name:"content",label:"Content",type:"textarea",full:true,help:"Text or HTML content."},
+          {name:"media",label:"Content Files (Image, Video, Other)",type:"files",full:true,accept:"image/jpeg,image/png,image/webp,image/gif,image/avif,image/svg+xml,video/mp4,video/webm,video/quicktime,audio/mpeg,audio/mp4,audio/wav,audio/ogg,application/pdf"},
+          {name:"album_id",label:"Album",type:"select",options:[["","No album"]]},
+          {name:"visibility",label:"Visibility",type:"select",required:true,options:[["public","Public"],["private","Private"]]}
         ]},
-        role: { table:"roles", label:"Roles", fields:[
+        page:{table:"pages",label:"Pages",fields:[
+          {name:"title",label:"Title",type:"text",required:true},
+          {name:"description",label:"Description",type:"textarea",full:true},
+          {name:"url",label:"URL",type:"text",required:true,help:"A unique URL slug. Generated from the title; you can edit it."},
+          {name:"content",label:"Content",type:"textarea",full:true,rows:10,help:"HTML content only. Scripts and unsafe attributes are removed."},
+          {name:"media",label:"Content Files (Image, Video, Other)",type:"files",full:true,accept:"image/jpeg,image/png,image/webp,image/gif,image/avif,image/svg+xml,video/mp4,video/webm,video/quicktime,audio/mpeg,audio/mp4,audio/wav,audio/ogg,application/pdf"},
+          {name:"album_id",label:"Album",type:"select",options:[["","No album"]]},
+          {name:"visibility",label:"Visibility",type:"select",required:true,options:[["public","Public"],["private","Private"]]}
+        ]},
+        album:{table:"albums",label:"Albums",fields:[
+          {name:"title",label:"Title",type:"text",required:true},
+          {name:"description",label:"Description",type:"textarea",full:true},
+          {name:"url",label:"URL",type:"text",required:true,help:"A unique URL slug. Generated from the title; you can edit it."},
+          {name:"media",label:"Content Files (Image, Video, Other)",type:"files",full:true,accept:"image/jpeg,image/png,image/webp,image/gif,image/avif,image/svg+xml,video/mp4,video/webm,video/quicktime,audio/mpeg,audio/mp4,audio/wav,audio/ogg,application/pdf"},
+          {name:"visibility",label:"Visibility",type:"select",required:true,options:[["public","Public"],["private","Private"]]}
+        ]},
+        role:{table:"roles",label:"Roles",fields:[
           {name:"name",label:"Role name",type:"text",required:true},
-          {name:"description",label:"Description",type:"textarea",full:true}
+          {name:"description",label:"Description",type:"textarea",full:true},
+          {name:"permissions",label:"Permissions",type:"multiselect",options:[],full:true}
         ]},
-        permission: { table:"permissions", label:"Permissions", fields:[
-          {name:"name",label:"Permission name",type:"text",required:true},
-          {name:"description",label:"Description",type:"textarea",full:true}
-        ]},
-        customization: { table:"site_customizations", label:"Customizations", fields:[
+        customization:{table:"site_customizations",label:"Customizations",fields:[
           {name:"key",label:"Setting key",type:"text",required:true},
           {name:"value",label:"Value (JSON)",type:"textarea",required:true,full:true},
           {name:"description",label:"Description",type:"textarea",full:true}
         ]},
-        settings: { table:"site_settings", label:"Settings", fields:[
+        settings:{table:"site_settings",label:"Settings",fields:[
           {name:"key",label:"Setting key",type:"text",required:true},
           {name:"value",label:"Value (JSON)",type:"textarea",required:true,full:true},
           {name:"description",label:"Description",type:"textarea",full:true}
         ]},
-        user: { table:"profiles", label:"User profiles", readOnlyCreate:true, noDelete:true, fields:[
+        user:{table:"profiles",label:"User profiles",readOnlyCreate:true,noDelete:true,fields:[
           {name:"id",label:"Auth user ID",type:"text",readonly:true,required:true,full:true},
           {name:"full_name",label:"Full name",type:"text"},
           {name:"phone",label:"Phone",type:"tel"},
           {name:"date_of_birth",label:"Date of birth",type:"date"},
-          {name:"bio",label:"Bio",type:"textarea",full:true},
+          {name:"bio",label:"Bio",type:"textarea",full:true}
         ]}
       };
       if (section.id === "overview") {
@@ -1864,7 +1884,7 @@
         const intro = document.createElement("p"); intro.className="dashboard-section-description"; intro.textContent="Content management and database summary.";
         const stats = document.createElement("div"); stats.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-top:18px";
         content.append(title,intro,stats);
-        const targets=[["Posts","post"],["Media","media_assets"],["Pages","pages"],["Users","profiles"],["Roles","roles"],["Permissions","permissions"]];
+        const targets=[["Heroes","hero_items"],["Posts","post"],["Pages","pages"],["Albums","albums"],["Users","profiles"],["Roles","roles"]];
         for (const [label,table] of targets) {
           const card=document.createElement("div");card.style.cssText="padding:16px;border:1px solid #e5e7eb;border-radius:10px;background:#fff";
           const l=document.createElement("div");l.style.cssText="font-size:13px;color:#666";l.textContent=label;
@@ -1949,458 +1969,6 @@
         await loadTrash();
         return;
       }
-      if (section.id === "hero") {
-        content.replaceChildren();
-        const wrap = document.createElement("div");
-        wrap.className = "dashboard-crud";
-        const card = document.createElement("section");
-        card.className = "dashboard-crud-card";
-        const heading = document.createElement("h3");
-        heading.textContent = "Hero";
-        const hint = document.createElement("p");
-        hint.className = "dashboard-crud-hint";
-        hint.textContent = "Set the headline and welcome message shown in the first section of the homepage.";
-        const form = document.createElement("form");
-        form.className = "dashboard-crud-form";
-        const status = document.createElement("p");
-        status.className = "dashboard-crud-status";
-        status.setAttribute("role", "status");
-        status.setAttribute("aria-live", "polite");
-        function addHeroField(name, labelText, isTextarea) {
-          const holder = document.createElement("div");
-          holder.className = "dashboard-crud-field full";
-          const label = document.createElement("label");
-          label.htmlFor = "dashboard-hero-" + name;
-          label.textContent = labelText;
-          const input = isTextarea ? document.createElement("textarea") : document.createElement("input");
-          if (!isTextarea) input.type = "text";
-          else input.rows = 4;
-          input.className = "dashboard-crud-input";
-          input.id = label.htmlFor;
-          input.name = name;
-          holder.append(label, input);
-          form.append(holder);
-          return input;
-        }
-        const headlineInput = addHeroField("headline", "Headline", false);
-        const welcomeInput = addHeroField("welcomeMessage", "Welcome Message", true);
-        const imageHolder = document.createElement("div");
-        imageHolder.className = "dashboard-crud-field full";
-        const imageLabel = document.createElement("label");
-        imageLabel.htmlFor = "dashboard-hero-image";
-        imageLabel.textContent = "Hero Photo (16:9)";
-        const imageInput = document.createElement("input");
-        imageInput.type = "file";
-        imageInput.id = imageLabel.htmlFor;
-        imageInput.name = "heroImage";
-        imageInput.accept = "image/jpeg,image/png,image/webp";
-        imageInput.className = "dashboard-crud-input";
-        const imageHint = document.createElement("p");
-        imageHint.className = "dashboard-crud-hint";
-        imageHint.textContent = "Upload JPG, PNG or WebP (max 10 MB). Any image dimensions will automatically fit the 16:9 frame.";
-        const imagePreviewFrame = document.createElement("div");
-        imagePreviewFrame.style.cssText = "display:none;width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:14px;background:#f3f4f6;box-shadow:0 8px 22px rgba(0,0,0,.10);margin-top:8px";
-        const imagePreview = document.createElement("img");
-        imagePreview.alt = "Hero photo preview";
-        imagePreview.style.cssText = "display:block;width:100%;height:100%;max-width:100%;object-fit:cover;object-position:center";
-        imagePreviewFrame.append(imagePreview);
-        imageHolder.append(imageLabel, imageInput, imageHint, imagePreviewFrame);
-        form.append(imageHolder);
-        const actions = document.createElement("div");
-        actions.className = "dashboard-crud-actions dashboard-crud-field full";
-        const save = document.createElement("button");
-        save.className = "action-button primary";
-        save.type = "submit";
-        save.textContent = "Save Hero";
-        actions.append(save);
-        form.append(actions, status);
-        card.append(heading, hint, form);
-        wrap.append(card);
-        content.append(wrap);
-        let savedHeroImageUrl = "";
-        imageInput.addEventListener("change", () => {
-          const file = imageInput.files && imageInput.files[0];
-          if (!file) {
-            imagePreviewFrame.style.display = savedHeroImageUrl ? "block" : "none";
-            imagePreview.src = savedHeroImageUrl;
-            return;
-          }
-          if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 10 * 1024 * 1024) {
-            imageInput.value = "";
-            imagePreviewFrame.style.display = savedHeroImageUrl ? "block" : "none";
-            imagePreview.src = savedHeroImageUrl;
-            setHeroStatus("Choose a JPG, PNG or WebP image up to 10 MB.", true);
-            return;
-          }
-          imagePreview.src = URL.createObjectURL(file);
-          imagePreviewFrame.style.display = "block";
-          setHeroStatus("");
-        });
-
-        const setHeroStatus = (message, isError = false) => {
-          status.textContent = message;
-          status.style.color = isError ? "#a12622" : "#176b43";
-        };
-        const { data, error } = await supabaseClient.from("site_customizations")
-          .select("key,value").eq("key", "home_hero").maybeSingle();
-        if (!isCurrent()) return;
-        if (error) {
-          setHeroStatus("Could not load Hero settings: " + error.message, true);
-          return;
-        }
-        if (data && data.value) {
-          let saved = data.value;
-          if (typeof saved === "string") {
-            try { saved = JSON.parse(saved); } catch (_) { saved = {}; }
-          }
-          if (saved && typeof saved === "object") {
-            headlineInput.value = String(saved.headline || "");
-            welcomeInput.value = String(saved.welcomeMessage || "");
-            savedHeroImageUrl = String(saved.heroImageUrl || "").trim();
-            if (savedHeroImageUrl) {
-              imagePreview.src = savedHeroImageUrl;
-              imagePreviewFrame.style.display = "block";
-            }
-          }
-        }
-        form.addEventListener("submit", async (event) => {
-          event.preventDefault();
-          save.disabled = true;
-          save.textContent = "Saving…";
-          setHeroStatus("");
-          try {
-            let heroImageUrl = savedHeroImageUrl;
-            const imageFile = imageInput.files && imageInput.files[0];
-            if (imageFile) {
-              setHeroStatus("Uploading hero photo…");
-              const extension = imageFile.type === "image/png" ? "png" : imageFile.type === "image/webp" ? "webp" : "jpg";
-              const imagePath = "home-hero/" + Date.now() + "-" + Math.random().toString(36).slice(2, 10) + "." + extension;
-              const { error: uploadError } = await supabaseClient.storage.from("hero-images").upload(imagePath, imageFile, {
-                contentType: imageFile.type,
-                cacheControl: "3600",
-                upsert: false
-              });
-              if (uploadError) throw uploadError;
-              const { data: publicUrlData } = supabaseClient.storage.from("hero-images").getPublicUrl(imagePath);
-              heroImageUrl = publicUrlData.publicUrl;
-            }
-            setHeroStatus("Saving Hero…");
-            const { error: saveError } = await supabaseClient.from("site_customizations").upsert({
-              key: "home_hero",
-              value: { headline: headlineInput.value.trim(), welcomeMessage: welcomeInput.value.trim(), heroImageUrl },
-              description: "Homepage Hero headline, welcome message and photo"
-            }, { onConflict: "key" });
-            if (saveError) throw saveError;
-            savedHeroImageUrl = heroImageUrl;
-            imageInput.value = "";
-            setHeroStatus("Hero saved successfully.");
-          } catch (saveError) {
-            setHeroStatus("Could not save Hero: " + (saveError.message || "Please try again."), true);
-          } finally {
-            save.disabled = false;
-            save.textContent = "Save Hero";
-          }
-        });
-        return;
-      }
-      if (section.id === "media") {
-        content.replaceChildren();
-        const wrap = document.createElement("div");
-        wrap.className = "dashboard-crud";
-        const formCard = document.createElement("section");
-        formCard.className = "dashboard-crud-card";
-        const formHeading = document.createElement("h3");
-        formHeading.textContent = "Upload Media";
-        const hint = document.createElement("p");
-        hint.className = "dashboard-crud-hint";
-        hint.textContent = "Add a title, choose a file, then upload. Each file gets a reusable public URL. Supported: images, video, audio and PDF; maximum 50 MB per file.";
-        const form = document.createElement("form");
-        form.className = "dashboard-crud-form";
-        const titleHolder = document.createElement("div");
-        titleHolder.className = "dashboard-crud-field full";
-        const titleLabel = document.createElement("label");
-        titleLabel.htmlFor = "dashboard-media-title";
-        titleLabel.textContent = "Title";
-        const titleInput = document.createElement("input");
-        titleInput.id = titleLabel.htmlFor;
-        titleInput.name = "title";
-        titleInput.type = "text";
-        titleInput.required = true;
-        titleInput.maxLength = 180;
-        titleInput.placeholder = "e.g. Dalimgari logo";
-        titleInput.className = "dashboard-crud-input";
-        titleHolder.append(titleLabel, titleInput);
-        const fileHolder = document.createElement("div");
-        fileHolder.className = "dashboard-crud-field full";
-        const fileLabel = document.createElement("label");
-        fileLabel.htmlFor = "dashboard-media-file";
-        fileLabel.textContent = "File";
-        const fileInput = document.createElement("input");
-        fileInput.id = fileLabel.htmlFor;
-        fileInput.name = "file";
-        fileInput.type = "file";
-        fileInput.required = true;
-        fileInput.accept = "image/jpeg,image/png,image/webp,image/gif,image/avif,image/svg+xml,video/mp4,video/webm,video/quicktime,audio/mpeg,audio/mp4,audio/wav,audio/ogg,application/pdf";
-        fileInput.className = "dashboard-crud-input";
-        fileHolder.append(fileLabel, fileInput);
-        const actions = document.createElement("div");
-        actions.className = "dashboard-crud-actions dashboard-crud-field full";
-        const uploadButton = document.createElement("button");
-        uploadButton.type = "submit";
-        uploadButton.className = "action-button primary";
-        uploadButton.textContent = "Upload Media";
-        const clearButton = document.createElement("button");
-        clearButton.type = "button";
-        clearButton.className = "action-button";
-        clearButton.textContent = "Clear";
-        actions.append(uploadButton, clearButton);
-        const status = document.createElement("p");
-        status.className = "dashboard-crud-status";
-        status.setAttribute("role", "status");
-        status.setAttribute("aria-live", "polite");
-        form.append(titleHolder, fileHolder, actions, status);
-        formCard.append(formHeading, hint, form);
-        const listCard = document.createElement("section");
-        listCard.className = "dashboard-crud-card";
-        const listHeading = document.createElement("h3");
-        listHeading.textContent = "Uploaded Media";
-        const listHint = document.createElement("p");
-        listHint.className = "dashboard-crud-hint";
-        listHint.textContent = "Copy a URL to use it in a post, page, or another part of the website.";
-        const list = document.createElement("div");
-        list.className = "dashboard-crud-list";
-        listCard.append(listHeading, listHint, list);
-        wrap.append(formCard, listCard);
-        content.append(wrap);
-
-        const allowedTypes = new Set([
-          "image/jpeg","image/png","image/webp","image/gif","image/avif","image/svg+xml",
-          "video/mp4","video/webm","video/quicktime","audio/mpeg","audio/mp4","audio/wav","audio/ogg",
-          "application/pdf"
-        ]);
-        const maxFileSize = 50 * 1024 * 1024;
-        function setMediaStatus(message, type = "info") {
-          status.textContent = message;
-          status.style.color = type === "error" ? "#a12622" : type === "success" ? "#176b43" : "#555";
-        }
-        function formatBytes(bytes) {
-          if (!Number.isFinite(Number(bytes))) return "—";
-          const value = Number(bytes);
-          if (value < 1024) return value + " B";
-          if (value < 1024 * 1024) return (value / 1024).toFixed(1) + " KB";
-          return (value / (1024 * 1024)).toFixed(1) + " MB";
-        }
-        function makeAction(label, className, handler) {
-          const button = document.createElement("button");
-          button.type = "button";
-          button.className = className || "action-button";
-          button.textContent = label;
-          button.addEventListener("click", handler);
-          return button;
-        }
-        async function copyMediaUrl(url, button) {
-          try {
-            await navigator.clipboard.writeText(url);
-            const oldLabel = button.textContent;
-            button.textContent = "Copied";
-            setTimeout(() => { if (button.isConnected) button.textContent = oldLabel; }, 1400);
-          } catch (_) {
-            const holder = document.createElement("textarea");
-            holder.value = url;
-            holder.style.cssText = "position:fixed;opacity:0;pointer-events:none";
-            document.body.append(holder);
-            holder.select();
-            const copied = document.execCommand("copy");
-            holder.remove();
-            setMediaStatus(copied ? "Link copied." : "Copy failed. Select and copy the URL from the table.", copied ? "success" : "error");
-          }
-        }
-        async function loadMediaRecords() {
-          if (!isCurrent()) return;
-          list.replaceChildren();
-          const loading = document.createElement("p");
-          loading.className = "dashboard-crud-empty";
-          loading.textContent = "Loading media…";
-          list.append(loading);
-          const { data, error } = await supabaseClient.from("media_assets")
-            .select("id,title,original_filename,storage_path,public_url,mime_type,size_bytes,created_at")
-            .order("created_at", { ascending: false }).limit(500);
-          if (!isCurrent()) return;
-          list.replaceChildren();
-          if (error) {
-            const message = document.createElement("p");
-            message.className = "dashboard-crud-empty";
-            message.textContent = "Could not load media: " + error.message;
-            list.append(message);
-            return;
-          }
-          if (!data || !data.length) {
-            const empty = document.createElement("p");
-            empty.className = "dashboard-crud-empty";
-            empty.textContent = "No media uploaded yet.";
-            list.append(empty);
-            return;
-          }
-          const table = document.createElement("table");
-          table.className = "dashboard-crud-table";
-          const thead = document.createElement("thead");
-          const headRow = document.createElement("tr");
-          ["Preview","Title / file","Type","Size","Public URL","Uploaded","Actions"].forEach(label => {
-            const th = document.createElement("th");
-            th.textContent = label;
-            headRow.append(th);
-          });
-          thead.append(headRow);
-          table.append(thead);
-          const tbody = document.createElement("tbody");
-          for (const record of data) {
-            const row = document.createElement("tr");
-            const previewCell = document.createElement("td");
-            if (String(record.mime_type || "").startsWith("image/")) {
-              const preview = document.createElement("img");
-              preview.src = record.public_url;
-              preview.alt = record.title || "";
-              preview.loading = "lazy";
-              preview.style.cssText = "display:block;width:64px;height:48px;object-fit:cover;border-radius:6px;background:#f3f4f6";
-              previewCell.append(preview);
-            } else {
-              previewCell.textContent = String(record.mime_type || "File").split("/")[0];
-            }
-            row.append(previewCell);
-            const nameCell = document.createElement("td");
-            const title = document.createElement("strong");
-            title.textContent = record.title || "Untitled";
-            title.style.display = "block";
-            const filename = document.createElement("small");
-            filename.textContent = record.original_filename || "";
-            filename.style.cssText = "display:block;color:#666;margin-top:4px";
-            nameCell.append(title, filename);
-            row.append(nameCell);
-            for (const value of [
-              record.mime_type || "—",
-              formatBytes(record.size_bytes),
-              record.public_url || "",
-              record.created_at ? new Date(record.created_at).toLocaleString() : "—"
-            ]) {
-              const cell = document.createElement("td");
-              if (value === record.public_url && record.public_url) {
-                const link = document.createElement("a");
-                link.href = record.public_url;
-                link.target = "_blank";
-                link.rel = "noopener noreferrer";
-                link.textContent = record.public_url;
-                link.style.cssText = "display:block;max-width:300px;overflow-wrap:anywhere";
-                cell.append(link);
-              } else {
-                cell.textContent = String(value);
-              }
-              row.append(cell);
-            }
-            const actionCell = document.createElement("td");
-            actionCell.style.minWidth = "190px";
-            const copyButton = makeAction("Copy link", "action-button primary", () => copyMediaUrl(record.public_url, copyButton));
-            const openButton = makeAction("Open", "action-button", () => window.open(record.public_url, "_blank", "noopener,noreferrer"));
-            openButton.style.marginLeft = "6px";
-            const deleteButton = makeAction("Delete", "action-button", async () => {
-              if (!confirm("Delete this media file? Any existing use of its URL will stop working.")) return;
-              copyButton.disabled = openButton.disabled = deleteButton.disabled = true;
-              try {
-                const { error: storageError } = await supabaseClient.storage.from("media-library").remove([record.storage_path]);
-                if (storageError) throw storageError;
-                const { error: rowError } = await supabaseClient.from("media_assets").delete().eq("id", record.id);
-                if (rowError) throw rowError;
-                setMediaStatus("Media deleted.", "success");
-                await loadMediaRecords();
-              } catch (deleteError) {
-                setMediaStatus("Could not delete media: " + (deleteError.message || "Please try again."), "error");
-                copyButton.disabled = openButton.disabled = deleteButton.disabled = false;
-              }
-            });
-            deleteButton.style.marginLeft = "6px";
-            actionCell.append(copyButton, openButton, deleteButton);
-            row.append(actionCell);
-            tbody.append(row);
-          }
-          table.append(tbody);
-          list.append(table);
-        }
-        clearButton.addEventListener("click", () => {
-          form.reset();
-          setMediaStatus("");
-          titleInput.focus();
-        });
-        fileInput.addEventListener("change", () => {
-          const file = fileInput.files && fileInput.files[0];
-          if (!file) return;
-          if (!allowedTypes.has(file.type) || file.size > maxFileSize) {
-            fileInput.value = "";
-            setMediaStatus("Choose a supported image, video, audio or PDF file up to 50 MB.", "error");
-          } else {
-            setMediaStatus("");
-            if (!titleInput.value.trim()) titleInput.value = file.name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ");
-          }
-        });
-        form.addEventListener("submit", async event => {
-          event.preventDefault();
-          const file = fileInput.files && fileInput.files[0];
-          const title = titleInput.value.trim();
-          if (!title) { setMediaStatus("Enter a title.", "error"); titleInput.focus(); return; }
-          if (!file) { setMediaStatus("Choose a file to upload.", "error"); return; }
-          if (!allowedTypes.has(file.type) || file.size > maxFileSize) {
-            setMediaStatus("Choose a supported image, video, audio or PDF file up to 50 MB.", "error");
-            return;
-          }
-          uploadButton.disabled = true;
-          clearButton.disabled = true;
-          uploadButton.textContent = "Uploading…";
-          setMediaStatus("Uploading file…");
-          let uploadedPath = "";
-          try {
-            const user = await getCurrentUser();
-            if (!user || String(user.app_metadata?.role || "").toLowerCase() !== "admin") throw new Error("Admin access is required.");
-            const rawExtension = (file.name.match(/\.([a-zA-Z0-9]{1,10})$/) || [])[1] || "";
-            const extension = rawExtension.toLowerCase() || ({
-              "image/jpeg":"jpg","image/svg+xml":"svg","audio/mpeg":"mp3","audio/wav":"wav","application/pdf":"pdf"
-            }[file.type] || "bin");
-            // Follow the working profile-picture upload pattern: store files inside the signed-in user's folder.
-            const uniqueName = Date.now() + "-" + crypto.randomUUID() + "." + extension;
-            uploadedPath = user.id + "/uploads/" + uniqueName;
-            const { error: uploadError } = await supabaseClient.storage.from("media-library").upload(uploadedPath, file, {
-              contentType: file.type,
-              cacheControl: "0",
-              upsert: true
-            });
-            if (uploadError) throw uploadError;
-            const { data: urlData } = supabaseClient.storage.from("media-library").getPublicUrl(uploadedPath);
-            const publicUrl = urlData.publicUrl;
-            const { error: insertError } = await supabaseClient.from("media_assets").insert({
-              title,
-              original_filename: file.name,
-              storage_path: uploadedPath,
-              public_url: publicUrl,
-              mime_type: file.type,
-              size_bytes: file.size,
-              uploaded_by: user.id
-            });
-            if (insertError) {
-              await supabaseClient.storage.from("media-library").remove([uploadedPath]);
-              uploadedPath = "";
-              throw insertError;
-            }
-            form.reset();
-            setMediaStatus("Media uploaded and saved successfully.", "success");
-            await loadMediaRecords();
-          } catch (uploadError) {
-            setMediaStatus("Upload failed: " + (uploadError.message || "Please try again."), "error");
-          } finally {
-            uploadButton.disabled = false;
-            clearButton.disabled = false;
-            uploadButton.textContent = "Upload Media";
-          }
-        });
-        await loadMediaRecords();
-        return;
-      }
       const config=configs[section.id];
       if (!config) return;
       if(!isCurrent())return;
@@ -2429,19 +1997,18 @@
         const label=document.createElement("label");label.textContent=def.label;label.htmlFor="dash-"+section.id+"-"+def.name;
         let input;
         if(def.type==="textarea"){input=document.createElement("textarea");input.rows=def.rows||4;}
-        else if(def.type==="select"){input=document.createElement("select");(def.options||[]).forEach(([value,labelText])=>{const opt=document.createElement("option");opt.value=value;opt.textContent=labelText;input.append(opt);});}
-        else {input=document.createElement("input");input.type=def.type==="file"?"file":def.type;if(def.accept)input.accept=def.accept;}
+        else if(def.type==="select"||def.type==="multiselect"){input=document.createElement("select");if(def.type==="multiselect")input.multiple=true;(def.options||[]).forEach(([value,labelText])=>{const opt=document.createElement("option");opt.value=value;opt.textContent=labelText;input.append(opt);});if(def.type==="multiselect")input.size=4;}
+        else {input=document.createElement("input");input.type=def.type==="files"?"file":def.type;if(def.type==="files")input.multiple=true;if(def.accept)input.accept=def.accept;}
         input.className="dashboard-crud-input";input.id=label.htmlFor;input.name=def.name;
         if(def.required)input.required=true;if(def.readonly)input.readOnly=true;
         holder.append(label,input);
         if(def.help){const help=document.createElement("small");help.className="dashboard-crud-hint";help.textContent=def.help;holder.append(help);}
         form.insertBefore(holder,actions);controls[def.name]=input;
-        if((def.name==="url")&&section.id==="page") {
+        if(def.name==="url" && controls.title) {
           let urlEdited=false;input.addEventListener("input",()=>{urlEdited=true;});
-          const titleInput=()=>controls.title;
-          const makeSlug=()=>generateUrlValue(titleInput().value);
-          titleInput().addEventListener("input",()=>{if(!urlEdited&&!selectedId)input.value=makeSlug();});
-          input.addEventListener("blur",()=>{if(!input.value.trim()&&titleInput().value.trim())input.value=makeSlug();});
+          const makeSlug=()=>generateUrlValue(controls.title.value);
+          controls.title.addEventListener("input",()=>{if(!urlEdited&&!selectedId)input.value=makeSlug();});
+          input.addEventListener("blur",()=>{if(!input.value.trim()&&controls.title.value.trim())input.value=makeSlug();});
         }
         return input;
       }
@@ -2451,9 +2018,19 @@
       }
       function generateUrlValue(value){return String(value||"").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");}
       for(const def of config.fields)makeField(def);
+      if(controls.album_id) {
+        const {data:albums,error:albumsError}=await supabaseClient.from("albums").select("id,title").order("title").limit(500);
+        if(!isCurrent())return;
+        if(!albumsError)for(const album of albums||[]){const option=document.createElement("option");option.value=album.id;option.textContent=album.title;controls.album_id.append(option);}
+      }
+      if(controls.permissions) {
+        const {data:permissions,error:permissionsError}=await supabaseClient.from("permissions").select("id,name").order("name");
+        if(!isCurrent())return;
+        if(!permissionsError)for(const permission of permissions||[]){const option=document.createElement("option");option.value=permission.id;option.textContent=permission.name;controls.permissions.append(option);}
+      }
       function resetForm(){
         selectedId=null;selectedRecordData=null;form.reset();
-        save.textContent=config.readOnlyCreate?"Save Profile":(section.id==="post"?"Publish":"Create");save.disabled=false;remove.disabled=true;setStatus("");
+        save.textContent=config.readOnlyCreate?"Save Profile":"Create";save.disabled=false;remove.disabled=true;setStatus("");
         list.querySelectorAll(".dashboard-crud-row").forEach(row=>row.classList.remove("is-selected"));
       }
       clear.addEventListener("click",resetForm);
@@ -2478,7 +2055,7 @@
         records.forEach(record=>{
           const row=document.createElement("tr");row.className="dashboard-crud-row";row.tabIndex=0;
           const title=record.caption||record.title||record.name||record.key||record.full_name||record.id||"Record";
-          const details=record.url||record.description||record.phone||"";
+          const details=record.url||record.description||record.phone||(Array.isArray(record.media)?record.media.length+" file(s)":"");
           const values=[String(record.id||"").slice(0,8)||"—",title,details];
           values.push(record.visibility==="private"?"Only Me":record.visibility==="public"?"Public":"—",record.created_at?new Date(record.created_at).toLocaleString():"—");
           values.forEach((value,index)=>{
@@ -2549,11 +2126,16 @@
         selectedId=record.id||record.key||record.id;selectedRecordData=record;resetSelectionHighlight();row.classList.add("is-selected");
         config.fields.forEach(def=>{
           const input=controls[def.name];if(!input)return;
-          if(input.type==="file")return;
+          if(def.type==="files"||def.type==="multiselect")return;
           let value=record[def.name];
           if((section.id==="customization"||section.id==="settings")&&def.name==="value")value=JSON.stringify(value??null,null,2);
           input.value=value==null?"":String(value);
         });
+        if(controls.permissions) {
+          const {data:links}=await supabaseClient.from("role_permissions").select("permission_id").eq("role_id",record.id);
+          const selected=new Set((links||[]).map(link=>String(link.permission_id)));
+          Array.from(controls.permissions.options).forEach(option=>option.selected=selected.has(option.value));
+        }
         save.textContent=config.readOnlyCreate?"Save Profile":"Update";save.disabled=false;remove.disabled=!!config.noDelete;setStatus("Selected record loaded into the form.");
         
       }
@@ -2565,26 +2147,44 @@
           const payload={};
           config.fields.forEach(def=>{
             const input=controls[def.name];
-            if(def.type==="file")return;
+            if(def.type==="files"||def.type==="multiselect")return;
             let value=input.value;
             if(def.name==="value"&&(section.id==="customization"||section.id==="settings")){try{value=JSON.parse(value);}catch{throw new Error("Value must be valid JSON.");}}
             else if(value==="")value=null;
             payload[def.name]=value;
           });
-          if(section.id==="post"){
-            const title=String(controls.title.value||"").trim();
-            if(!title)throw new Error("Enter a title.");
-            const slug=selectedId?String(selectedRecordData?.url||"").trim():("p-"+generateOpaqueToken(16));
-            if(!slug)throw new Error("Could not generate a secure Post URL. Please try again.");
-            payload.caption=title;payload.url=slug;payload.title=title;
-          }
-          if(config.table==="pages"){
+          if(["post","page","album"].includes(section.id)) {
             payload.url=generateUrlValue(payload.url||payload.title);
-            if(!payload.url)throw new Error("Page URL is required. Use English letters, numbers and hyphens.");
-            const {data:duplicate,error:duplicateError}=await supabaseClient.from("pages").select("id").eq("url",payload.url).limit(1).maybeSingle();
+            if(!payload.url)throw new Error("URL is required. Use English letters, numbers and hyphens.");
+            const {data:duplicate,error:duplicateError}=await supabaseClient.from(config.table).select("id").eq("url",payload.url).limit(1).maybeSingle();
             if(duplicateError)throw duplicateError;
-            if(duplicate&&duplicate.id!==selectedId)throw new Error("This Page URL is already in use. Choose another URL.");
+            if(duplicate&&duplicate.id!==selectedId)throw new Error("This URL is already in use. Choose another URL.");
           }
+          if(section.id==="post")payload.caption=String(payload.title||"").trim();
+          if(controls.album_id)payload.album_id=controls.album_id.value||null;
+          const existingMedia=Array.isArray(selectedRecordData?.media)?selectedRecordData.media.map(item=>({...item})):[];
+          const chosenFiles=Array.from(controls.media?.files||[]);
+          const allowedTypes=new Set(["image/jpeg","image/png","image/webp","image/gif","image/avif","image/svg+xml","video/mp4","video/webm","video/quicktime","audio/mpeg","audio/mp4","audio/wav","audio/ogg","application/pdf"]);
+          const visibility=payload.visibility||"public";
+          for(const file of chosenFiles)if(!allowedTypes.has(file.type)||file.size>50*1024*1024)throw new Error("Choose supported image, video, audio or PDF files up to 50 MB each.");
+          for(const item of existingMedia) {
+            const currentFolder=String(item.path||"").split("/")[0], desiredFolder=visibility==="public"?"public":"private";
+            if(item.path&&currentFolder!==desiredFolder) {
+              const filename=String(item.path).split("/").pop(), nextPath=desiredFolder+"/"+user.id+"/"+filename;
+              const {error:moveError}=await supabaseClient.storage.from("content-files").move(item.path,nextPath);
+              if(moveError)throw moveError; item.path=nextPath;
+            }
+          }
+          for(const file of chosenFiles) {
+            const extension=(file.name.match(/\.([a-zA-Z0-9]{1,10})$/)||[])[1]||"bin";
+            const folder=visibility==="public"?"public":"private";
+            const path=folder+"/"+user.id+"/"+crypto.randomUUID()+"."+extension.toLowerCase();
+            const {error:uploadError}=await supabaseClient.storage.from("content-files").upload(path,file,{contentType:file.type,cacheControl:"0",upsert:false});
+            if(uploadError)throw uploadError;
+            existingMedia.push({path,name:file.name,mime_type:file.type,size_bytes:file.size});
+          }
+          if(config.fields.some(def=>def.name==="media"))payload.media=existingMedia;
+          const selectedPermissions=controls.permissions?Array.from(controls.permissions.selectedOptions).map(option=>option.value):null;
           if(config.table==="site_customizations"||config.table==="site_settings")payload.updated_by=user.id;
           if(config.table!=="profiles")payload.updated_at=new Date().toISOString();
           let result;
@@ -2596,9 +2196,18 @@
           }
           if(result.error)throw result.error;
           const savedId=result.data?.id||selectedId;
+          if(section.id==="role" && savedId) {
+            const {error:clearLinksError}=await supabaseClient.from("role_permissions").delete().eq("role_id",savedId);
+            if(clearLinksError)throw clearLinksError;
+            if(selectedPermissions?.length) {
+              const rows=selectedPermissions.map(permission_id=>({role_id:savedId,permission_id}));
+              const {error:linkError}=await supabaseClient.from("role_permissions").insert(rows);
+              if(linkError)throw linkError;
+            }
+          }
           const wasUpdating=Boolean(selectedId);resetForm();setStatus(wasUpdating?"Record updated successfully.":"Record created successfully.","success");await loadRecords();
         }catch(error){setStatus(error.message||"Could not save record.","error");}
-        finally{save.disabled=false;save.textContent=selectedId?"Update":(config.readOnlyCreate?"Save Profile":(section.id==="post"?"Publish":"Create"));remove.disabled=!selectedId||!!config.noDelete;}
+        finally{save.disabled=false;save.textContent=selectedId?"Update":(config.readOnlyCreate?"Save Profile":"Create");remove.disabled=!selectedId||!!config.noDelete;}
       });
       remove.addEventListener("click",async()=>{
         if(!selectedId||config.noDelete)return;
