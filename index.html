@@ -1269,10 +1269,12 @@
               payload.caption=title;payload.url=slug;
             }
             payload.title=title;payload.media_url=mediaUrl||null;
-            if(selectedUploadedPath){
+            if(selectedUploadedPath&&mediaUrl===selectedUploadedUrl){
               payload.storage_path=selectedUploadedPath;
               payload.media_type=(selectedUploadState.type||"").startsWith("video/")?"video":"photo";
-              payload.source_type=mediaUrl===selectedUploadedUrl?"upload":"external";
+              payload.source_type="upload";
+            }else if(selectedUploadedPath){
+              payload.storage_path=null;payload.media_type=null;payload.source_type=mediaUrl?"external":null;
             }else if(existingStoragePath&&selectedRecordData?.source_type==="upload"&&mediaUrl===selectedRecordData?.media_url){
               const {data:signedData,error:signedError}=await supabaseClient.storage.from("site-media").createSignedUrl(existingStoragePath,31536000);
               if(signedError)throw signedError;
