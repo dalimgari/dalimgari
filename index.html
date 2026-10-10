@@ -1911,6 +1911,11 @@
           {name:"bio",label:"Bio",type:"textarea",full:true}
         ]}
       };
+      if (section.id === "customization") {
+        // Keep Customization intentionally empty for now; do not load or display stored records.
+        content.replaceChildren();
+        return;
+      }
       if (section.id === "overview") {
         content.replaceChildren();
         const title = document.createElement("h2"); title.className="dashboard-section-title"; title.textContent="Overview";
