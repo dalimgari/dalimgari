@@ -625,21 +625,43 @@
       if (dashboardAction) dashboardAction.hidden = role !== "admin" || dashboardAction.getAttribute("aria-current") === "page";
     }
 
-    function renderHome() {
+    async function renderHome() {
       const page = document.createElement("section");
       page.className = "home-page";
       page.setAttribute("aria-label", "Home page sections");
       page.style.cssText = "width:100%;max-width:1200px;min-height:1px;margin:0 auto;padding:0 16px 32px";
 
-      // Section 1 scaffold: Hero With Headline & Welcome Message.
-      // Keep the section empty until its content is configured.
       const heroSection = document.createElement("section");
       heroSection.className = "home-section home-hero";
-      heroSection.setAttribute("aria-label", "Hero With Headline & Welcome Message");
-      heroSection.style.cssText = "width:100%;min-width:0;max-width:100%";
+      heroSection.setAttribute("aria-label", "Hero");
+      heroSection.style.cssText = "width:100%;min-width:0;max-width:100%;padding:clamp(24px,6vw,64px) 0";
 
       page.append(heroSection);
       mainContent.replaceChildren(page);
+
+      const { data, error } = await supabaseClient.from("site_customizations")
+        .select("value").eq("key", "home_hero").maybeSingle();
+      if (error || !data || !data.value) return;
+
+      let heroData = data.value;
+      if (typeof heroData === "string") {
+        try { heroData = JSON.parse(heroData); } catch (_) { return; }
+      }
+      if (!heroData || typeof heroData !== "object") return;
+      const headline = String(heroData.headline || "").trim();
+      const welcomeMessage = String(heroData.welcomeMessage || "").trim();
+      if (headline) {
+        const heading = document.createElement("h1");
+        heading.textContent = headline;
+        heading.style.cssText = "margin:0 0 12px;font-size:clamp(30px,6vw,52px);line-height:1.12;overflow-wrap:anywhere";
+        heroSection.append(heading);
+      }
+      if (welcomeMessage) {
+        const welcome = document.createElement("p");
+        welcome.textContent = welcomeMessage;
+        welcome.style.cssText = "max-width:760px;margin:0;color:#666;font-size:clamp(16px,2.5vw,20px);line-height:1.65;overflow-wrap:anywhere";
+        heroSection.append(welcome);
+      }
     }
 
     function renderPage(pageName) {
@@ -1266,6 +1288,7 @@
 
       const sections = [
         { id: "overview", label: "Overview", description: "Dashboard overview." },
+        { id: "hero", label: "Hero", description: "Manage the homepage hero headline and welcome message." },
         { id: "post", label: "Post", description: "Post management section." },
         { id: "page", label: "Page", description: "Page management section." },
         { id: "user", label: "User", description: "User management section." },
@@ -1524,6 +1547,96 @@
           table.append(tbody);list.append(table);
         }
         await loadTrash();
+        return;
+      }
+      if (section.id === "hero") {
+        content.replaceChildren();
+        const wrap = document.createElement("div");
+        wrap.className = "dashboard-crud";
+        const card = document.createElement("section");
+        card.className = "dashboard-crud-card";
+        const heading = document.createElement("h3");
+        heading.textContent = "Hero";
+        const hint = document.createElement("p");
+        hint.className = "dashboard-crud-hint";
+        hint.textContent = "Set the headline and welcome message shown in the first section of the homepage.";
+        const form = document.createElement("form");
+        form.className = "dashboard-crud-form";
+        const status = document.createElement("p");
+        status.className = "dashboard-crud-status";
+        status.setAttribute("role", "status");
+        status.setAttribute("aria-live", "polite");
+        function addHeroField(name, labelText, isTextarea) {
+          const holder = document.createElement("div");
+          holder.className = "dashboard-crud-field full";
+          const label = document.createElement("label");
+          label.htmlFor = "dashboard-hero-" + name;
+          label.textContent = labelText;
+          const input = isTextarea ? document.createElement("textarea") : document.createElement("input");
+          if (!isTextarea) input.type = "text";
+          else input.rows = 4;
+          input.className = "dashboard-crud-input";
+          input.id = label.htmlFor;
+          input.name = name;
+          holder.append(label, input);
+          form.append(holder);
+          return input;
+        }
+        const headlineInput = addHeroField("headline", "Headline", false);
+        const welcomeInput = addHeroField("welcomeMessage", "Welcome Message", true);
+        const actions = document.createElement("div");
+        actions.className = "dashboard-crud-actions dashboard-crud-field full";
+        const save = document.createElement("button");
+        save.className = "action-button primary";
+        save.type = "submit";
+        save.textContent = "Save Hero";
+        actions.append(save);
+        form.append(actions, status);
+        card.append(heading, hint, form);
+        wrap.append(card);
+        content.append(wrap);
+
+        const setHeroStatus = (message, isError = false) => {
+          status.textContent = message;
+          status.style.color = isError ? "#a12622" : "#176b43";
+        };
+        const { data, error } = await supabaseClient.from("site_customizations")
+          .select("key,value").eq("key", "home_hero").maybeSingle();
+        if (!isCurrent()) return;
+        if (error) {
+          setHeroStatus("Could not load Hero settings: " + error.message, true);
+          return;
+        }
+        if (data && data.value) {
+          let saved = data.value;
+          if (typeof saved === "string") {
+            try { saved = JSON.parse(saved); } catch (_) { saved = {}; }
+          }
+          if (saved && typeof saved === "object") {
+            headlineInput.value = String(saved.headline || "");
+            welcomeInput.value = String(saved.welcomeMessage || "");
+          }
+        }
+        form.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          save.disabled = true;
+          save.textContent = "Saving…";
+          setHeroStatus("");
+          try {
+            const { error: saveError } = await supabaseClient.from("site_customizations").upsert({
+              key: "home_hero",
+              value: { headline: headlineInput.value.trim(), welcomeMessage: welcomeInput.value.trim() },
+              description: "Homepage Hero headline and welcome message"
+            }, { onConflict: "key" });
+            if (saveError) throw saveError;
+            setHeroStatus("Hero saved successfully.");
+          } catch (saveError) {
+            setHeroStatus("Could not save Hero: " + (saveError.message || "Please try again."), true);
+          } finally {
+            save.disabled = false;
+            save.textContent = "Save Hero";
+          }
+        });
         return;
       }
       const config=configs[section.id];
