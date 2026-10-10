@@ -1174,6 +1174,7 @@
       const list=document.createElement("div");list.className="dashboard-crud-list";
       listCard.append(listHeading,list);formCard.append(formHeading,hint,form);wrap.append(formCard,listCard);
       let albumMediaCard=null,albumMediaList=null,albumMediaStatus=null,albumMediaAddButton=null,albumMediaRemoveButton=null;
+      let albumPreviewTimers=[];
       if(section.id==="album"){
         albumMediaCard=document.createElement("section");albumMediaCard.className="dashboard-crud-card";
         const mediaHeading=document.createElement("h3");mediaHeading.textContent="Manage Album Media";
@@ -1228,6 +1229,7 @@
       clear.addEventListener("click",resetForm);
       async function loadRecords(){
         if(!isCurrent())return;
+        albumPreviewTimers.forEach(timer=>clearInterval(timer));albumPreviewTimers=[];
         list.replaceChildren();const loading=document.createElement("p");loading.className="dashboard-crud-empty";loading.textContent="Loading records…";list.append(loading);
         let query=supabaseClient.from(config.table).select("*").order("created_at",{ascending:false}).limit(200);
         if(config.table==="site_customizations"||config.table==="site_settings")query=supabaseClient.from(config.table).select("*").order("key").limit(200);
@@ -1239,15 +1241,49 @@
         if(!records.length){const p=document.createElement("p");p.className="dashboard-crud-empty";p.textContent="No records found yet.";list.append(p);return;}
         const table=document.createElement("table");table.className="dashboard-crud-table";
         const thead=document.createElement("thead"),trh=document.createElement("tr");
-        ["Select","Title / Name","Details","Visibility","Created"].forEach(label=>{const th=document.createElement("th");th.textContent=label;trh.append(th);});thead.append(trh);table.append(thead);
+        if(section.id==="album"){
+          const previewHead=document.createElement("th");previewHead.textContent="Random Photo Preview";trh.insertBefore(previewHead,trh.children[2]);
+        }
+        ["Select","Title / Name","Details","Visibility","Created"].forEach(label=>{const th=document.createElement("th");th.textContent=label;trh.append(th);});
+        thead.append(trh);table.append(thead);
         const tbody=document.createElement("tbody");
+        let albumPhotosById={};
+        if(section.id==="album"&&records.length){
+          const albumIds=records.map(record=>record.id).filter(Boolean);
+          const {data:albumPosts,error:albumPostsError}=await supabaseClient.from("post").select("id,album_id,media_url,media_type").in("album_id",albumIds).not("media_url","is",null);
+          if(!isCurrent())return;
+          if(!albumPostsError)(albumPosts||[]).forEach(post=>{
+            const isPhoto=String(post.media_type||"").toLowerCase()==="photo"||String(post.media_url||"").split("?")[0].match(/\.(jpe?g|png|gif|webp|avif|bmp)$/i);
+            if(isPhoto&&post.media_url){(albumPhotosById[post.album_id] ||= []).push(post.media_url);}
+          });
+        }
         records.forEach(record=>{
           const row=document.createElement("tr");row.className="dashboard-crud-row";row.tabIndex=0;
           const title=record.caption||record.title||record.name||record.key||record.full_name||record.id||"Record";
           const details=record.url||record.description||record.phone||"";
           const values=[String(record.id||"").slice(0,8)||"—",title,details];
           values.push(record.visibility==="private"?"Only Me":record.visibility==="public"?"Public":"—",record.created_at?new Date(record.created_at).toLocaleString():"—");
-          values.forEach(value=>{const td=document.createElement("td");td.textContent=String(value);row.append(td);});
+          values.forEach((value,index)=>{
+            const td=document.createElement("td");td.textContent=String(value);
+            if(section.id==="album"&&index===2){
+              td.textContent="";
+              const photos=albumPhotosById[record.id]||[];
+              if(photos.length){
+                const img=document.createElement("img");img.alt="Random photo from "+(record.title||"album");img.loading="lazy";img.style.cssText="width:96px;height:64px;object-fit:cover;border-radius:6px;display:block";
+                let currentIndex=Math.floor(Math.random()*photos.length);img.src=photos[currentIndex];td.append(img);
+                if(photos.length>1){
+                  const timer=setInterval(()=>{
+                    if(!img.isConnected){clearInterval(timer);return;}
+                    let nextIndex=currentIndex;
+                    while(nextIndex===currentIndex)nextIndex=Math.floor(Math.random()*photos.length);
+                    currentIndex=nextIndex;img.src=photos[currentIndex];
+                  },5000);
+                  albumPreviewTimers.push(timer);
+                }
+              }else td.textContent="No photos in album";
+            }
+            row.append(td);
+          });
           const first=row.firstElementChild;first.textContent="Select";
           row.addEventListener("click",()=>selectRecord(record,row));
           row.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();selectRecord(record,row);}});
@@ -1313,6 +1349,7 @@
           await refreshAlbumMedia();
           albumMediaStatus.style.color="#176b43";
           albumMediaStatus.textContent=removeFromAlbum?("Removed "+updated+" media item(s) from this album."):("Added "+updated+" media item(s) to this album. Any previous album assignment was updated.");
+          await loadRecords();
         }catch(error){
           albumMediaStatus.style.color="#a12622";albumMediaStatus.textContent=error.message||"Could not update album media.";
         }finally{albumMediaAddButton.disabled=false;albumMediaRemoveButton.disabled=false;}
