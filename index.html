@@ -764,6 +764,8 @@
     function sanitizePageHtml(html) {
       const parsed = new DOMParser().parseFromString(String(html || ""), "text/html");
       parsed.querySelectorAll("script,iframe,object,embed,base,meta,link,title,foreignObject").forEach(node => node.remove());
+      const pageStyles = Array.from(parsed.querySelectorAll("style"));
+      pageStyles.forEach(node => node.remove());
       parsed.querySelectorAll("*").forEach(node => {
         Array.from(node.attributes).forEach(attribute => {
           const name = attribute.name.toLowerCase();
@@ -779,12 +781,74 @@
           node.removeAttribute("method");
         }
       });
+      pageStyles.forEach(style => parsed.body.append(style));
       return parsed.body;
+    }
+
+    function splitPageCssSelectors(value) {
+      const selectors = [];
+      let start = 0, depth = 0, quote = "";
+      for (let i = 0; i < value.length; i++) {
+        const ch = value[i];
+        if (quote) { if (ch === quote && value[i - 1] !== "\\") quote = ""; continue; }
+        if (ch === "'" || ch === '"') { quote = ch; continue; }
+        if (ch === "(" || ch === "[") depth++;
+        else if (ch === ")" || ch === "]") depth--;
+        else if (ch === "," && depth === 0) { selectors.push(value.slice(start, i).trim()); start = i + 1; }
+      }
+      selectors.push(value.slice(start).trim());
+      return selectors.filter(Boolean);
+    }
+
+    function scopePageCss(cssText, prefix) {
+      let output = "", cursor = 0;
+      while (cursor < cssText.length) {
+        const open = cssText.indexOf("{", cursor);
+        if (open < 0) { output += cssText.slice(cursor); break; }
+        let depth = 1, close = open + 1, quote = "";
+        for (; close < cssText.length && depth > 0; close++) {
+          const ch = cssText[close];
+          if (quote) { if (ch === quote && cssText[close - 1] !== "\\") quote = ""; continue; }
+          if (ch === "'" || ch === '"') { quote = ch; continue; }
+          if (ch === "{") depth++;
+          else if (ch === "}") depth--;
+        }
+        if (depth !== 0) { output += cssText.slice(cursor); break; }
+        const selector = cssText.slice(cursor, open).trim();
+        const body = cssText.slice(open + 1, close - 1);
+        output += cssText.slice(cursor, open);
+        if (/^@(media|supports|container|layer|document)\b/i.test(selector)) {
+          output = output.slice(0, output.length - (cssText.slice(cursor, open).length));
+          output += selector + "{" + scopePageCss(body, prefix) + "}";
+        } else if (/^@(-webkit-)?keyframes\b|^@font-face\b|^@property\b|^@counter-style\b/i.test(selector)) {
+          output += "{" + body + "}";
+        } else if (selector.startsWith("@")) {
+          output += "{" + body + "}";
+        } else {
+          const scoped = splitPageCssSelectors(selector).map(item => {
+            if (/^(html|body|:root)(\b|$)/i.test(item)) {
+              return item.replace(/^(html|body|:root)(\b|$)/i, prefix);
+            }
+            return prefix + " " + item;
+          }).join(", ");
+          output = output.slice(0, output.length - (cssText.slice(cursor, open).length));
+          output += scoped + "{" + body + "}";
+        }
+        cursor = close;
+      }
+      return output;
+    }
+
+    function scopePageStyles(container) {
+      container.querySelectorAll("style").forEach(style => {
+        style.textContent = scopePageCss(style.textContent || "", ".stored-html-page .stored-html-page-content.stored-html-page-content");
+      });
     }
 
     async function renderHtmlInto(container, html, session, depth=0) {
       const safeBody = sanitizePageHtml(html);
       container.replaceChildren(...Array.from(safeBody.childNodes).map(node => document.importNode(node, true)));
+      scopePageStyles(container);
       const includes = Array.from(container.querySelectorAll("[data-dalimgari-include]"));
       for (const slot of includes) {
         if (depth >= 5) { slot.textContent = "Page include depth limit reached."; continue; }
