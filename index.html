@@ -1245,14 +1245,18 @@
         headerLabels.forEach(label=>{const th=document.createElement("th");th.textContent=label;trh.append(th);});
         thead.append(trh);table.append(thead);
         const tbody=document.createElement("tbody");
-        let albumPhotosById={};
+        let albumMediaById={};
         if(section.id==="album"&&records.length){
           const albumIds=records.map(record=>record.id).filter(Boolean);
           const {data:albumPosts,error:albumPostsError}=await supabaseClient.from("post").select("id,album_id,media_url,media_type").in("album_id",albumIds).not("media_url","is",null);
           if(!isCurrent())return;
           if(!albumPostsError)(albumPosts||[]).forEach(post=>{
-            const isPhoto=String(post.media_type||"").toLowerCase()==="photo"||String(post.media_url||"").split("?")[0].match(/\.(jpe?g|png|gif|webp|avif|bmp)$/i);
-            if(isPhoto&&post.media_url){(albumPhotosById[post.album_id] ||= []).push(post.media_url);}
+            if(!post.media_url)return;
+            const mediaType=String(post.media_type||"").toLowerCase();
+            const mediaPath=String(post.media_url||"").split("?")[0];
+            const isVideo=mediaType==="video"||/\.(mp4|webm|mov|m4v|ogv)$/i.test(mediaPath);
+            const isPhoto=mediaType==="photo"||/\.(jpe?g|png|gif|webp|avif|bmp)$/i.test(mediaPath);
+            if(isVideo||isPhoto)(albumMediaById[post.album_id] ||= []).push({url:post.media_url,type:isVideo?"video":"photo"});
           });
         }
         records.forEach(record=>{
@@ -1265,20 +1269,36 @@
             const td=document.createElement("td");td.textContent=String(value);
             if(section.id==="album"&&index===2){
               td.textContent="";
-              const photos=albumPhotosById[record.id]||[];
-              if(photos.length){
-                const img=document.createElement("img");img.alt="Random photo from "+(record.title||"album");img.loading="lazy";img.style.cssText="width:96px;height:64px;object-fit:cover;border-radius:6px;display:block";
-                let currentIndex=Math.floor(Math.random()*photos.length);img.src=photos[currentIndex];td.append(img);
-                if(photos.length>1){
+              const mediaItems=albumMediaById[record.id]||[];
+              if(mediaItems.length){
+                let currentIndex=Math.floor(Math.random()*mediaItems.length);
+                const preview=document.createElement("div");
+                preview.style.cssText="width:96px;height:64px;overflow:hidden;border-radius:6px;background:#f3f4f6";
+                const showMedia=()=>{
+                  const item=mediaItems[currentIndex];
+                  const media=item.type==="video"?document.createElement("video"):document.createElement("img");
+                  media.style.cssText="width:100%;height:100%;object-fit:cover;display:block";
+                  if(item.type==="video"){
+                    media.muted=true;media.autoplay=true;media.loop=true;media.playsInline=true;media.preload="metadata";
+                    media.setAttribute("aria-label","Random video from "+(record.title||"album"));
+                    media.src=item.url;
+                    media.play().catch(()=>{});
+                  }else{
+                    media.alt="Random photo from "+(record.title||"album");media.loading="lazy";media.src=item.url;
+                  }
+                  preview.replaceChildren(media);
+                };
+                showMedia();td.append(preview);
+                if(mediaItems.length>1){
                   const timer=setInterval(()=>{
-                    if(!img.isConnected){clearInterval(timer);return;}
+                    if(!preview.isConnected){clearInterval(timer);return;}
                     let nextIndex=currentIndex;
-                    while(nextIndex===currentIndex)nextIndex=Math.floor(Math.random()*photos.length);
-                    currentIndex=nextIndex;img.src=photos[currentIndex];
+                    while(nextIndex===currentIndex)nextIndex=Math.floor(Math.random()*mediaItems.length);
+                    currentIndex=nextIndex;showMedia();
                   },5000);
                   albumPreviewTimers.push(timer);
                 }
-              }else td.textContent="No photos in album";
+              }else td.textContent="No photos or videos in album";
             }
             row.append(td);
           });
