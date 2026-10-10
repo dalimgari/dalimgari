@@ -2108,7 +2108,7 @@
             if(item.widget_type==="map"){
               locationInput=document.createElement("input");locationInput.type="text";locationInput.className="dashboard-crud-input";
               locationInput.value=String((item.settings&&item.settings.location)||"");
-              locationInput.placeholder="Exact address or place name";
+              locationInput.placeholder="Address, place name, or Google Maps link";
               locationInput.setAttribute("aria-label","Exact map location");
               locationInput.style.minWidth="240px";
               locationCell.append(locationInput);
@@ -2128,13 +2128,31 @@
                 const update={is_visible:select.value==="true",updated_by:current.id,updated_at:new Date().toISOString()};
                 if(item.widget_type==="map"){
                   const location=String(locationInput&&locationInput.value||"").trim();
-                  if(!location)throw new Error("Enter the exact address or place name for the map.");
+                  if(!location)throw new Error("Enter the exact address, place name, or Google Maps link.");
                   const previousSettings=item.settings&&typeof item.settings==="object"?item.settings:{};
-                  update.settings={...previousSettings,location,embed_url:"https://maps.google.com/maps?q="+encodeURIComponent(location)+"&output=embed"};
+                  let embedUrl="https://maps.google.com/maps?q="+encodeURIComponent(location)+"&output=embed";
+                  let resolvedLocation=location;
+                  let mapsLink=false;
+                  try{
+                    const parsedLocationUrl=new URL(location);
+                    const host=parsedLocationUrl.hostname.toLowerCase();
+                    mapsLink=parsedLocationUrl.protocol==="https:"&&(
+                      host==="maps.app.goo.gl"||host==="goo.gl"||
+                      ((host==="google.com"||host==="www.google.com"||host==="maps.google.com")&&parsedLocationUrl.pathname.startsWith("/maps"))
+                    );
+                  }catch(_){}
+                  if(mapsLink){
+                    const {data:resolved,error:resolveError}=await supabaseClient.functions.invoke("resolve-map-link",{body:{url:location}});
+                    if(resolveError)throw new Error("Could not resolve this Google Maps link. Try sharing the place link again.");
+                    if(!resolved||!resolved.embed_url)throw new Error((resolved&&resolved.error)||"Could not identify a place from this Google Maps link.");
+                    embedUrl=resolved.embed_url;
+                    resolvedLocation=resolved.location||location;
+                  }
+                  update.settings={...previousSettings,location,embed_url:embedUrl,resolved_location:resolvedLocation};
                 }
                 const {error:updateError}=await supabaseClient.from("widgets").update(update).eq("id",item.id);
                 if(updateError)throw updateError;
-                status.textContent=item.widget_type==="map"?"Map location and visibility saved.":"Widget visibility saved.";
+                status.textContent=item.widget_type==="map"?"Map location or Google Maps link saved.":"Widget visibility saved.";
                 status.style.color="#176b43";
                 await loadWidgets();
               }catch(err){status.textContent="Save failed: "+(err.message||"Unknown error");status.style.color="#a12622";saveRow.disabled=false;}
