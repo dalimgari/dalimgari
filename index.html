@@ -1262,6 +1262,7 @@
       const sections = [
         { id: "overview", label: "Overview", description: "Dashboard overview." },
         { id: "post", label: "Post", description: "Post management section." },
+        { id: "upload-test", label: "Upload Test", description: "Test photo/video uploads without creating a post." },
         { id: "album", label: "Album", description: "Album management section." },
         { id: "page", label: "Page", description: "Page management section." },
         { id: "user", label: "User", description: "User management section." },
@@ -1378,6 +1379,71 @@
         renderPage("Profile"); history.replaceState(null, "", "#profile"); return;
       }
       if (!isCurrent()) return;
+      if(section.id==="upload-test"){
+        content.replaceChildren();
+        const wrap=document.createElement("div");wrap.style.cssText="display:grid;gap:16px";
+        const form=document.createElement("form");form.style.cssText="display:grid;gap:12px;max-width:620px";
+        const note=document.createElement("p");note.textContent="এখানে শুধু Storage upload পরীক্ষা হবে। কোনো Post তৈরি বা পরিবর্তন হবে না। পরীক্ষার ফাইল সফল হলে স্বয়ংক্রিয়ভাবে মুছে ফেলা হবে।";note.style.cssText="margin:0;color:#555";
+        const fileLabel=document.createElement("label");fileLabel.textContent="Photo or video file";
+        const fileInput=document.createElement("input");fileInput.type="file";fileInput.accept="image/*,video/*";fileInput.required=true;fileInput.style.cssText="display:block;width:100%;margin-top:6px";
+        const run=document.createElement("button");run.type="submit";run.className="action-button";run.textContent="Test Upload";
+        const status=document.createElement("p");status.setAttribute("role","status");status.style.cssText="margin:0;overflow-wrap:anywhere";
+        fileLabel.append(fileInput);form.append(note,fileLabel,run,status);wrap.append(form);
+        const tableTitle=document.createElement("h3");tableTitle.textContent="Upload Test History";tableTitle.style.margin="12px 0 0";
+        const tableWrap=document.createElement("div");tableWrap.style.cssText="overflow-x:auto";
+        const table=document.createElement("table");table.style.cssText="width:100%;border-collapse:collapse;min-width:650px";
+        const thead=document.createElement("thead"),hr=document.createElement("tr");
+        ["Time","File","Size","Result","HTTP / Error","Cleanup"].forEach(label=>{const th=document.createElement("th");th.textContent=label;th.style.cssText="text-align:left;padding:9px;border-bottom:1px solid #ddd";hr.append(th);});
+        thead.append(hr);const tbody=document.createElement("tbody");table.append(thead,tbody);tableWrap.append(table);wrap.append(tableTitle,tableWrap);content.append(wrap);
+        const escCell=(value)=>String(value??"—");
+        async function loadTests(){
+          const {data,error}=await supabaseClient.from("media_upload_tests").select("*").order("created_at",{ascending:false}).limit(30);
+          if(!isCurrent())return;
+          tbody.replaceChildren();
+          if(error){const tr=document.createElement("tr"),td=document.createElement("td");td.colSpan=6;td.textContent="Could not load test history: "+error.message;td.style.padding="10px";tr.append(td);tbody.append(tr);return;}
+          if(!data?.length){const tr=document.createElement("tr"),td=document.createElement("td");td.colSpan=6;td.textContent="No upload tests yet.";td.style.padding="10px";tr.append(td);tbody.append(tr);return;}
+          data.forEach(item=>{const tr=document.createElement("tr");const vals=[new Date(item.created_at).toLocaleString(),item.file_name,(Number(item.file_size||0)/1024/1024).toFixed(2)+" MB",item.upload_status==="success"?"Success":"Failed",[item.http_status,item.error_name,item.error_message].filter(Boolean).join(" | ")||"—",item.cleanup_status||"—"];vals.forEach((value,index)=>{const td=document.createElement("td");td.textContent=escCell(value);td.style.cssText="padding:9px;border-bottom:1px solid #eee;vertical-align:top;overflow-wrap:anywhere;max-width:320px";if(index===3)td.style.fontWeight="600";tr.append(td);});tbody.append(tr);});
+        }
+        form.addEventListener("submit",async event=>{
+          event.preventDefault();const file=fileInput.files?.[0];if(!file)return;
+          if(!/^(image|video)\\//i.test(file.type)){status.textContent="শুধু photo বা video নির্বাচন করুন।";return;}
+          if(file.size>104857600){status.textContent="ফাইল 100 MB-এর বেশি।";return;}
+          run.disabled=true;status.style.color="#555";status.textContent="Upload test চলছে…";
+          let path=null, resultRow={tested_by:user.id,file_name:file.name,file_type:file.type,file_size:file.size,upload_status:"failed",http_status:null,error_name:null,error_message:null,cleanup_status:"not needed"};
+          try{
+            const {data:sessionData,error:sessionError}=await supabaseClient.auth.refreshSession();
+            if(sessionError)throw new Error("Session refresh failed: "+sessionError.message);
+            if(sessionData.session?.user?.app_metadata?.role!=="admin")throw new Error("Admin role is missing from the current session. Sign out and sign in again.");
+            const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,"_").slice(-100)||"test-media";
+            path="upload-tests/"+user.id+"/"+Date.now()+"-"+safeName;
+            const {error:uploadError}=await supabaseClient.storage.from("site-media").upload(path,file,{contentType:file.type,upsert:false,cacheControl:"60"});
+            if(uploadError){
+              resultRow.http_status=uploadError.statusCode||uploadError.status||"400";
+              resultRow.error_name=uploadError.name||"StorageApiError";
+              resultRow.error_message=[uploadError.error,uploadError.message,uploadError.details,uploadError.hint].filter(Boolean).join(" | ")||"HTTP 400 error (no detailed response returned by SDK)";
+              throw new Error(resultRow.error_name+" | "+resultRow.http_status+" | "+resultRow.error_message);
+            }
+            resultRow.upload_status="success";resultRow.http_status="200";
+            const {error:removeError}=await supabaseClient.storage.from("site-media").remove([path]);
+            if(removeError){resultRow.cleanup_status="FAILED: "+removeError.message;resultRow.error_message="Upload succeeded; cleanup failed: "+removeError.message;}
+            else{resultRow.cleanup_status="Removed test file";}
+            status.style.color=resultRow.cleanup_status.startsWith("FAILED")?"#a12622":"#176b43";
+            status.textContent=resultRow.cleanup_status.startsWith("FAILED")?"Upload succeeded, but test file cleanup failed: "+removeError.message:"Upload test successful. Test file was removed.";
+          }catch(error){
+            resultRow.upload_status="failed";resultRow.error_message=String(error?.message||error).slice(0,1500);
+            status.style.color="#a12622";status.textContent="Upload test failed: "+resultRow.error_message;
+            if(path&&resultRow.upload_status==="failed"){
+              const {error:cleanupError}=await supabaseClient.storage.from("site-media").remove([path]);
+              resultRow.cleanup_status=cleanupError?"Cleanup failed: "+cleanupError.message:"Removed partial test file";
+            }
+          }finally{
+            const {error:logError}=await supabaseClient.from("media_upload_tests").insert(resultRow);
+            if(logError){status.textContent+=" | Test log could not be saved: "+logError.message;}
+            await loadTests();run.disabled=false;
+          }
+        });
+        await loadTests();return;
+      }
       const configs = {
         post: { table:"post", label:"Posts", fields:[
           {name:"title",label:"Title",type:"text",required:true},
