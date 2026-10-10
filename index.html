@@ -1681,12 +1681,15 @@
     }
 
     // Keep menu actions synchronized with the real Supabase session.
+    // Only route to Profile after sign-in when the user is on an auth page.
+    // Do not override standalone Profile or Dashboard routes during session events.
     supabaseClient.auth.onAuthStateChange((event, session) => {
       updateAuthMenu(session);
       const recoveryHash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
       const recoveryQuery = new URLSearchParams(window.location.search);
+      const currentRoute = window.location.hash.toLowerCase();
       if (session && event === "SIGNED_IN" &&
-          window.location.hash.toLowerCase() !== "#forgot-password" &&
+          (currentRoute === "#login" || currentRoute === "#create-account") &&
           !recoveryQuery.has("code") &&
           !(recoveryHash.get("type") === "recovery" && recoveryHash.has("access_token"))) {
         renderPage("Profile");
@@ -1744,7 +1747,7 @@
         } else if (currentRoute === "#dashboard" || currentRoute.startsWith("#dashboard-")) {
           if (session) {
             renderPage("Dashboard");
-            setCurrentMenuPage("Profile");
+            setCurrentMenuPage("Dashboard");
           } else {
             renderPage("Login");
             history.replaceState(null, "", "#login");
@@ -1809,7 +1812,7 @@
           if (currentRoute === "#profile" && !session) {
             renderPage("Login"); history.replaceState(null, "", "#login"); setCurrentMenuPage("Login");
           } else if (currentRoute === "#dashboard" || currentRoute.startsWith("#dashboard-")) {
-            if (session) { renderPage("Dashboard"); setCurrentMenuPage("Profile"); }
+            if (session) { renderPage("Dashboard"); setCurrentMenuPage("Dashboard"); }
             else { renderPage("Login"); history.replaceState(null, "", "#login"); setCurrentMenuPage("Login"); }
           } else if (currentRoute === "#create-account" && !session) {
             renderPage("CreateAccount"); setCurrentMenuPage("CreateAccount");
