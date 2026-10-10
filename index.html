@@ -791,7 +791,7 @@
         const slug = generatePageSlug(slot.getAttribute("data-dalimgari-include"));
         if (!slug) { slot.remove(); continue; }
         const { data, error } = await supabaseClient.from("pages")
-          .select("title,description,content,url,visibility").eq("url", slug).maybeSingle();
+          .select("title,content,url,visibility").eq("url", slug).maybeSingle();
         if (error || !data) {
           slot.replaceChildren();
           slot.textContent = "Included page is unavailable.";
@@ -818,7 +818,7 @@
       mainContent.append(shell);
       if (!slug) { shell.textContent = "Page not found."; return; }
       const { data, error } = await supabaseClient.from("pages")
-        .select("title,description,content,url,visibility").eq("url", slug).maybeSingle();
+        .select("title,content,url,visibility").eq("url", slug).maybeSingle();
       if (error || !data) {
         const message = document.createElement("p");
         message.textContent = "This page is unavailable or you do not have permission to view it.";
