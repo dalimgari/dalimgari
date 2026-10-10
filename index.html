@@ -986,6 +986,11 @@
         post: { table:"post", label:"Posts", fields:[
           {name:"caption",label:"Caption",type:"text",required:true},
           {name:"description",label:"Description",type:"textarea",full:true},
+          {name:"url",label:"Post URL",type:"text",required:true,help:"Suggested from the caption; you can edit it."},
+          {name:"media_type",label:"Media type",type:"select",options:[["","Not set"],["photo","Photo"],["video","Video"],["other","Other"]]},
+          {name:"source_type",label:"Upload or external link",type:"select",options:[["","Not set"],["upload","Uploaded file"],["external","External link"]]},
+          {name:"storage_path",label:"Uploaded file path",type:"text",full:true},
+          {name:"external_url",label:"External media link",type:"url",full:true},
           {name:"album_id",label:"Album",type:"album"},
           {name:"visibility",label:"Visibility",type:"select",options:[["public","Public"],["private","Only Me"]]}
         ]},
@@ -1161,7 +1166,7 @@
         form.insertBefore(holder,actions);controls[def.name]=input;
         if((def.name==="url")&&(section.id==="post"||section.id==="page")) {
           let urlEdited=false;input.addEventListener("input",()=>{urlEdited=true;});
-          const titleInput=()=>controls.title;
+          const titleInput=()=>controls[section.id==="post"?"caption":"title"];
           titleInput().addEventListener("input",()=>{if(!urlEdited&&!selectedId)input.value=generateUrlValue(titleInput().value);});
           input.addEventListener("blur",()=>{if(!input.value.trim()&&titleInput().value.trim())input.value=generateUrlValue(titleInput().value);});
         }
@@ -1225,8 +1230,8 @@
           if(section.id==="post"){
           const caption=String(controls.caption.value||"").trim();
           if(!caption)throw new Error("Enter a caption.");
-          const slug=generateUrlValue(caption);
-          if(!slug)throw new Error("Caption must contain letters or numbers to create a post URL.");
+          const slug=String(controls.url.value||"").trim()||generateUrlValue(caption);
+          if(!slug)throw new Error("Enter a post URL or use a caption containing letters or numbers.");
           payload.title=caption;
           payload.caption=caption;
           payload.url=slug;
