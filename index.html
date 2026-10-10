@@ -1813,7 +1813,8 @@
         title.textContent = "Account Management";
         const hint = document.createElement("p");
         hint.className = "dashboard-crud-hint";
-        hint.textContent = "Create accounts, change administrator access, and delete accounts. The last administrator cannot be demoted or deleted.";
+        hint.textContent = "The Super Admin account is permanently protected in website account management. Only the Super Admin can grant or remove administrator access. Project owners may still control the underlying Supabase project.";
+        const isSuperAdminCaller = user.id === "c5b6d47e-3e78-4d4e-bc15-6f137a8c1e75";
         const status = document.createElement("p");
         status.className = "dashboard-crud-status";
         status.setAttribute("role", "status");
@@ -1834,6 +1835,7 @@
         adminCheck.type = "checkbox"; adminCheck.style.cssText = "width:auto;min-height:auto";
         const adminText = document.createElement("span"); adminText.textContent = "Make administrator";
         adminLabel.append(adminCheck, adminText);
+        if (!isSuperAdminCaller) { adminCheck.disabled = true; adminText.textContent = "Only Super Admin can create administrators"; }
         const create = document.createElement("button");
         create.type = "submit"; create.className = "action-button primary"; create.textContent = "Create account";
         form.append(email, password, adminLabel, create);
@@ -1886,15 +1888,16 @@
             for (const account of users) {
               const row = document.createElement("tr");
               const emailCell = document.createElement("td"); emailCell.textContent = account.email || "(no email)";
-              const roleCell = document.createElement("td"); roleCell.textContent = account.role === "admin" ? "ADMIN" : "MEMBER";
+              const roleCell = document.createElement("td"); roleCell.textContent = account.is_super_admin || account.role === "super_admin" ? "SUPER ADMIN · PROTECTED" : account.role === "admin" ? "ADMIN" : "MEMBER";
               const createdCell = document.createElement("td"); createdCell.textContent = account.created_at ? new Date(account.created_at).toLocaleString() : "—";
               const signInCell = document.createElement("td"); signInCell.textContent = account.last_sign_in_at ? new Date(account.last_sign_in_at).toLocaleString() : "Never";
               const actions = document.createElement("td");
               const isSelf = account.id === user.id;
+              const isProtectedSuperAdmin = account.is_super_admin === true || account.id === "c5b6d47e-3e78-4d4e-bc15-6f137a8c1e75";
               const roleButton = document.createElement("button");
               roleButton.type = "button"; roleButton.className = "action-button";
-              roleButton.textContent = account.role === "admin" ? "Remove admin" : "Make admin";
-              roleButton.disabled = isSelf && account.role === "admin";
+              roleButton.textContent = isProtectedSuperAdmin ? "Protected" : account.role === "admin" ? "Remove admin" : "Make admin";
+              roleButton.disabled = isProtectedSuperAdmin || !isSuperAdminCaller;
               roleButton.addEventListener("click", async () => {
                 const makeAdmin = account.role !== "admin";
                 if (!confirm((makeAdmin ? "Grant administrator access to " : "Remove administrator access from ") + (account.email || "this account") + "?")) return;
@@ -1910,7 +1913,7 @@
               const deleteButton = document.createElement("button");
               deleteButton.type = "button"; deleteButton.className = "action-button";
               deleteButton.textContent = "Delete"; deleteButton.style.marginLeft = "6px";
-              deleteButton.disabled = isSelf;
+              deleteButton.disabled = isSelf || isProtectedSuperAdmin;
               deleteButton.addEventListener("click", async () => {
                 if (!confirm("Permanently delete the account " + (account.email || "") + "? This cannot be undone.")) return;
                 deleteButton.disabled = true; roleButton.disabled = true;
