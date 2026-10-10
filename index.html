@@ -36,10 +36,27 @@
       padding: 0 16px;
       display: flex;
       align-items: center;
-      justify-content: flex-end;
+      justify-content: space-between;
       background-color: #ffffff;
       border-radius: 12px;
       box-shadow: 0 8px 20px -8px rgba(0, 0, 0, 0.16);
+    }
+
+    .current-page-label {
+      min-width: 0;
+      margin: 0 auto 0 0;
+      padding-right: 16px;
+      color: #222222;
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 1.3;
+      overflow-wrap: anywhere;
+    }
+
+    .login-title,
+    .profile-heading,
+    .dashboard-heading {
+      display: none;
     }
 
     .menu-button {
@@ -463,6 +480,7 @@
 </head>
 <body>
   <header>
+    <span class="current-page-label" id="current-page-label" aria-live="polite">Home</span>
     <button class="menu-button" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="floating-menu">
       <span></span>
       <span></span>
@@ -790,6 +808,13 @@
 
 
     function setCurrentMenuPage(pageName) {
+      const currentPageLabel = document.querySelector("#current-page-label");
+      const displayName = pageName === "Profile" && window.location.hash.toLowerCase() === "#edit-profile"
+        ? "Edit Profile"
+        : pageName === "CreateAccount"
+          ? "Create Account"
+          : pageName;
+      if (currentPageLabel) currentPageLabel.textContent = displayName;
       menuLinks.forEach((item) => {
         const isCurrentPage = item.dataset.page === pageName;
         if (isCurrentPage) item.setAttribute("aria-current", "page");
