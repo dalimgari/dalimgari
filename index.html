@@ -1810,9 +1810,18 @@
             const storagePath="posts/"+savedId+"/"+Date.now()+"-"+safeName;
             const {error:uploadError}=await supabaseClient.storage.from("site-media").upload(storagePath,mediaFile,{contentType:mediaFile.type,upsert:false,cacheControl:"3600"});
             if(uploadError){
-              console.error("Supabase Storage photo/video upload error:",uploadError,{storagePath,fileName:mediaFile.name,fileType:mediaFile.type,fileSize:mediaFile.size});
-              const uploadDetails=[uploadError.error,uploadError.statusCode?("status "+uploadError.statusCode):"",uploadError.name,uploadError.message,uploadError.details].filter(Boolean).join(" | ");
-              throw new Error("Photo/video upload failed: "+(uploadDetails||"Unknown Storage error")+" . Check the browser console for the full error details.");
+              const safeError={
+                name:uploadError?.name||null,
+                statusCode:uploadError?.statusCode||uploadError?.status||null,
+                error:uploadError?.error||null,
+                message:uploadError?.message||null,
+                details:uploadError?.details||null,
+                hint:uploadError?.hint||null,
+                ownKeys:uploadError?Object.getOwnPropertyNames(uploadError):[]
+              };
+              console.error("Supabase Storage photo/video upload error:",safeError,{storagePath,fileName:mediaFile.name,fileType:mediaFile.type,fileSize:mediaFile.size});
+              const uploadDetails=Object.entries(safeError).filter(([key,value])=>key!=="ownKeys"&&value!==null&&value!=="").map(([key,value])=>key+": "+(typeof value==="string"?value:JSON.stringify(value))).join(" | ");
+              throw new Error("Photo/video upload failed — "+(uploadDetails||"Storage returned HTTP 400 without a readable error body")+" . Post text may already be saved; retrying can create a duplicate post.");
             }
             const mediaType=mediaFile.type.toLowerCase().startsWith("video/")?"video":"photo";
             const {error:mediaUpdateError}=await supabaseClient.from("post").update({storage_path:storagePath,media_url:storagePath,media_type:mediaType,source_type:"upload",updated_at:new Date().toISOString()}).eq("id",savedId);
