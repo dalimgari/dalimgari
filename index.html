@@ -1868,9 +1868,7 @@
           {name:"title",label:"Title",type:"text",required:true},
           {name:"description",label:"Description",type:"textarea",full:true},
           {name:"url",label:"URL",type:"text"},
-          {name:"content",label:"Content",type:"textarea",full:true,help:"Text or HTML content. Uploaded files are added below."},
           {name:"media",label:"Content Files (Image, Video, Other)",type:"files",full:true,accept:"image/jpeg,image/png,image/webp,image/gif,image/avif,image/svg+xml,video/mp4,video/webm,video/quicktime,audio/mpeg,audio/mp4,audio/wav,audio/ogg,application/pdf"},
-          {name:"album_id",label:"Album",type:"select",options:[["","No album"]]},
           {name:"visibility",label:"Visibility",type:"select",required:true,options:[["public","Public"],["private","Private"]]}
         ]},
         post:{table:"post",label:"Posts",fields:[
@@ -1884,11 +1882,7 @@
         ]},
         page:{table:"pages",label:"Page",fields:[
           {name:"title",label:"Title",type:"text",required:true},
-          {name:"description",label:"Description",type:"textarea",full:true},
           {name:"url",label:"URL",type:"text",required:true,help:"A unique URL slug. Generated from the title; you can edit it."},
-          {name:"content",label:"Content",type:"textarea",full:true,rows:10,help:"HTML content only. Scripts and unsafe attributes are removed."},
-          {name:"media",label:"Content Files (Image, Video, Other)",type:"files",full:true,accept:"image/jpeg,image/png,image/webp,image/gif,image/avif,image/svg+xml,video/mp4,video/webm,video/quicktime,audio/mpeg,audio/mp4,audio/wav,audio/ogg,application/pdf"},
-          {name:"album_id",label:"Album",type:"select",options:[["","No album"]]},
           {name:"visibility",label:"Visibility",type:"select",required:true,options:[["public","Public"],["private","Private"]]}
         ]},
         album:{table:"albums",label:"Albums",fields:[
@@ -1903,11 +1897,7 @@
           {name:"description",label:"Description",type:"textarea",full:true},
           {name:"permissions",label:"Permissions",type:"multiselect",options:[],full:true}
         ]},
-        customization:{table:"site_customizations",label:"Customizations",fields:[
-          {name:"key",label:"Setting key",type:"text",required:true},
-          {name:"value",label:"Value (JSON)",type:"textarea",required:true,full:true},
-          {name:"description",label:"Description",type:"textarea",full:true}
-        ]},
+        customization:{table:"site_customizations",label:"Customizations",fields:[]},
         settings:{table:"site_settings",label:"Settings",fields:[
           {name:"key",label:"Setting key",type:"text",required:true},
           {name:"value",label:"Value (JSON)",type:"textarea",required:true,full:true},
