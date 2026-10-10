@@ -1997,7 +1997,8 @@
         if(!isCurrent())return;
         let ids=setting?.value;if(typeof ids==="string"){try{ids=JSON.parse(ids);}catch(_){ids=[];}}
         if(ids&&!Array.isArray(ids)&&Array.isArray(ids.ids))ids=ids.ids;if(!Array.isArray(ids))ids=[];
-        const publicRecords=records.filter(r=>r.visibility==="public"),byId=new Map(publicRecords.map(r=>[String(r.id),r]));
+        const publicRecords=records.filter(r=>r.visibility==="public").sort((a,b)=>new Date(a.created_at||0)-new Date(b.created_at||0));
+        const byId=new Map(publicRecords.map(r=>[String(r.id),r]));
         const ordered=[...ids.map(id=>byId.get(String(id))).filter(Boolean)];
         publicRecords.forEach(r=>{if(!ordered.some(x=>String(x.id)===String(r.id)))ordered.push(r);});
         function drawOrder(){
