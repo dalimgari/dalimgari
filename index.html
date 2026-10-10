@@ -833,12 +833,6 @@
       content.className = "stored-html-page-content";
       shell.append(content);
       await renderHtmlInto(content, data.content || "", session);
-      const titleKey = String(data.title || "").replace(/\s+/g, " ").trim().toLowerCase();
-      if (titleKey) {
-        content.querySelectorAll("h1,h2,h3,h4,h5,h6").forEach(node => {
-          if (String(node.textContent || "").replace(/\s+/g, " ").trim().toLowerCase() === titleKey) node.remove();
-        });
-      }
       document.title = (data.title ? data.title + " | " : "") + "Dalimgari";
     }
 
