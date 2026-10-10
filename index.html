@@ -668,6 +668,7 @@
       if(error){console.warn("Site configuration could not be loaded:",error.message);return {};}
       const cfg={};
       for(const row of data||[]){let value=row.value||{};if(typeof value==="string"){try{value=JSON.parse(value)}catch(_){value={}}}cfg[row.key]=value&&typeof value==="object"?value:{};}
+      dalimgariRuntimeConfig = cfg;
       const identity=cfg.ui_customization_identity||{}, general=cfg.ui_settings_general||{};
       const theme=cfg.ui_customization_theme||{}, header=cfg.ui_customization_header_footer||{};
       const layout=cfg.ui_customization_layout||{}, typography=cfg.ui_customization_typography||{};
