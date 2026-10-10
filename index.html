@@ -1352,6 +1352,7 @@
                   if(!Array.isArray(rows)||!rows.length)return;
                   const {error}=await supabaseClient.from(tableName).upsert(rows,{ignoreDuplicates:true});
                   if(error)throw error;
+                }
                 if(item.original_table==="roles"){
                   await restoreLinks("user_roles",related.user_roles);
                   await restoreLinks("role_permissions",related.role_permissions);
