@@ -677,6 +677,40 @@
         }
       }
 
+      // Public Pages appear as pill buttons in the homepage Page Title section.
+      const pageTitleSection = extraSections[0];
+      const pillBar = document.createElement("nav");
+      pillBar.setAttribute("aria-label", "Pages");
+      pillBar.style.cssText = "display:flex;flex-wrap:wrap;gap:10px;width:100%;padding:4px 0 12px";
+      const [{data: publicPages, error: pagesError}, {data: pageOrderSetting}] = await Promise.all([
+        supabaseClient.from("pages").select("id,title,url,visibility,created_at").eq("visibility","public").order("created_at",{ascending:true}).limit(200),
+        supabaseClient.from("site_customizations").select("value").eq("key","home_page_order").maybeSingle()
+      ]);
+      if (!pagesError && Array.isArray(publicPages) && publicPages.length) {
+        let pageOrder = pageOrderSetting?.value;
+        if (typeof pageOrder === "string") { try { pageOrder = JSON.parse(pageOrder); } catch (_) { pageOrder = []; } }
+        if (pageOrder && !Array.isArray(pageOrder) && Array.isArray(pageOrder.ids)) pageOrder = pageOrder.ids;
+        if (!Array.isArray(pageOrder)) pageOrder = [];
+        const rank = new Map(pageOrder.map((id,index)=>[String(id),index]));
+        publicPages.sort((a,b) => {
+          const ar=rank.has(String(a.id))?rank.get(String(a.id)):Number.MAX_SAFE_INTEGER;
+          const br=rank.has(String(b.id))?rank.get(String(b.id)):Number.MAX_SAFE_INTEGER;
+          return ar-br || new Date(a.created_at||0)-new Date(b.created_at||0);
+        });
+        for (const storedPage of publicPages) {
+          if (!storedPage.url || !storedPage.title) continue;
+          const pill = document.createElement("a");
+          pill.href = window.location.pathname + "?page=" + encodeURIComponent(storedPage.url);
+          pill.textContent = storedPage.title;
+          pill.className = "home-page-pill";
+          pill.style.cssText = "display:inline-flex;align-items:center;justify-content:center;min-height:40px;max-width:100%;padding:8px 16px;border:1px solid #dedede;border-radius:999px;background:#fff;color:#333;text-decoration:none;font-size:14px;font-weight:600;line-height:1.35;overflow-wrap:anywhere";
+          pill.addEventListener("mouseenter",()=>{pill.style.background="#f3f4f6";});
+          pill.addEventListener("mouseleave",()=>{pill.style.background="#fff";});
+          pillBar.append(pill);
+        }
+      }
+      if (pillBar.childElementCount) pageTitleSection.append(pillBar);
+
       const { data, error } = await supabaseClient.from("site_customizations")
         .select("value").eq("key", "home_hero").maybeSingle();
       if (error || !data || !data.value) return;
@@ -1947,6 +1981,50 @@
           tbody.append(row);
         });
         table.append(tbody);list.append(table);
+        if(section.id==="page") await renderPageOrderManager();
+      }
+      async function renderPageOrderManager(){
+        if(section.id!=="page" || !isCurrent()) return;
+        const panel=document.createElement("section");panel.className="dashboard-crud-card";panel.style.marginTop="16px";
+        const heading=document.createElement("h3");heading.textContent="Homepage Page Title Order";
+        const hint=document.createElement("p");hint.className="dashboard-crud-hint";hint.textContent="Use the arrows to choose the order of Public pages shown as pill buttons on Home. Only Public pages appear there.";
+        const status=document.createElement("p");status.className="dashboard-crud-status";status.setAttribute("role","status");
+        const orderList=document.createElement("div");orderList.style.cssText="display:grid;gap:8px";
+        const actions=document.createElement("div");actions.className="dashboard-crud-actions";
+        const saveOrder=document.createElement("button");saveOrder.type="button";saveOrder.className="action-button primary";saveOrder.textContent="Save Order";
+        panel.append(heading,hint,orderList,actions,status);actions.append(saveOrder);list.append(panel);
+        const {data:setting,error:settingError}=await supabaseClient.from("site_customizations").select("value").eq("key","home_page_order").maybeSingle();
+        if(!isCurrent())return;
+        let ids=setting?.value;if(typeof ids==="string"){try{ids=JSON.parse(ids);}catch(_){ids=[];}}
+        if(ids&&!Array.isArray(ids)&&Array.isArray(ids.ids))ids=ids.ids;if(!Array.isArray(ids))ids=[];
+        const publicRecords=records.filter(r=>r.visibility==="public"),byId=new Map(publicRecords.map(r=>[String(r.id),r]));
+        const ordered=[...ids.map(id=>byId.get(String(id))).filter(Boolean)];
+        publicRecords.forEach(r=>{if(!ordered.some(x=>String(x.id)===String(r.id)))ordered.push(r);});
+        function drawOrder(){
+          orderList.replaceChildren();
+          if(!ordered.length){const empty=document.createElement("p");empty.className="dashboard-crud-empty";empty.textContent="No Public pages to reorder.";orderList.append(empty);saveOrder.disabled=true;return;}
+          saveOrder.disabled=false;
+          ordered.forEach((record,index)=>{
+            const row=document.createElement("div");row.style.cssText="display:flex;align-items:center;gap:10px;min-width:0;padding:10px;border:1px solid #e5e7eb;border-radius:9px;background:#fff";
+            const label=document.createElement("span");label.textContent=(index+1)+". "+(record.title||record.url||"Page");label.style.cssText="flex:1;min-width:0;overflow-wrap:anywhere;font-size:14px";
+            const up=document.createElement("button");up.type="button";up.className="action-button";up.textContent="↑";up.setAttribute("aria-label","Move "+(record.title||"page")+" up");up.disabled=index===0;
+            const down=document.createElement("button");down.type="button";down.className="action-button";down.textContent="↓";down.setAttribute("aria-label","Move "+(record.title||"page")+" down");down.disabled=index===ordered.length-1;
+            up.addEventListener("click",()=>{[ordered[index-1],ordered[index]]=[ordered[index],ordered[index-1]];drawOrder();});
+            down.addEventListener("click",()=>{[ordered[index+1],ordered[index]]=[ordered[index],ordered[index+1]];drawOrder();});
+            row.append(label,up,down);orderList.append(row);
+          });
+        }
+        if(settingError){status.textContent="Could not load saved order. You can still set and save a new order.";status.style.color="#a12622";}
+        drawOrder();
+        saveOrder.addEventListener("click",async()=>{
+          saveOrder.disabled=true;status.textContent="Saving order…";status.style.color="";
+          try{
+            const payload={key:"home_page_order",value:ordered.map(r=>String(r.id)),description:"Order of Public pages shown in the homepage Page Title section",updated_at:new Date().toISOString()};
+            const {error}=await supabaseClient.from("site_customizations").upsert(payload,{onConflict:"key"});if(error)throw error;
+            status.textContent="Homepage page order saved.";status.style.color="#176b43";
+          }catch(error){status.textContent="Could not save order: "+(error.message||"Please try again.");status.style.color="#a12622";}
+          finally{saveOrder.disabled=false;}
+        });
       }
       async function selectRecord(record,row){
         selectedId=record.id||record.key||record.id;selectedRecordData=record;resetSelectionHighlight();row.classList.add("is-selected");
