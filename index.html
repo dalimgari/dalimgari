@@ -469,6 +469,7 @@
       <span></span>
     </button>
     <nav class="floating-menu" id="floating-menu" aria-label="Main menu" hidden>
+      <button class="menu-link" type="button" data-page="Home">Home</button>
       <button class="menu-link" type="button" data-page="Profile">Profile</button>
       <button class="menu-link" type="button" data-page="Login">Login</button>
     </nav>
@@ -496,18 +497,8 @@
     let activeSession = null;
 
     function updateAuthMenu(session) {
+      // Navigation labels stay the same for signed-in and signed-out visitors.
       activeSession = session || null;
-      const authLink = Array.from(menuLinks).find((item) =>
-        item.dataset.page === "Login" || item.dataset.page === "Logout"
-      );
-      if (!authLink) return;
-      if (activeSession) {
-        authLink.dataset.page = "Logout";
-        authLink.textContent = "Logout";
-      } else {
-        authLink.dataset.page = "Login";
-        authLink.textContent = "Login";
-      }
     }
 
     function renderPage(pageName) {
@@ -573,13 +564,8 @@
         }
 
         renderPage("Profile");
-        menuLinks.forEach((item) => {
-          if (item.dataset.page === "Profile") {
-            item.setAttribute("aria-current", "page");
-          } else {
-            item.removeAttribute("aria-current");
-          }
-        });
+        history.replaceState(null, "", "#profile");
+        setCurrentMenuPage("Profile");
       });
 
       const email = document.createElement("input");
@@ -635,7 +621,7 @@
       createAccount.addEventListener("click", (event) => {
         event.preventDefault();
         renderPage("CreateAccount");
-        menuLinks.forEach((item) => item.removeAttribute("aria-current"));
+        setCurrentMenuPage("CreateAccount");
         history.replaceState(null, "", "#create-account");
       });
 
@@ -804,7 +790,12 @@
 
 
     function setCurrentMenuPage(pageName) {
-      menuLinks.forEach((item) => item.dataset.page === pageName ? item.setAttribute("aria-current", "page") : item.removeAttribute("aria-current"));
+      menuLinks.forEach((item) => {
+        const isCurrentPage = item.dataset.page === pageName;
+        if (isCurrentPage) item.setAttribute("aria-current", "page");
+        else item.removeAttribute("aria-current");
+        item.hidden = isCurrentPage;
+      });
     }
     async function getCurrentUser() {
       try {
@@ -1561,7 +1552,7 @@
         } else {
           // First-time visitors get an intentionally blank Home view.
           mainContent.replaceChildren();
-          menuLinks.forEach((item) => item.removeAttribute("aria-current"));
+          setCurrentMenuPage("Home");
         }
       } catch (error) {
         console.error("Could not initialize the page session:", error);
@@ -1575,7 +1566,7 @@
         } else {
           // Do not force visitors to the Login page on initial load failure.
           mainContent.replaceChildren();
-          menuLinks.forEach((item) => item.removeAttribute("aria-current"));
+          setCurrentMenuPage("Home");
         }
       }
     })();
@@ -1609,6 +1600,7 @@
               setCurrentMenuPage("Profile");
             } else {
               renderPage(pageName);
+              history.replaceState(null, "", pageName === "Home" ? "#home" : "#" + pageName.toLowerCase());
               setCurrentMenuPage(pageName);
             }
           }
