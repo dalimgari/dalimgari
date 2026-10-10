@@ -707,6 +707,86 @@
       heroSection.append(imageFrame);
     }
 
+    function sanitizePageHtml(html) {
+      const parsed = new DOMParser().parseFromString(String(html || ""), "text/html");
+      parsed.querySelectorAll("script,iframe,object,embed,base,meta,link,foreignObject").forEach(node => node.remove());
+      parsed.querySelectorAll("*").forEach(node => {
+        Array.from(node.attributes).forEach(attribute => {
+          const name = attribute.name.toLowerCase();
+          const value = String(attribute.value || "").trim().toLowerCase();
+          if (name.startsWith("on") || name === "srcdoc" ||
+              ((name === "href" || name === "src" || name === "xlink:href" || name === "action" || name === "formaction") &&
+               (value.startsWith("javascript:") || value.startsWith("data:text/html:")))) {
+            node.removeAttribute(attribute.name);
+          }
+        });
+        if (node.tagName === "FORM") {
+          node.removeAttribute("action");
+          node.removeAttribute("method");
+        }
+      });
+      return parsed.body;
+    }
+
+    async function renderHtmlInto(container, html, session, depth=0) {
+      const safeBody = sanitizePageHtml(html);
+      container.replaceChildren(...Array.from(safeBody.childNodes).map(node => document.importNode(node, true)));
+      const includes = Array.from(container.querySelectorAll("[data-dalimgari-include]"));
+      for (const slot of includes) {
+        if (depth >= 5) { slot.textContent = "Page include depth limit reached."; continue; }
+        const slug = generatePageSlug(slot.getAttribute("data-dalimgari-include"));
+        if (!slug) { slot.remove(); continue; }
+        const { data, error } = await supabaseClient.from("pages")
+          .select("title,description,content,url,visibility").eq("url", slug).maybeSingle();
+        if (error || !data) {
+          slot.replaceChildren();
+          slot.textContent = "Included page is unavailable.";
+          continue;
+        }
+        await renderHtmlInto(slot, data.content || "", session, depth + 1);
+      }
+    }
+
+    function generatePageSlug(value) {
+      return String(value || "").trim().toLowerCase().replace(/^\\/+|\\/+$/g, "")
+        .replace(/[^a-z0-9-]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+    }
+
+    async function renderStoredPage(rawSlug, session) {
+      mainContent.style.alignItems = "flex-start";
+      mainContent.style.justifyContent = "flex-start";
+      mainContent.replaceChildren();
+      const slug = generatePageSlug(rawSlug);
+      const shell = document.createElement("article");
+      shell.className = "stored-html-page";
+      shell.style.cssText = "width:100%;max-width:1100px;box-sizing:border-box;margin:0 auto;padding:24px 16px 40px;overflow-wrap:anywhere";
+      mainContent.append(shell);
+      if (!slug) { shell.textContent = "Page not found."; return; }
+      const { data, error } = await supabaseClient.from("pages")
+        .select("title,description,content,url,visibility").eq("url", slug).maybeSingle();
+      if (error || !data) {
+        const message = document.createElement("p");
+        message.textContent = "This page is unavailable or you do not have permission to view it.";
+        shell.append(message);
+        return;
+      }
+      const heading = document.createElement("h1");
+      heading.textContent = data.title || "";
+      heading.style.cssText = "margin:0 0 12px;overflow-wrap:anywhere";
+      shell.append(heading);
+      if (data.description) {
+        const description = document.createElement("p");
+        description.textContent = data.description;
+        description.style.cssText = "margin:0 0 24px;line-height:1.6;overflow-wrap:anywhere";
+        shell.append(description);
+      }
+      const content = document.createElement("div");
+      content.className = "stored-html-page-content";
+      shell.append(content);
+      await renderHtmlInto(content, data.content || "", session);
+      document.title = (data.title ? data.title + " | " : "") + "Dalimgari";
+    }
+
     function renderPage(pageName) {
       mainContent.style.removeProperty("align-items");
       mainContent.style.removeProperty("justify-content");
@@ -1474,10 +1554,10 @@
           {name:"visibility",label:"Visibility",type:"select",options:[["public","Public"],["private","Only Me"]]}
         ]},
         page: { table:"pages", label:"Pages", fields:[
-          {name:"title",label:"Title",type:"text",required:true},
+          {name:"title",label:"Page Title",type:"text",required:true},
+          {name:"url",label:"Page URL",type:"text",required:true,help:"Use a unique URL slug, e.g. about-us. English letters, numbers and hyphens are supported."},
           {name:"description",label:"Description",type:"textarea",full:true},
-          {name:"content",label:"Page content",type:"textarea",full:true},
-          {name:"url",label:"URL",type:"text",required:true,help:"Suggested from the title; you can override it."},
+          {name:"content",label:"HTML Code",type:"textarea",rows:12,full:true,help:"Paste HTML only. Script tags and unsafe HTML attributes are removed before display."},
           {name:"visibility",label:"Visibility",type:"select",options:[["public","Public"],["private","Only Me"]]}
         ]},
         role: { table:"roles", label:"Roles", fields:[
@@ -1776,7 +1856,7 @@
         const holder=document.createElement("div");holder.className="dashboard-crud-field"+(def.full?" full":"");
         const label=document.createElement("label");label.textContent=def.label;label.htmlFor="dash-"+section.id+"-"+def.name;
         let input;
-        if(def.type==="textarea"){input=document.createElement("textarea");input.rows=4;}
+        if(def.type==="textarea"){input=document.createElement("textarea");input.rows=def.rows||4;}
         else if(def.type==="select"){input=document.createElement("select");(def.options||[]).forEach(([value,labelText])=>{const opt=document.createElement("option");opt.value=value;opt.textContent=labelText;input.append(opt);});}
         else {input=document.createElement("input");input.type=def.type==="file"?"file":def.type;if(def.accept)input.accept=def.accept;}
         input.className="dashboard-crud-input";input.id=label.htmlFor;input.name=def.name;
@@ -1872,7 +1952,13 @@
             if(!slug)throw new Error("Could not generate a secure Post URL. Please try again.");
             payload.caption=title;payload.url=slug;payload.title=title;
           }
-          if(config.table==="pages"){payload.url=generateUrlValue(payload.url||payload.title);if(!payload.url)throw new Error("Title or URL is required.");}
+          if(config.table==="pages"){
+            payload.url=generateUrlValue(payload.url||payload.title);
+            if(!payload.url)throw new Error("Page URL is required. Use English letters, numbers and hyphens.");
+            const {data:duplicate,error:duplicateError}=await supabaseClient.from("pages").select("id").eq("url",payload.url).limit(1).maybeSingle();
+            if(duplicateError)throw duplicateError;
+            if(duplicate&&duplicate.id!==selectedId)throw new Error("This Page URL is already in use. Choose another URL.");
+          }
           if(config.table==="site_customizations"||config.table==="site_settings")payload.updated_by=user.id;
           if(config.table!=="profiles")payload.updated_at=new Date().toISOString();
           let result;
@@ -2034,12 +2120,16 @@
             (hashParams.get("type") === "recovery" && (hashParams.has("access_token") || hashParams.has("error")))) {
           return "#forgot-password";
         }
+        if (params.has("page") && params.get("page") && (!window.location.hash || window.location.hash.toLowerCase()==="#home")) return "#stored-page";
         return window.location.hash.toLowerCase() || "#home";
       };
       const openRoute = (session) => {
         updateAuthMenu(session);
         const currentRoute = route();
-        if (currentRoute === "#home") {
+        if (currentRoute === "#stored-page") {
+          renderStoredPage(new URLSearchParams(window.location.search).get("page"), session);
+          setCurrentMenuPage("Home");
+        } else if (currentRoute === "#home") {
           renderHome();
           setCurrentMenuPage("Home");
         } else if (currentRoute === "#profile") {
@@ -2125,8 +2215,13 @@
         const currentRoute = params.has("code") ||
           (hashParams.get("type") === "recovery" && hashParams.has("access_token"))
           ? "#forgot-password"
-          : (window.location.hash.toLowerCase() || "#home");
-        if (currentRoute === "#home") {
+          : (params.has("page") && params.get("page") && (!window.location.hash || window.location.hash.toLowerCase()==="#home")
+            ? "#stored-page" : (window.location.hash.toLowerCase() || "#home"));
+        if (currentRoute === "#stored-page") {
+          updateAuthMenu(data.session);
+          await renderStoredPage(params.get("page"), data.session);
+          setCurrentMenuPage("Home");
+        } else if (currentRoute === "#home") {
           updateAuthMenu(data.session);
           renderHome();
           setCurrentMenuPage("Home");
