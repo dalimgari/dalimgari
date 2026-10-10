@@ -1809,7 +1809,11 @@
             const safeName=mediaFile.name.replace(/[^a-zA-Z0-9._-]/g,"_").slice(-120)||"media";
             const storagePath="posts/"+savedId+"/"+Date.now()+"-"+safeName;
             const {error:uploadError}=await supabaseClient.storage.from("site-media").upload(storagePath,mediaFile,{contentType:mediaFile.type,upsert:false,cacheControl:"3600"});
-            if(uploadError)throw new Error("Photo/video upload failed: "+uploadError.message);
+            if(uploadError){
+              console.error("Supabase Storage photo/video upload error:",uploadError,{storagePath,fileName:mediaFile.name,fileType:mediaFile.type,fileSize:mediaFile.size});
+              const uploadDetails=[uploadError.error,uploadError.statusCode?("status "+uploadError.statusCode):"",uploadError.name,uploadError.message,uploadError.details].filter(Boolean).join(" | ");
+              throw new Error("Photo/video upload failed: "+(uploadDetails||"Unknown Storage error")+" . Check the browser console for the full error details.");
+            }
             const mediaType=mediaFile.type.toLowerCase().startsWith("video/")?"video":"photo";
             const {error:mediaUpdateError}=await supabaseClient.from("post").update({storage_path:storagePath,media_url:storagePath,media_type:mediaType,source_type:"upload",updated_at:new Date().toISOString()}).eq("id",savedId);
             if(mediaUpdateError){
