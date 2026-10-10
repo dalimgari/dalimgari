@@ -2184,13 +2184,14 @@
           const wrap = document.createElement("div");
           wrap.className = "dashboard-crud-field" + (field.type === "textarea" ? " full" : "");
           const label = document.createElement("label");
+          label.textContent=field.label;
           if(field.type==="order"){
             const hidden=document.createElement("input");hidden.type="hidden";hidden.name=field.name;hidden.value=field.value||"[]";
             inputMap.set(group.id+"."+field.name,hidden);
             label.htmlFor="cfg-"+group.id+"-"+field.name;label.id=label.htmlFor+"-label";
             const control=document.createElement("div");control.className="section-order-control";control.setAttribute("aria-labelledby",label.id);
             const names={hero:"Hero",page_title:"Page Title",widget:"Widget",album:"Album",page_card:"Page Card"};
-            const normalizeOrder=raw=>{let order=[];try{order=Array.isArray(raw)?raw:JSON.parse(String(raw||"[]"));}catch(_){}const valid=["hero","page_title","widget","album","page_card"];order=order.filter(key=>valid.includes(key));return [...new Set(order),...valid.filter(key=>!order.includes(key))];};
+            const normalizeOrder=raw=>{let order=[];try{order=Array.isArray(raw)?raw:JSON.parse(String(raw||"[]"));}catch(_){}if(!Array.isArray(order))order=[];const valid=["hero","page_title","widget","album","page_card"];order=order.filter(key=>valid.includes(key));return [...new Set(order),...valid.filter(key=>!order.includes(key))];};
             const draw=()=>{control.replaceChildren();const order=normalizeOrder(hidden.value);hidden.value=JSON.stringify(order);order.forEach((key,index)=>{const row=document.createElement("div");row.className="section-order-row";const number=document.createElement("span");number.className="section-order-index";number.textContent=String(index+1);const name=document.createElement("span");name.className="section-order-name";name.textContent=names[key];const moves=document.createElement("div");moves.className="section-order-moves";const up=document.createElement("button");up.type="button";up.className="action-button";up.textContent="↑";up.setAttribute("aria-label","Move "+names[key]+" up");up.disabled=index===0;const down=document.createElement("button");down.type="button";down.className="action-button";down.textContent="↓";down.setAttribute("aria-label","Move "+names[key]+" down");down.disabled=index===order.length-1;up.addEventListener("click",()=>{[order[index-1],order[index]]=[order[index],order[index-1]];hidden.value=JSON.stringify(order);draw();});down.addEventListener("click",()=>{[order[index+1],order[index]]=[order[index],order[index+1]];hidden.value=JSON.stringify(order);draw();});moves.append(up,down);row.append(number,name,moves);control.append(row);});};
             hidden.addEventListener("change",draw);draw();wrap.append(label,hidden,control);return wrap;
           }
