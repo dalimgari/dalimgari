@@ -1639,9 +1639,6 @@
         try {
           // Home is always directly reachable, regardless of authentication state.
           if (pageName === "Home") {
-            const { data, error } = await supabaseClient.auth.getSession();
-            if (error) throw error;
-            updateAuthMenu(data.session);
             mainContent.replaceChildren();
             history.replaceState(null, "", "#home");
             setCurrentMenuPage("Home");
