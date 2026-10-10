@@ -296,7 +296,8 @@
     .profile-actions{display:flex;flex-direction:column;align-items:flex-start;gap:10px;margin-top:18px}.action-button{min-height:44px;padding:0 16px;border:1px solid #ddd;border-radius:9px;background:#fff;color:#222;font:inherit;font-weight:600;cursor:pointer}.action-button.primary{background:#222;border-color:#222;color:#fff}
     .profile-input{width:100%;margin:0 0 15px;padding:12px 13px;border:1px solid #dcdcdc;border-radius:9px;background:#fff;color:#222;font:inherit;font-size:15px}
     .edit-profile-form label{display:block;margin:0 0 6px;color:#444;font-size:14px}.profile-status{margin:12px 0;font-size:14px;line-height:1.5}.back-profile{margin-bottom:18px}
-    .profile-picture-editor{padding:16px;margin-bottom:18px;border:1px solid #eee;border-radius:12px;background:#f8f9fb}.profile-picture-row{display:flex;align-items:center;gap:16px}.profile-avatar-large{width:88px;height:88px;flex:0 0 88px;border:1px solid #eee}.profile-avatar img,.profile-avatar-large img{width:100%;height:100%;object-fit:cover}.profile-picture-controls{min-width:0}.profile-picture-controls label{margin-bottom:8px}.profile-picture-controls input{max-width:100%}.profile-picture-status{font-size:13px;overflow-wrap:anywhere}@media(max-width:480px){.profile-picture-row{align-items:flex-start;flex-direction:column}}
+    .profile-picture-editor{padding:16px;margin-bottom:18px;border:1px solid #eee;border-radius:12px;background:#f8f9fb}.profile-picture-row{display:flex;align-items:center;gap:16px}.profile-avatar-large{width:88px;height:88px;flex:0 0 88px;border:1px solid #eee}.profile-avatar img,.profile-avatar-large img{width:100%;height:100%;object-fit:cover}
+    .profile-avatar img{display:block}.login-default-avatar{margin:0 auto 16px;width:72px;height:72px;flex-basis:72px}.profile-picture-controls{min-width:0}.profile-picture-controls label{margin-bottom:8px}.profile-picture-controls input{max-width:100%}.profile-picture-status{font-size:13px;overflow-wrap:anywhere}@media(max-width:480px){.profile-picture-row{align-items:flex-start;flex-direction:column}}
     
     
     @media(max-width:560px){.profile-page{padding:17px;margin:18px auto}.profile-details{grid-template-columns:1fr}.profile-actions .action-button{flex:1 1 100%}.profile-heading{font-size:22px}}
@@ -677,7 +678,10 @@
       message.className = "login-message";
       message.setAttribute("role", "alert");
 
-      form.append(email, password, rememberRow, forgot, submit, message, createAccount);
+      const loginAvatar = document.createElement("div");
+      loginAvatar.className = "profile-avatar login-default-avatar";
+      setDefaultAvatar(loginAvatar);
+      form.append(loginAvatar, email, password, rememberRow, forgot, submit, message, createAccount);
       mainContent.append(form);
     }
 
@@ -1069,9 +1073,17 @@
       }
     }
     function metadataValue(user, key) { return (user.user_metadata && user.user_metadata[key]) || ""; }
+    const DEFAULT_AVATAR_URL = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="50" fill="#e5e7eb"/><circle cx="50" cy="36" r="18" fill="#9ca3af"/><path d="M16 91c2-20 16-31 34-31s32 11 34 31" fill="#9ca3af"/></svg>');
+    function setDefaultAvatar(container) {
+      container.replaceChildren();
+      const image = document.createElement("img");
+      image.src = DEFAULT_AVATAR_URL;
+      image.alt = "Default profile avatar";
+      container.append(image);
+    }
 
     async function resolveAvatarUrl(user) {
-      const avatarUrl = await resolveAvatarUrl(user);
+      const avatarUrl = metadataValue(user, "avatar_url");
       if (!avatarUrl.startsWith("data:image/")) return avatarUrl;
       try {
         const response = await fetch(avatarUrl);
@@ -1114,15 +1126,15 @@
       const heading = document.createElement("h1"); heading.className = "profile-heading"; heading.textContent = "My Profile";
       const summary = document.createElement("div"); summary.className = "profile-summary";
       const avatar = document.createElement("div"); avatar.className = "profile-avatar";
-      const avatarUrl = metadataValue(user, "avatar_url");
+      const avatarUrl = await resolveAvatarUrl(user);
       if (avatarUrl) {
         const avatarImage = document.createElement("img");
         avatarImage.src = avatarUrl;
         avatarImage.alt = "Profile picture";
-        avatarImage.onerror = () => { avatar.replaceChildren(); avatar.textContent = name.charAt(0).toUpperCase() || "?"; };
+        avatarImage.onerror = () => setDefaultAvatar(avatar);
         avatar.append(avatarImage);
       } else {
-        avatar.textContent = name.charAt(0).toUpperCase() || "?";
+        setDefaultAvatar(avatar);
       }
       const identity = document.createElement("div");
       const nameLine = document.createElement("h2"); nameLine.className = "profile-name"; nameLine.append(document.createTextNode(name || "Not added"));
@@ -1611,8 +1623,8 @@
       const avatarRow=document.createElement("div");avatarRow.className="profile-picture-row";
       const avatarPreview=document.createElement("div");avatarPreview.className="profile-avatar profile-avatar-large";
       const currentAvatarUrl=await resolveAvatarUrl(user);
-      if(currentAvatarUrl){const img=document.createElement("img");img.src=currentAvatarUrl;img.alt="Profile picture";avatarPreview.append(img);}
-      else{avatarPreview.textContent=(profile.full_name||metadataValue(user,"full_name")||metadataValue(user,"name")||(user.email||"M").split("@")[0]).charAt(0).toUpperCase();}
+      if(currentAvatarUrl){const img=document.createElement("img");img.src=currentAvatarUrl;img.alt="Profile picture";img.onerror=()=>setDefaultAvatar(avatarPreview);avatarPreview.append(img);}
+      else{setDefaultAvatar(avatarPreview);}
       const avatarControls=document.createElement("div");avatarControls.className="profile-picture-controls";
       const avatarLabel=document.createElement("label");avatarLabel.htmlFor="edit-profile-picture";avatarLabel.textContent="Change profile picture";
       const avatarInput=document.createElement("input");avatarInput.type="file";avatarInput.id="edit-profile-picture";avatarInput.accept="image/*";
