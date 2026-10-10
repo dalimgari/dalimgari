@@ -1250,7 +1250,7 @@
         loadExistingMediaFiles();
       }
       function resetForm(){
-        selectedId=null;selectedRecordData=null;selectedExistingPath="";selectedExistingType="";form.reset();if(section.id==="post")updateMediaMethodVisibility();
+        selectedId=null;selectedRecordData=null;selectedExistingPath="";selectedExistingType="";form.reset();
         save.textContent=config.editOnly?"Select a media item":(config.readOnlyCreate?"Save Profile":(section.id==="post"?"Publish":"Create"));save.disabled=!!config.editOnly;remove.disabled=true;setStatus("");
         list.querySelectorAll(".dashboard-crud-row").forEach(row=>row.classList.remove("is-selected"));
         if(albumMediaCard){albumMediaCard.hidden=true;albumMediaList.replaceChildren();albumMediaStatus.textContent="";albumMediaAddButton.disabled=true;albumMediaRemoveButton.disabled=true;}
@@ -1339,7 +1339,7 @@
         table.append(tbody);list.append(table);
       }
       async function selectRecord(record,row){
-        selectedId=record.id||record.key||record.id;selectedRecordData=record;selectedUploadedPath="";selectedUploadedUrl="";selectedUploadState={type:""};resetSelectionHighlight();row.classList.add("is-selected");
+        selectedId=record.id||record.key||record.id;selectedRecordData=record;selectedExistingPath="";selectedExistingType="";resetSelectionHighlight();row.classList.add("is-selected");
         config.fields.forEach(def=>{
           const input=controls[def.name];if(!input)return;
           if(input.type==="file")return;
@@ -1348,24 +1348,18 @@
           input.value=value==null?"":String(value);
         });
         if(section.id==="post"){
+          selectedExistingPath="";selectedExistingType="";
           if(record.source_type==="upload"&&record.storage_path){
-            controls.media_method.value="existing_file";
             await loadExistingMediaFiles();
             let option=Array.from(controls.existing_file.options).find(opt=>opt.value===record.storage_path);
             if(!option){option=document.createElement("option");option.value=record.storage_path;option.textContent=record.storage_path.split("/").pop();controls.existing_file.append(option);}
             controls.existing_file.value=record.storage_path;selectedExistingPath=record.storage_path;selectedExistingType=record.media_type||"";
-            controls.media_url.value="";
             try{
               const {data:signedData,error:signedError}=await supabaseClient.storage.from("site-media").createSignedUrl(record.storage_path,31536000);
               if(signedError)throw signedError;
               controls.media_url.value=signedData.signedUrl;
             }catch(error){setStatus(error.message||"Could not refresh the selected file URL.","error");}
-          }else if(record.media_url){
-            controls.media_method.value="media_url";
-          }else{
-            controls.media_method.value="";
           }
-          updateMediaMethodVisibility();
         }
         save.textContent=config.readOnlyCreate?"Save Profile":"Update";save.disabled=false;remove.disabled=!!config.noDelete;setStatus("Selected record loaded into the form.");
         if(section.id==="album")await refreshAlbumMedia();
@@ -1436,17 +1430,25 @@
             let mediaPath="",mediaType="",sourceType="";
             const chosenFile=controls.media_file.files?.[0]||null;
             if(chosenFile){
-              if(!chosenFile.type.startsWith("image/")&&!chosenFile.type.startsWith("video/"))throw new Error("Choose an image or video file only.");
+              const rawExt=(chosenFile.name.split(".").pop()||"").toLowerCase();
+              const extensionMime={
+                jpg:"image/jpeg",jpeg:"image/jpeg",png:"image/png",gif:"image/gif",webp:"image/webp",avif:"image/avif",heic:"image/heic",heif:"image/heif",bmp:"image/bmp",
+                mp4:"video/mp4",m4v:"video/mp4",mov:"video/quicktime",webm:"video/webm",ogv:"video/ogg",ogg:"video/ogg",3gp:"video/3gpp",mkv:"video/x-matroska"
+              };
+              const mime=chosenFile.type||(extensionMime[rawExt]||"");
+              if(!mime.startsWith("image/")&&!mime.startsWith("video/"))throw new Error("Could not identify the selected file type. Try a JPG, PNG, WEBP, HEIC, MP4, MOV, or WEBM file.");
               if(chosenFile.size>100*1024*1024)throw new Error("File is larger than the 100 MB limit.");
               setStatus("Uploading selected file…");
-              const rawExt=(chosenFile.name.split(".").pop()||"").toLowerCase();
-              const ext=/^[a-z0-9]{1,10}$/.test(rawExt)?rawExt:(chosenFile.type==="image/jpeg"?"jpg":chosenFile.type.split("/")[1]||"bin");
+              const ext=/^[a-z0-9]{1,10}$/.test(rawExt)?rawExt:(mime==="image/jpeg"?"jpg":mime.split("/")[1]||"bin");
               const randomBytes=new Uint8Array(24);crypto.getRandomValues(randomBytes);
               const randomPart=Array.from(randomBytes,b=>b.toString(16).padStart(2,"0")).join("");
               mediaPath="posts/"+user.id+"/"+randomPart+"."+ext;
-              const {error:uploadError}=await supabaseClient.storage.from("site-media").upload(mediaPath,chosenFile,{contentType:chosenFile.type,upsert:false});
-              if(uploadError)throw uploadError;
-              mediaType=chosenFile.type;sourceType="upload";
+              const {error:uploadError}=await supabaseClient.storage.from("site-media").upload(mediaPath,chosenFile,{contentType:mime,upsert:false});
+              if(uploadError){
+                const detail=[uploadError.message,uploadError.statusCode?("HTTP "+uploadError.statusCode):""].filter(Boolean).join(" — ");
+                throw new Error(detail||"Media upload failed.");
+              }
+              mediaType=mime;sourceType="upload";
             }else if(selectedExistingPath){
               mediaPath=selectedExistingPath;mediaType=selectedExistingType;sourceType="upload";
             }else{
