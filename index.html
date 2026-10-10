@@ -976,34 +976,6 @@
     }
 
 
-    function attachMediaUploadComponent({sectionId,user,controls,setStatus,state}) {
-      const fileInput=controls.media_file, mediaUrlInput=controls.media_url, titleInput=controls.title;
-      if(!fileInput||!mediaUrlInput||!titleInput)return;
-      fileInput.addEventListener("change",async()=>{
-        const file=fileInput.files?.[0];if(!file)return;
-        state().path="";state().url="";state().type="";
-        state().uploading=true;
-        mediaUrlInput.value="";
-        if(!file.type.startsWith("image/")&&!file.type.startsWith("video/")){fileInput.value="";state().uploading=false;setStatus("Choose an image or video file only.","error");return;}
-        if(file.size>100*1024*1024){fileInput.value="";state().uploading=false;setStatus("File is larger than the 100 MB limit.","error");return;}
-        const title=String(titleInput.value||"").trim();
-        fileInput.disabled=true;setStatus("Uploading media…");
-        try{
-          const rawExt=(file.name.split(".").pop()||"").toLowerCase();
-          const ext=/^[a-z0-9]{1,10}$/.test(rawExt)?rawExt:(file.type==="image/jpeg"?"jpg":file.type.split("/")[1]||"bin");
-          const randomBytes=new Uint8Array(24);crypto.getRandomValues(randomBytes);
-          const randomPart=Array.from(randomBytes,b=>b.toString(16).padStart(2,"0")).join("");
-          const path=sectionId+"s/"+user.id+"/"+randomPart+"."+ext;
-          const {error:uploadError}=await supabaseClient.storage.from("site-media").upload(path,file,{contentType:file.type,upsert:false});
-          if(uploadError)throw uploadError;
-          state().path=path;state().url="";state().type=file.type;
-          mediaUrlInput.value="";
-          setStatus("Media uploaded. Its private URL will be generated when you press Publish.","success");
-        }catch(error){setStatus(error.message||"Media upload failed.","error");}
-        finally{fileInput.disabled=false;state().uploading=false;}
-      });
-    }
-
     async function renderDashboardSection(section, content, renderToken, isCurrent) {
       const user = await getCurrentUser();
       if (!user || String(user.app_metadata?.role || "").toLowerCase() !== "admin") {
@@ -1190,7 +1162,7 @@
         albumMediaCard.hidden=true;wrap.append(albumMediaCard);
       }
       content.append(wrap);
-      let selectedId=null, records=[], selectedRecordData=null, selectedUploadedPath="", selectedUploadedUrl="", selectedUploadState={type:""}, mediaUploadInProgress=false;
+      let selectedId=null, records=[], selectedRecordData=null;
       const albums=availableAlbums;
       const controls={};
       function setStatus(message,type){status.textContent=message;status.style.color=type==="error"?"#a12622":type==="success"?"#176b43":"#555";}
@@ -1246,17 +1218,17 @@
       }
       if(section.id==="post"){
         controls.media_file.addEventListener("change",()=>{
-          if(!controls.media_file.files?.length)return;
-          selectedUploadedPath="";selectedUploadedUrl="";selectedUploadState={type:""};
-          selectedExistingPath="";selectedExistingType="";
-          controls.existing_file.value="";
-          controls.media_url.value="";
+          if(controls.media_file.files?.length){
+            selectedExistingPath="";selectedExistingType="";
+            controls.existing_file.value="";
+            controls.media_url.value="";
+            setStatus("File selected. Press Publish to upload and save it.","success");
+          }
         });
         controls.existing_file.addEventListener("change",async()=>{
           selectedExistingPath=controls.existing_file.value;
           selectedExistingType=controls.existing_file.selectedOptions[0]?.dataset.type||"";
           if(selectedExistingPath){
-            selectedUploadedPath="";selectedUploadedUrl="";selectedUploadState={type:""};
             controls.media_file.value="";
             controls.media_url.value="";
           }
@@ -1266,21 +1238,19 @@
             const {data:signedData,error:signedError}=await supabaseClient.storage.from("site-media").createSignedUrl(selectedExistingPath,31536000);
             if(signedError)throw signedError;
             controls.media_url.value=signedData.signedUrl;
-            setStatus("Existing file selected. Its Media URL is ready; Publish will create a new Post URL.","success");
+            setStatus("Existing file selected. Press Publish to create the post.","success");
           }catch(error){setStatus(error.message||"Could not prepare the selected file URL.","error");}
         });
         controls.media_url.addEventListener("input",()=>{
           if(!controls.media_url.value.trim())return;
-          selectedUploadedPath="";selectedUploadedUrl="";selectedUploadState={type:""};
-          selectedExistingPath="";selectedExistingType="";
           controls.media_file.value="";
+          selectedExistingPath="";selectedExistingType="";
           controls.existing_file.value="";
         });
         loadExistingMediaFiles();
-        attachMediaUploadComponent({sectionId:section.id,user,controls,setStatus,state:()=>({get path(){return selectedUploadedPath;},set path(v){selectedUploadedPath=v;},get url(){return selectedUploadedUrl;},set url(v){selectedUploadedUrl=v;},get type(){return selectedUploadState.type;},set type(v){selectedUploadState.type=v;},get uploading(){return mediaUploadInProgress;},set uploading(v){mediaUploadInProgress=v;}})});
       }
       function resetForm(){
-        selectedId=null;selectedRecordData=null;selectedUploadedPath="";selectedUploadedUrl="";selectedUploadState={type:""};selectedExistingPath="";selectedExistingType="";form.reset();if(section.id==="post")updateMediaMethodVisibility();
+        selectedId=null;selectedRecordData=null;selectedExistingPath="";selectedExistingType="";form.reset();if(section.id==="post")updateMediaMethodVisibility();
         save.textContent=config.editOnly?"Select a media item":(config.readOnlyCreate?"Save Profile":(section.id==="post"?"Publish":"Create"));save.disabled=!!config.editOnly;remove.disabled=true;setStatus("");
         list.querySelectorAll(".dashboard-crud-row").forEach(row=>row.classList.remove("is-selected"));
         if(albumMediaCard){albumMediaCard.hidden=true;albumMediaList.replaceChildren();albumMediaStatus.textContent="";albumMediaAddButton.disabled=true;albumMediaRemoveButton.disabled=true;}
@@ -1464,9 +1434,19 @@
             if(!title)throw new Error("Enter a title.");
             let mediaUrl=String(controls.media_url.value||"").trim();
             let mediaPath="",mediaType="",sourceType="";
-            if(mediaUploadInProgress)throw new Error("Please wait for the selected media file to finish uploading.");
-            if(selectedUploadedPath){
-              mediaPath=selectedUploadedPath;mediaType=selectedUploadState.type;sourceType="upload";
+            const chosenFile=controls.media_file.files?.[0]||null;
+            if(chosenFile){
+              if(!chosenFile.type.startsWith("image/")&&!chosenFile.type.startsWith("video/"))throw new Error("Choose an image or video file only.");
+              if(chosenFile.size>100*1024*1024)throw new Error("File is larger than the 100 MB limit.");
+              setStatus("Uploading selected file…");
+              const rawExt=(chosenFile.name.split(".").pop()||"").toLowerCase();
+              const ext=/^[a-z0-9]{1,10}$/.test(rawExt)?rawExt:(chosenFile.type==="image/jpeg"?"jpg":chosenFile.type.split("/")[1]||"bin");
+              const randomBytes=new Uint8Array(24);crypto.getRandomValues(randomBytes);
+              const randomPart=Array.from(randomBytes,b=>b.toString(16).padStart(2,"0")).join("");
+              mediaPath="posts/"+user.id+"/"+randomPart+"."+ext;
+              const {error:uploadError}=await supabaseClient.storage.from("site-media").upload(mediaPath,chosenFile,{contentType:chosenFile.type,upsert:false});
+              if(uploadError)throw uploadError;
+              mediaType=chosenFile.type;sourceType="upload";
             }else if(selectedExistingPath){
               mediaPath=selectedExistingPath;mediaType=selectedExistingType;sourceType="upload";
             }else{
