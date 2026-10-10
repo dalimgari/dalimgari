@@ -531,6 +531,7 @@
       mainContent.replaceChildren();
 
       if (pageName === "CreateAccount") { renderCreateAccount(); return; }
+      if (pageName === "ForgotPassword") { renderForgotPassword(); return; }
       if (pageName === "Profile") { renderProfile(); return; }
       if (pageName === "EditProfile") { renderEditProfile(); return; }
       if (pageName === "Dashboard") { renderDashboard(); return; }
@@ -628,8 +629,14 @@
 
       const forgot = document.createElement("a");
       forgot.className = "forgot-password";
-      forgot.href = "forgot-password.html";
+      forgot.href = "#forgot-password";
       forgot.textContent = "Forgot password?";
+      forgot.addEventListener("click", (event) => {
+        event.preventDefault();
+        history.pushState(null, "", "#forgot-password");
+        renderPage("ForgotPassword");
+        setCurrentMenuPage("ForgotPassword");
+      });
 
       const submit = document.createElement("button");
       submit.className = "login-submit";
@@ -726,8 +733,14 @@
         setStatus("This email may already be registered. Reset your password to continue.", "info");
         const resetLink = document.createElement("a");
         resetLink.className = "message-link";
-        resetLink.href = "forgot-password.html";
+        resetLink.href = "#forgot-password";
         resetLink.textContent = "Reset password";
+        resetLink.addEventListener("click", (event) => {
+          event.preventDefault();
+          history.pushState(null, "", "#forgot-password");
+          renderPage("ForgotPassword");
+          setCurrentMenuPage("ForgotPassword");
+        });
         message.append(resetLink);
       }
 
@@ -812,13 +825,212 @@
     }
 
 
+
+
+    function renderForgotPassword() {
+      const card = document.createElement("section");
+      card.className = "login-form recovery-form";
+      card.setAttribute("aria-live", "polite");
+
+      const heading = document.createElement("h1");
+      heading.className = "login-title";
+      heading.textContent = "Forgot password?";
+
+      const description = document.createElement("p");
+      description.className = "recovery-description";
+      description.textContent = "Enter the email address linked to your account. If it is registered, a password-reset link will be sent.";
+
+      const form = document.createElement("form");
+      const emailLabel = document.createElement("label");
+      emailLabel.htmlFor = "recovery-email";
+      emailLabel.textContent = "Email Address";
+      const email = document.createElement("input");
+      email.className = "login-field";
+      email.id = "recovery-email";
+      email.type = "email";
+      email.name = "email";
+      email.placeholder = "Email Address";
+      email.autocomplete = "email";
+      email.required = true;
+
+      const message = document.createElement("p");
+      message.className = "login-message";
+      message.setAttribute("role", "status");
+      message.setAttribute("aria-live", "polite");
+
+      const submit = document.createElement("button");
+      submit.className = "login-submit";
+      submit.type = "submit";
+      submit.textContent = "Check Account";
+
+      const back = document.createElement("a");
+      back.className = "create-account";
+      back.href = "#login";
+      back.textContent = "Back to Login";
+      back.addEventListener("click", (event) => {
+        event.preventDefault();
+        history.pushState(null, "", "#login");
+        renderPage("Login");
+        setCurrentMenuPage("Login");
+      });
+
+      form.append(emailLabel, email, submit);
+      card.append(heading, description, form, message, back);
+      mainContent.replaceChildren(card);
+
+      const recoveryStorageKey = "dalimgari-password-recovery";
+      const setStatus = (text, type) => {
+        message.textContent = text;
+        message.dataset.type = type;
+      };
+
+      const showResetForm = () => {
+        heading.textContent = "Reset password";
+        description.textContent = "Enter a new password for your account.";
+        setCurrentMenuPage("ForgotPassword");
+        form.replaceChildren();
+
+        const passwordLabel = document.createElement("label");
+        passwordLabel.htmlFor = "new-password";
+        passwordLabel.textContent = "New Password";
+        const password = document.createElement("input");
+        password.className = "login-field";
+        password.id = "new-password";
+        password.type = "password";
+        password.autocomplete = "new-password";
+        password.placeholder = "New password (at least 8 characters)";
+        password.minLength = 8;
+        password.required = true;
+
+        const confirmLabel = document.createElement("label");
+        confirmLabel.htmlFor = "confirm-new-password";
+        confirmLabel.textContent = "Confirm New Password";
+        const confirmPassword = document.createElement("input");
+        confirmPassword.className = "login-field";
+        confirmPassword.id = "confirm-new-password";
+        confirmPassword.type = "password";
+        confirmPassword.autocomplete = "new-password";
+        confirmPassword.placeholder = "Re-enter new password";
+        confirmPassword.minLength = 8;
+        confirmPassword.required = true;
+
+        const save = document.createElement("button");
+        save.className = "login-submit";
+        save.type = "submit";
+        save.textContent = "Save New Password";
+        form.append(passwordLabel, password, confirmLabel, confirmPassword, save);
+        message.textContent = "";
+        message.removeAttribute("data-type");
+
+        // The auth client has consumed the recovery credentials; keep only the app route.
+        history.replaceState(null, "", window.location.pathname + "#forgot-password");
+        form.onsubmit = async (event) => {
+          event.preventDefault();
+          if (password.value.length < 8) {
+            setStatus("Use at least 8 characters for your password.", "error");
+            return;
+          }
+          if (password.value !== confirmPassword.value) {
+            setStatus("Passwords don’t match. Please try again.", "error");
+            confirmPassword.focus();
+            return;
+          }
+          save.disabled = true;
+          save.textContent = "Saving...";
+          const { error } = await supabaseClient.auth.updateUser({ password: password.value });
+          if (error) {
+            setStatus("We couldn’t update your password. Please try again.", "error");
+            save.disabled = false;
+            save.textContent = "Save New Password";
+            return;
+          }
+          sessionStorage.removeItem(recoveryStorageKey);
+          heading.textContent = "Password updated";
+          description.textContent = "Your password has been changed successfully. You can now return to the login page.";
+          form.replaceChildren();
+          message.textContent = "";
+          back.textContent = "Return to Login";
+          setCurrentMenuPage("ForgotPassword");
+        };
+      };
+
+      form.addEventListener("submit", async (event) => {
+        if (form.dataset.resetMode === "true") return;
+        event.preventDefault();
+        if (!email.checkValidity()) { email.reportValidity(); return; }
+        submit.disabled = true;
+        submit.textContent = "Checking...";
+        message.textContent = "";
+        // Keep the existing redirect URI, which may already be allow-listed in Supabase.
+        const redirectTarget = new URL("forgot-password.html", window.location.href);
+        redirectTarget.hash = "";
+        const { error } = await supabaseClient.auth.resetPasswordForEmail(email.value.trim(), { redirectTo: redirectTarget.href });
+        if (error) setStatus("Couldn’t send the reset email. Please wait a little and try again.", "error");
+        else setStatus("If this email is registered, a reset link will arrive shortly. Check your inbox and spam folder.", "success");
+        submit.disabled = false;
+        submit.textContent = "Check Account";
+      });
+
+      const originalShowResetForm = showResetForm;
+      // Mark the form so the submit listener does not treat password updates as email requests.
+      const safeShowResetForm = () => {
+        form.dataset.resetMode = "true";
+        originalShowResetForm();
+      };
+      supabaseClient.auth.onAuthStateChange((event) => {
+        if (event === "PASSWORD_RECOVERY" && routeIsForgotPassword()) safeShowResetForm();
+      });
+
+      const params = new URLSearchParams(window.location.search);
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+      const hasSavedRecoveryState = sessionStorage.getItem(recoveryStorageKey) === "true";
+      const isRecoveryLink = params.has("code") ||
+        (hashParams.get("type") === "recovery" && hashParams.has("access_token")) ||
+        hasSavedRecoveryState;
+      (async () => {
+        const { data: currentSession } = await supabaseClient.auth.getSession();
+        if (params.has("code")) {
+          const { error } = await supabaseClient.auth.exchangeCodeForSession(params.get("code"));
+          if (error) {
+            sessionStorage.removeItem(recoveryStorageKey);
+            setStatus("This reset link has expired. Request a new one.", "error");
+            return;
+          }
+          sessionStorage.setItem(recoveryStorageKey, "true");
+          history.replaceState(null, "", window.location.pathname + "#forgot-password");
+          safeShowResetForm();
+        } else if (hashParams.get("type") === "recovery" && hashParams.has("access_token")) {
+          sessionStorage.setItem(recoveryStorageKey, "true");
+          safeShowResetForm();
+        } else if (hasSavedRecoveryState && currentSession.session) {
+          safeShowResetForm();
+        } else if (params.has("error") || hashParams.has("error")) {
+          sessionStorage.removeItem(recoveryStorageKey);
+          setStatus("This password-reset link is invalid or has expired. Request a new reset email.", "error");
+        } else if (currentSession.session && !isRecoveryLink) {
+          // A signed-in user can still request a reset link, so keep this route open.
+        }
+      })();
+    }
+
+    function routeIsForgotPassword() {
+      const params = new URLSearchParams(window.location.search);
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+      return window.location.hash.toLowerCase() === "#forgot-password" ||
+        params.has("code") ||
+        (hashParams.get("type") === "recovery" && hashParams.has("access_token")) ||
+        sessionStorage.getItem("dalimgari-password-recovery") === "true";
+    }
+
     function setCurrentMenuPage(pageName) {
       const currentPageLabel = document.querySelector("#current-page-label");
       const displayName = pageName === "Profile" && window.location.hash.toLowerCase() === "#edit-profile"
         ? "Edit Profile"
         : pageName === "CreateAccount"
           ? "Create Account"
-          : pageName;
+          : pageName === "ForgotPassword"
+            ? "Forgot Password"
+            : pageName;
       if (currentPageLabel) currentPageLabel.textContent = displayName;
       menuLinks.forEach((item) => {
         const isCurrentPage = item.dataset.page === pageName;
@@ -1560,7 +1772,12 @@
     // Keep menu actions synchronized with the real Supabase session.
     supabaseClient.auth.onAuthStateChange((event, session) => {
       updateAuthMenu(session);
-      if (session && event === "SIGNED_IN") {
+      const recoveryHash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+      const recoveryQuery = new URLSearchParams(window.location.search);
+      if (session && event === "SIGNED_IN" &&
+          window.location.hash.toLowerCase() !== "#forgot-password" &&
+          !recoveryQuery.has("code") &&
+          !(recoveryHash.get("type") === "recovery" && recoveryHash.has("access_token"))) {
         renderPage("Profile");
         history.replaceState(null, "", "#profile");
         setCurrentMenuPage("Profile");
@@ -1568,7 +1785,15 @@
     });
 
     (async () => {
-      const route = () => window.location.hash.toLowerCase() || "#home";
+      const route = () => {
+        const params = new URLSearchParams(window.location.search);
+        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+        if (params.has("code") || params.has("error") ||
+            (hashParams.get("type") === "recovery" && (hashParams.has("access_token") || hashParams.has("error")))) {
+          return "#forgot-password";
+        }
+        return window.location.hash.toLowerCase() || "#home";
+      };
       const openRoute = (session) => {
         updateAuthMenu(session);
         const currentRoute = route();
@@ -1593,6 +1818,9 @@
             history.replaceState(null, "", "#login");
             setCurrentMenuPage("Login");
           }
+        } else if (currentRoute === "#forgot-password") {
+          renderPage("ForgotPassword");
+          setCurrentMenuPage("ForgotPassword");
         } else if (currentRoute === "#login") {
           if (session) {
             renderPage("Profile");
@@ -1632,6 +1860,9 @@
         if (currentRoute === "#login") {
           renderPage("Login");
           setCurrentMenuPage("Login");
+        } else if (currentRoute === "#forgot-password" || new URLSearchParams(window.location.search).has("code")) {
+          renderPage("ForgotPassword");
+          setCurrentMenuPage("ForgotPassword");
         } else if (currentRoute === "#create-account") {
           renderPage("CreateAccount");
           setCurrentMenuPage("CreateAccount");
@@ -1642,6 +1873,55 @@
         }
       }
     })();
+
+    const refreshCurrentRoute = async () => {
+      try {
+        const { data, error } = await supabaseClient.auth.getSession();
+        if (error) throw error;
+        const params = new URLSearchParams(window.location.search);
+        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+        const currentRoute = params.has("code") ||
+          (hashParams.get("type") === "recovery" && hashParams.has("access_token"))
+          ? "#forgot-password"
+          : (window.location.hash.toLowerCase() || "#home");
+        if (currentRoute === "#home") {
+          updateAuthMenu(data.session);
+          mainContent.replaceChildren();
+          setCurrentMenuPage("Home");
+        } else if (currentRoute === "#forgot-password") {
+          updateAuthMenu(data.session);
+          renderPage("ForgotPassword");
+          setCurrentMenuPage("ForgotPassword");
+        } else {
+          const session = data.session;
+          updateAuthMenu(session);
+          if (currentRoute === "#profile" && !session) {
+            renderPage("Login"); history.replaceState(null, "", "#login"); setCurrentMenuPage("Login");
+          } else if (currentRoute === "#dashboard" || currentRoute.startsWith("#dashboard-")) {
+            if (session) { renderPage("Dashboard"); setCurrentMenuPage("Profile"); }
+            else { renderPage("Login"); history.replaceState(null, "", "#login"); setCurrentMenuPage("Login"); }
+          } else if (currentRoute === "#create-account" && !session) {
+            renderPage("CreateAccount"); setCurrentMenuPage("CreateAccount");
+          } else if (currentRoute === "#login" && session) {
+            renderPage("Profile"); history.replaceState(null, "", "#profile"); setCurrentMenuPage("Profile");
+          } else if (currentRoute === "#edit-profile" && session) {
+            renderPage("EditProfile"); setCurrentMenuPage("Profile");
+          } else if (currentRoute === "#login") {
+            renderPage("Login"); setCurrentMenuPage("Login");
+          } else if (currentRoute === "#create-account") {
+            renderPage("Login"); history.replaceState(null, "", "#login"); setCurrentMenuPage("Login");
+          } else if (currentRoute === "#profile") {
+            renderPage("Profile"); setCurrentMenuPage("Profile");
+          } else {
+            mainContent.replaceChildren(); history.replaceState(null, "", "#home"); setCurrentMenuPage("Home");
+          }
+        }
+      } catch (error) {
+        console.error("Could not restore the current route:", error);
+      }
+    };
+    window.addEventListener("hashchange", refreshCurrentRoute);
+    window.addEventListener("popstate", refreshCurrentRoute);
 
     menuLinks.forEach((link) => {
       link.addEventListener("click", async () => {
