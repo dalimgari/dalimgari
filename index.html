@@ -2242,7 +2242,7 @@
         const currentRoute = params.has("code") ||
           (hashParams.get("type") === "recovery" && hashParams.has("access_token"))
           ? "#forgot-password"
-          : (params.has("page") && params.get("page") && (!window.location.hash || window.location.hash.toLowerCase()==="#home")
+          : (params.has("page") && params.get("page") && !window.location.hash
             ? "#stored-page" : (window.location.hash.toLowerCase() || "#home"));
         if (currentRoute === "#stored-page") {
           updateAuthMenu(data.session);
