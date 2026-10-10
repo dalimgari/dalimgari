@@ -694,7 +694,7 @@
       if(!descriptionMeta){descriptionMeta=document.createElement("meta");descriptionMeta.name="description";document.head.append(descriptionMeta);}
       descriptionMeta.content=String(general.site_description||"").trim();
       const titleLabel=document.querySelector("#current-page-label");
-      if(titleLabel && (!titleLabel.textContent || titleLabel.textContent==="Home" || titleLabel.dataset.siteTitle==="true")){titleLabel.textContent=title;titleLabel.dataset.siteTitle="true";}
+      if(titleLabel && (!titleLabel.textContent || titleLabel.textContent==="Home"))titleLabel.textContent=title;
       const root=document.documentElement;
       const validColor=value=>/^#[0-9a-f]{6}$/i.test(String(value||""))?String(value):"";
       const primaryColor=validColor(theme.primary_color), surfaceColor=validColor(theme.surface_color), textColor=validColor(theme.text_color), backgroundColor=validColor(theme.background_color);
