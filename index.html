@@ -1386,7 +1386,8 @@
             if(!title)throw new Error("Enter a title.");
             const mediaUrl=String(controls.media_url.value||"").trim();
             const existingStoragePath=selectedRecordData?.storage_path||null;
-            if(!mediaUrl&&!selectedUploadedPath&&!existingStoragePath)throw new Error("Choose one photo/video file or enter a Media URL.");
+            if(mediaUploadInProgress)throw new Error("Please wait for the selected media file to finish uploading; its Media URL will be filled automatically.");
+            if(!mediaUrl&&!selectedUploadedPath&&!existingStoragePath)throw new Error("Media URL is required when no media file has been uploaded. Select a photo/video file or enter a Media URL.");
             if(mediaUrl){let parsed;try{parsed=new URL(mediaUrl);}catch{throw new Error("Media URL must be a valid http(s) URL.");}if(!["http:","https:"].includes(parsed.protocol))throw new Error("Media URL must start with http:// or https://.");}
             const slug=String(controls.url.value||"").trim()||generateUrlValue(title);
             if(!slug)throw new Error("Enter a Post URL or use a title containing letters or numbers.");
