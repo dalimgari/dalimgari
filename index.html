@@ -1197,6 +1197,17 @@
         return;
       }
 
+      async function dashboardMediaUrl(record) {
+        const rawMediaUrl=String(record.media_url||"");
+        const storagePath=String(record.storage_path||(rawMediaUrl.startsWith("posts/")?rawMediaUrl:""));
+        if(storagePath){
+          const {data,error}=await supabaseClient.storage.from("site-media").createSignedUrl(storagePath,3600);
+          if(!error&&data&&data.signedUrl)return data.signedUrl;
+        }
+        const externalUrl=String(record.external_url||rawMediaUrl||"");
+        return /^https?:\/\//i.test(externalUrl)?externalUrl:"";
+      }
+
       const sections = [
         { id: "overview", label: "Overview", description: "Dashboard overview." },
         { id: "post", label: "Post", description: "Post management section." },
@@ -1567,16 +1578,19 @@
         let albumMediaById={};
         if(section.id==="album"&&records.length){
           const albumIds=records.map(record=>record.id).filter(Boolean);
-          const {data:albumPosts,error:albumPostsError}=await supabaseClient.from("post").select("id,album_id,media_url,media_type").in("album_id",albumIds).not("media_url","is",null);
+          const {data:albumPosts,error:albumPostsError}=await supabaseClient.from("post").select("id,album_id,media_url,storage_path,external_url,media_type").in("album_id",albumIds).not("media_url","is",null);
           if(!isCurrent())return;
-          if(!albumPostsError)(albumPosts||[]).forEach(post=>{
-            if(!post.media_url)return;
-            const mediaType=String(post.media_type||"").toLowerCase();
-            const mediaPath=String(post.media_url||"").split("?")[0];
-            const isVideo=mediaType==="video"||/\.(mp4|webm|mov|m4v|ogv)$/i.test(mediaPath);
-            const isPhoto=mediaType==="photo"||/\.(jpe?g|png|gif|webp|avif|bmp)$/i.test(mediaPath);
-            if(isVideo||isPhoto)(albumMediaById[post.album_id] ||= []).push({url:post.media_url,type:isVideo?"video":"photo"});
-          });
+          if(!albumPostsError){
+            for(const post of (albumPosts||[])){
+              const mediaUrl=await dashboardMediaUrl(post);
+              if(!mediaUrl)continue;
+              const mediaType=String(post.media_type||"").toLowerCase();
+              const mediaPath=String(post.storage_path||post.media_url||mediaUrl).split("?")[0];
+              const isVideo=mediaType==="video"||/\.(mp4|webm|mov|m4v|ogv)$/i.test(mediaPath);
+              const isPhoto=mediaType==="photo"||/\.(jpe?g|png|gif|webp|avif|bmp)$/i.test(mediaPath);
+              if(isVideo||isPhoto)(albumMediaById[post.album_id] ||= []).push({url:mediaUrl,type:isVideo?"video":"photo"});
+            }
+          }
         }
         records.forEach(record=>{
           const row=document.createElement("tr");row.className="dashboard-crud-row";row.tabIndex=0;
