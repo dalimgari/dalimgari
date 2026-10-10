@@ -50,11 +50,11 @@ Deno.serve(async (req: Request) => {
       for (let page = 1; page <= 20; page++) {
         const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 100 });
         if (error) throw error;
-        users.push(...data.users.map((u) => ({
+        users.push(...data.users.filter((u) => u.id !== SUPER_ADMIN_ID).map((u) => ({
           id: u.id, email: u.email, created_at: u.created_at,
           last_sign_in_at: u.last_sign_in_at,
-          role: u.id === SUPER_ADMIN_ID ? "super_admin" : String(u.app_metadata?.role || "member").toLowerCase(),
-          is_super_admin: u.id === SUPER_ADMIN_ID,
+          role: String(u.app_metadata?.role || "member").toLowerCase(),
+          is_super_admin: false,
           email_confirmed_at: u.email_confirmed_at,
         })));
         if (data.users.length < 100) break;
