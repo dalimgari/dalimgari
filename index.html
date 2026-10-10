@@ -553,17 +553,21 @@
       mainContent.replaceChildren(page);
       const cardStyle="border:1px solid #e7e7e7;border-radius:12px;padding:16px;background:#fff;min-width:0";
       const [postsResult,albumsResult]=await Promise.all([
-        supabaseClient.from("post").select("id,title,caption,description,media_url,external_url,media_type,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(12),
+        supabaseClient.from("post").select("id,title,caption,description,media_url,storage_path,external_url,media_type,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(12),
         supabaseClient.from("albums").select("id,title,description,url,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(12)
       ]);
       if(!postsResult.error && postsResult.data && postsResult.data.length){
-        postsResult.data.forEach(post=>{
+        for (const post of postsResult.data) {
           const card=document.createElement("article");card.style.cssText=cardStyle;
           const title=document.createElement("h3");title.textContent=post.caption||post.title||"Post";title.style.cssText="font-size:18px;margin:0 0 8px";
           card.append(title);
           const description=document.createElement("p");description.textContent=post.description||"";description.style.cssText="color:#666;line-height:1.5;margin:0";
           if(description.textContent)card.append(description);
-          const mediaUrl=String(post.external_url||post.media_url||"");
+          let mediaUrl=String(post.external_url||post.media_url||"");
+          if(post.storage_path||mediaUrl.startsWith("posts/")){
+            const {data:signedMedia,error:signError}=await supabaseClient.functions.invoke("public-post-media",{body:{post_id:post.id}});
+            mediaUrl=!signError&&signedMedia&&signedMedia.url?signedMedia.url:"";
+          }
           if(/^https?:\/\//i.test(mediaUrl)){
             const cleanUrl=mediaUrl.split("?")[0];
             if((post.media_type==="video")||/\.(mp4|webm|mov|m4v|ogv)$/i.test(cleanUrl)){
@@ -573,7 +577,7 @@
             }
           }
           postsList.append(card);
-        });
+        }
       }else{
         const empty=document.createElement("p");empty.textContent=postsResult.error?"Public posts could not be loaded.":"No public posts yet.";empty.style.color="#777";postsList.append(empty);
       }
