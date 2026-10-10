@@ -907,6 +907,16 @@
 
     async function renderPublicMediaUpload(container) {
       if (!container) return;
+      container.hidden = true;
+      const { data: currentSessionData, error: currentSessionError } = await supabaseClient.auth.getSession();
+      if (currentSessionError) {
+        console.error("Could not verify admin session for home media upload:", currentSessionError);
+        return;
+      }
+      const currentUser = currentSessionData.session && currentSessionData.session.user;
+      const currentRole = String((currentUser && currentUser.app_metadata && currentUser.app_metadata.role) || "").toLowerCase();
+      if (!currentUser || currentRole !== "admin") return;
+      container.hidden = false;
       container.replaceChildren();
       const page = document.createElement("div");
       page.className = "home-media-upload-content";
@@ -917,7 +927,7 @@
       heading.style.margin = "0 0 10px";
       const description = document.createElement("p");
       description.className = "dashboard-section-description";
-      description.textContent = "Upload an image, video, audio file or PDF without an admin account. Maximum file size: 10 MB.";
+      description.textContent = "Admin-only media upload. Maximum file size: 10 MB.";
       const card = document.createElement("section");
       card.className = "dashboard-crud-card";
       card.style.marginTop = "18px";
@@ -1000,16 +1010,9 @@
         try {
           const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
           if (sessionError) throw sessionError;
-          let user = sessionData.session && sessionData.session.user;
-          if (!user) {
-            const { data: anonymousData, error: anonymousError } = await supabaseClient.auth.signInAnonymously();
-            if (anonymousError) throw new Error("Anonymous uploads are not enabled in Supabase Auth. Enable Anonymous Sign-Ins and try again.");
-            user = anonymousData.user || (anonymousData.session && anonymousData.session.user);
-          }
-          if (!user) throw new Error("Could not start a temporary upload session. Please reload and try again.");
-          const isAdmin = String(user.app_metadata && user.app_metadata.role || "").toLowerCase() === "admin";
-          const isAnonymous = user.is_anonymous === true || (user.app_metadata && user.app_metadata.provider === "anonymous");
-          if (!isAdmin && !isAnonymous) throw new Error("Please log out first, then reopen this upload page.");
+          const user = sessionData.session && sessionData.session.user;
+          const isAdmin = String((user && user.app_metadata && user.app_metadata.role) || "").toLowerCase() === "admin";
+          if (!user || !isAdmin) throw new Error("Only the administrator can upload media. Please sign in with the admin account.");
           const extension = ((file.name.match(/\.([a-zA-Z0-9]{1,10})$/) || [])[1] || ({ "image/jpeg":"jpg","image/svg+xml":"svg","audio/mpeg":"mp3","audio/wav":"wav","application/pdf":"pdf" }[file.type] || "bin")).toLowerCase();
           uploadedPath = user.id + "/uploads/" + Date.now() + "-" + crypto.randomUUID() + "." + extension;
           const { error: storageError } = await supabaseClient.storage.from("public-media-inbox").upload(uploadedPath, file, { contentType: file.type, cacheControl: "0", upsert: false });
