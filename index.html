@@ -709,6 +709,7 @@
     }
 
     async function renderHome() {
+      await applyDalimgariSiteConfig();
       document.title = "Dalimgari";
       // Home content starts below the header instead of being vertically centered.
       mainContent.style.alignItems = "flex-start";
@@ -741,6 +742,7 @@
       // Keep Media Upload immediately below the hero, before the other homepage sections.
       page.append(heroSection, ...extraSections);
       mainContent.replaceChildren(page);
+      await applyDalimgariSiteConfig();
 
       // Optional homepage placement map, configured in Dashboard > Customizations
       // with key "home_page_includes" and JSON such as {"home-page-title":"about-us"}.
