@@ -1,5 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 
+const SUPER_ADMIN_ID = "c5b6d47e-3e78-4d4e-bc15-6f137a8c1e75";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -36,6 +38,7 @@ Deno.serve(async (req: Request) => {
     return response({ error: "Administrator access required." }, 403);
   }
 
+  const isSuperAdmin = caller.id === SUPER_ADMIN_ID;
   const admin = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
 
   try {
@@ -50,7 +53,8 @@ Deno.serve(async (req: Request) => {
         users.push(...data.users.map((u) => ({
           id: u.id, email: u.email, created_at: u.created_at,
           last_sign_in_at: u.last_sign_in_at,
-          role: String(u.app_metadata?.role || "member").toLowerCase(),
+          role: u.id === SUPER_ADMIN_ID ? "super_admin" : String(u.app_metadata?.role || "member").toLowerCase(),
+          is_super_admin: u.id === SUPER_ADMIN_ID,
           email_confirmed_at: u.email_confirmed_at,
         })));
         if (data.users.length < 100) break;
@@ -62,6 +66,7 @@ Deno.serve(async (req: Request) => {
       const email = String(body?.email || "").trim().toLowerCase();
       const password = String(body?.password || "");
       const makeAdmin = body?.admin === true;
+      if (makeAdmin && !isSuperAdmin) return response({ error: "Only the designated Super Admin can grant administrator access." }, 403);
       if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return response({ error: "A valid email is required." }, 400);
       if (password.length < 8) return response({ error: "Password must be at least 8 characters." }, 400);
       const { data, error } = await admin.auth.admin.createUser({
@@ -75,9 +80,11 @@ Deno.serve(async (req: Request) => {
     if (action === "delete_user") {
       const userId = String(body?.user_id || "");
       if (!userId) return response({ error: "User ID is required." }, 400);
+      if (userId === SUPER_ADMIN_ID) return response({ error: "The Super Admin account is permanently protected from deletion through this service." }, 403);
       if (userId === caller.id) return response({ error: "You cannot delete the currently signed-in administrator." }, 400);
       const { data: targetData, error: targetError } = await admin.auth.admin.getUserById(userId);
       if (targetError) throw targetError;
+      if (String(targetData.user.app_metadata?.role || "").toLowerCase() === "admin" && !isSuperAdmin) return response({ error: "Only the Super Admin can delete another administrator." }, 403);
       if (String(targetData.user.app_metadata?.role || "").toLowerCase() === "admin") {
         const { data: allUsers, error: listError } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
         if (listError) throw listError;
@@ -92,7 +99,9 @@ Deno.serve(async (req: Request) => {
     if (action === "set_admin") {
       const userId = String(body?.user_id || "");
       const makeAdmin = body?.admin === true;
+      if (!isSuperAdmin) return response({ error: "Only the designated Super Admin can change administrator roles." }, 403);
       if (!userId) return response({ error: "User ID is required." }, 400);
+      if (userId === SUPER_ADMIN_ID && !makeAdmin) return response({ error: "The Super Admin role is permanently protected." }, 403);
       if (userId === caller.id && !makeAdmin) return response({ error: "You cannot remove your own administrator role." }, 400);
       const { data: targetData, error: targetError } = await admin.auth.admin.getUserById(userId);
       if (targetError) throw targetError;
