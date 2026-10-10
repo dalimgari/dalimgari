@@ -626,6 +626,7 @@
     }
 
     async function renderHome() {
+      document.title = "Dalimgari";
       // Home content starts below the header instead of being vertically centered.
       mainContent.style.alignItems = "flex-start";
       mainContent.style.justifyContent = "flex-start";
@@ -772,6 +773,7 @@
     }
 
     async function renderStoredPage(rawSlug, session) {
+      document.title = "Dalimgari";
       mainContent.style.alignItems = "flex-start";
       mainContent.style.justifyContent = "flex-start";
       mainContent.replaceChildren();
