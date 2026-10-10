@@ -672,7 +672,7 @@
 
       const textOverlay = document.createElement("div");
       textOverlay.className = "home-hero-text-overlay";
-      textOverlay.style.cssText = "position:relative;z-index:1;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-height:100%;overflow-y:auto;padding:clamp(16px,4vw,44px);text-align:center;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.5)";
+      textOverlay.style.cssText = "position:relative;z-index:1;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-height:100%;overflow-y:auto;padding:clamp(16px,4vw,44px);text-align:center;color:" + (heroImageUrl ? "#fff" : "#334155") + ";text-shadow:" + (heroImageUrl ? "0 2px 12px rgba(0,0,0,.5)" : "none");
       if (headline) {
         const heading = document.createElement("h1");
         heading.textContent = headline;
