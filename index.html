@@ -1164,7 +1164,7 @@
         form.insertBefore(holder,actions);controls[def.name]=input;
         if((def.name==="url")&&(section.id==="post"||section.id==="page")) {
           let urlEdited=false;input.addEventListener("input",()=>{urlEdited=true;});
-          const titleInput=()=>controls[section.id==="post"?"caption":"title"];
+          const titleInput=()=>controls.title;
           titleInput().addEventListener("input",()=>{if(!urlEdited&&!selectedId)input.value=generateUrlValue(titleInput().value);});
           input.addEventListener("blur",()=>{if(!input.value.trim()&&titleInput().value.trim())input.value=generateUrlValue(titleInput().value);});
         }
