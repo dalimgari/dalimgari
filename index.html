@@ -1208,12 +1208,14 @@
         if((def.name==="url")&&(section.id==="post"||section.id==="page"||section.id==="album")) {
           let urlEdited=false;input.addEventListener("input",()=>{urlEdited=true;});
           const titleInput=()=>controls.title;
-          titleInput().addEventListener("input",()=>{if(!urlEdited&&!selectedId)input.value=generateUrlValue(titleInput().value);});
-          input.addEventListener("blur",()=>{if(!input.value.trim()&&titleInput().value.trim())input.value=generateUrlValue(titleInput().value);});
+          const makeSlug=()=>section.id==="album"?generateAlbumUrlValue(titleInput().value):generateUrlValue(titleInput().value);
+          titleInput().addEventListener("input",()=>{if(!urlEdited&&!selectedId)input.value=makeSlug();});
+          input.addEventListener("blur",()=>{if(!input.value.trim()&&titleInput().value.trim())input.value=makeSlug();});
         }
         return input;
       }
       function generateUrlValue(value){return String(value||"").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");}
+      function generateAlbumUrlValue(value){return String(value||"").toLowerCase().normalize("NFKC").replace(/[^\p{L}\p{N}]+/gu,"-").replace(/^-|-$/g,"");}
       if(section.id==="post"||section.id==="page"){} 
       for(const def of config.fields)makeField(def);
       if(section.id==="post") attachMediaUploadComponent({sectionId:section.id,user,controls,setStatus,state:()=>({get path(){return selectedUploadedPath;},set path(v){selectedUploadedPath=v;},get url(){return selectedUploadedUrl;},set url(v){selectedUploadedUrl=v;},get type(){return selectedUploadState.type;},set type(v){selectedUploadState.type=v;}})});
@@ -1352,7 +1354,7 @@
           }else if(section.id==="album"){
             const title=String(controls.title.value||"").trim();
             if(!title)throw new Error("Enter an album title.");
-            const slug=String(controls.url.value||"").trim()||generateUrlValue(title);
+            const slug=String(controls.url.value||"").trim()||generateAlbumUrlValue(title);
             if(!slug)throw new Error("Enter an album title containing letters or numbers to generate its URL.");
             payload.title=title;payload.url=slug;
           }
