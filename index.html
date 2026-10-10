@@ -1173,7 +1173,22 @@
       const listCard=document.createElement("section");listCard.className="dashboard-crud-card";
       const listHeading=document.createElement("h3");listHeading.textContent="Existing "+config.label;
       const list=document.createElement("div");list.className="dashboard-crud-list";
-      listCard.append(listHeading,list);formCard.append(formHeading,hint,form);wrap.append(formCard,listCard);content.append(wrap);
+      listCard.append(listHeading,list);formCard.append(formHeading,hint,form);wrap.append(formCard,listCard);
+      let albumMediaCard=null,albumMediaList=null,albumMediaStatus=null,albumMediaAddButton=null,albumMediaRemoveButton=null;
+      if(section.id==="album"){
+        albumMediaCard=document.createElement("section");albumMediaCard.className="dashboard-crud-card";
+        const mediaHeading=document.createElement("h3");mediaHeading.textContent="Manage Album Media";
+        const mediaHint=document.createElement("p");mediaHint.className="dashboard-crud-hint";mediaHint.textContent="Select media already saved in the Post table, then add it to this album or remove it. The original Post record and media file will be kept; only album_id is updated.";
+        albumMediaStatus=document.createElement("p");albumMediaStatus.className="dashboard-crud-status";albumMediaStatus.setAttribute("role","status");albumMediaStatus.setAttribute("aria-live","polite");
+        albumMediaList=document.createElement("div");albumMediaList.className="dashboard-crud-list";
+        const mediaActions=document.createElement("div");mediaActions.className="dashboard-crud-actions";
+        albumMediaAddButton=document.createElement("button");albumMediaAddButton.type="button";albumMediaAddButton.className="action-button primary";albumMediaAddButton.textContent="Add selected to album";albumMediaAddButton.disabled=true;
+        albumMediaRemoveButton=document.createElement("button");albumMediaRemoveButton.type="button";albumMediaRemoveButton.className="action-button";albumMediaRemoveButton.textContent="Remove selected from album";albumMediaRemoveButton.disabled=true;
+        mediaActions.append(albumMediaAddButton,albumMediaRemoveButton);
+        albumMediaCard.append(mediaHeading,mediaHint,albumMediaList,mediaActions,albumMediaStatus);
+        albumMediaCard.hidden=true;wrap.append(albumMediaCard);
+      }
+      content.append(wrap);
       let selectedId=null, records=[], selectedRecordData=null, selectedUploadedPath="", selectedUploadedUrl="", selectedUploadState={type:""};
       const albums=availableAlbums;
       const controls={};
@@ -1207,6 +1222,7 @@
         selectedId=null;selectedRecordData=null;selectedUploadedPath="";selectedUploadedUrl="";selectedUploadState={type:""};form.reset();
         save.textContent=config.editOnly?"Select a media item":(config.readOnlyCreate?"Save Profile":(section.id==="post"?"Publish":"Create"));save.disabled=!!config.editOnly;remove.disabled=true;setStatus("");
         list.querySelectorAll(".dashboard-crud-row").forEach(row=>row.classList.remove("is-selected"));
+        if(albumMediaCard){albumMediaCard.hidden=true;albumMediaList.replaceChildren();albumMediaStatus.textContent="";albumMediaAddButton.disabled=true;albumMediaRemoveButton.disabled=true;}
       }
       clear.addEventListener("click",resetForm);
       async function loadRecords(){
@@ -1248,8 +1264,60 @@
           input.value=value==null?"":String(value);
         });
         save.textContent=config.readOnlyCreate?"Save Profile":"Update";save.disabled=false;remove.disabled=!!config.noDelete;setStatus("Selected record loaded into the form.");
+        if(section.id==="album")await refreshAlbumMedia();
       }
       function resetSelectionHighlight(){list.querySelectorAll(".dashboard-crud-row").forEach(row=>row.classList.remove("is-selected"));}
+      async function refreshAlbumMedia(){
+        if(section.id!=="album"||!albumMediaCard)return;
+        albumMediaCard.hidden=!selectedId;
+        albumMediaList.replaceChildren();
+        albumMediaStatus.textContent="";
+        albumMediaAddButton.disabled=!selectedId;
+        albumMediaRemoveButton.disabled=!selectedId;
+        if(!selectedId)return;
+        const loading=document.createElement("p");loading.className="dashboard-crud-empty";loading.textContent="Loading Post media…";albumMediaList.append(loading);
+        const {data:media,error}=await supabaseClient.from("post").select("id,title,caption,media_url,media_type,album_id,created_at").not("media_url","is",null).order("created_at",{ascending:false}).limit(500);
+        if(!isCurrent())return;
+        albumMediaList.replaceChildren();
+        if(error){const p=document.createElement("p");p.className="dashboard-crud-empty";p.textContent="Could not load Post media: "+error.message;albumMediaList.append(p);return;}
+        const items=(media||[]).filter(item=>String(item.media_url||"").trim());
+        if(!items.length){const p=document.createElement("p");p.className="dashboard-crud-empty";p.textContent="No Post media found. Upload media in the Post section first.";albumMediaList.append(p);return;}
+        const table=document.createElement("table");table.className="dashboard-crud-table";
+        const thead=document.createElement("thead"),headRow=document.createElement("tr");
+        ["Select","Post","Media type","Current album"].forEach(label=>{const th=document.createElement("th");th.textContent=label;headRow.append(th);});thead.append(headRow);table.append(thead);
+        const tbody=document.createElement("tbody");
+        items.forEach(item=>{
+          const row=document.createElement("tr");
+          const pickCell=document.createElement("td"),pick=document.createElement("input");pick.type="checkbox";pick.value=item.id;pick.setAttribute("aria-label","Select "+(item.title||item.caption||"Post media"));pickCell.append(pick);
+          const titleCell=document.createElement("td");titleCell.textContent=item.title||item.caption||String(item.id).slice(0,8);
+          const typeCell=document.createElement("td");typeCell.textContent=item.media_type||"Media";
+          const albumCell=document.createElement("td");const assigned=records.find(a=>a.id===item.album_id);albumCell.textContent=item.album_id?(assigned?.title||"Assigned to another album"):"Not in an album";
+          row.append(pickCell,titleCell,typeCell,albumCell);tbody.append(row);
+        });
+        table.append(tbody);albumMediaList.append(table);
+        const updateActionState=()=>{const count=albumMediaList.querySelectorAll('input[type="checkbox"]:checked').length;albumMediaAddButton.disabled=!count;albumMediaRemoveButton.disabled=!count;};
+        albumMediaList.querySelectorAll('input[type="checkbox"]').forEach(input=>input.addEventListener("change",updateActionState));
+      }
+      async function updateSelectedAlbumMedia(removeFromAlbum){
+        if(!selectedId){albumMediaStatus.textContent="Select an album above first.";return;}
+        const ids=Array.from(albumMediaList.querySelectorAll('input[type="checkbox"]:checked')).map(input=>input.value);
+        if(!ids.length){albumMediaStatus.textContent="Select at least one Post media item.";return;}
+        albumMediaAddButton.disabled=true;albumMediaRemoveButton.disabled=true;
+        try{
+          let query=supabaseClient.from("post").update({album_id:removeFromAlbum?null:selectedId}).in("id",ids);
+          if(removeFromAlbum)query=query.eq("album_id",selectedId);
+          const {data,error}=await query.select("id");
+          if(error)throw error;
+          const updated=(data||[]).length;
+          await refreshAlbumMedia();
+          albumMediaStatus.style.color="#176b43";
+          albumMediaStatus.textContent=removeFromAlbum?("Removed "+updated+" media item(s) from this album."):("Added "+updated+" media item(s) to this album. Any previous album assignment was updated.");
+        }catch(error){
+          albumMediaStatus.style.color="#a12622";albumMediaStatus.textContent=error.message||"Could not update album media.";
+        }finally{albumMediaAddButton.disabled=false;albumMediaRemoveButton.disabled=false;}
+      }
+      if(albumMediaAddButton)albumMediaAddButton.addEventListener("click",()=>updateSelectedAlbumMedia(false));
+      if(albumMediaRemoveButton)albumMediaRemoveButton.addEventListener("click",()=>updateSelectedAlbumMedia(true));
       form.addEventListener("submit",async event=>{
         event.preventDefault();
         save.disabled=true;remove.disabled=true;save.textContent="Saving…";setStatus("");
