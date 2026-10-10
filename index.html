@@ -1415,7 +1415,7 @@
             if(sessionError)throw new Error("Session refresh failed: "+sessionError.message);
             if(sessionData.session?.user?.app_metadata?.role!=="admin")throw new Error("Admin role is missing from the current session. Sign out and sign in again.");
             const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,"_").slice(-100)||"test-media";
-            path="upload-tests/"+user.id+"/"+Date.now()+"-"+safeName;
+            path="posts/upload-test-"+Date.now()+"/"+safeName;
             const {error:uploadError}=await supabaseClient.storage.from("site-media").upload(path,file,{contentType:file.type,upsert:false,cacheControl:"60"});
             if(uploadError){
               resultRow.http_status=uploadError.statusCode||uploadError.status||"400";
