@@ -1662,23 +1662,33 @@
           setCurrentMenuPage("Profile");
         } else if (window.location.hash === "#create-account") {
           renderPage("CreateAccount");
-        } else if (window.location.hash === "#login" || !window.location.hash) {
+          setCurrentMenuPage("CreateAccount");
+        } else if (window.location.hash === "#login") {
           renderPage("Login");
-          history.replaceState(null, "", "#login");
           setCurrentMenuPage("Login");
         } else if (window.location.hash === "#dashboard") {
           renderPage("Login");
           history.replaceState(null, "", "#login");
           setCurrentMenuPage("Login");
         } else {
-          renderPage("Login");
-          setCurrentMenuPage("Login");
+          // First-time visitors get an intentionally blank Home view.
+          mainContent.replaceChildren();
+          menuLinks.forEach((item) => item.removeAttribute("aria-current"));
         }
       } catch (error) {
         console.error("Could not initialize the page session:", error);
         updateAuthMenu(null);
-        renderPage("Login");
-        setCurrentMenuPage("Login");
+        if (window.location.hash === "#login") {
+          renderPage("Login");
+          setCurrentMenuPage("Login");
+        } else if (window.location.hash === "#create-account") {
+          renderPage("CreateAccount");
+          setCurrentMenuPage("CreateAccount");
+        } else {
+          // Do not force visitors to the Login page on initial load failure.
+          mainContent.replaceChildren();
+          menuLinks.forEach((item) => item.removeAttribute("aria-current"));
+        }
       }
     })();
 
