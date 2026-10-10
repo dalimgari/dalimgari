@@ -1419,7 +1419,7 @@
             const accessToken=sessionData.session?.access_token;
             if(!accessToken)throw new Error("No active access token after session refresh.");
             const storageUrl="https://yopfogoyjxwxplnabqii.supabase.co/storage/v1/object/site-media/"+path.split("/").map(encodeURIComponent).join("/");
-            const uploadResponse=await fetch(storageUrl,{method:"POST",headers:{"apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvcGZvZ295anh3eHBsbmFicWlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyOTMyNjQsImV4cCI6MjEwNDg2OTI2NH0.dIVH8sp3qyD_AGmt1bNFVOpQKdrgcX734HkrEuOacB4".replace("MjEwNDg2OTI2fQ","MjEwNDg2OTI2fQ"),"Authorization":"Bearer "+accessToken,"Content-Type":file.type||"application/octet-stream","Cache-Control":"max-age=60","x-upsert":"false"},body:file});
+            const uploadResponse=await fetch(storageUrl,{method:"POST",headers:{"apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvcGZvZ295anh3eHBsbmFicWlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyOTMyNjQsImV4cCI6MjEwNDg2OTI2NH0.dIVH8sp3qyD_AGmt1bNFVOpQKdrgcX734HkrEuOacB4","Authorization":"Bearer "+accessToken,"Content-Type":file.type||"application/octet-stream","Cache-Control":"max-age=60","x-upsert":"false"},body:file});
             const uploadBody=await uploadResponse.text();
             if(!uploadResponse.ok){
               resultRow.http_status=String(uploadResponse.status);
@@ -1428,7 +1428,7 @@
               throw new Error(resultRow.error_name+" | "+resultRow.http_status+" | "+resultRow.error_message);
             }
             resultRow.upload_status="success";resultRow.http_status=String(uploadResponse.status);
-            const deleteResponse=await fetch("https://yopfogoyjxwxplnabqii.supabase.co/storage/v1/object/site-media",{method:"DELETE",headers:{"apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvcGZvZ295anh3eHBsbmFicWlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyOTMyNjQsImV4cCI6MjEwNDg2OTI2NH0.dIVH8sp3qyD_AGmt1bNFVOpQKdrgcX734HkrEuOacB4".replace("MjEwNDg2OTI2fQ","MjEwNDg2OTI2fQ"),"Authorization":"Bearer "+accessToken,"Content-Type":"application/json"},body:JSON.stringify({prefixes:[path]})});
+            const deleteResponse=await fetch("https://yopfogoyjxwxplnabqii.supabase.co/storage/v1/object/site-media",{method:"DELETE",headers:{"apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvcGZvZ295anh3eHBsbmFicWlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyOTMyNjQsImV4cCI6MjEwNDg2OTI2NH0.dIVH8sp3qyD_AGmt1bNFVOpQKdrgcX734HkrEuOacB4","Authorization":"Bearer "+accessToken,"Content-Type":"application/json"},body:JSON.stringify({prefixes:[path]})});
             const deleteBody=await deleteResponse.text();
             if(!deleteResponse.ok){resultRow.cleanup_status="FAILED ("+deleteResponse.status+"): "+(deleteBody.slice(0,500)||deleteResponse.statusText);resultRow.error_message="Upload succeeded; cleanup failed: "+resultRow.cleanup_status;}
             else{resultRow.cleanup_status="Removed test file ("+deleteResponse.status+")";}
