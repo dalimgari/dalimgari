@@ -1070,6 +1070,29 @@
     }
     function metadataValue(user, key) { return (user.user_metadata && user.user_metadata[key]) || ""; }
 
+    async function resolveAvatarUrl(user) {
+      const avatarUrl = await resolveAvatarUrl(user);
+      if (!avatarUrl.startsWith("data:image/")) return avatarUrl;
+      try {
+        const response = await fetch(avatarUrl);
+        if (!response.ok) throw new Error("Could not read the existing profile picture.");
+        const imageBlob = await response.blob();
+        const filePath = user.id + "/avatar.jpg";
+        const { error: uploadError } = await supabaseClient.storage
+          .from("profile-pictures")
+          .upload(filePath, imageBlob, { contentType: "image/jpeg", upsert: true, cacheControl: "0" });
+        if (uploadError) throw uploadError;
+        const { data } = supabaseClient.storage.from("profile-pictures").getPublicUrl(filePath);
+        const publicUrl = data.publicUrl + "?v=" + Date.now();
+        const { error: metadataError } = await supabaseClient.auth.updateUser({ data: { avatar_url: publicUrl } });
+        if (metadataError) throw metadataError;
+        return publicUrl;
+      } catch (error) {
+        console.error("Could not move the existing profile picture to Storage:", error);
+        return avatarUrl;
+      }
+    }
+
     async function loadUserProfile(user) {
       const { data, error } = await supabaseClient.from("profiles")
         .select("id,full_name,phone,date_of_birth,bio")
@@ -1587,7 +1610,7 @@
       const avatarHeading=document.createElement("h2");avatarHeading.textContent="Profile Picture";
       const avatarRow=document.createElement("div");avatarRow.className="profile-picture-row";
       const avatarPreview=document.createElement("div");avatarPreview.className="profile-avatar profile-avatar-large";
-      const currentAvatarUrl=metadataValue(user,"avatar_url");
+      const currentAvatarUrl=await resolveAvatarUrl(user);
       if(currentAvatarUrl){const img=document.createElement("img");img.src=currentAvatarUrl;img.alt="Profile picture";avatarPreview.append(img);}
       else{avatarPreview.textContent=(profile.full_name||metadataValue(user,"full_name")||metadataValue(user,"name")||(user.email||"M").split("@")[0]).charAt(0).toUpperCase();}
       const avatarControls=document.createElement("div");avatarControls.className="profile-picture-controls";
@@ -1607,10 +1630,16 @@
           const canvas=document.createElement("canvas");canvas.width=256;canvas.height=256;
           const context=canvas.getContext("2d");if(!context)throw new Error("Image processing is unavailable.");
           context.drawImage(image,(image.naturalWidth-side)/2,(image.naturalHeight-side)/2,side,side,0,0,256,256);
-          const compressedImage=canvas.toDataURL("image/jpeg",0.8);
-          const result=await supabaseClient.auth.updateUser({data:{avatar_url:compressedImage}});if(result.error)throw result.error;
-          avatarPreview.replaceChildren();const img=document.createElement("img");img.src=compressedImage;img.alt="Profile picture";avatarPreview.append(img);
-          avatarStatus.textContent="Profile picture updated.";
+          const compressedImage=await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",0.8));
+          if(!compressedImage)throw new Error("Could not process the image.");
+          const filePath=user.id+"/avatar.jpg";
+          const {error:uploadError}=await supabaseClient.storage.from("profile-pictures").upload(filePath,compressedImage,{contentType:"image/jpeg",upsert:true,cacheControl:"0"});
+          if(uploadError)throw uploadError;
+          const {data:publicUrlData}=supabaseClient.storage.from("profile-pictures").getPublicUrl(filePath);
+          const publicUrl=publicUrlData.publicUrl+"?v="+Date.now();
+          const result=await supabaseClient.auth.updateUser({data:{avatar_url:publicUrl}});if(result.error)throw result.error;
+          avatarPreview.replaceChildren();const img=document.createElement("img");img.src=publicUrl;img.alt="Profile picture";avatarPreview.append(img);
+          avatarStatus.textContent="Profile picture saved to Storage.";
         }catch(error){avatarStatus.textContent="Could not update the profile picture. Please try another image.";}
         finally{if(objectUrl)URL.revokeObjectURL(objectUrl);avatarInput.disabled=false;avatarInput.value="";}
       });
