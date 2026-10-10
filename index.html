@@ -2201,12 +2201,13 @@
             const extension = rawExtension.toLowerCase() || ({
               "image/jpeg":"jpg","image/svg+xml":"svg","audio/mpeg":"mp3","audio/wav":"wav","application/pdf":"pdf"
             }[file.type] || "bin");
+            // Follow the working profile-picture upload pattern: store files inside the signed-in user's folder.
             const uniqueName = Date.now() + "-" + crypto.randomUUID() + "." + extension;
-            uploadedPath = "uploads/" + uniqueName;
+            uploadedPath = user.id + "/uploads/" + uniqueName;
             const { error: uploadError } = await supabaseClient.storage.from("media-library").upload(uploadedPath, file, {
               contentType: file.type,
-              cacheControl: "3600",
-              upsert: false
+              cacheControl: "0",
+              upsert: true
             });
             if (uploadError) throw uploadError;
             const { data: urlData } = supabaseClient.storage.from("media-library").getPublicUrl(uploadedPath);
