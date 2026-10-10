@@ -1911,8 +1911,8 @@
           {name:"bio",label:"Bio",type:"textarea",full:true}
         ]}
       };
-      if (section.id === "customization") {
-        // Keep Customization intentionally empty for now; do not load or display stored records.
+      if (section.id === "customization" || section.id === "settings") {
+        // Keep Customization and Settings intentionally empty for now; do not load or display stored records.
         content.replaceChildren();
         return;
       }
