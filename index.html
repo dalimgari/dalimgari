@@ -104,6 +104,10 @@
       display: none;
     }
 
+    .menu-link[hidden] {
+      display: none;
+    }
+
     .menu-link {
       display: block;
       width: 100%;
@@ -1633,7 +1637,15 @@
       link.addEventListener("click", async () => {
         const pageName = link.dataset.page;
         try {
-          if (pageName === "Logout") {
+          // Home is always directly reachable, regardless of authentication state.
+          if (pageName === "Home") {
+            const { data, error } = await supabaseClient.auth.getSession();
+            if (error) throw error;
+            updateAuthMenu(data.session);
+            mainContent.replaceChildren();
+            history.replaceState(null, "", "#home");
+            setCurrentMenuPage("Home");
+          } else if (pageName === "Logout") {
             link.disabled = true;
             link.textContent = "Logging out...";
             const { error } = await supabaseClient.auth.signOut();
