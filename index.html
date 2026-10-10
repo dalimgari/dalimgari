@@ -493,6 +493,19 @@
     .dashboard-crud-row:hover,.dashboard-crud-row.is-selected { background:#f1f5f9; }
     .dashboard-crud-row:focus { outline:2px solid #94a3b8; outline-offset:-2px; }
     .dashboard-crud-empty { padding:20px 10px; color:#777; text-align:center; }
+    .section-order-control { display:grid; gap:8px; width:100%; }
+    .section-order-row { display:flex; align-items:center; gap:10px; min-width:0; padding:10px; border:1px solid #e5e7eb; border-radius:10px; background:#fff; }
+    .section-order-index { flex:0 0 30px; width:30px; height:30px; display:grid; place-items:center; border-radius:8px; background:#f3f4f6; color:#374151; font-weight:700; }
+    .section-order-name { flex:1 1 auto; min-width:0; font-weight:600; }
+    .section-order-moves { display:flex; gap:5px; }
+    .section-order-moves button { min-width:36px; min-height:36px; padding:4px 8px; }
+    .home-content-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr)); gap:16px; width:100%; }
+    .home-content-card { min-width:0; padding:16px; border:1px solid #e5e7eb; border-radius:14px; background:#fff; overflow-wrap:anywhere; }
+    .home-content-card h2,.home-content-card h3 { margin:0 0 8px; font-size:18px; line-height:1.35; }
+    .home-content-card p { margin:0 0 10px; color:#5b6472; line-height:1.55; white-space:pre-wrap; }
+    .home-content-card a { color:var(--dg-primary,#222); overflow-wrap:anywhere; }
+    .home-content-card img { display:block; width:100%; max-height:260px; object-fit:cover; border-radius:9px; margin:0 0 12px; }
+    .home-tagline { margin:0 0 12px; font-size:clamp(14px,2vw,19px); font-weight:600; opacity:.92; }
     .dashboard-crud-hint { margin:0 0 14px; color:#666; font-size:13px; line-height:1.5; }
     @media(max-width:600px) { .dashboard-crud-form { grid-template-columns:1fr; } .dashboard-crud-field.full { grid-column:auto; } .dashboard-crud-card { padding:14px; } }
 
@@ -677,8 +690,11 @@
       const homepageDefaults=cfg.ui_settings_homepage_defaults||{};
       const title=String(general.site_title||identity.site_title||"Dalimgari").trim()||"Dalimgari";
       document.title=title;
+      let descriptionMeta=document.querySelector('meta[name="description"]');
+      if(!descriptionMeta){descriptionMeta=document.createElement("meta");descriptionMeta.name="description";document.head.append(descriptionMeta);}
+      descriptionMeta.content=String(general.site_description||"").trim();
       const titleLabel=document.querySelector("#current-page-label");
-      if(titleLabel && (!titleLabel.textContent || titleLabel.textContent==="Home"))titleLabel.textContent=title;
+      if(titleLabel && (!titleLabel.textContent || titleLabel.textContent==="Home" || titleLabel.dataset.siteTitle==="true")){titleLabel.textContent=title;titleLabel.dataset.siteTitle="true";}
       const root=document.documentElement;
       const validColor=value=>/^#[0-9a-f]{6}$/i.test(String(value||""))?String(value):"";
       const primaryColor=validColor(theme.primary_color), surfaceColor=validColor(theme.surface_color), textColor=validColor(theme.text_color), backgroundColor=validColor(theme.background_color);
@@ -757,7 +773,7 @@
         renderPage("Login");
         return;
       }
-      document.title = "Dalimgari";
+      document.title = String((siteConfig.ui_settings_general||{}).site_title || "Dalimgari").trim() || "Dalimgari";
       // Home content starts below the header instead of being vertically centered.
       mainContent.style.alignItems = "flex-start";
       mainContent.style.justifyContent = "flex-start";
@@ -843,6 +859,7 @@
         }
       }
       if (pillBar.childElementCount) pageTitleSection.append(pillBar);
+      await renderHomepageContentCards(siteConfig);
 
       // The uploader is a normal homepage section, not a separate page or route.
 
@@ -856,15 +873,17 @@
       if (firstImage?.path) heroImageUrl = await createContentMediaUrl(firstImage.path);
       if (!heroRecord) {
         const { data, error } = await supabaseClient.from("site_customizations").select("value").eq("key", "home_hero").maybeSingle();
-        if (error || !data || !data.value) return;
-        let heroData = data.value;
-        if (typeof heroData === "string") { try { heroData = JSON.parse(heroData); } catch (_) { return; } }
-        if (!heroData || typeof heroData !== "object") return;
-        headline = String(heroData.headline || "").trim();
-        welcomeMessage = String(heroData.welcomeMessage || "").trim();
-        heroImageUrl = String(heroData.heroImageUrl || "").trim();
+        if (!error && data && data.value) {
+          let heroData=data.value;
+          if(typeof heroData==="string"){try{heroData=JSON.parse(heroData)}catch(_){heroData={}}}
+          if(heroData&&typeof heroData==="object"){
+            headline=String(heroData.headline||"").trim();
+            welcomeMessage=String(heroData.welcomeMessage||"").trim();
+            heroImageUrl=String(heroData.heroImageUrl||"").trim();
+          }
+        }
       }
-      if (!headline && !welcomeMessage && !heroImageUrl) return;
+      if (!headline && !welcomeMessage && !heroImageUrl && !String((siteConfig.ui_customization_identity||{}).tagline||"").trim()) return;
 
       // Keep the image as the floating hero surface and layer its text over the center.
       const imageFrame = document.createElement("div");
@@ -887,6 +906,8 @@
       const textOverlay = document.createElement("div");
       textOverlay.className = "home-hero-text-overlay";
       textOverlay.style.cssText = "position:relative;z-index:1;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-height:100%;overflow-y:auto;padding:clamp(16px,4vw,44px);text-align:center;color:" + (heroImageUrl ? "#fff" : "#334155") + ";text-shadow:" + (heroImageUrl ? "0 2px 12px rgba(0,0,0,.5)" : "none");
+      const tagline=String((siteConfig.ui_customization_identity||{}).tagline||"").trim();
+      if(tagline){const tag=document.createElement("p");tag.className="home-tagline";tag.textContent=tagline;textOverlay.append(tag);}
       if (headline) {
         const heading = document.createElement("h1");
         heading.textContent = headline;
@@ -1024,7 +1045,8 @@
         const detail = document.createElement("p"); detail.textContent = "The website is temporarily under maintenance. Please check again later.";
         notice.append(heading, detail); mainContent.replaceChildren(notice); return;
       }
-      document.title = "Dalimgari";
+      const siteTitle = String((siteConfig.ui_settings_general||{}).site_title || "Dalimgari").trim() || "Dalimgari";
+      document.title = siteTitle;
       mainContent.style.alignItems = "flex-start";
       mainContent.style.justifyContent = "flex-start";
       mainContent.replaceChildren();
@@ -1051,7 +1073,7 @@
       shell.append(content);
       await renderHtmlInto(content, data.content || "", session);
       await renderContentMedia(content, data.media || []);
-      document.title = (data.title ? data.title + " | " : "") + "Dalimgari";
+      document.title = (data.title ? data.title + " | " : "") + siteTitle;
     }
 
     function renderPage(pageName) {
@@ -1197,16 +1219,20 @@
     }
 
 
+    async function removeRecycleStorageFiles(item){
+      const groups=new Map();
+      const add=(bucket,path)=>{if(!path||typeof path!=="string"||/^https?:\/\//i.test(path))return;const safeBucket=String(bucket||"content-files");if(!groups.has(safeBucket))groups.set(safeBucket,new Set());groups.get(safeBucket).add(path.replace(/^\/+/, ""));};
+      const scan=(value,defaultBucket="content-files")=>{if(!value||typeof value!=="object")return;if(Array.isArray(value)){for(const child of value)scan(child,defaultBucket);return;}const bucket=value.bucket_id||value.bucket||value.storage_bucket||defaultBucket;for(const key of ["path","file_path","storage_path","object_path","cover_path"]){if(typeof value[key]==="string")add(bucket,value[key]);}for(const child of Object.values(value)){if(child&&typeof child==="object")scan(child,bucket);}};
+      scan(item.record_data||{});scan(item.related_data||{});
+      for(const [bucket,pathsSet] of groups){const paths=Array.from(pathsSet);for(let i=0;i<paths.length;i+=1000){const {error}=await supabaseClient.storage.from(bucket).remove(paths.slice(i,i+1000));if(error)throw new Error("Could not remove stored files from "+bucket+": "+error.message);}}
+    }
+
     async function renderCreateAccount() {
       const { data: accessRow, error: accessError } = await supabaseClient.from("site_customizations").select("value").eq("key", "ui_settings_users_access").maybeSingle();
-      let accessConfig = accessRow && accessRow.value ? accessRow.value : {};
-      if (typeof accessConfig === "string") { try { accessConfig = JSON.parse(accessConfig); } catch (_) { accessConfig = {}; } }
-      if (!accessError && accessConfig.allow_account_creation === false) {
-        const notice = document.createElement("section"); notice.className = "login-form";
-        const heading = document.createElement("h1"); heading.className = "login-title"; heading.textContent = "Account creation is disabled";
-        const detail = document.createElement("p"); detail.className = "login-message"; detail.dataset.type = "info"; detail.textContent = "New account registration is currently disabled.";
-        notice.append(heading, detail); mainContent.replaceChildren(notice); return;
-      }
+      if(accessError){const notice=document.createElement("section");notice.className="login-form";const heading=document.createElement("h1");heading.className="login-title";heading.textContent="Registration temporarily unavailable";const detail=document.createElement("p");detail.className="login-message";detail.dataset.type="error";detail.textContent="The account creation setting could not be verified. Please try again later.";notice.append(heading,detail);mainContent.replaceChildren(notice);return;}
+      let accessConfig=accessRow&&accessRow.value?accessRow.value:{};
+      if(typeof accessConfig==="string"){try{accessConfig=JSON.parse(accessConfig)}catch(_){accessConfig={}}}
+      if(accessConfig.allow_account_creation===false){const notice=document.createElement("section");notice.className="login-form";const heading=document.createElement("h1");heading.className="login-title";heading.textContent="Account creation is disabled";const detail=document.createElement("p");detail.className="login-message";detail.dataset.type="info";detail.textContent="New account registration is currently disabled.";notice.append(heading,detail);mainContent.replaceChildren(notice);return;}
       const form = document.createElement("form");
       form.className = "login-form";
 
@@ -2064,7 +2090,7 @@
             {name:"show_widget",label:"Show Widget section",type:"checkbox",value:true},
             {name:"show_album",label:"Show Album section",type:"checkbox",value:true},
             {name:"show_page_card",label:"Show Page Card section",type:"checkbox",value:true},
-            {name:"section_order",label:"Section order (JSON array)",type:"textarea",value:'["hero","page_title","widget","album","page_card"]'}
+            {name:"section_order",label:"Homepage section order",type:"order",full:true,value:'["hero","page_title","widget","album","page_card"]'}
           ]},
           {id:"typography",title:"Typography",key:"ui_customization_typography",fields:[
             {name:"font_family",label:"Font family",type:"select",value:"system",options:[["system","System default"],["Arial, sans-serif","Arial"],["Georgia, serif","Georgia"],["Verdana, sans-serif","Verdana"],["Tahoma, sans-serif","Tahoma"]]},
@@ -2104,6 +2130,16 @@
           const wrap = document.createElement("div");
           wrap.className = "dashboard-crud-field" + (field.type === "textarea" ? " full" : "");
           const label = document.createElement("label");
+          if(field.type==="order"){
+            const hidden=document.createElement("input");hidden.type="hidden";hidden.name=field.name;hidden.value=field.value||"[]";
+            inputMap.set(group.id+"."+field.name,hidden);
+            label.htmlFor="cfg-"+group.id+"-"+field.name;label.id=label.htmlFor+"-label";
+            const control=document.createElement("div");control.className="section-order-control";control.setAttribute("aria-labelledby",label.id);
+            const names={hero:"Hero",page_title:"Page Title",widget:"Widget",album:"Album",page_card:"Page Card"};
+            const normalizeOrder=raw=>{let order=[];try{order=Array.isArray(raw)?raw:JSON.parse(String(raw||"[]"));}catch(_){}const valid=["hero","page_title","widget","album","page_card"];order=order.filter(key=>valid.includes(key));return [...new Set(order),...valid.filter(key=>!order.includes(key))];};
+            const draw=()=>{control.replaceChildren();const order=normalizeOrder(hidden.value);hidden.value=JSON.stringify(order);order.forEach((key,index)=>{const row=document.createElement("div");row.className="section-order-row";const number=document.createElement("span");number.className="section-order-index";number.textContent=String(index+1);const name=document.createElement("span");name.className="section-order-name";name.textContent=names[key];const moves=document.createElement("div");moves.className="section-order-moves";const up=document.createElement("button");up.type="button";up.className="action-button";up.textContent="↑";up.setAttribute("aria-label","Move "+names[key]+" up");up.disabled=index===0;const down=document.createElement("button");down.type="button";down.className="action-button";down.textContent="↓";down.setAttribute("aria-label","Move "+names[key]+" down");down.disabled=index===order.length-1;up.addEventListener("click",()=>{[order[index-1],order[index]]=[order[index],order[index-1]];hidden.value=JSON.stringify(order);draw();});down.addEventListener("click",()=>{[order[index+1],order[index]]=[order[index],order[index+1]];hidden.value=JSON.stringify(order);draw();});moves.append(up,down);row.append(number,name,moves);control.append(row);});};
+            hidden.addEventListener("change",draw);draw();wrap.append(label,hidden,control);return wrap;
+          }
           const input = field.type === "textarea" ? document.createElement("textarea") : document.createElement("input");
           if (field.type !== "textarea") input.type = field.type === "select" ? "text" : field.type;
           if (field.type === "select") {
@@ -2153,7 +2189,7 @@
               if(!input||!Object.prototype.hasOwnProperty.call(values,field.name))continue;
               const value=values[field.name];
               if(field.type==="checkbox")input.checked=Boolean(value);
-              else if(field.name==="section_order"&&Array.isArray(value))input.value=JSON.stringify(value,null,2);
+              else if(field.name==="section_order"&&Array.isArray(value)){input.value=JSON.stringify(value);input.dispatchEvent(new Event("change"));}
               else input.value=value==null?"":String(value);
             }
           }
@@ -2169,8 +2205,9 @@
             else if(field.type==="number")value[field.name]=Number(input.value);
             else if(field.name==="section_order"){
               let parsed;try{parsed=JSON.parse(input.value||"[]")}catch(_){throw new Error("Section order must be valid JSON.");}
-              if(!Array.isArray(parsed)||parsed.some(item=>typeof item!=="string"))throw new Error("Section order must be a JSON array of section names.");
-              value[field.name]=parsed;
+              const allowed=["hero","page_title","widget","album","page_card"];
+              if(!Array.isArray(parsed)||parsed.some(item=>!allowed.includes(item))||new Set(parsed).size!==parsed.length)throw new Error("Use the section order controls to set each homepage section once.");
+              value[field.name]=[...parsed,...allowed.filter(item=>!parsed.includes(item))];
             } else value[field.name]=input.value.trim();
           }
           for(const field of group.fields){
@@ -2282,6 +2319,7 @@
               if(!confirm("Permanently delete this item and its stored file, if any? This cannot be undone."))return;
               restore.disabled=true;purge.disabled=true;
               try{
+                await removeRecycleStorageFiles(item);
                 const {error}=await supabaseClient.from("recycle_bin").delete().eq("id",item.id);
                 if(error)throw error;
                 recycleStatus("Item permanently deleted.");await loadTrash();
