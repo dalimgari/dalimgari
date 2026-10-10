@@ -531,6 +531,64 @@
       }
     }
 
+    async function renderHome() {
+      const page=document.createElement("section");
+      page.className="home-page";
+      page.style.cssText="max-width:1000px;margin:0 auto;padding:28px 18px 40px";
+      const heading=document.createElement("h1");
+      heading.textContent="Welcome to Dalimgari";
+      heading.style.cssText="font-size:clamp(28px,5vw,42px);margin:0 0 10px";
+      const intro=document.createElement("p");
+      intro.textContent="Explore public posts and albums.";
+      intro.style.cssText="color:#666;line-height:1.6;margin:0 0 28px";
+      page.append(heading,intro);
+      const postsHeading=document.createElement("h2");postsHeading.textContent="Latest Posts";
+      postsHeading.style.cssText="font-size:22px;margin:24px 0 12px";
+      const postsList=document.createElement("div");postsList.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px";
+      page.append(postsHeading,postsList);
+      const albumsHeading=document.createElement("h2");albumsHeading.textContent="Albums";
+      albumsHeading.style.cssText="font-size:22px;margin:30px 0 12px";
+      const albumsList=document.createElement("div");albumsList.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px";
+      page.append(albumsHeading,albumsList);
+      mainContent.replaceChildren(page);
+      const cardStyle="border:1px solid #e7e7e7;border-radius:12px;padding:16px;background:#fff;min-width:0";
+      const [postsResult,albumsResult]=await Promise.all([
+        supabaseClient.from("post").select("id,title,caption,description,media_url,external_url,media_type,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(12),
+        supabaseClient.from("albums").select("id,title,description,url,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(12)
+      ]);
+      if(!postsResult.error && postsResult.data && postsResult.data.length){
+        postsResult.data.forEach(post=>{
+          const card=document.createElement("article");card.style.cssText=cardStyle;
+          const title=document.createElement("h3");title.textContent=post.caption||post.title||"Post";title.style.cssText="font-size:18px;margin:0 0 8px";
+          card.append(title);
+          const description=document.createElement("p");description.textContent=post.description||"";description.style.cssText="color:#666;line-height:1.5;margin:0";
+          if(description.textContent)card.append(description);
+          const mediaUrl=String(post.external_url||post.media_url||"");
+          if(/^https?:\/\//i.test(mediaUrl)){
+            const cleanUrl=mediaUrl.split("?")[0];
+            if((post.media_type==="video")||/\.(mp4|webm|mov|m4v|ogv)$/i.test(cleanUrl)){
+              const video=document.createElement("video");video.src=mediaUrl;video.controls=true;video.playsInline=true;video.preload="metadata";video.style.cssText="display:block;width:100%;max-height:240px;object-fit:contain;margin:0 0 12px;border-radius:8px";card.insertBefore(video,title);
+            }else if((post.media_type==="photo")||/\.(jpe?g|png|gif|webp|avif|bmp)$/i.test(cleanUrl)){
+              const image=document.createElement("img");image.src=mediaUrl;image.alt=title.textContent;image.loading="lazy";image.style.cssText="display:block;width:100%;max-height:240px;object-fit:cover;margin:0 0 12px;border-radius:8px";card.insertBefore(image,title);
+            }
+          }
+          postsList.append(card);
+        });
+      }else{
+        const empty=document.createElement("p");empty.textContent=postsResult.error?"Public posts could not be loaded.":"No public posts yet.";empty.style.color="#777";postsList.append(empty);
+      }
+      if(!albumsResult.error && albumsResult.data && albumsResult.data.length){
+        albumsResult.data.forEach(album=>{
+          const card=document.createElement("article");card.style.cssText=cardStyle;
+          const title=document.createElement("h3");title.textContent=album.title||"Album";title.style.cssText="font-size:18px;margin:0 0 8px";
+          const description=document.createElement("p");description.textContent=album.description||"";description.style.cssText="color:#666;line-height:1.5;margin:0";
+          card.append(title);if(description.textContent)card.append(description);albumsList.append(card);
+        });
+      }else{
+        const empty=document.createElement("p");empty.textContent=albumsResult.error?"Albums could not be loaded.":"No public albums yet.";empty.style.color="#777";albumsList.append(empty);
+      }
+    }
+
     function renderPage(pageName) {
       if (activeSession && (pageName === "Login" || pageName === "CreateAccount")) {
         pageName = "Profile";
@@ -1065,23 +1123,9 @@
         .eq("id", user.id).maybeSingle();
       if (error) {
         console.error("Could not load the user record from the profiles table:", error);
-        return {
-          id: user.id,
-          full_name: metadataValue(user, "full_name") || metadataValue(user, "name") || "",
-          phone: metadataValue(user, "phone") || "",
-          date_of_birth: metadataValue(user, "date_of_birth") || null,
-          bio: metadataValue(user, "bio") || "",
-          avatar_url: metadataValue(user, "avatar_url") || ""
-        };
+        return { id: user.id, full_name: "", phone: "", date_of_birth: null, bio: "", avatar_url: "" };
       }
-      return data || {
-        id: user.id,
-        full_name: metadataValue(user, "full_name") || metadataValue(user, "name") || "",
-        phone: metadataValue(user, "phone") || "",
-        date_of_birth: metadataValue(user, "date_of_birth") || null,
-        bio: metadataValue(user, "bio") || "",
-        avatar_url: metadataValue(user, "avatar_url") || ""
-      };
+      return data || { id: user.id, full_name: "", phone: "", date_of_birth: null, bio: "", avatar_url: "" };
     }
 
     function profileImageExtension(mimeType) {
@@ -1100,8 +1144,10 @@
         contentType: file.type, upsert: true, cacheControl: "3600"
       });
       if (uploadError) throw uploadError;
-      const { error: metadataError } = await supabaseClient.auth.updateUser({ data: { avatar_url: path } });
-      if (metadataError) throw metadataError;
+      const { error: profileError } = await supabaseClient.from("profiles").update({ avatar_url: path, updated_at: new Date().toISOString() }).eq("id", user.id);
+      if (profileError) throw profileError;
+      const { error: metadataCleanupError } = await supabaseClient.auth.updateUser({ data: { avatar_url: null } });
+      if (metadataCleanupError) console.warn("Profile image saved, but legacy Auth metadata cleanup failed:", metadataCleanupError);
       return getProfileImageSignedUrl(path);
     }
 
@@ -1112,7 +1158,8 @@
     }
 
     async function resolveProfileAvatarUrl(user, profile = null) {
-      const raw = (profile && profile.avatar_url) || metadataValue(user, "avatar_url");
+      const legacyAvatar = metadataValue(user, "avatar_url");
+      const raw = (profile && profile.avatar_url) || (legacyAvatar.startsWith("data:image/") ? legacyAvatar : "");
       if (!raw) return "";
       if (raw.startsWith("data:image/")) {
         try {
@@ -1146,7 +1193,7 @@
       const user = await getCurrentUser();
       if (!user) { renderPage("Login"); history.replaceState(null, "", "#login"); setCurrentMenuPage("Login"); return; }
       const profile = await loadUserProfile(user);
-      const name = profile.full_name || metadataValue(user, "full_name") || metadataValue(user, "name") || "";
+      const name = profile.full_name || "";
       const role = user.app_metadata && String(user.app_metadata.role || "").toLowerCase() === "admin" ? "ADMIN" : "MEMBER";
       const page = document.createElement("section"); page.className = "profile-page";
       const heading = document.createElement("h1"); heading.className = "profile-heading"; heading.textContent = "My Profile";
@@ -1332,6 +1379,7 @@
           {name:"title",label:"Title",type:"text",required:true},
           {name:"description",label:"Description (optional)",type:"textarea",full:true},
           {name:"album_id",label:"Album (optional)",type:"album"},
+          {name:"media_file",label:"Upload photo or video (optional)",type:"file",accept:"image/*,video/*",full:true,help:"Uploaded media is stored in private Supabase Storage."},
           {name:"visibility",label:"Visibility",type:"select",options:[["public","Public"],["private","Only Me"]]}
         ]},
         album: { table:"albums", label:"Albums", fields:[
@@ -1393,7 +1441,7 @@
         mediaCard.append(mediaLabel,mediaCount);stats.insertBefore(mediaCard,stats.children[1]||null);
         Promise.all([
           supabaseClient.from("post").select("id",{count:"exact",head:true}).or("media_url.not.is.null,storage_path.not.is.null,external_url.not.is.null"),
-          supabaseClient.from("albums").select("id",{count:"exact",head:true}).or("media_url.not.is.null,storage_path.not.is.null,url.not.is.null")
+          supabaseClient.from("albums").select("id",{count:"exact",head:true}).or("media_url.not.is.null,storage_path.not.is.null")
         ]).then(([postsResult,albumsResult])=>{
           if(!isCurrent())return;
           if(postsResult.error||albumsResult.error){mediaCount.textContent="—";return;}
@@ -1712,7 +1760,16 @@
         save.disabled=true;remove.disabled=true;save.textContent="Saving…";setStatus("");
         try{
           const payload={};
-          config.fields.forEach(def=>{let value=controls[def.name].value;if(def.name==="value"&&(section.id==="customization"||section.id==="settings")){try{value=JSON.parse(value);}catch{throw new Error("Value must be valid JSON.");}}else if(value==="")value=null;payload[def.name]=value;});
+          config.fields.forEach(def=>{
+            const input=controls[def.name];
+            if(def.type==="file")return;
+            let value=input.value;
+            if(def.name==="value"&&(section.id==="customization"||section.id==="settings")){try{value=JSON.parse(value);}catch{throw new Error("Value must be valid JSON.");}}
+            else if(value==="")value=null;
+            payload[def.name]=value;
+          });
+          const mediaFile=section.id==="post"&&controls.media_file?controls.media_file.files[0]:null;
+          if(mediaFile&&!(/^(image|video)\//i.test(mediaFile.type)))throw new Error("Choose an image or video file.");
           if(section.id==="post"){
             const title=String(controls.title.value||"").trim();
             if(!title)throw new Error("Enter a title.");
@@ -1738,6 +1795,15 @@
           }
           if(result.error)throw result.error;
           const savedId=result.data?.id||selectedId;
+          if(section.id==="post"&&mediaFile){
+            const safeName=mediaFile.name.replace(/[^a-zA-Z0-9._-]/g,"_").slice(-120)||"media";
+            const storagePath="posts/"+savedId+"/"+Date.now()+"-"+safeName;
+            const {error:uploadError}=await supabaseClient.storage.from("site-media").upload(storagePath,mediaFile,{contentType:mediaFile.type,upsert:false,cacheControl:"3600"});
+            if(uploadError)throw uploadError;
+            const mediaType=mediaFile.type.toLowerCase().startsWith("video/")?"video":"photo";
+            const {error:mediaUpdateError}=await supabaseClient.from("post").update({storage_path:storagePath,media_url:storagePath,media_type:mediaType,source_type:"upload",updated_at:new Date().toISOString()}).eq("id",savedId);
+            if(mediaUpdateError)throw mediaUpdateError;
+          }
           const wasUpdating=Boolean(selectedId);resetForm();setStatus(wasUpdating?"Record updated successfully.":"Record created successfully.","success");await loadRecords();
         }catch(error){setStatus(error.message||"Could not save record.","error");}
         finally{save.disabled=false;save.textContent=selectedId?"Update":(config.readOnlyCreate?"Save Profile":(section.id==="post"?"Publish":"Create"));remove.disabled=!selectedId||!!config.noDelete;}
@@ -1851,7 +1917,7 @@
           pictureProgressFill.style.width = "100%"; pictureProgress.classList.remove("is-active");
           pictureStatus.style.color = "#176b43"; pictureStatus.textContent = "✓ Profile picture updated successfully.";
           avatarPreview.replaceChildren(); const previewImage = document.createElement("img"); previewImage.src = signedAvatarUrl; previewImage.alt = "Profile picture"; avatarPreview.append(previewImage);
-          pictureSubtitle.textContent = "Your new profile picture is saved";
+          // The status message above is the single upload confirmation; no separate subtitle element is required.
         } catch (error) {
           pictureProgress.classList.remove("is-active"); pictureProgressFill.style.width = "0%";
           pictureStatus.style.color = "#a12622"; pictureStatus.textContent = "Could not update your profile picture. Please try another image.";
@@ -1915,7 +1981,7 @@
         updateAuthMenu(session);
         const currentRoute = route();
         if (currentRoute === "#home") {
-          mainContent.replaceChildren();
+          renderHome();
           setCurrentMenuPage("Home");
         } else if (currentRoute === "#profile") {
           if (session) {
@@ -2003,7 +2069,7 @@
           : (window.location.hash.toLowerCase() || "#home");
         if (currentRoute === "#home") {
           updateAuthMenu(data.session);
-          mainContent.replaceChildren();
+          renderHome();
           setCurrentMenuPage("Home");
         } else if (currentRoute === "#forgot-password") {
           updateAuthMenu(data.session);
@@ -2046,7 +2112,7 @@
         try {
           // Home is always directly reachable, regardless of authentication state.
           if (pageName === "Home") {
-            mainContent.replaceChildren();
+            renderHome();
             history.replaceState(null, "", "#home");
             setCurrentMenuPage("Home");
           } else if (pageName === "Logout") {
