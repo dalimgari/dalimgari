@@ -711,6 +711,7 @@
         event.preventDefault();
         renderPage("Login");
         history.replaceState(null, "", "#login");
+        setCurrentMenuPage("Login");
       });
 
       form.append(heading, email, password, confirmPassword, submit, message, backToLogin);
