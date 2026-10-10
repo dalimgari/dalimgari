@@ -928,8 +928,45 @@
       const widget=document.querySelector(".home-widget"), albumSection=document.querySelector(".home-album"), pageCards=document.querySelector(".home-page-card");
       const makeGrid=()=>{const grid=document.createElement("div");grid.className="home-content-grid";return grid;};
       const makeCard=(title,description)=>{const card=document.createElement("article");card.className="home-content-card";const h=document.createElement("h3");h.textContent=title||"Untitled";card.append(h);if(description){const p=document.createElement("p");p.textContent=description;card.append(p);}return card;};
-      // Widgets are a separate content type. Do not populate this section from posts.
-      // It remains empty until actual widget records/rendering are implemented.
+      // Only configured widgets belong in the homepage Widget section.
+      if(widget){
+        const {data:widgets,error}=await supabaseClient.from("widgets").select("id,widget_type,title,is_visible,settings").eq("is_visible",true).order("created_at",{ascending:true});
+        if(!error&&Array.isArray(widgets)&&widgets.length){
+          const grid=makeGrid();
+          for(const item of widgets){
+            const settings=item.settings&&typeof item.settings==="object"?item.settings:{};
+            const card=makeCard(item.title||"Widget","");
+            if(item.widget_type==="datetime"){
+              const date=document.createElement("p");
+              date.style.cssText="margin:4px 0 8px;color:#5b6472;font-size:14px";
+              const time=document.createElement("h2");
+              time.style.cssText="margin:0;font-size:clamp(24px,4vw,36px);line-height:1.2;font-variant-numeric:tabular-nums";
+              const updateClock=()=>{
+                const now=new Date();
+                date.textContent=new Intl.DateTimeFormat(undefined,{dateStyle:"full"}).format(now);
+                time.textContent=new Intl.DateTimeFormat(undefined,{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(now);
+              };
+              updateClock();
+              card.append(date,time);
+              const clockTimer=setInterval(()=>{if(!card.isConnected){clearInterval(clockTimer);return;}updateClock();},1000);
+            }else if(item.widget_type==="map"){
+              const map=document.createElement("iframe");
+              const embed=String(settings.embed_url||"https://maps.google.com/maps?q=Saudi%20Arabia&output=embed").trim();
+              let validMapUrl=false;
+              try{const parsed=new URL(embed);validMapUrl=parsed.protocol==="https:"&&["maps.google.com","www.google.com","www.openstreetmap.org","openstreetmap.org"].includes(parsed.hostname);}catch(_){}
+              map.src=validMapUrl?embed:"https://maps.google.com/maps?q=Saudi%20Arabia&output=embed";
+              map.title=item.title||"Map";
+              map.loading="lazy";
+              map.referrerPolicy="no-referrer-when-downgrade";
+              map.setAttribute("allowfullscreen","");
+              map.style.cssText="display:block;width:100%;height:300px;max-width:100%;border:0;border-radius:10px;background:#f3f4f6";
+              card.append(map);
+            }
+            grid.append(card);
+          }
+          widget.append(grid);
+        }
+      }
       if(albumSection){
         const {data:albums,error}=await supabaseClient.from("albums").select("id,title,description,url,cover_path,media,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(24);
         if(!error&&albums?.length){
@@ -1754,6 +1791,7 @@
         { id: "post", label: "Post", description: "Create and manage posts." },
         { id: "page", label: "Page", description: "Create and manage pages." },
         { id: "album", label: "Album", description: "Group related content and media." },
+        { id: "widget", label: "Widget", description: "Manage homepage widgets and their Show/Hide visibility." },
         { id: "user", label: "User", description: "Manage accounts and administrator access." },
         { id: "role", label: "Role", description: "Manage roles, permissions and user assignments." },
         { id: "customization", label: "Customization", description: "Website customization section." },
@@ -2034,6 +2072,58 @@
           }
         });
         await loadAuthUsers();
+        return;
+      }
+
+      if(section.id==="widget"){
+        content.replaceChildren();
+        const wrap=document.createElement("div");wrap.className="dashboard-crud";
+        const card=document.createElement("section");card.className="dashboard-crud-card";
+        const title=document.createElement("h3");title.textContent="Homepage Widgets";
+        const hint=document.createElement("p");hint.className="dashboard-crud-hint";hint.textContent="Choose Show or Hide for each widget, then save. Only widgets set to Show appear in the homepage Widget section.";
+        const status=document.createElement("p");status.className="dashboard-crud-status";status.setAttribute("role","status");status.setAttribute("aria-live","polite");
+        const list=document.createElement("div");list.className="dashboard-crud-list";
+        card.append(title,hint,status,list);wrap.append(card);content.append(wrap);
+        async function loadWidgets(){
+          list.replaceChildren();
+          const loading=document.createElement("p");loading.className="dashboard-crud-empty";loading.textContent="Loading widgets…";list.append(loading);
+          const {data,error}=await supabaseClient.from("widgets").select("id,widget_type,title,is_visible,settings").order("created_at",{ascending:true});
+          if(!isCurrent())return;
+          if(error){list.replaceChildren();const msg=document.createElement("p");msg.className="dashboard-crud-empty";msg.textContent="Could not load widgets: "+error.message;list.append(msg);status.textContent="Load failed.";status.style.color="#a12622";return;}
+          list.replaceChildren();
+          if(!Array.isArray(data)||!data.length){const empty=document.createElement("p");empty.className="dashboard-crud-empty";empty.textContent="No widgets found.";list.append(empty);return;}
+          const table=document.createElement("table");table.className="dashboard-crud-table";
+          const thead=document.createElement("thead"),headRow=document.createElement("tr");
+          ["Widget","Type","Visibility","Action"].forEach(label=>{const th=document.createElement("th");th.textContent=label;headRow.append(th);});
+          thead.append(headRow);table.append(thead);
+          const tbody=document.createElement("tbody");
+          for(const item of data){
+            const row=document.createElement("tr");
+            const nameCell=document.createElement("td");nameCell.textContent=item.title||"Widget";
+            const typeCell=document.createElement("td");typeCell.textContent=item.widget_type==="datetime"?"সময় ও তারিখ":item.widget_type==="map"?"ম্যাপ":item.widget_type;
+            const visibilityCell=document.createElement("td");
+            const select=document.createElement("select");select.className="dashboard-crud-input";select.style.minWidth="110px";
+            [["true","Show"],["false","Hide"]].forEach(([value,label])=>{const option=document.createElement("option");option.value=value;option.textContent=label;select.append(option);});
+            select.value=String(Boolean(item.is_visible));
+            select.setAttribute("aria-label","Visibility for "+(item.title||"Widget"));
+            visibilityCell.append(select);
+            const actionCell=document.createElement("td");
+            const saveRow=document.createElement("button");saveRow.type="button";saveRow.className="action-button primary";saveRow.textContent="Save";
+            saveRow.addEventListener("click",async()=>{
+              saveRow.disabled=true;status.textContent="Saving widget visibility…";status.style.color="";
+              try{
+                const current=await getCurrentUser();if(!current)throw new Error("Your admin session has expired. Please sign in again.");
+                const {error:updateError}=await supabaseClient.from("widgets").update({is_visible:select.value==="true",updated_by:current.id,updated_at:new Date().toISOString()}).eq("id",item.id);
+                if(updateError)throw updateError;
+                status.textContent=(item.title||"Widget")+" visibility saved. Homepage display follows this setting.";status.style.color="#176b43";
+                await loadWidgets();
+              }catch(err){status.textContent="Save failed: "+(err.message||"Unknown error");status.style.color="#a12622";saveRow.disabled=false;}
+            });
+            actionCell.append(saveRow);row.append(nameCell,typeCell,visibilityCell,actionCell);tbody.append(row);
+          }
+          table.append(tbody);list.append(table);
+        }
+        await loadWidgets();
         return;
       }
 
