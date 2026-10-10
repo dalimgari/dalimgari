@@ -141,6 +141,13 @@
       display: none;
     }
 
+    .menu-link.menu-dashboard {
+      margin-top: 10px;
+      padding-top: 18px;
+      border-top: 1px solid #eeeeee;
+      border-radius: 0 0 9px 9px;
+    }
+
     .menu-link {
       display: block;
       width: 100%;
@@ -551,6 +558,7 @@
       <button class="menu-link" type="button" data-page="Home">Home</button>
       <button class="menu-link" type="button" data-page="Profile">Profile</button>
       <button class="menu-link" type="button" data-page="Login">Login</button>
+      <button class="menu-link menu-dashboard" type="button" data-page="Dashboard" hidden>Dashboard</button>
     </nav>
   </header>
 
@@ -601,6 +609,9 @@
         loginAction.textContent = signedIn ? "Logout" : "Login";
         loginAction.setAttribute("aria-label", signedIn ? "Log out of your account" : "Log in to your account");
       }
+      const dashboardAction = document.querySelector('.menu-link[data-page="Dashboard"]');
+      const role = String((activeSession && activeSession.user && activeSession.user.app_metadata && activeSession.user.app_metadata.role) || "").toLowerCase();
+      if (dashboardAction) dashboardAction.hidden = role !== "admin" || dashboardAction.getAttribute("aria-current") === "page";
     }
 
     async function renderHome() {
@@ -1148,7 +1159,8 @@
         const isCurrentPage = item.dataset.page === pageName;
         if (isCurrentPage) item.setAttribute("aria-current", "page");
         else item.removeAttribute("aria-current");
-        item.hidden = isCurrentPage;
+        const role = String((activeSession && activeSession.user && activeSession.user.app_metadata && activeSession.user.app_metadata.role) || "").toLowerCase();
+        item.hidden = isCurrentPage || (item.dataset.page === "Dashboard" && role !== "admin");
       });
     }
     async function getCurrentUser() {
@@ -1973,7 +1985,13 @@
               console.error("Could not check the session during navigation:", sessionError);
             }
             updateAuthMenu(session);
-            if (session && (pageName === "Login" || pageName === "CreateAccount")) {
+            const role = String((session && session.user && session.user.app_metadata && session.user.app_metadata.role) || "").toLowerCase();
+            if (pageName === "Dashboard" && (!session || role !== "admin")) {
+              renderPage(session ? "Profile" : "Login");
+              const safePage = session ? "Profile" : "Login";
+              history.replaceState(null, "", "#" + safePage.toLowerCase());
+              setCurrentMenuPage(safePage);
+            } else if (session && (pageName === "Login" || pageName === "CreateAccount")) {
               renderPage("Profile");
               history.replaceState(null, "", "#profile");
               setCurrentMenuPage("Profile");
