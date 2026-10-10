@@ -626,6 +626,10 @@
     }
 
     async function renderHome() {
+      // Home content starts below the header instead of being vertically centered.
+      mainContent.style.alignItems = "flex-start";
+      mainContent.style.justifyContent = "flex-start";
+
       const page = document.createElement("section");
       page.className = "home-page";
       page.setAttribute("aria-label", "Home page sections");
@@ -634,7 +638,7 @@
       const heroSection = document.createElement("section");
       heroSection.className = "home-section home-hero";
       heroSection.setAttribute("aria-label", "Hero");
-      heroSection.style.cssText = "width:100%;min-width:0;max-width:100%;padding:clamp(24px,6vw,64px) 0";
+      heroSection.style.cssText = "width:100%;min-width:0;max-width:100%;padding:24px 0 32px";
 
       page.append(heroSection);
       mainContent.replaceChildren(page);
@@ -690,6 +694,9 @@
     }
 
     function renderPage(pageName) {
+      mainContent.style.removeProperty("align-items");
+      mainContent.style.removeProperty("justify-content");
+
       if (activeSession && (pageName === "Login" || pageName === "CreateAccount")) {
         pageName = "Profile";
         history.replaceState(null, "", "#profile");
