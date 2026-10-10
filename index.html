@@ -1708,8 +1708,7 @@
       const pictureIcon = document.createElement("span"); pictureIcon.className = "attachment-icon"; pictureIcon.setAttribute("aria-hidden", "true"); pictureIcon.textContent = "↑";
       const pictureCopy = document.createElement("span"); pictureCopy.className = "attachment-copy";
       const pictureTitle = document.createElement("span"); pictureTitle.className = "attachment-title"; pictureTitle.textContent = "Change profile picture";
-      const pictureSubtitle = document.createElement("span"); pictureSubtitle.className = "attachment-subtitle"; pictureSubtitle.textContent = "Choose an image from your device";
-      pictureCopy.append(pictureTitle, pictureSubtitle);
+      pictureCopy.append(pictureTitle);
       const pictureButton = document.createElement("span"); pictureButton.className = "attachment-button"; pictureButton.textContent = "Choose image";
       picturePicker.append(pictureIcon, pictureCopy, pictureButton);
       const pictureFileName = document.createElement("p"); pictureFileName.className = "attachment-filename"; pictureFileName.hidden = true;
