@@ -763,7 +763,7 @@
 
     function sanitizePageHtml(html) {
       const parsed = new DOMParser().parseFromString(String(html || ""), "text/html");
-      parsed.querySelectorAll("script,iframe,object,embed,base,meta,link,foreignObject").forEach(node => node.remove());
+      parsed.querySelectorAll("script,iframe,object,embed,base,meta,link,title,foreignObject").forEach(node => node.remove());
       parsed.querySelectorAll("*").forEach(node => {
         Array.from(node.attributes).forEach(attribute => {
           const name = attribute.name.toLowerCase();
@@ -829,16 +829,16 @@
       heading.textContent = data.title || "";
       heading.style.cssText = "margin:0 0 12px;overflow-wrap:anywhere";
       shell.append(heading);
-      if (data.description) {
-        const description = document.createElement("p");
-        description.textContent = data.description;
-        description.style.cssText = "margin:0 0 24px;line-height:1.6;overflow-wrap:anywhere";
-        shell.append(description);
-      }
       const content = document.createElement("div");
       content.className = "stored-html-page-content";
       shell.append(content);
       await renderHtmlInto(content, data.content || "", session);
+      const titleKey = String(data.title || "").replace(/\s+/g, " ").trim().toLowerCase();
+      if (titleKey) {
+        content.querySelectorAll("h1,h2,h3,h4,h5,h6").forEach(node => {
+          if (String(node.textContent || "").replace(/\s+/g, " ").trim().toLowerCase() === titleKey) node.remove();
+        });
+      }
       document.title = (data.title ? data.title + " | " : "") + "Dalimgari";
     }
 
@@ -1611,8 +1611,7 @@
         page: { table:"pages", label:"Pages", fields:[
           {name:"title",label:"Page Title",type:"text",required:true},
           {name:"url",label:"Page URL",type:"text",required:true,help:"Use a unique slug, e.g. about-us. The page link will use ?page=about-us."},
-          {name:"description",label:"Description",type:"textarea",full:true},
-          {name:"content",label:"HTML Code",type:"textarea",rows:12,full:true,help:"Paste HTML only. Scripts and unsafe attributes are removed. To include another page, use <div data-dalimgari-include=\"about-us\"></div>."},
+          {name:"content",label:"HTML Code",type:"textarea",rows:12,full:true,help:"Enter page body content only; the Page Title field supplies the page heading. Do not add a separate <title> tag or repeat the same title as a heading. Scripts and unsafe attributes are removed. To include another page, use <div data-dalimgari-include=\"about-us\"></div>."},
           {name:"visibility",label:"Visibility",type:"select",options:[["public","Public"],["private","Only Me"]]}
         ]},
         role: { table:"roles", label:"Roles", fields:[
