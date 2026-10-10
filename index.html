@@ -481,6 +481,38 @@
     © 2026 Dalimgari. All rights reserved.
   </footer>
 
+  <script>
+    // Keep the menu toggle independent from the main application script.
+    (() => {
+      const menuButton = document.querySelector(".menu-button");
+      const floatingMenu = document.querySelector("#floating-menu");
+      if (!menuButton || !floatingMenu) return;
+
+          menuButton.addEventListener("click", () => {
+            const isOpening = floatingMenu.hidden;
+            floatingMenu.hidden = !isOpening;
+            menuButton.setAttribute("aria-expanded", String(isOpening));
+            menuButton.setAttribute("aria-label", isOpening ? "Close menu" : "Open menu");
+          });
+      
+          document.addEventListener("click", (event) => {
+            if (!menuButton.contains(event.target) && !floatingMenu.contains(event.target)) {
+              floatingMenu.hidden = true;
+              menuButton.setAttribute("aria-expanded", "false");
+              menuButton.setAttribute("aria-label", "Open menu");
+            }
+          });
+      
+          document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") {
+              floatingMenu.hidden = true;
+              menuButton.setAttribute("aria-expanded", "false");
+              menuButton.setAttribute("aria-label", "Open menu");
+            }
+          });
+
+    })();
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const supabaseClient = window.supabase.createClient(
@@ -1699,28 +1731,7 @@
       });
     });
 
-    menuButton.addEventListener("click", () => {
-      const isOpening = floatingMenu.hidden;
-      floatingMenu.hidden = !isOpening;
-      menuButton.setAttribute("aria-expanded", String(isOpening));
-      menuButton.setAttribute("aria-label", isOpening ? "Close menu" : "Open menu");
-    });
 
-    document.addEventListener("click", (event) => {
-      if (!menuButton.contains(event.target) && !floatingMenu.contains(event.target)) {
-        floatingMenu.hidden = true;
-        menuButton.setAttribute("aria-expanded", "false");
-        menuButton.setAttribute("aria-label", "Open menu");
-      }
-    });
-
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") {
-        floatingMenu.hidden = true;
-        menuButton.setAttribute("aria-expanded", "false");
-        menuButton.setAttribute("aria-label", "Open menu");
-      }
-    });
   </script>
 </body>
 </html>
