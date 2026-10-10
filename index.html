@@ -1673,7 +1673,7 @@
         { id: "post", label: "Post", description: "Post management section." },
         { id: "media", label: "Media", description: "Upload media to Storage, keep reusable public links, and manage uploaded files." },
         { id: "page", label: "Page", description: "Page management section." },
-        { id: "user", label: "User", description: "User management section." },
+        { id: "user", label: "User", description: "Create accounts, delete accounts, and grant or remove administrator access." },
         { id: "role", label: "Role", description: "Role management section." },
         { id: "permission", label: "Permission", description: "Permission management section." },
         { id: "customization", label: "Customization", description: "Website customization section." },
@@ -1803,6 +1803,155 @@
         renderPage("Profile"); history.replaceState(null, "", "#profile"); return;
       }
       if (!isCurrent()) return;
+      if (section.id === "user") {
+        content.replaceChildren();
+        const wrap = document.createElement("div");
+        wrap.className = "dashboard-crud";
+        const card = document.createElement("section");
+        card.className = "dashboard-crud-card";
+        const title = document.createElement("h3");
+        title.textContent = "Account Management";
+        const hint = document.createElement("p");
+        hint.className = "dashboard-crud-hint";
+        hint.textContent = "Create accounts, change administrator access, and delete accounts. The last administrator cannot be demoted or deleted.";
+        const status = document.createElement("p");
+        status.className = "dashboard-crud-status";
+        status.setAttribute("role", "status");
+        status.setAttribute("aria-live", "polite");
+        const form = document.createElement("form");
+        form.className = "dashboard-crud-form";
+        form.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:16px 0";
+        const email = document.createElement("input");
+        email.type = "email"; email.required = true; email.autocomplete = "email";
+        email.placeholder = "Email address"; email.setAttribute("aria-label", "New account email");
+        const password = document.createElement("input");
+        password.type = "password"; password.required = true; password.minLength = 8;
+        password.autocomplete = "new-password"; password.placeholder = "Password (8+ characters)";
+        password.setAttribute("aria-label", "New account password");
+        const adminLabel = document.createElement("label");
+        adminLabel.style.cssText = "display:flex;align-items:center;gap:8px;min-height:42px";
+        const adminCheck = document.createElement("input");
+        adminCheck.type = "checkbox"; adminCheck.style.cssText = "width:auto;min-height:auto";
+        const adminText = document.createElement("span"); adminText.textContent = "Make administrator";
+        adminLabel.append(adminCheck, adminText);
+        const create = document.createElement("button");
+        create.type = "submit"; create.className = "action-button primary"; create.textContent = "Create account";
+        form.append(email, password, adminLabel, create);
+        const list = document.createElement("div");
+        list.className = "dashboard-crud-list";
+        card.append(title, hint, status, form, list); wrap.append(card); content.append(wrap);
+
+        function setUserStatus(message, isError = false) {
+          status.textContent = message;
+          status.style.color = isError ? "#a12622" : "#176b43";
+        }
+        async function callUserAdmin(action, values = {}) {
+          const { data, error } = await supabaseClient.functions.invoke("admin-user-management", {
+            body: { action, ...values }
+          });
+          if (error) {
+            let detail = error.message || "Request failed.";
+            try {
+              const context = error.context;
+              if (context && typeof context.json === "function") {
+                const payload = await context.json();
+                if (payload && payload.error) detail = payload.error;
+              }
+            } catch (_) {}
+            throw new Error(detail);
+          }
+          if (data && data.error) throw new Error(data.error);
+          return data;
+        }
+        async function loadAuthUsers() {
+          list.replaceChildren();
+          const loading = document.createElement("p");
+          loading.className = "dashboard-crud-empty"; loading.textContent = "Loading accounts…"; list.append(loading);
+          try {
+            const result = await callUserAdmin("list_users");
+            if (!isCurrent()) return;
+            list.replaceChildren();
+            const users = Array.isArray(result.users) ? result.users : [];
+            if (!users.length) {
+              const empty = document.createElement("p"); empty.className = "dashboard-crud-empty";
+              empty.textContent = "No accounts found."; list.append(empty); return;
+            }
+            const table = document.createElement("table"); table.className = "dashboard-crud-table";
+            const thead = document.createElement("thead"), headRow = document.createElement("tr");
+            ["Email", "Role", "Created", "Last sign-in", "Actions"].forEach((label) => {
+              const th = document.createElement("th"); th.textContent = label; headRow.append(th);
+            });
+            thead.append(headRow); table.append(thead);
+            const tbody = document.createElement("tbody");
+            for (const account of users) {
+              const row = document.createElement("tr");
+              const emailCell = document.createElement("td"); emailCell.textContent = account.email || "(no email)";
+              const roleCell = document.createElement("td"); roleCell.textContent = account.role === "admin" ? "ADMIN" : "MEMBER";
+              const createdCell = document.createElement("td"); createdCell.textContent = account.created_at ? new Date(account.created_at).toLocaleString() : "—";
+              const signInCell = document.createElement("td"); signInCell.textContent = account.last_sign_in_at ? new Date(account.last_sign_in_at).toLocaleString() : "Never";
+              const actions = document.createElement("td");
+              const isSelf = account.id === user.id;
+              const roleButton = document.createElement("button");
+              roleButton.type = "button"; roleButton.className = "action-button";
+              roleButton.textContent = account.role === "admin" ? "Remove admin" : "Make admin";
+              roleButton.disabled = isSelf && account.role === "admin";
+              roleButton.addEventListener("click", async () => {
+                const makeAdmin = account.role !== "admin";
+                if (!confirm((makeAdmin ? "Grant administrator access to " : "Remove administrator access from ") + (account.email || "this account") + "?")) return;
+                roleButton.disabled = true;
+                try {
+                  await callUserAdmin("set_admin", { user_id: account.id, admin: makeAdmin });
+                  setUserStatus("Account role updated. The affected account may need to sign in again to refresh its session.");
+                  await loadAuthUsers();
+                } catch (error) {
+                  setUserStatus(error.message || "Could not update account role.", true); roleButton.disabled = false;
+                }
+              });
+              const deleteButton = document.createElement("button");
+              deleteButton.type = "button"; deleteButton.className = "action-button";
+              deleteButton.textContent = "Delete"; deleteButton.style.marginLeft = "6px";
+              deleteButton.disabled = isSelf;
+              deleteButton.addEventListener("click", async () => {
+                if (!confirm("Permanently delete the account " + (account.email || "") + "? This cannot be undone.")) return;
+                deleteButton.disabled = true; roleButton.disabled = true;
+                try {
+                  await callUserAdmin("delete_user", { user_id: account.id });
+                  setUserStatus("Account deleted."); await loadAuthUsers();
+                } catch (error) {
+                  setUserStatus(error.message || "Could not delete account.", true);
+                  deleteButton.disabled = false; roleButton.disabled = false;
+                }
+              });
+              actions.append(roleButton, deleteButton); row.append(emailCell, roleCell, createdCell, signInCell, actions); tbody.append(row);
+            }
+            table.append(tbody); list.append(table);
+          } catch (error) {
+            if (!isCurrent()) return;
+            list.replaceChildren();
+            const message = document.createElement("p"); message.className = "dashboard-crud-empty";
+            message.textContent = "Could not load accounts: " + (error.message || "Request failed."); list.append(message);
+            setUserStatus(error.message || "Could not load accounts.", true);
+          }
+        }
+        form.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          if (password.value.length < 8) { setUserStatus("Password must be at least 8 characters.", true); password.focus(); return; }
+          create.disabled = true;
+          try {
+            await callUserAdmin("create_user", { email: email.value.trim(), password: password.value, admin: adminCheck.checked });
+            form.reset();
+            setUserStatus("Account created successfully.");
+            await loadAuthUsers();
+          } catch (error) {
+            setUserStatus(error.message || "Could not create account.", true);
+          } finally {
+            create.disabled = false;
+          }
+        });
+        await loadAuthUsers();
+        return;
+      }
+
       const configs = {
         post: { table:"post", label:"Posts", fields:[
           {name:"title",label:"Title",type:"text",required:true},
