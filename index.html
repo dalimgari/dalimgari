@@ -676,10 +676,8 @@
       heroSection.style.cssText = "width:100%;min-width:0;max-width:100%;padding:24px 0 32px";
 
       const sectionNames = [
-        ["Page Title", "home-page-title"],
         ["Widget", "home-widget"],
         ["Album", "home-album"],
-        ["Page Card", "home-page-card"],
       ];
       const extraSections = sectionNames.map(([name, className]) => {
         const section = document.createElement("section");
@@ -692,59 +690,6 @@
       // Keep Media Upload immediately below the hero, before the other homepage sections.
       page.append(heroSection, ...extraSections);
       mainContent.replaceChildren(page);
-
-      // Optional homepage placement map, configured in Dashboard > Customizations
-      // with key "home_page_includes" and JSON such as {"home-page-title":"about-us"}.
-      const { data: includeConfigRow } = await supabaseClient.from("site_customizations")
-        .select("value").eq("key", "home_page_includes").maybeSingle();
-      let homeIncludes = includeConfigRow?.value || {};
-      if (typeof homeIncludes === "string") {
-        try { homeIncludes = JSON.parse(homeIncludes); } catch (_) { homeIncludes = {}; }
-      }
-      if (homeIncludes && typeof homeIncludes === "object" && !Array.isArray(homeIncludes)) {
-        for (const [sectionClass, rawSlug] of Object.entries(homeIncludes)) {
-          const target = [heroSection, ...extraSections].find(section => section.classList.contains(sectionClass));
-          const slug = generatePageSlug(rawSlug);
-          if (!target || !slug) continue;
-          const { data: includedPage, error: includeError } = await supabaseClient.from("pages")
-            .select("content").eq("url", slug).maybeSingle();
-          if (!includeError && includedPage) await renderHtmlInto(target, includedPage.content || "", null);
-        }
-      }
-
-      // Public Pages appear as pill buttons in the homepage Page Title section.
-      const pageTitleSection = extraSections[0];
-      const pillBar = document.createElement("nav");
-      pillBar.setAttribute("aria-label", "Pages");
-      pillBar.style.cssText = "display:flex;flex-wrap:wrap;gap:10px;width:100%;padding:4px 0 12px";
-      const [{data: publicPages, error: pagesError}, {data: pageOrderSetting}] = await Promise.all([
-        supabaseClient.from("pages").select("id,title,url,visibility,created_at").eq("visibility","public").order("created_at",{ascending:true}).limit(200),
-        supabaseClient.from("site_customizations").select("value").eq("key","home_page_order").maybeSingle()
-      ]);
-      if (!pagesError && Array.isArray(publicPages) && publicPages.length) {
-        let pageOrder = pageOrderSetting?.value;
-        if (typeof pageOrder === "string") { try { pageOrder = JSON.parse(pageOrder); } catch (_) { pageOrder = []; } }
-        if (pageOrder && !Array.isArray(pageOrder) && Array.isArray(pageOrder.ids)) pageOrder = pageOrder.ids;
-        if (!Array.isArray(pageOrder)) pageOrder = [];
-        const rank = new Map(pageOrder.map((id,index)=>[String(id),index]));
-        publicPages.sort((a,b) => {
-          const ar=rank.has(String(a.id))?rank.get(String(a.id)):Number.MAX_SAFE_INTEGER;
-          const br=rank.has(String(b.id))?rank.get(String(b.id)):Number.MAX_SAFE_INTEGER;
-          return ar-br || new Date(a.created_at||0)-new Date(b.created_at||0);
-        });
-        for (const storedPage of publicPages) {
-          if (!storedPage.url || !storedPage.title) continue;
-          const pill = document.createElement("a");
-          pill.href = window.location.pathname + "?page=" + encodeURIComponent(storedPage.url);
-          pill.textContent = storedPage.title;
-          pill.className = "home-page-pill";
-          pill.style.cssText = "display:inline-flex;align-items:center;justify-content:center;min-height:40px;max-width:100%;padding:8px 16px;border:1px solid #dedede;border-radius:999px;background:#fff;color:#333;text-decoration:none;font-size:14px;font-weight:600;line-height:1.35;overflow-wrap:anywhere";
-          pill.addEventListener("mouseenter",()=>{pill.style.background="#f3f4f6";});
-          pill.addEventListener("mouseleave",()=>{pill.style.background="#fff";});
-          pillBar.append(pill);
-        }
-      }
-      if (pillBar.childElementCount) pageTitleSection.append(pillBar);
 
       // The uploader is a normal homepage section, not a separate page or route.
 
@@ -803,147 +748,6 @@
       }
       imageFrame.append(textOverlay);
       heroSection.append(imageFrame);
-    }
-
-    function sanitizePageHtml(html) {
-      const parsed = new DOMParser().parseFromString(String(html || ""), "text/html");
-      parsed.querySelectorAll("script,iframe,object,embed,base,meta,link,title,foreignObject").forEach(node => node.remove());
-      const pageStyles = Array.from(parsed.querySelectorAll("style"));
-      pageStyles.forEach(node => node.remove());
-      parsed.querySelectorAll("*").forEach(node => {
-        Array.from(node.attributes).forEach(attribute => {
-          const name = attribute.name.toLowerCase();
-          const value = String(attribute.value || "").trim().toLowerCase();
-          if (name.startsWith("on") || name === "srcdoc" ||
-              ((name === "href" || name === "src" || name === "xlink:href" || name === "action" || name === "formaction") &&
-               (value.startsWith("javascript:") || value.startsWith("data:text/html:")))) {
-            node.removeAttribute(attribute.name);
-          }
-        });
-        if (node.tagName === "FORM") {
-          node.removeAttribute("action");
-          node.removeAttribute("method");
-        }
-      });
-      pageStyles.forEach(style => parsed.body.append(style));
-      return parsed.body;
-    }
-
-    function splitPageCssSelectors(value) {
-      const selectors = [];
-      let start = 0, depth = 0, quote = "";
-      for (let i = 0; i < value.length; i++) {
-        const ch = value[i];
-        if (quote) { if (ch === quote && value[i - 1] !== "\\") quote = ""; continue; }
-        if (ch === "'" || ch === '"') { quote = ch; continue; }
-        if (ch === "(" || ch === "[") depth++;
-        else if (ch === ")" || ch === "]") depth--;
-        else if (ch === "," && depth === 0) { selectors.push(value.slice(start, i).trim()); start = i + 1; }
-      }
-      selectors.push(value.slice(start).trim());
-      return selectors.filter(Boolean);
-    }
-
-    function scopePageCss(cssText, prefix) {
-      let output = "", cursor = 0;
-      while (cursor < cssText.length) {
-        const open = cssText.indexOf("{", cursor);
-        if (open < 0) { output += cssText.slice(cursor); break; }
-        let depth = 1, close = open + 1, quote = "";
-        for (; close < cssText.length && depth > 0; close++) {
-          const ch = cssText[close];
-          if (quote) { if (ch === quote && cssText[close - 1] !== "\\") quote = ""; continue; }
-          if (ch === "'" || ch === '"') { quote = ch; continue; }
-          if (ch === "{") depth++;
-          else if (ch === "}") depth--;
-        }
-        if (depth !== 0) { output += cssText.slice(cursor); break; }
-        const selector = cssText.slice(cursor, open).trim();
-        const body = cssText.slice(open + 1, close - 1);
-        output += cssText.slice(cursor, open);
-        if (/^@(media|supports|container|layer|document)\b/i.test(selector)) {
-          output = output.slice(0, output.length - (cssText.slice(cursor, open).length));
-          output += selector + "{" + scopePageCss(body, prefix) + "}";
-        } else if (/^@(-webkit-)?keyframes\b|^@font-face\b|^@property\b|^@counter-style\b/i.test(selector)) {
-          output += "{" + body + "}";
-        } else if (selector.startsWith("@")) {
-          output += "{" + body + "}";
-        } else {
-          const scoped = splitPageCssSelectors(selector).map(item => {
-            if (/^(html|body|:root)(\b|$)/i.test(item)) {
-              return item.replace(/^(html|body|:root)(\b|$)/i, prefix);
-            }
-            return prefix + " " + item;
-          }).join(", ");
-          output = output.slice(0, output.length - (cssText.slice(cursor, open).length));
-          output += scoped + "{" + body + "}";
-        }
-        cursor = close;
-      }
-      return output;
-    }
-
-    function scopePageStyles(container) {
-      container.querySelectorAll("style").forEach(style => {
-        style.textContent = scopePageCss(style.textContent || "", ".stored-html-page .stored-html-page-content.stored-html-page-content");
-      });
-    }
-
-    async function renderHtmlInto(container, html, session, depth=0) {
-      const safeBody = sanitizePageHtml(html);
-      container.replaceChildren(...Array.from(safeBody.childNodes).map(node => document.importNode(node, true)));
-      scopePageStyles(container);
-      const includes = Array.from(container.querySelectorAll("[data-dalimgari-include]"));
-      for (const slot of includes) {
-        if (depth >= 5) { slot.textContent = "Page include depth limit reached."; continue; }
-        const slug = generatePageSlug(slot.getAttribute("data-dalimgari-include"));
-        if (!slug) { slot.remove(); continue; }
-        const { data, error } = await supabaseClient.from("pages")
-          .select("title,content,url,visibility,media").eq("url", slug).maybeSingle();
-        if (error || !data) {
-          slot.replaceChildren();
-          slot.textContent = "Included page is unavailable.";
-          continue;
-        }
-        await renderHtmlInto(slot, data.content || "", session, depth + 1);
-        await renderContentMedia(slot, data.media || []);
-      }
-    }
-
-    function generatePageSlug(value) {
-      return String(value || "").trim().toLowerCase().replaceAll("/", "")
-        .replace(/[^a-z0-9-]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
-    }
-
-    async function renderStoredPage(rawSlug, session) {
-      document.title = "Dalimgari";
-      mainContent.style.alignItems = "flex-start";
-      mainContent.style.justifyContent = "flex-start";
-      mainContent.replaceChildren();
-      const slug = generatePageSlug(rawSlug);
-      const shell = document.createElement("article");
-      shell.className = "stored-html-page";
-      shell.style.cssText = "width:100%;max-width:1100px;box-sizing:border-box;margin:0 auto;padding:24px 16px 40px;overflow-wrap:anywhere";
-      mainContent.append(shell);
-      if (!slug) { shell.textContent = "Page not found."; return; }
-      const { data, error } = await supabaseClient.from("pages")
-        .select("title,content,url,visibility,media").eq("url", slug).maybeSingle();
-      if (error || !data) {
-        const message = document.createElement("p");
-        message.textContent = "This page is unavailable or you do not have permission to view it.";
-        shell.append(message);
-        return;
-      }
-      const heading = document.createElement("h1");
-      heading.textContent = data.title || "";
-      heading.style.cssText = "margin:0 0 12px;overflow-wrap:anywhere";
-      shell.append(heading);
-      const content = document.createElement("div");
-      content.className = "stored-html-page-content";
-      shell.append(content);
-      await renderHtmlInto(content, data.content || "", session);
-      await renderContentMedia(content, data.media || []);
-      document.title = (data.title ? data.title + " | " : "") + "Dalimgari";
     }
 
     function renderPage(pageName) {
@@ -1575,7 +1379,6 @@
         { id: "overview", label: "Overview", description: "Dashboard overview." },
         { id: "hero", label: "Hero", description: "Create and manage homepage hero content." },
         { id: "post", label: "Post", description: "Create and manage posts." },
-        { id: "page", label: "Page", description: "Create and manage pages." },
         { id: "album", label: "Album", description: "Group related content and media." },
         { id: "user", label: "User", description: "Manage accounts and administrator access." },
         { id: "role", label: "Role", description: "Role management section." },
@@ -1882,15 +1685,6 @@
           {name:"album_id",label:"Album",type:"select",options:[["","No album"]]},
           {name:"visibility",label:"Visibility",type:"select",required:true,options:[["public","Public"],["private","Private"]]}
         ]},
-        page:{table:"pages",label:"Pages",fields:[
-          {name:"title",label:"Title",type:"text",required:true},
-          {name:"description",label:"Description",type:"textarea",full:true},
-          {name:"url",label:"URL",type:"text",required:true,help:"A unique URL slug. Generated from the title; you can edit it."},
-          {name:"content",label:"Content",type:"textarea",full:true,rows:10,help:"HTML content only. Scripts and unsafe attributes are removed."},
-          {name:"media",label:"Content Files (Image, Video, Other)",type:"files",full:true,accept:"image/jpeg,image/png,image/webp,image/gif,image/avif,image/svg+xml,video/mp4,video/webm,video/quicktime,audio/mpeg,audio/mp4,audio/wav,audio/ogg,application/pdf"},
-          {name:"album_id",label:"Album",type:"select",options:[["","No album"]]},
-          {name:"visibility",label:"Visibility",type:"select",required:true,options:[["public","Public"],["private","Private"]]}
-        ]},
         album:{table:"albums",label:"Albums",fields:[
           {name:"title",label:"Title",type:"text",required:true},
           {name:"description",label:"Description",type:"textarea",full:true},
@@ -1927,7 +1721,7 @@
         const intro = document.createElement("p"); intro.className="dashboard-section-description"; intro.textContent="Content management and database summary.";
         const stats = document.createElement("div"); stats.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-top:18px";
         content.append(title,intro,stats);
-        const targets=[["Heroes","hero_items"],["Posts","post"],["Pages","pages"],["Albums","albums"],["Users","profiles"],["Roles","roles"]];
+        const targets=[["Heroes","hero_items"],["Posts","post"],["Albums","albums"],["Users","profiles"],["Roles","roles"]];
         for (const [label,table] of targets) {
           const card=document.createElement("div");card.style.cssText="padding:16px;border:1px solid #e5e7eb;border-radius:10px;background:#fff";
           const l=document.createElement("div");l.style.cssText="font-size:13px;color:#666";l.textContent=label;
@@ -2103,14 +1897,7 @@
           values.push(record.visibility==="private"?"Only Me":record.visibility==="public"?"Public":"—",record.created_at?new Date(record.created_at).toLocaleString():"—");
           values.forEach((value,index)=>{
             const td=document.createElement("td");
-            if(section.id==="page"&&index===2&&record.url){
-              const link=document.createElement("a");
-              link.href=window.location.pathname+"?page="+encodeURIComponent(record.url);
-              link.textContent="?page="+record.url;
-              link.target="_blank";link.rel="noopener noreferrer";
-              link.style.cssText="overflow-wrap:anywhere";
-              td.append(link);
-            }else td.textContent=String(value);
+            td.textContent=String(value);
             row.append(td);
           });
           const first=row.firstElementChild;first.textContent="Select";
@@ -2119,51 +1906,6 @@
           tbody.append(row);
         });
         table.append(tbody);list.append(table);
-        if(section.id==="page") await renderPageOrderManager();
-      }
-      async function renderPageOrderManager(){
-        if(section.id!=="page" || !isCurrent()) return;
-        const panel=document.createElement("section");panel.className="dashboard-crud-card";panel.style.marginTop="16px";
-        const heading=document.createElement("h3");heading.textContent="Homepage Page Title Order";
-        const hint=document.createElement("p");hint.className="dashboard-crud-hint";hint.textContent="Use the arrows to choose the order of Public pages shown as pill buttons on Home. Only Public pages appear there.";
-        const status=document.createElement("p");status.className="dashboard-crud-status";status.setAttribute("role","status");
-        const orderList=document.createElement("div");orderList.style.cssText="display:grid;gap:8px";
-        const actions=document.createElement("div");actions.className="dashboard-crud-actions";
-        const saveOrder=document.createElement("button");saveOrder.type="button";saveOrder.className="action-button primary";saveOrder.textContent="Save Order";
-        panel.append(heading,hint,orderList,actions,status);actions.append(saveOrder);list.append(panel);
-        const {data:setting,error:settingError}=await supabaseClient.from("site_customizations").select("value").eq("key","home_page_order").maybeSingle();
-        if(!isCurrent())return;
-        let ids=setting?.value;if(typeof ids==="string"){try{ids=JSON.parse(ids);}catch(_){ids=[];}}
-        if(ids&&!Array.isArray(ids)&&Array.isArray(ids.ids))ids=ids.ids;if(!Array.isArray(ids))ids=[];
-        const publicRecords=records.filter(r=>r.visibility==="public").sort((a,b)=>new Date(a.created_at||0)-new Date(b.created_at||0));
-        const byId=new Map(publicRecords.map(r=>[String(r.id),r]));
-        const ordered=[...ids.map(id=>byId.get(String(id))).filter(Boolean)];
-        publicRecords.forEach(r=>{if(!ordered.some(x=>String(x.id)===String(r.id)))ordered.push(r);});
-        function drawOrder(){
-          orderList.replaceChildren();
-          if(!ordered.length){const empty=document.createElement("p");empty.className="dashboard-crud-empty";empty.textContent="No Public pages to reorder.";orderList.append(empty);saveOrder.disabled=true;return;}
-          saveOrder.disabled=false;
-          ordered.forEach((record,index)=>{
-            const row=document.createElement("div");row.style.cssText="display:flex;align-items:center;gap:10px;min-width:0;padding:10px;border:1px solid #e5e7eb;border-radius:9px;background:#fff";
-            const label=document.createElement("span");label.textContent=(index+1)+". "+(record.title||record.url||"Page");label.style.cssText="flex:1;min-width:0;overflow-wrap:anywhere;font-size:14px";
-            const up=document.createElement("button");up.type="button";up.className="action-button";up.textContent="↑";up.setAttribute("aria-label","Move "+(record.title||"page")+" up");up.disabled=index===0;
-            const down=document.createElement("button");down.type="button";down.className="action-button";down.textContent="↓";down.setAttribute("aria-label","Move "+(record.title||"page")+" down");down.disabled=index===ordered.length-1;
-            up.addEventListener("click",()=>{[ordered[index-1],ordered[index]]=[ordered[index],ordered[index-1]];drawOrder();});
-            down.addEventListener("click",()=>{[ordered[index+1],ordered[index]]=[ordered[index],ordered[index+1]];drawOrder();});
-            row.append(label,up,down);orderList.append(row);
-          });
-        }
-        if(settingError){status.textContent="Could not load saved order. You can still set and save a new order.";status.style.color="#a12622";}
-        drawOrder();
-        saveOrder.addEventListener("click",async()=>{
-          saveOrder.disabled=true;status.textContent="Saving order…";status.style.color="";
-          try{
-            const payload={key:"home_page_order",value:ordered.map(r=>String(r.id)),description:"Order of Public pages shown in the homepage Page Title section",updated_at:new Date().toISOString()};
-            const {error}=await supabaseClient.from("site_customizations").upsert(payload,{onConflict:"key"});if(error)throw error;
-            status.textContent="Homepage page order saved.";status.style.color="#176b43";
-          }catch(error){status.textContent="Could not save order: "+(error.message||"Please try again.");status.style.color="#a12622";}
-          finally{saveOrder.disabled=false;}
-        });
       }
       async function selectRecord(record,row){
         selectedId=record.id||record.key||record.id;selectedRecordData=record;resetSelectionHighlight();row.classList.add("is-selected");
@@ -2234,7 +1976,7 @@
           if(selectedId){result=await supabaseClient.from(config.table).update(payload).eq(config.table==="site_settings"||config.table==="site_customizations"?"id":"id",selectedId).select().single();}
           else{
             if(config.readOnlyCreate)throw new Error("Profiles are created through the account registration flow.");
-            if(["post","pages","hero_items","albums"].includes(config.table))payload.created_by=user.id;
+            if(["post","hero_items","albums"].includes(config.table))payload.created_by=user.id;
             result=await supabaseClient.from(config.table).insert(payload).select().single();
           }
           if(result.error)throw result.error;
@@ -2398,16 +2140,12 @@
             (hashParams.get("type") === "recovery" && (hashParams.has("access_token") || hashParams.has("error")))) {
           return "#forgot-password";
         }
-        if (params.has("page") && params.get("page") && !window.location.hash) return "#stored-page";
         return window.location.hash.toLowerCase() || "#home";
       };
       const openRoute = (session) => {
         updateAuthMenu(session);
         const currentRoute = route();
-        if (currentRoute === "#stored-page") {
-          renderStoredPage(new URLSearchParams(window.location.search).get("page"), session);
-          setCurrentMenuPage("Home");
-        } else if (currentRoute === "#home") {
+        if (currentRoute === "#home") {
           renderHome();
           setCurrentMenuPage("Home");
         } else if (currentRoute === "#profile") {
@@ -2493,17 +2231,12 @@
         const currentRoute = params.has("code") ||
           (hashParams.get("type") === "recovery" && hashParams.has("access_token"))
           ? "#forgot-password"
-          : (params.has("page") && params.get("page") && !window.location.hash
-            ? "#stored-page" : (window.location.hash.toLowerCase() || "#home"));
+          : (window.location.hash.toLowerCase() || "#home");
         if (currentRoute === "#media-upload") {
           // Backward compatibility: the uploader now lives on Home.
           history.replaceState(null, "", "#home");
           updateAuthMenu(data.session);
           await renderHome();
-          setCurrentMenuPage("Home");
-        } else if (currentRoute === "#stored-page") {
-          updateAuthMenu(data.session);
-          await renderStoredPage(params.get("page"), data.session);
           setCurrentMenuPage("Home");
         } else if (currentRoute === "#home") {
           updateAuthMenu(data.session);
