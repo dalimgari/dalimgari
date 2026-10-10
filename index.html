@@ -1058,6 +1058,60 @@
       }
     }
     function metadataValue(user, key) { return (user.user_metadata && user.user_metadata[key]) || ""; }
+
+    function profileImageExtension(mimeType) {
+      const extensions = {
+        "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp",
+        "image/gif": "gif", "image/avif": "avif", "image/bmp": "bmp"
+      };
+      return extensions[String(mimeType || "").toLowerCase()] || "";
+    }
+
+    async function uploadProfileImageFile(user, file) {
+      const extension = profileImageExtension(file.type);
+      if (!extension) throw new Error("Use a JPG, JPEG, PNG, WebP, GIF, AVIF, or BMP image.");
+      const path = user.id + "/profile." + extension;
+      const { error: uploadError } = await supabaseClient.storage.from("site-media").upload(path, file, {
+        contentType: file.type, upsert: true, cacheControl: "3600"
+      });
+      if (uploadError) throw uploadError;
+      const { error: metadataError } = await supabaseClient.auth.updateUser({ data: { avatar_url: path } });
+      if (metadataError) throw metadataError;
+      return getProfileImageSignedUrl(path);
+    }
+
+    async function getProfileImageSignedUrl(path) {
+      const { data, error } = await supabaseClient.storage.from("site-media").createSignedUrl(path, 3600);
+      if (error) throw error;
+      return data.signedUrl;
+    }
+
+    async function resolveProfileAvatarUrl(user) {
+      const raw = metadataValue(user, "avatar_url");
+      if (!raw) return "";
+      if (raw.startsWith("data:image/")) {
+        try {
+          const match = /^data:(image\/[a-zA-Z0-9.+-]+);base64,([\s\S]+)$/.exec(raw);
+          if (!match) throw new Error("Unsupported legacy image data.");
+          const extension = profileImageExtension(match[1]);
+          if (!extension) throw new Error("Unsupported legacy image format.");
+          const binary = atob(match[2]);
+          const bytes = new Uint8Array(binary.length);
+          for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+          const file = new File([bytes], "profile." + extension, { type: match[1] });
+          return await uploadProfileImageFile(user, file);
+        } catch (error) {
+          console.error("Could not migrate the existing profile image; original image data is retained:", error);
+          return raw;
+        }
+      }
+      if (raw.startsWith(user.id + "/")) {
+        try { return await getProfileImageSignedUrl(raw); }
+        catch (error) { console.error("Could not create profile image URL:", error); return ""; }
+      }
+      return raw;
+    }
+
     function formatProfileImageSize(bytes) {
       if (bytes < 1024 * 1024) return Math.max(1, Math.round(bytes / 1024)) + " KB";
       return (bytes / (1024 * 1024)).toFixed(1) + " MB";
@@ -1072,7 +1126,7 @@
       const heading = document.createElement("h1"); heading.className = "profile-heading"; heading.textContent = "My Profile";
       const summary = document.createElement("div"); summary.className = "profile-summary";
       const avatar = document.createElement("div"); avatar.className = "profile-avatar";
-      const avatarUrl = metadataValue(user, "avatar_url");
+      const avatarUrl = await resolveProfileAvatarUrl(user);
       if (avatarUrl) { const avatarImage = document.createElement("img"); avatarImage.src = avatarUrl; avatarImage.alt = "Profile picture"; avatar.append(avatarImage); }
       else { avatar.textContent = name.charAt(0).toUpperCase() || "?"; }
       const identity = document.createElement("div");
@@ -1713,7 +1767,7 @@
       const avatarHeading = document.createElement("h2"); avatarHeading.textContent = "Profile Picture";
       const avatarEditorRow = document.createElement("div"); avatarEditorRow.className = "profile-picture-editor-row";
       const avatarPreview = document.createElement("div"); avatarPreview.className = "profile-avatar profile-avatar-large";
-      const currentAvatarUrl = metadataValue(user, "avatar_url");
+      const currentAvatarUrl = await resolveProfileAvatarUrl(user);
       if (currentAvatarUrl) { const previewImage = document.createElement("img"); previewImage.src = currentAvatarUrl; previewImage.alt = "Profile picture"; avatarPreview.append(previewImage); }
       else { avatarPreview.textContent = (metadataValue(user, "full_name") || metadataValue(user, "name") || (user.email || "M").split("@")[0]).charAt(0).toUpperCase(); }
       const avatarUploadArea = document.createElement("div"); avatarUploadArea.className = "profile-picture-upload-area";
@@ -1749,18 +1803,13 @@
         pictureStatus.style.color = "#245b8f"; pictureStatus.textContent = "Preparing your profile picture…";
         let objectUrl = "";
         try {
-          const image = new Image(); objectUrl = URL.createObjectURL(file);
-          await new Promise((resolve, reject) => { image.onload = resolve; image.onerror = reject; image.src = objectUrl; });
-          const canvas = document.createElement("canvas"); canvas.width = 256; canvas.height = 256;
-          const context = canvas.getContext("2d"); const side = Math.min(image.naturalWidth, image.naturalHeight);
-          context.drawImage(image, (image.naturalWidth - side) / 2, (image.naturalHeight - side) / 2, side, side, 0, 0, 256, 256);
-          const compressedImage = canvas.toDataURL("image/jpeg", 0.8);
+          const extension = profileImageExtension(file.type);
+          if (!extension) throw new Error("Unsupported image format.");
           pictureStatus.textContent = "Saving your profile picture…"; pictureProgressFill.style.width = "70%";
-          const { error } = await supabaseClient.auth.updateUser({ data: { avatar_url: compressedImage } });
-          if (error) throw error;
+          const signedAvatarUrl = await uploadProfileImageFile(user, file);
           pictureProgressFill.style.width = "100%"; pictureProgress.classList.remove("is-active");
           pictureStatus.style.color = "#176b43"; pictureStatus.textContent = "✓ Profile picture updated successfully.";
-          avatarPreview.replaceChildren(); const previewImage = document.createElement("img"); previewImage.src = compressedImage; previewImage.alt = "Profile picture"; avatarPreview.append(previewImage);
+          avatarPreview.replaceChildren(); const previewImage = document.createElement("img"); previewImage.src = signedAvatarUrl; previewImage.alt = "Profile picture"; avatarPreview.append(previewImage);
           pictureSubtitle.textContent = "Your new profile picture is saved";
         } catch (error) {
           pictureProgress.classList.remove("is-active"); pictureProgressFill.style.width = "0%";
