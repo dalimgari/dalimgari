@@ -2073,7 +2073,7 @@
             {name:"allow_account_creation",label:"Allow new account creation",type:"checkbox",value:true}
           ]},
           {id:"privacy_visibility",title:"Privacy & Visibility",key:"ui_settings_privacy_visibility",fields:[
-            {name:"hide_private_content",label:"Never display private content to public visitors",type:"checkbox",value:true},
+            {name:"hide_private_content",label:"Keep private content hidden from public visitors (enforced)",type:"checkbox",value:true,disabled:true},
             {name:"default_album_visibility",label:"Default album visibility",type:"select",value:"public",options:[["public","Public"],["private","Private"]]}
           ]},
           {id:"maintenance_features",title:"Maintenance & Features",key:"ui_settings_maintenance_features",fields:[
@@ -2102,7 +2102,7 @@
           input.id = "cfg-"+group.id+"-"+field.name;
           label.htmlFor = input.id;
           label.textContent = field.label;
-          if (field.type === "checkbox") { input.checked = Boolean(field.value); input.style.width="auto"; input.style.minHeight="auto"; }
+          if (field.type === "checkbox") { input.checked = Boolean(field.value); input.disabled = Boolean(field.disabled); input.style.width="auto"; input.style.minHeight="auto"; }
           else if (field.type === "color") { input.value = field.value; input.style.minHeight="44px"; input.style.padding="4px"; }
           else { input.value = field.value ?? ""; }
           if (field.min !== undefined) input.min=String(field.min);
@@ -2146,7 +2146,8 @@
           for(const field of group.fields){
             const input=inputMap.get(group.id+"."+field.name);
             if(!input)continue;
-            if(field.type==="checkbox")value[field.name]=input.checked;
+            if(field.name==="hide_private_content")value[field.name]=true;
+            else if(field.type==="checkbox")value[field.name]=input.checked;
             else if(field.type==="number")value[field.name]=Number(input.value);
             else if(field.name==="section_order"){
               let parsed;try{parsed=JSON.parse(input.value||"[]")}catch(_){throw new Error("Section order must be valid JSON.");}
