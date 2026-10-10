@@ -1155,11 +1155,11 @@
             ? "Forgot Password"
             : pageName;
       if (currentPageLabel) currentPageLabel.textContent = displayName;
+      const role = String((activeSession && activeSession.user && activeSession.user.app_metadata && activeSession.user.app_metadata.role) || "").toLowerCase();
       menuLinks.forEach((item) => {
         const isCurrentPage = item.dataset.page === pageName;
         if (isCurrentPage) item.setAttribute("aria-current", "page");
         else item.removeAttribute("aria-current");
-        const role = String((activeSession && activeSession.user && activeSession.user.app_metadata && activeSession.user.app_metadata.role) || "").toLowerCase();
         item.hidden = isCurrentPage || (item.dataset.page === "Dashboard" && role !== "admin");
       });
     }
