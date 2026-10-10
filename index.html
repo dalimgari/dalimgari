@@ -661,6 +661,7 @@
 
 
     let dalimgariRuntimeConfig = {};
+    let dalimgariHomeObserver = null;
     // Loads public-safe configuration saved by the dashboard and applies supported settings.
     async function applyDalimgariSiteConfig(force=false) {
       const keys=["ui_customization_identity","ui_customization_theme","ui_customization_header_footer","ui_customization_layout","ui_customization_typography","ui_customization_responsive","ui_settings_general","ui_settings_homepage_defaults","ui_settings_content_defaults","ui_settings_users_access","ui_settings_privacy_visibility","ui_settings_maintenance_features"];
@@ -673,6 +674,7 @@
       const theme=cfg.ui_customization_theme||{}, header=cfg.ui_customization_header_footer||{};
       const layout=cfg.ui_customization_layout||{}, typography=cfg.ui_customization_typography||{};
       const responsive=cfg.ui_customization_responsive||{}, features=cfg.ui_settings_maintenance_features||{};
+      const homepageDefaults=cfg.ui_settings_homepage_defaults||{};
       const title=String(general.site_title||identity.site_title||"Dalimgari").trim()||"Dalimgari";
       document.title=title;
       const titleLabel=document.querySelector("#current-page-label");
@@ -706,6 +708,22 @@
           const rest=Array.from(home.children).filter(el=>!ordered.includes(el));
           home.append(...ordered,...rest);
         }
+        if(dalimgariHomeObserver){dalimgariHomeObserver.disconnect();dalimgariHomeObserver=null;}
+        const syncEmptySections=()=>{
+          for(const [key,selector] of Object.entries(sectionMap)){
+            const el=home.querySelector(selector);if(!el)continue;
+            const field="show_"+key;
+            const disabledByLayout=Object.prototype.hasOwnProperty.call(layout,field)&&layout[field]===false;
+            const disabledByFeature=features.enable_homepage_media===false&&(key==="widget"||key==="album");
+            const empty=!el.textContent.trim()&&!el.querySelector("img,video,iframe,canvas,button,a");
+            el.hidden=disabledByLayout||disabledByFeature||(!homepageDefaults.show_empty_sections&&empty);
+          }
+        };
+        if(!homepageDefaults.show_empty_sections&&typeof MutationObserver!=="undefined"){
+          dalimgariHomeObserver=new MutationObserver(syncEmptySections);
+          dalimgariHomeObserver.observe(home,{subtree:true,childList:true,characterData:true});
+        }
+        syncEmptySections();
       }
       return cfg;
     }
