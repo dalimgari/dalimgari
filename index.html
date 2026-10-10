@@ -297,7 +297,7 @@
     .profile-input{width:100%;margin:0 0 15px;padding:12px 13px;border:1px solid #dcdcdc;border-radius:9px;background:#fff;color:#222;font:inherit;font-size:15px}
     .edit-profile-form label{display:block;margin:0 0 6px;color:#444;font-size:14px}.profile-status{margin:12px 0;font-size:14px;line-height:1.5}.back-profile{margin-bottom:18px}
     .profile-picture-editor{padding:16px;margin-bottom:18px;border:1px solid #eee;border-radius:12px;background:#f8f9fb}.profile-picture-row{display:flex;align-items:center;gap:16px}.profile-avatar-large{width:88px;height:88px;flex:0 0 88px;border:1px solid #eee}.profile-avatar img,.profile-avatar-large img{width:100%;height:100%;object-fit:cover}
-    .profile-avatar img{display:block}.login-default-avatar{margin:0 auto 16px;width:72px;height:72px;flex-basis:72px}.profile-picture-controls{min-width:0}.profile-picture-controls label{margin-bottom:8px}.profile-picture-controls input{max-width:100%}.profile-picture-status{font-size:13px;overflow-wrap:anywhere}@media(max-width:480px){.profile-picture-row{align-items:flex-start;flex-direction:column}}
+    .profile-avatar img{display:block}.profile-picture-controls{min-width:0}.profile-picture-controls label{margin-bottom:8px}.profile-picture-controls input{max-width:100%}.profile-picture-status{font-size:13px;overflow-wrap:anywhere}@media(max-width:480px){.profile-picture-row{align-items:flex-start;flex-direction:column}}
     
     
     @media(max-width:560px){.profile-page{padding:17px;margin:18px auto}.profile-details{grid-template-columns:1fr}.profile-actions .action-button{flex:1 1 100%}.profile-heading{font-size:22px}}
@@ -678,10 +678,7 @@
       message.className = "login-message";
       message.setAttribute("role", "alert");
 
-      const loginAvatar = document.createElement("div");
-      loginAvatar.className = "profile-avatar login-default-avatar";
-      setDefaultAvatar(loginAvatar);
-      form.append(loginAvatar, email, password, rememberRow, forgot, submit, message, createAccount);
+      form.append(email, password, rememberRow, forgot, submit, message, createAccount);
       mainContent.append(form);
     }
 
