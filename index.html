@@ -1771,22 +1771,27 @@
                   setUserStatus(error.message || "Could not update account role.", true); roleButton.disabled = false;
                 }
               });
-              const deleteButton = document.createElement("button");
-              deleteButton.type = "button"; deleteButton.className = "action-button";
-              deleteButton.textContent = "Delete"; deleteButton.style.marginLeft = "6px";
-              deleteButton.disabled = isSelf || isProtectedSuperAdmin;
-              deleteButton.addEventListener("click", async () => {
-                if (!confirm("Permanently delete the account " + (account.email || "") + "? This cannot be undone.")) return;
-                deleteButton.disabled = true; roleButton.disabled = true;
-                try {
-                  await callUserAdmin("delete_user", { user_id: account.id });
-                  setUserStatus("Account deleted."); await loadAuthUsers();
-                } catch (error) {
-                  setUserStatus(error.message || "Could not delete account.", true);
-                  deleteButton.disabled = false; roleButton.disabled = false;
-                }
-              });
-              actions.append(roleButton, deleteButton); row.append(emailCell, roleCell, createdCell, signInCell, actions); tbody.append(row);
+              if (isProtectedSuperAdmin) {
+                actions.append(roleButton);
+              } else {
+                const deleteButton = document.createElement("button");
+                deleteButton.type = "button"; deleteButton.className = "action-button";
+                deleteButton.textContent = "Delete"; deleteButton.style.marginLeft = "6px";
+                deleteButton.disabled = isSelf;
+                deleteButton.addEventListener("click", async () => {
+                  if (!confirm("Permanently delete the account " + (account.email || "") + "? This cannot be undone.")) return;
+                  deleteButton.disabled = true; roleButton.disabled = true;
+                  try {
+                    await callUserAdmin("delete_user", { user_id: account.id });
+                    setUserStatus("Account deleted."); await loadAuthUsers();
+                  } catch (error) {
+                    setUserStatus(error.message || "Could not delete account.", true);
+                    deleteButton.disabled = false; roleButton.disabled = false;
+                  }
+                });
+                actions.append(roleButton, deleteButton);
+              }
+              row.append(emailCell, roleCell, createdCell, signInCell, actions); tbody.append(row);
             }
             table.append(tbody); list.append(table);
           } catch (error) {
