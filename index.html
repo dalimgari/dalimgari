@@ -976,6 +976,33 @@
     }
 
 
+    function attachMediaUploadComponent({sectionId,user,controls,setStatus,state}) {
+      const fileInput=controls.media_file, mediaUrlInput=controls.media_url, titleInput=controls.title;
+      if(!fileInput||!mediaUrlInput||!titleInput)return;
+      fileInput.addEventListener("change",async()=>{
+        const file=fileInput.files?.[0];if(!file)return;
+        if(!file.type.startsWith("image/")&&!file.type.startsWith("video/")){fileInput.value="";setStatus("Choose an image or video file only.","error");return;}
+        if(file.size>100*1024*1024){fileInput.value="";setStatus("File is larger than the 100 MB limit.","error");return;}
+        const title=String(titleInput.value||"").trim();
+        if(!title){fileInput.value="";setStatus("Enter the Title before choosing a media file.","error");titleInput.focus();return;}
+        fileInput.disabled=true;setStatus("Uploading media to Supabase Storage…");
+        try{
+          const base=generateUrlValue(title)||sectionId;
+          const rawExt=(file.name.split(".").pop()||"").toLowerCase();
+          const ext=/^[a-z0-9]{1,10}$/.test(rawExt)?rawExt:(file.type==="image/jpeg"?"jpg":file.type.split("/")[1]||"bin");
+          const path=sectionId+"s/"+user.id+"/"+base+"-"+Date.now()+"."+ext;
+          const {error:uploadError}=await supabaseClient.storage.from("site-media").upload(path,file,{contentType:file.type,upsert:false});
+          if(uploadError)throw uploadError;
+          const {data:signedData,error:signedError}=await supabaseClient.storage.from("site-media").createSignedUrl(path,31536000);
+          if(signedError)throw signedError;
+          state().path=path;state().url=signedData.signedUrl;state().type=file.type;
+          mediaUrlInput.value=signedData.signedUrl;
+          setStatus("Media uploaded. You can edit the Media URL before saving.","success");
+        }catch(error){setStatus(error.message||"Media upload failed.","error");}
+        finally{fileInput.disabled=false;}
+      });
+    }
+
     async function renderDashboardSection(section, content, renderToken, isCurrent) {
       const user = await getCurrentUser();
       if (!user || String(user.app_metadata?.role || "").toLowerCase() !== "admin") {
@@ -994,7 +1021,9 @@
         ]},
         album: { table:"albums", label:"Albums", fields:[
           {name:"title",label:"Album title",type:"text",required:true},
-          {name:"description",label:"Description",type:"textarea",full:true},
+          {name:"description",label:"Description (optional)",type:"textarea",full:true},
+          {name:"media_file",label:"Choose Cover Media",type:"file",accept:"image/*,video/*",full:true,help:"Optional. Choose one photo or one video. Maximum file size: 100 MB."},
+          {name:"media_url",label:"Media URL",type:"url",full:true,help:"A Storage URL is generated when you choose a file. You can edit it or enter a custom server URL."},
           {name:"visibility",label:"Visibility",type:"select",options:[["public","Public"],["private","Only Me"]]}
         ]},
         page: { table:"pages", label:"Pages", fields:[
@@ -1145,7 +1174,7 @@
       const listHeading=document.createElement("h3");listHeading.textContent="Existing "+config.label;
       const list=document.createElement("div");list.className="dashboard-crud-list";
       listCard.append(listHeading,list);formCard.append(formHeading,hint,form);wrap.append(formCard,listCard);content.append(wrap);
-      let selectedId=null, records=[], selectedRecordData=null, selectedUploadedPath="", selectedUploadedUrl="";
+      let selectedId=null, records=[], selectedRecordData=null, selectedUploadedPath="", selectedUploadedUrl="", selectedUploadState={type:""};
       const albums=availableAlbums;
       const controls={};
       function setStatus(message,type){status.textContent=message;status.style.color=type==="error"?"#a12622":type==="success"?"#176b43":"#555";}
@@ -1173,33 +1202,9 @@
       function generateUrlValue(value){return String(value||"").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");}
       if(section.id==="post"||section.id==="page"){} 
       for(const def of config.fields)makeField(def);
-      if(section.id==="post"){
-        controls.media_file.addEventListener("change",async()=>{
-          const file=controls.media_file.files?.[0];
-          if(!file)return;
-          if(!file.type.startsWith("image/")&&!file.type.startsWith("video/")){controls.media_file.value="";setStatus("Choose an image or video file only.","error");return;}
-          if(file.size>100*1024*1024){controls.media_file.value="";setStatus("File is larger than the 100 MB limit.","error");return;}
-          const title=String(controls.title.value||"").trim();
-          if(!title){controls.media_file.value="";setStatus("Enter the Title before choosing a media file.","error");controls.title.focus();return;}
-          controls.media_file.disabled=true;setStatus("Uploading media to Supabase Storage…");
-          try{
-            const base=generateUrlValue(title)||"post";
-            const rawExt=(file.name.split(".").pop()||"").toLowerCase();
-            const ext=/^[a-z0-9]{1,10}$/.test(rawExt)?rawExt:(file.type==="image/jpeg"?"jpg":file.type.split("/")[1]||"bin");
-            const path="posts/"+user.id+"/"+base+"-"+Date.now()+"."+ext;
-            const {error:uploadError}=await supabaseClient.storage.from("site-media").upload(path,file,{contentType:file.type,upsert:false});
-            if(uploadError)throw uploadError;
-            const {data:signedData,error:signedError}=await supabaseClient.storage.from("site-media").createSignedUrl(path,31536000);
-            if(signedError)throw signedError;
-            selectedUploadedPath=path;selectedUploadedUrl=signedData.signedUrl;
-            controls.media_url.value=signedData.signedUrl;
-            setStatus("Media uploaded. You can edit the Media URL before publishing.","success");
-          }catch(error){setStatus(error.message||"Media upload failed.","error");}
-          finally{controls.media_file.disabled=false;}
-        });
-      }
+      if(section.id==="post"||section.id==="album") attachMediaUploadComponent({sectionId:section.id,user,controls,setStatus,state:()=>({get path(){return selectedUploadedPath;},set path(v){selectedUploadedPath=v;},get url(){return selectedUploadedUrl;},set url(v){selectedUploadedUrl=v;},get type(){return selectedUploadState.type;},set type(v){selectedUploadState.type=v;}})});
       function resetForm(){
-        selectedId=null;selectedRecordData=null;selectedUploadedPath="";selectedUploadedUrl="";form.reset();
+        selectedId=null;selectedRecordData=null;selectedUploadedPath="";selectedUploadedUrl="";selectedUploadState={type:""};form.reset();
         save.textContent=config.editOnly?"Select a media item":(config.readOnlyCreate?"Save Profile":(section.id==="post"?"Publish":"Create"));save.disabled=!!config.editOnly;remove.disabled=true;setStatus("");
         list.querySelectorAll(".dashboard-crud-row").forEach(row=>row.classList.remove("is-selected"));
       }
@@ -1234,7 +1239,7 @@
         table.append(tbody);list.append(table);
       }
       async function selectRecord(record,row){
-        selectedId=record.id||record.key||record.id;resetSelectionHighlight();row.classList.add("is-selected");
+        selectedId=record.id||record.key||record.id;selectedRecordData=record;selectedUploadedPath="";selectedUploadedUrl="";selectedUploadState={type:""};resetSelectionHighlight();row.classList.add("is-selected");
         config.fields.forEach(def=>{
           const input=controls[def.name];if(!input)return;
           if(input.type==="file")return;
@@ -1250,32 +1255,32 @@
         save.disabled=true;remove.disabled=true;save.textContent="Saving…";setStatus("");
         try{
           const payload={};
-          config.fields.forEach(def=>{let value=controls[def.name].value;if(def.name==="value"&&(section.id==="customization"||section.id==="settings")){try{value=JSON.parse(value);}catch{throw new Error("Value must be valid JSON.");}}else if(value==="")value=null;payload[def.name]=value;});
-          if(section.id==="post"){
+          config.fields.forEach(def=>{if(def.name==="media_file")return;let value=controls[def.name].value;if(def.name==="value"&&(section.id==="customization"||section.id==="settings")){try{value=JSON.parse(value);}catch{throw new Error("Value must be valid JSON.");}}else if(value==="")value=null;payload[def.name]=value;});
+          if(section.id==="post"||section.id==="album"){
             const title=String(controls.title.value||"").trim();
-            if(!title)throw new Error("Enter a title.");
-            const slug=String(controls.url.value||"").trim()||generateUrlValue(title);
-            if(!slug)throw new Error("Enter a Post URL or use a title containing letters or numbers.");
+            if(!title)throw new Error(section.id==="post"?"Enter a title.":"Enter an album title.");
             const mediaUrl=String(controls.media_url.value||"").trim();
-            if(!mediaUrl && !selectedUploadedPath && !selectedRecordData?.storage_path)throw new Error("Choose one photo/video file or enter a Media URL.");
+            const existingStoragePath=selectedRecordData?.storage_path||null;
+            if(section.id==="post"&&!mediaUrl&&!selectedUploadedPath&&!existingStoragePath)throw new Error("Choose one photo/video file or enter a Media URL.");
             if(mediaUrl){let parsed;try{parsed=new URL(mediaUrl);}catch{throw new Error("Media URL must be a valid http(s) URL.");}if(!["http:","https:"].includes(parsed.protocol))throw new Error("Media URL must start with http:// or https://.");}
-            payload.title=title;
-            payload.caption=title;
-            payload.url=slug;
-            payload.media_url=mediaUrl||null;
-            const isSupabaseStorageUrl=mediaUrl.includes("/storage/v1/object/sign/site-media/");
+            if(section.id==="post"){
+              const slug=String(controls.url.value||"").trim()||generateUrlValue(title);
+              if(!slug)throw new Error("Enter a Post URL or use a title containing letters or numbers.");
+              payload.caption=title;payload.url=slug;
+            }
+            payload.title=title;payload.media_url=mediaUrl||null;
             if(selectedUploadedPath){
               payload.storage_path=selectedUploadedPath;
-              payload.media_type=(controls.media_file.files[0]?.type||"").startsWith("video/")?"video":"photo";
-              payload.source_type=isSupabaseStorageUrl?"upload":"external";
-            }else if(isSupabaseStorageUrl && selectedRecordData?.storage_path){
-              payload.storage_path=selectedRecordData.storage_path;
-              payload.media_type=selectedRecordData.media_type||null;
-              payload.source_type="upload";
+              payload.media_type=(selectedUploadState.type||"").startsWith("video/")?"video":"photo";
+              payload.source_type=mediaUrl===selectedUploadedUrl?"upload":"external";
+            }else if(existingStoragePath&&selectedRecordData?.source_type==="upload"&&mediaUrl===selectedRecordData?.media_url){
+              const {data:signedData,error:signedError}=await supabaseClient.storage.from("site-media").createSignedUrl(existingStoragePath,31536000);
+              if(signedError)throw signedError;
+              payload.storage_path=existingStoragePath;payload.media_type=selectedRecordData.media_type||null;payload.source_type="upload";payload.media_url=signedData.signedUrl;
+            }else if(existingStoragePath&&selectedRecordData?.source_type==="upload"&&mediaUrl.includes("/storage/v1/object/sign/site-media/")){
+              payload.storage_path=existingStoragePath;payload.media_type=selectedRecordData.media_type||null;payload.source_type="upload";
             }else{
-              payload.storage_path=null;
-              payload.media_type=null;
-              payload.source_type=mediaUrl?"external":null;
+              payload.storage_path=null;payload.media_type=null;payload.source_type=mediaUrl?"external":null;
             }
             payload.external_url=payload.source_type==="external"?mediaUrl:null;
           }
