@@ -1406,7 +1406,7 @@
         }
         form.addEventListener("submit",async event=>{
           event.preventDefault();const file=fileInput.files?.[0];if(!file)return;
-          if(!/^(image|video)\\//i.test(file.type)){status.textContent="শুধু photo বা video নির্বাচন করুন।";return;}
+          if(!/^(image|video)\//i.test(file.type)){status.textContent="শুধু photo বা video নির্বাচন করুন।";return;}
           if(file.size>104857600){status.textContent="ফাইল 100 MB-এর বেশি।";return;}
           run.disabled=true;status.style.color="#555";status.textContent="Upload test চলছে…";
           let path=null, resultRow={tested_by:user.id,file_name:file.name,file_type:file.type,file_size:file.size,upload_status:"failed",http_status:null,error_name:null,error_message:null,cleanup_status:"not needed"};
