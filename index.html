@@ -1289,13 +1289,25 @@
         const intro = document.createElement("p"); intro.className="dashboard-section-description"; intro.textContent="Content management and database summary.";
         const stats = document.createElement("div"); stats.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-top:18px";
         content.append(title,intro,stats);
-        const targets=[["Posts","post"],["Media","media"],["Albums","albums"],["Pages","pages"],["Users","profiles"],["Roles","roles"],["Permissions","permissions"]];
+        const targets=[["Posts","post"],["Albums","albums"],["Pages","pages"],["Users","profiles"],["Roles","roles"],["Permissions","permissions"]];
         for (const [label,table] of targets) {
           const card=document.createElement("div");card.style.cssText="padding:16px;border:1px solid #e5e7eb;border-radius:10px;background:#fff";
           const l=document.createElement("div");l.style.cssText="font-size:13px;color:#666";l.textContent=label;
           const n=document.createElement("strong");n.style.cssText="display:block;font-size:25px;margin-top:8px";n.textContent="—";card.append(l,n);stats.append(card);
           supabaseClient.from(table).select("id",{count:"exact",head:true}).then(({count,error})=>{if(isCurrent())n.textContent=error?"—":String(count??0);});
         }
+        const mediaCard=document.createElement("div");mediaCard.style.cssText="padding:16px;border:1px solid #e5e7eb;border-radius:10px;background:#fff";
+        const mediaLabel=document.createElement("div");mediaLabel.style.cssText="font-size:13px;color:#666";mediaLabel.textContent="Media";
+        const mediaCount=document.createElement("strong");mediaCount.style.cssText="display:block;font-size:25px;margin-top:8px";mediaCount.textContent="—";
+        mediaCard.append(mediaLabel,mediaCount);stats.insertBefore(mediaCard,stats.children[1]||null);
+        Promise.all([
+          supabaseClient.from("post").select("id",{count:"exact",head:true}).or("media_url.not.is.null,storage_path.not.is.null,external_url.not.is.null"),
+          supabaseClient.from("albums").select("id",{count:"exact",head:true}).or("media_url.not.is.null,storage_path.not.is.null,url.not.is.null")
+        ]).then(([postsResult,albumsResult])=>{
+          if(!isCurrent())return;
+          if(postsResult.error||albumsResult.error){mediaCount.textContent="—";return;}
+          mediaCount.textContent=String((postsResult.count||0)+(albumsResult.count||0));
+        }).catch(()=>{if(isCurrent())mediaCount.textContent="—";});
         return;
       }
       if (section.id === "recycle") {
