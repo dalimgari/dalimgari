@@ -9,6 +9,39 @@
       box-sizing: border-box;
     }
 
+    /* Global responsive sizing and overflow protection for every page/component. */
+    html, body { max-width:100%; }
+    body { overflow-x:clip; }
+    main, header, footer, main > * { min-width:0; max-width:100%; }
+    img, video, canvas, iframe, object, embed { max-width:100%; }
+    input, select, textarea, button, table, pre, code, output {
+      max-width:100%;
+    }
+    input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]),
+    select, textarea {
+      box-sizing:border-box;
+      min-width:0;
+      max-width:100%;
+    }
+    textarea {
+      width:100%;
+      height:auto;
+      min-height:96px;
+      max-height:60vh;
+      overflow:auto;
+      resize:vertical;
+      white-space:pre-wrap;
+      overflow-wrap:anywhere;
+    }
+    button { overflow-wrap:anywhere; }
+    table { max-width:100%; }
+    th, td { overflow-wrap:anywhere; word-break:break-word; }
+    pre, code, output { overflow-wrap:anywhere; }
+    :is(input, select, textarea, button, a, [tabindex]):focus-visible {
+      scroll-margin-block:24px;
+      scroll-margin-inline:16px;
+    }
+
     html {
       width: 100%;
       min-height: 100%;
@@ -539,6 +572,23 @@
     const floatingMenu = document.querySelector("#floating-menu");
     const mainContent = document.querySelector("#main-content");
     const menuLinks = document.querySelectorAll(".menu-link");
+
+    // Site-wide: automatically scroll focused controls into view on every page.
+    document.addEventListener("focusin", (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement) ||
+          !target.matches("input, select, textarea, button, a, [tabindex]")) return;
+      requestAnimationFrame(() => {
+        if (!target.isConnected) return;
+        const rect = target.getBoundingClientRect();
+        const viewportHeight = document.documentElement.clientHeight;
+        const viewportWidth = document.documentElement.clientWidth;
+        if (rect.top < 8 || rect.bottom > viewportHeight - 8 ||
+            rect.left < 8 || rect.right > viewportWidth - 8) {
+          target.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+        }
+      });
+    });
 
     let activeSession = null;
 
