@@ -659,6 +659,55 @@
       if (gallery.childElementCount) container.append(gallery);
     }
 
+
+    // Loads public-safe configuration saved by the dashboard and applies supported settings.
+    async function applyDalimgariSiteConfig(force=false) {
+      const keys=["ui_customization_identity","ui_customization_theme","ui_customization_header_footer","ui_customization_layout","ui_customization_typography","ui_customization_responsive","ui_settings_general","ui_settings_homepage_defaults","ui_settings_content_defaults","ui_settings_users_access","ui_settings_privacy_visibility","ui_settings_maintenance_features"];
+      const {data,error}=await supabaseClient.from("site_customizations").select("key,value").in("key",keys);
+      if(error){console.warn("Site configuration could not be loaded:",error.message);return {};}
+      const cfg={};
+      for(const row of data||[]){let value=row.value||{};if(typeof value==="string"){try{value=JSON.parse(value)}catch(_){value={}}}cfg[row.key]=value&&typeof value==="object"?value:{};}
+      const identity=cfg.ui_customization_identity||{}, general=cfg.ui_settings_general||{};
+      const theme=cfg.ui_customization_theme||{}, header=cfg.ui_customization_header_footer||{};
+      const layout=cfg.ui_customization_layout||{}, typography=cfg.ui_customization_typography||{};
+      const responsive=cfg.ui_customization_responsive||{}, features=cfg.ui_settings_maintenance_features||{};
+      const title=String(general.site_title||identity.site_title||"Dalimgari").trim()||"Dalimgari";
+      document.title=title;
+      const titleLabel=document.querySelector("#current-page-label");
+      if(titleLabel && (!titleLabel.textContent || titleLabel.textContent==="Home"))titleLabel.textContent=title;
+      const root=document.documentElement;
+      if(theme.primary_color)root.style.setProperty("--dg-primary",theme.primary_color);
+      if(theme.background_color)document.body.style.backgroundColor=theme.background_color;
+      if(theme.text_color)document.body.style.color=theme.text_color;
+      if(theme.surface_color)root.style.setProperty("--dg-surface",theme.surface_color);
+      if(typography.font_family&&typography.font_family!=="system")document.body.style.fontFamily=typography.font_family;
+      else document.body.style.removeProperty("font-family");
+      if(Number(typography.base_font_size)>=12&&Number(typography.base_font_size)<=22)document.body.style.fontSize=Number(typography.base_font_size)+"px";
+      const siteHeader=document.querySelector("body > header"), siteFooter=document.querySelector("body > footer");
+      if(siteHeader){siteHeader.hidden=header.show_header===false;siteHeader.style.position=header.header_sticky===false?"relative":"sticky";}
+      if(siteFooter){siteFooter.hidden=header.show_footer===false;if(header.footer_text)siteFooter.textContent=header.footer_text;}
+      const home=document.querySelector(".home-page");
+      if(home){
+        const width=Number(responsive.content_width);
+        if(width>=640&&width<=1800)home.style.maxWidth=width+"px";
+        const padding=Number(responsive.mobile_padding);
+        if(padding>=8&&padding<=32)home.style.paddingLeft=padding+"px",home.style.paddingRight=padding+"px";
+        const sectionMap={"hero":".home-hero","page_title":".home-page-title","widget":".home-widget","album":".home-album","page_card":".home-page-card"};
+        for(const [key,selector] of Object.entries(sectionMap)){
+          const el=home.querySelector(selector);if(!el)continue;
+          const field="show_"+key;
+          if(Object.prototype.hasOwnProperty.call(layout,field))el.hidden=!layout[field];
+          if(features.enable_homepage_media===false&&(key==="widget"||key==="album"))el.hidden=true;
+        }
+        if(Array.isArray(layout.section_order)){
+          const ordered=layout.section_order.map(key=>sectionMap[key]).filter(Boolean).map(selector=>home.querySelector(selector)).filter(Boolean);
+          const rest=Array.from(home.children).filter(el=>!ordered.includes(el));
+          home.append(...ordered,...rest);
+        }
+      }
+      return cfg;
+    }
+
     async function renderHome() {
       document.title = "Dalimgari";
       // Home content starts below the header instead of being vertically centered.
@@ -1900,7 +1949,6 @@
         ]}
       };
       if (section.id === "customization" || section.id === "settings") {
-        // Show the agreed category structure without loading stored records or pretending controls are already wired.
         content.replaceChildren();
         const isCustomization = section.id === "customization";
         const title = document.createElement("h2");
@@ -1909,42 +1957,181 @@
         const intro = document.createElement("p");
         intro.className = "dashboard-section-description";
         intro.textContent = isCustomization
-          ? "Control the website’s appearance and page layout."
-          : "Manage general website behavior and content rules.";
-        const grid = document.createElement("div");
-        grid.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px;margin-top:18px";
-        const categories = isCustomization ? [
-          ["Appearance & Theme", "Colors, visual theme, and overall appearance."],
-          ["Header & Footer", "Header layout, footer content, and shared navigation."],
-          ["Homepage Layout", "Order and arrangement of homepage sections."],
-          ["Section Visibility", "Choose which supported sections appear on the homepage."],
-          ["Typography", "Site-wide font choices, sizes, and text hierarchy."],
-          ["Responsive Layout", "Spacing and layout behavior across mobile, tablet, and desktop."]
+          ? "Change appearance, shared layout, typography, and homepage sections. Save applies changes to the public site."
+          : "Configure site identity, homepage behavior, publishing defaults, account creation, privacy, and maintenance.";
+        const form = document.createElement("form");
+        form.className = "dashboard-crud";
+        form.style.marginTop = "18px";
+        const status = document.createElement("p");
+        status.className = "dashboard-crud-status";
+        status.setAttribute("role", "status");
+        const save = document.createElement("button");
+        save.type = "submit";
+        save.className = "action-button primary";
+        save.textContent = "Save and Apply";
+        const reload = document.createElement("button");
+        reload.type = "button";
+        reload.className = "action-button";
+        reload.textContent = "Reload Saved Values";
+        const groupDefs = isCustomization ? [
+          {id:"identity",title:"Site Identity",key:"ui_customization_identity",fields:[
+            {name:"site_title",label:"Site title",type:"text",value:"Dalimgari"},
+            {name:"tagline",label:"Tagline",type:"text",value:""}
+          ]},
+          {id:"theme",title:"Appearance & Theme",key:"ui_customization_theme",fields:[
+            {name:"primary_color",label:"Primary color",type:"color",value:"#222222"},
+            {name:"background_color",label:"Page background",type:"color",value:"#ffffff"},
+            {name:"surface_color",label:"Cards and surfaces",type:"color",value:"#ffffff"},
+            {name:"text_color",label:"Main text color",type:"color",value:"#222222"}
+          ]},
+          {id:"header_footer",title:"Header & Footer",key:"ui_customization_header_footer",fields:[
+            {name:"show_header",label:"Show site header",type:"checkbox",value:true},
+            {name:"header_sticky",label:"Keep header sticky while scrolling",type:"checkbox",value:true},
+            {name:"show_footer",label:"Show site footer",type:"checkbox",value:true},
+            {name:"footer_text",label:"Footer text",type:"text",value:"© 2026 Dalimgari. All rights reserved."}
+          ]},
+          {id:"layout",title:"Homepage Layout & Section Visibility",key:"ui_customization_layout",fields:[
+            {name:"show_hero",label:"Show Hero section",type:"checkbox",value:true},
+            {name:"show_page_title",label:"Show Page Title section",type:"checkbox",value:true},
+            {name:"show_widget",label:"Show Widget section",type:"checkbox",value:true},
+            {name:"show_album",label:"Show Album section",type:"checkbox",value:true},
+            {name:"show_page_card",label:"Show Page Card section",type:"checkbox",value:true},
+            {name:"section_order",label:"Section order (JSON array)",type:"textarea",value:'["hero","page_title","widget","album","page_card"]'}
+          ]},
+          {id:"typography",title:"Typography",key:"ui_customization_typography",fields:[
+            {name:"font_family",label:"Font family",type:"select",value:"system",options:[["system","System default"],["Arial, sans-serif","Arial"],["Georgia, serif","Georgia"],["Verdana, sans-serif","Verdana"],["Tahoma, sans-serif","Tahoma"]]},
+            {name:"base_font_size",label:"Base font size (px)",type:"number",value:16,min:12,max:22}
+          ]},
+          {id:"responsive",title:"Responsive Layout",key:"ui_customization_responsive",fields:[
+            {name:"content_width",label:"Maximum content width (px)",type:"number",value:1200,min:640,max:1800},
+            {name:"mobile_padding",label:"Mobile side padding (px)",type:"number",value:16,min:8,max:32}
+          ]}
         ] : [
-          ["General", "Site title, description, basic identity, and general defaults."],
-          ["Homepage Defaults", "Default homepage behavior and fallback content."],
-          ["Content", "Default content rules and publishing-related behavior."],
-          ["Users & Access", "Account and access rules; privileged operations must remain server-side."],
-          ["Privacy & Visibility", "Public/private visibility defaults and privacy-related behavior."],
-          ["Maintenance & Features", "Maintenance mode and supported feature switches."]
+          {id:"general",title:"General",key:"ui_settings_general",fields:[
+            {name:"site_title",label:"Site title",type:"text",value:"Dalimgari"},
+            {name:"site_description",label:"Site description",type:"textarea",value:""}
+          ]},
+          {id:"homepage_defaults",title:"Homepage Defaults",key:"ui_settings_homepage_defaults",fields:[
+            {name:"default_home_route",label:"Default route",type:"select",value:"home",options:[["home","Home"],["login","Login"]]},
+            {name:"show_empty_sections",label:"Show empty homepage sections",type:"checkbox",value:false}
+          ]},
+          {id:"content_defaults",title:"Content Defaults",key:"ui_settings_content_defaults",fields:[
+            {name:"default_visibility",label:"Default post visibility",type:"select",value:"public",options:[["public","Public"],["private","Private"]]},
+            {name:"default_page_visibility",label:"Default page visibility",type:"select",value:"public",options:[["public","Public"],["private","Private"]]}
+          ]},
+          {id:"users_access",title:"Users & Access",key:"ui_settings_users_access",fields:[
+            {name:"allow_account_creation",label:"Allow new account creation",type:"checkbox",value:true}
+          ]},
+          {id:"privacy_visibility",title:"Privacy & Visibility",key:"ui_settings_privacy_visibility",fields:[
+            {name:"hide_private_content",label:"Never display private content to public visitors",type:"checkbox",value:true},
+            {name:"default_album_visibility",label:"Default album visibility",type:"select",value:"public",options:[["public","Public"],["private","Private"]]}
+          ]},
+          {id:"maintenance_features",title:"Maintenance & Features",key:"ui_settings_maintenance_features",fields:[
+            {name:"maintenance_mode",label:"Enable maintenance mode for public visitors",type:"checkbox",value:false},
+            {name:"enable_homepage_media",label:"Enable homepage media sections",type:"checkbox",value:true}
+          ]}
         ];
-        for (const [name, description] of categories) {
-          const card = document.createElement("section");
-          card.style.cssText = "min-width:0;padding:16px;border:1px solid #e5e7eb;border-radius:10px;background:#fff";
-          const heading = document.createElement("h3");
-          heading.style.cssText = "margin:0 0 8px;font-size:15px;line-height:1.4;color:#222";
-          heading.textContent = name;
-          const detail = document.createElement("p");
-          detail.style.cssText = "margin:0;color:#666;font-size:13px;line-height:1.6;overflow-wrap:anywhere";
-          detail.textContent = description;
-          card.append(heading, detail);
-          grid.append(card);
+        const inputMap = new Map();
+        function makeField(field, group) {
+          const wrap = document.createElement("div");
+          wrap.className = "dashboard-crud-field" + (field.type === "textarea" ? " full" : "");
+          const label = document.createElement("label");
+          const input = field.type === "textarea" ? document.createElement("textarea") : document.createElement("input");
+          if (field.type !== "textarea") input.type = field.type === "select" ? "text" : field.type;
+          if (field.type === "select") {
+            const select = document.createElement("select");
+            select.className = "dashboard-crud-input";
+            (field.options || []).forEach(([value,text])=>{const option=document.createElement("option");option.value=value;option.textContent=text;select.append(option);});
+            inputMap.set(group.id+"."+field.name,select);
+            select.name=field.name;label.htmlFor="cfg-"+group.id+"-"+field.name;
+            select.id=label.htmlFor;wrap.append(label,select);
+            label.textContent=field.label;return wrap;
+          }
+          input.className = "dashboard-crud-input";
+          input.name = field.name;
+          input.id = "cfg-"+group.id+"-"+field.name;
+          label.htmlFor = input.id;
+          label.textContent = field.label;
+          if (field.type === "checkbox") { input.checked = Boolean(field.value); input.style.width="auto"; input.style.minHeight="auto"; }
+          else if (field.type === "color") { input.value = field.value; input.style.minHeight="44px"; input.style.padding="4px"; }
+          else { input.value = field.value ?? ""; }
+          if (field.min !== undefined) input.min=String(field.min);
+          if (field.max !== undefined) input.max=String(field.max);
+          inputMap.set(group.id+"."+field.name,input);
+          wrap.append(label,input);
+          return wrap;
         }
-        const note = document.createElement("p");
-        note.className = "dashboard-section-description";
-        note.style.marginTop = "18px";
-        note.textContent = "Category structure only: configuration controls, saving, and applying changes have not been connected yet. This screen does not change website behavior or database records.";
-        content.append(title, intro, grid, note);
+        for (const group of groupDefs) {
+          const card = document.createElement("section");
+          card.className = "dashboard-crud-card";
+          const heading = document.createElement("h3");heading.textContent=group.title;card.append(heading);
+          const grid = document.createElement("div");grid.className="dashboard-crud-form";
+          for (const field of group.fields) grid.append(makeField(field,group));
+          card.append(grid);form.append(card);
+        }
+        const actions = document.createElement("div");actions.className="dashboard-crud-actions";
+        actions.append(save,reload);form.append(actions,status);
+        content.append(title,intro,form);
+        async function loadConfig() {
+          status.textContent="Loading saved values…";status.style.color="";
+          const table=isCustomization?"site_customizations":"site_settings";
+          const {data,error}=await supabaseClient.from(table).select("key,value").like("key",isCustomization?"ui_customization_%":"ui_settings_%");
+          if(error)throw error;
+          const rows=new Map((data||[]).map(row=>[row.key,typeof row.value==="string"?(()=>{try{return JSON.parse(row.value)}catch(_){return {}}})():(row.value||{})]));
+          for(const group of groupDefs){
+            const values=rows.get(group.key)||{};
+            for(const field of group.fields){
+              const input=inputMap.get(group.id+"."+field.name);
+              if(!input||!Object.prototype.hasOwnProperty.call(values,field.name))continue;
+              const value=values[field.name];
+              if(field.type==="checkbox")input.checked=Boolean(value);
+              else if(field.name==="section_order"&&Array.isArray(value))input.value=JSON.stringify(value,null,2);
+              else input.value=value==null?"":String(value);
+            }
+          }
+          status.textContent="Saved configuration loaded.";status.style.color="#176b43";
+        }
+        function collectGroup(group) {
+          const value={};
+          for(const field of group.fields){
+            const input=inputMap.get(group.id+"."+field.name);
+            if(!input)continue;
+            if(field.type==="checkbox")value[field.name]=input.checked;
+            else if(field.type==="number")value[field.name]=Number(input.value);
+            else if(field.name==="section_order"){
+              let parsed;try{parsed=JSON.parse(input.value||"[]")}catch(_){throw new Error("Section order must be valid JSON.");}
+              if(!Array.isArray(parsed)||parsed.some(item=>typeof item!=="string"))throw new Error("Section order must be a JSON array of section names.");
+              value[field.name]=parsed;
+            } else value[field.name]=input.value.trim();
+          }
+          for(const field of group.fields){
+            if(field.type==="number"&&(value[field.name]<Number(field.min)||value[field.name]>Number(field.max)))throw new Error(field.label+" must be between "+field.min+" and "+field.max+".");
+          }
+          return value;
+        }
+        reload.addEventListener("click",async()=>{reload.disabled=true;try{await loadConfig()}catch(error){status.textContent="Could not load saved configuration: "+error.message;status.style.color="#a12622"}finally{reload.disabled=false}});
+        form.addEventListener("submit",async event=>{
+          event.preventDefault();save.disabled=true;reload.disabled=true;status.textContent="Saving configuration…";status.style.color="";
+          try{
+            const user=await getCurrentUser();if(!user)throw new Error("Your admin session has expired. Please sign in again.");
+            const table=isCustomization?"site_customizations":"site_settings";
+            for(const group of groupDefs){
+              const value=collectGroup(group);
+              const row={key:group.key,value,description:group.title,updated_by:user.id,updated_at:new Date().toISOString()};
+              const {error}=await supabaseClient.from(table).upsert(row,{onConflict:"key"});
+              if(error)throw error;
+              if(!isCustomization){
+                const publicRow={key:group.key,value,description:"Public-safe mirrored configuration: "+group.title,updated_by:user.id,updated_at:new Date().toISOString()};
+                const mirror=await supabaseClient.from("site_customizations").upsert(publicRow,{onConflict:"key"});
+                if(mirror.error)throw mirror.error;
+              }
+            }
+            await applyDalimgariSiteConfig(true);
+            status.textContent="Saved. Website configuration has been applied.";status.style.color="#176b43";
+          }catch(error){status.textContent="Save failed: "+(error.message||"Unknown error");status.style.color="#a12622"}
+          finally{save.disabled=false;reload.disabled=false}
+        });
+        loadConfig().catch(error=>{status.textContent="Could not load saved configuration: "+error.message;status.style.color="#a12622"});
         return;
       }
       if (section.id === "overview") {
