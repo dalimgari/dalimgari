@@ -1555,9 +1555,9 @@
         ]},
         page: { table:"pages", label:"Pages", fields:[
           {name:"title",label:"Page Title",type:"text",required:true},
-          {name:"url",label:"Page URL",type:"text",required:true,help:"Use a unique URL slug, e.g. about-us. English letters, numbers and hyphens are supported."},
+          {name:"url",label:"Page URL",type:"text",required:true,help:"Use a unique slug, e.g. about-us. The page link will use ?page=about-us."},
           {name:"description",label:"Description",type:"textarea",full:true},
-          {name:"content",label:"HTML Code",type:"textarea",rows:12,full:true,help:"Paste HTML only. Script tags and unsafe HTML attributes are removed before display."},
+          {name:"content",label:"HTML Code",type:"textarea",rows:12,full:true,help:"Paste HTML only. Scripts and unsafe attributes are removed. To include another page, use <div data-dalimgari-include=\"about-us\"></div>."},
           {name:"visibility",label:"Visibility",type:"select",options:[["public","Public"],["private","Only Me"]]}
         ]},
         role: { table:"roles", label:"Roles", fields:[
@@ -1909,7 +1909,15 @@
           const values=[String(record.id||"").slice(0,8)||"—",title,details];
           values.push(record.visibility==="private"?"Only Me":record.visibility==="public"?"Public":"—",record.created_at?new Date(record.created_at).toLocaleString():"—");
           values.forEach((value,index)=>{
-            const td=document.createElement("td");td.textContent=String(value);
+            const td=document.createElement("td");
+            if(section.id==="page"&&index===2&&record.url){
+              const link=document.createElement("a");
+              link.href=window.location.pathname+"?page="+encodeURIComponent(record.url);
+              link.textContent="?page="+record.url;
+              link.target="_blank";link.rel="noopener noreferrer";
+              link.style.cssText="overflow-wrap:anywhere";
+              td.append(link);
+            }else td.textContent=String(value);
             row.append(td);
           });
           const first=row.firstElementChild;first.textContent="Select";
