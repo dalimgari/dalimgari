@@ -645,7 +645,8 @@
         ["Page Title", "home-page-title"],
         ["Widget", "home-widget"],
         ["Album", "home-album"],
-        ["Page Card", "home-page-card"]
+        ["Page Card", "home-page-card"],
+        ["Media Upload", "home-media-upload"]
       ];
       const extraSections = sectionNames.map(([name, className]) => {
         const section = document.createElement("section");
@@ -710,6 +711,9 @@
         }
       }
       if (pillBar.childElementCount) pageTitleSection.append(pillBar);
+
+      // The uploader is a normal homepage section, not a separate page or route.
+      await renderPublicMediaUpload(extraSections[4]);
 
       const { data, error } = await supabaseClient.from("site_customizations")
         .select("value").eq("key", "home_hero").maybeSingle();
@@ -900,13 +904,16 @@
       document.title = (data.title ? data.title + " | " : "") + "Dalimgari";
     }
 
-    async function renderPublicMediaUpload() {
-      mainContent.replaceChildren();
-      const page = document.createElement("section");
-      page.className = "dashboard-page";
+    async function renderPublicMediaUpload(container) {
+      if (!container) return;
+      container.replaceChildren();
+      const page = document.createElement("div");
+      page.className = "home-media-upload-content";
+      page.style.cssText = "width:100%;min-width:0;max-width:100%";
       const heading = document.createElement("h1");
       heading.className = "dashboard-section-title";
       heading.textContent = "Media Upload";
+      heading.style.margin = "0 0 10px";
       const description = document.createElement("p");
       description.className = "dashboard-section-description";
       description.textContent = "Upload an image, video, audio file or PDF without an admin account. Maximum file size: 10 MB.";
@@ -955,8 +962,7 @@
       form.append(titleField, fileField, status, actions);
       card.append(form);
       page.append(heading, description, card);
-      mainContent.append(page);
-      document.title = "Media Upload | Dalimgari";
+      container.append(page);
 
       const allowedTypes = new Set(["image/jpeg","image/png","image/webp","image/gif","image/avif","image/svg+xml","video/mp4","video/webm","video/quicktime","audio/mpeg","audio/mp4","audio/wav","audio/ogg","application/pdf"]);
       const maxSize = 10 * 1024 * 1024;
@@ -2814,9 +2820,11 @@
           : (params.has("page") && params.get("page") && !window.location.hash
             ? "#stored-page" : (window.location.hash.toLowerCase() || "#home"));
         if (currentRoute === "#media-upload") {
+          // Backward compatibility: the uploader now lives on Home.
+          history.replaceState(null, "", "#home");
           updateAuthMenu(data.session);
-          await renderPublicMediaUpload();
-          setCurrentMenuPage("Media Upload");
+          await renderHome();
+          setCurrentMenuPage("Home");
         } else if (currentRoute === "#stored-page") {
           updateAuthMenu(data.session);
           await renderStoredPage(params.get("page"), data.session);
