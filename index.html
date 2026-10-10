@@ -657,6 +657,25 @@
       page.append(heroSection, ...extraSections);
       mainContent.replaceChildren(page);
 
+      // Optional homepage placement map, configured in Dashboard > Customizations
+      // with key "home_page_includes" and JSON such as {"home-page-title":"about-us"}.
+      const { data: includeConfigRow } = await supabaseClient.from("site_customizations")
+        .select("value").eq("key", "home_page_includes").maybeSingle();
+      let homeIncludes = includeConfigRow?.value || {};
+      if (typeof homeIncludes === "string") {
+        try { homeIncludes = JSON.parse(homeIncludes); } catch (_) { homeIncludes = {}; }
+      }
+      if (homeIncludes && typeof homeIncludes === "object" && !Array.isArray(homeIncludes)) {
+        for (const [sectionClass, rawSlug] of Object.entries(homeIncludes)) {
+          const target = [heroSection, ...extraSections].find(section => section.classList.contains(sectionClass));
+          const slug = generatePageSlug(rawSlug);
+          if (!target || !slug) continue;
+          const { data: includedPage, error: includeError } = await supabaseClient.from("pages")
+            .select("content").eq("url", slug).maybeSingle();
+          if (!includeError && includedPage) await renderHtmlInto(target, includedPage.content || "", null);
+        }
+      }
+
       const { data, error } = await supabaseClient.from("site_customizations")
         .select("value").eq("key", "home_hero").maybeSingle();
       if (error || !data || !data.value) return;
