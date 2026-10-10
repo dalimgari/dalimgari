@@ -1241,10 +1241,8 @@
         if(!records.length){const p=document.createElement("p");p.className="dashboard-crud-empty";p.textContent="No records found yet.";list.append(p);return;}
         const table=document.createElement("table");table.className="dashboard-crud-table";
         const thead=document.createElement("thead"),trh=document.createElement("tr");
-        if(section.id==="album"){
-          const previewHead=document.createElement("th");previewHead.textContent="Random Photo Preview";trh.insertBefore(previewHead,trh.children[2]);
-        }
-        ["Select","Title / Name","Details","Visibility","Created"].forEach(label=>{const th=document.createElement("th");th.textContent=label;trh.append(th);});
+        const headerLabels=["Select","Title / Name",...(section.id==="album"?["Random Photo Preview"]:[]),"Details","Visibility","Created"];
+        headerLabels.forEach(label=>{const th=document.createElement("th");th.textContent=label;trh.append(th);});
         thead.append(trh);table.append(thead);
         const tbody=document.createElement("tbody");
         let albumPhotosById={};
