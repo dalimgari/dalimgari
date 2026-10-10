@@ -650,36 +650,42 @@
       if (!heroData || typeof heroData !== "object") return;
       const headline = String(heroData.headline || "").trim();
       const welcomeMessage = String(heroData.welcomeMessage || "").trim();
+      const heroImageUrl = String(heroData.heroImageUrl || "").trim();
+
+      // Keep the image as the floating hero surface and layer its text over the center.
+      const imageFrame = document.createElement("div");
+      imageFrame.className = "home-hero-image-frame";
+      imageFrame.style.cssText = "position:relative;isolation:isolate;display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:100%;aspect-ratio:16/9;margin:0;overflow:hidden;border:1px solid rgba(148,163,184,.35);border-radius:20px;background:linear-gradient(135deg,#e2e8f0,#f8fafc);box-shadow:0 14px 36px rgba(15,23,42,.16)";
+      if (heroImageUrl) {
+        const image = document.createElement("img");
+        image.src = heroImageUrl;
+        image.alt = "";
+        image.loading = "eager";
+        image.decoding = "async";
+        image.style.cssText = "position:absolute;inset:0;z-index:-2;display:block;width:100%;height:100%;max-width:100%;object-fit:cover;object-position:center";
+        imageFrame.append(image);
+        const shade = document.createElement("div");
+        shade.setAttribute("aria-hidden", "true");
+        shade.style.cssText = "position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(15,23,42,.48),rgba(15,23,42,.2),rgba(15,23,42,.48))";
+        imageFrame.append(shade);
+      }
+
+      const textOverlay = document.createElement("div");
+      textOverlay.className = "home-hero-text-overlay";
+      textOverlay.style.cssText = "position:relative;z-index:1;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-height:100%;overflow-y:auto;padding:clamp(16px,4vw,44px);text-align:center;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.5)";
       if (headline) {
         const heading = document.createElement("h1");
         heading.textContent = headline;
-        heading.style.cssText = "margin:0 0 12px;font-size:clamp(30px,6vw,52px);line-height:1.12;overflow-wrap:anywhere";
-        heroSection.append(heading);
+        heading.style.cssText = "max-width:900px;margin:0 0 12px;font-size:clamp(24px,5.5vw,52px);line-height:1.12;font-weight:750;overflow-wrap:anywhere";
+        textOverlay.append(heading);
       }
       if (welcomeMessage) {
         const welcome = document.createElement("p");
         welcome.textContent = welcomeMessage;
-        welcome.style.cssText = "max-width:760px;margin:0;color:#666;font-size:clamp(16px,2.5vw,20px);line-height:1.65;overflow-wrap:anywhere";
-        heroSection.append(welcome);
+        welcome.style.cssText = "max-width:760px;margin:0;font-size:clamp(14px,2.5vw,20px);line-height:1.55;overflow-wrap:anywhere";
+        textOverlay.append(welcome);
       }
-      const heroImageUrl = String(heroData.heroImageUrl || "").trim();
-      const imageFrame = document.createElement("div");
-      imageFrame.className = "home-hero-image-frame";
-      imageFrame.style.cssText = "position:relative;display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:100%;aspect-ratio:16/9;margin:12px 0 0;overflow:hidden;border:1px dashed #cbd5e1;border-radius:18px;background:#f3f4f6;box-shadow:0 10px 28px rgba(0,0,0,.08)";
-      if (heroImageUrl) {
-        const image = document.createElement("img");
-        image.src = heroImageUrl;
-        image.alt = "Hero";
-        image.loading = "eager";
-        image.decoding = "async";
-        image.style.cssText = "position:absolute;inset:0;display:block;width:100%;height:100%;max-width:100%;object-fit:cover;object-position:center";
-        imageFrame.append(image);
-      } else {
-        const placeholder = document.createElement("span");
-        placeholder.textContent = "Hero image area";
-        placeholder.style.cssText = "padding:12px;color:#64748b;font-size:14px;letter-spacing:.03em;text-align:center;overflow-wrap:anywhere";
-        imageFrame.append(placeholder);
-      }
+      imageFrame.append(textOverlay);
       heroSection.append(imageFrame);
     }
 
