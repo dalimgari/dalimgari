@@ -680,10 +680,19 @@
       const titleLabel=document.querySelector("#current-page-label");
       if(titleLabel && (!titleLabel.textContent || titleLabel.textContent==="Home"))titleLabel.textContent=title;
       const root=document.documentElement;
-      if(theme.primary_color)root.style.setProperty("--dg-primary",theme.primary_color);
-      if(theme.background_color)document.body.style.backgroundColor=theme.background_color;
-      if(theme.text_color)document.body.style.color=theme.text_color;
-      if(theme.surface_color)root.style.setProperty("--dg-surface",theme.surface_color);
+      const validColor=value=>/^#[0-9a-f]{6}$/i.test(String(value||""))?String(value):"";
+      const primaryColor=validColor(theme.primary_color), surfaceColor=validColor(theme.surface_color), textColor=validColor(theme.text_color), backgroundColor=validColor(theme.background_color);
+      if(primaryColor)root.style.setProperty("--dg-primary",primaryColor);
+      if(backgroundColor)document.body.style.backgroundColor=backgroundColor;
+      if(textColor)document.body.style.color=textColor;
+      if(surfaceColor)root.style.setProperty("--dg-surface",surfaceColor);
+      let configStyle=document.getElementById("dalimgari-runtime-theme");
+      if(!configStyle){configStyle=document.createElement("style");configStyle.id="dalimgari-runtime-theme";document.head.append(configStyle);}
+      const themeRules=[];
+      if(primaryColor)themeRules.push(".action-button.primary,.login-submit,.dashboard-nav-button[aria-selected='true']{background-color:"+primaryColor+" !important;border-color:"+primaryColor+" !important}");
+      if(surfaceColor)themeRules.push(".dashboard-section-content,.dashboard-crud-card,.login-form,.profile-page{background-color:"+surfaceColor+" !important}");
+      if(textColor)themeRules.push(".dashboard-section-content,.dashboard-crud-card,.login-form,.profile-page{color:"+textColor+" !important}");
+      configStyle.textContent=themeRules.join("\n");
       if(typography.font_family&&typography.font_family!=="system")document.body.style.fontFamily=typography.font_family;
       else document.body.style.removeProperty("font-family");
       if(Number(typography.base_font_size)>=12&&Number(typography.base_font_size)<=22)document.body.style.fontSize=Number(typography.base_font_size)+"px";
