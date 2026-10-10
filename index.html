@@ -1678,18 +1678,6 @@
       navigationArea.append(navigation);
       page.append(heading, navigationArea, content);
 
-      const back = document.createElement("button");
-      back.className = "action-button";
-      back.type = "button";
-      back.textContent = "Back to Profile";
-      back.style.marginTop = "18px";
-      back.addEventListener("click", () => {
-        renderPage("Profile");
-        history.replaceState(null, "", "#profile");
-        setCurrentMenuPage("Profile");
-      });
-      page.append(back);
-
       const requestedSectionId = window.location.hash.toLowerCase().startsWith("#dashboard-")
         ? window.location.hash.slice("#dashboard-".length)
         : "overview";
