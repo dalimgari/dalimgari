@@ -2147,7 +2147,7 @@
             (hashParams.get("type") === "recovery" && (hashParams.has("access_token") || hashParams.has("error")))) {
           return "#forgot-password";
         }
-        if (params.has("page") && params.get("page") && (!window.location.hash || window.location.hash.toLowerCase()==="#home")) return "#stored-page";
+        if (params.has("page") && params.get("page") && !window.location.hash) return "#stored-page";
         return window.location.hash.toLowerCase() || "#home";
       };
       const openRoute = (session) => {
