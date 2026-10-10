@@ -481,38 +481,6 @@
     © 2026 Dalimgari. All rights reserved.
   </footer>
 
-  <script>
-    // Keep the menu toggle independent from the main application script.
-    (() => {
-      const menuButton = document.querySelector(".menu-button");
-      const floatingMenu = document.querySelector("#floating-menu");
-      if (!menuButton || !floatingMenu) return;
-
-          menuButton.addEventListener("click", () => {
-            const isOpening = floatingMenu.hidden;
-            floatingMenu.hidden = !isOpening;
-            menuButton.setAttribute("aria-expanded", String(isOpening));
-            menuButton.setAttribute("aria-label", isOpening ? "Close menu" : "Open menu");
-          });
-      
-          document.addEventListener("click", (event) => {
-            if (!menuButton.contains(event.target) && !floatingMenu.contains(event.target)) {
-              floatingMenu.hidden = true;
-              menuButton.setAttribute("aria-expanded", "false");
-              menuButton.setAttribute("aria-label", "Open menu");
-            }
-          });
-      
-          document.addEventListener("keydown", (event) => {
-            if (event.key === "Escape") {
-              floatingMenu.hidden = true;
-              menuButton.setAttribute("aria-expanded", "false");
-              menuButton.setAttribute("aria-label", "Open menu");
-            }
-          });
-
-    })();
-  </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const supabaseClient = window.supabase.createClient(
@@ -1696,42 +1664,106 @@
       }
     })();
 
-    menuLinks.forEach((link) => {
-      link.addEventListener("click", async () => {
-        const pageName = link.dataset.page;
-        if (pageName === "Logout") {
-          link.disabled = true;
-          link.textContent = "Logging out...";
-          const { error } = await supabaseClient.auth.signOut();
-          link.disabled = false;
-          if (error) {
-            link.textContent = "Logout";
-            return;
-          }
-          updateAuthMenu(null);
-          renderPage("Login");
-          history.replaceState(null, "", "#login");
-          setCurrentMenuPage("Login");
-        } else {
-          const { data } = await supabaseClient.auth.getSession();
-          updateAuthMenu(data.session);
-          if (data.session && (pageName === "Login" || pageName === "CreateAccount")) {
-            renderPage("Profile");
-            history.replaceState(null, "", "#profile");
-            setCurrentMenuPage("Profile");
-          } else {
-            renderPage(pageName);
-            setCurrentMenuPage(pageName);
-          }
-        }
+    // Expose the existing app navigation to the independent menu controller.
+    window.__dalimgariMenuApi = {
+      supabaseClient,
+      updateAuthMenu,
+      renderPage,
+      setCurrentMenuPage
+    };
+  </script>
 
+  <script>
+    // Keep menu toggling and navigation functional even if the main app script fails.
+    (() => {
+      const menuButton = document.querySelector(".menu-button");
+      const floatingMenu = document.querySelector("#floating-menu");
+      if (!menuButton || !floatingMenu) return;
+
+      const closeMenu = () => {
         floatingMenu.hidden = true;
         menuButton.setAttribute("aria-expanded", "false");
         menuButton.setAttribute("aria-label", "Open menu");
+      };
+
+      menuButton.addEventListener("click", () => {
+        const isOpening = floatingMenu.hidden;
+        floatingMenu.hidden = !isOpening;
+        menuButton.setAttribute("aria-expanded", String(isOpening));
+        menuButton.setAttribute("aria-label", isOpening ? "Close menu" : "Open menu");
       });
-    });
 
+      document.addEventListener("click", (event) => {
+        if (!menuButton.contains(event.target) && !floatingMenu.contains(event.target)) closeMenu();
+      });
 
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") closeMenu();
+      });
+
+      floatingMenu.querySelectorAll(".menu-link").forEach((link) => {
+        link.addEventListener("click", async () => {
+          const originalLabel = link.textContent;
+          const pageName = link.dataset.page;
+          link.disabled = true;
+
+          try {
+            let api = window.__dalimgariMenuApi;
+            if (!api) {
+              const fallbackClient = window.supabase.createClient(
+                "https://yopfogoyjxwxplnabqii.supabase.co",
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvcGZvZ295anh3eHBsbmFicWlpIiwicm9sZSI6Ik1FTUJFUiIsImlhdCI6MTc4OTI5MzI2NCwiZXhwIjoyMTA0ODY5MjY0fQ.dIVH8sp3qyD_AGmt1bNFVOpQKdrgcX734HkrEuOacB4"
+              );
+              api = { supabaseClient: fallbackClient };
+            }
+
+            const client = api.supabaseClient;
+            if (pageName === "Logout") {
+              link.textContent = "Logging out...";
+              const { error } = await client.auth.signOut();
+              if (error) throw error;
+              if (api.updateAuthMenu) api.updateAuthMenu(null);
+              if (api.renderPage) {
+                api.renderPage("Login");
+                history.replaceState(null, "", "#login");
+                api.setCurrentMenuPage("Login");
+              } else {
+                history.replaceState(null, "", "#login");
+                window.location.reload();
+              }
+            } else {
+              const { data, error } = await client.auth.getSession();
+              if (error) throw error;
+              if (api.updateAuthMenu) api.updateAuthMenu(data.session);
+
+              let destination = pageName;
+              if (data.session && (pageName === "Login" || pageName === "CreateAccount")) {
+                destination = "Profile";
+              }
+              if (api.renderPage) {
+                api.renderPage(destination);
+                history.replaceState(null, "", "#" + destination.toLowerCase());
+                api.setCurrentMenuPage(destination);
+              } else {
+                if (destination === "Profile" && !data.session) destination = "Login";
+                history.replaceState(null, "", "#" + destination.toLowerCase());
+                window.location.reload();
+              }
+            }
+          } catch (error) {
+            console.error("Menu action failed:", error);
+            link.textContent = originalLabel;
+            window.alert("Menu action failed. Please try again.");
+          } finally {
+            link.disabled = false;
+            if (link.dataset.page === "Logout") link.textContent = "Logout";
+            closeMenu();
+          }
+        });
+      });
+    })();
   </script>
+</body>
+</html>
 </body>
 </html>
