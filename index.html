@@ -913,6 +913,9 @@
       function selectSection(section) {
         sectionTitle.textContent = section.label;
         sectionDescription.textContent = section.description;
+        if (window.location.hash !== "#dashboard-" + section.id) {
+          history.replaceState(null, "", "#dashboard-" + section.id);
+        }
         content.setAttribute("aria-labelledby", "dashboard-tab-" + section.id);
         navigation.querySelectorAll(".dashboard-nav-button").forEach((button) => {
           const selected = button.dataset.section === section.id;
@@ -967,7 +970,11 @@
       });
       page.append(back);
 
-      selectSection(sections[0]);
+      const requestedSectionId = window.location.hash.toLowerCase().startsWith("#dashboard-")
+        ? window.location.hash.slice("#dashboard-".length)
+        : "overview";
+      const initialSection = sections.find((section) => section.id === requestedSectionId) || sections[0];
+      selectSection(initialSection);
       mainContent.replaceChildren(page);
       setCurrentMenuPage("Dashboard");
     }
@@ -1531,40 +1538,66 @@
     });
 
     (async () => {
-      try {
-        const { data, error } = await supabaseClient.auth.getSession();
-        if (error) throw error;
-        updateAuthMenu(data.session);
-        if (data.session) {
-          renderPage("Profile");
-          history.replaceState(null, "", "#profile");
-          setCurrentMenuPage("Profile");
-        } else if (window.location.hash === "#create-account") {
+      const route = () => window.location.hash.toLowerCase() || "#home";
+      const openRoute = (session) => {
+        updateAuthMenu(session);
+        const currentRoute = route();
+        if (currentRoute === "#home") {
+          mainContent.replaceChildren();
+          setCurrentMenuPage("Home");
+        } else if (currentRoute === "#profile") {
+          if (session) {
+            renderPage("Profile");
+            setCurrentMenuPage("Profile");
+          } else {
+            renderPage("Login");
+            history.replaceState(null, "", "#login");
+            setCurrentMenuPage("Login");
+          }
+        } else if (currentRoute === "#edit-profile") {
+          if (session) {
+            renderPage("EditProfile");
+            setCurrentMenuPage("Profile");
+          } else {
+            renderPage("Login");
+            history.replaceState(null, "", "#login");
+            setCurrentMenuPage("Login");
+          }
+        } else if (currentRoute === "#dashboard" || currentRoute.startsWith("#dashboard-")) {
+          if (session) {
+            renderPage("Dashboard");
+            setCurrentMenuPage("Profile");
+          } else {
+            renderPage("Login");
+            history.replaceState(null, "", "#login");
+            setCurrentMenuPage("Login");
+          }
+        } else if (currentRoute === "#create-account" && !session) {
           renderPage("CreateAccount");
           setCurrentMenuPage("CreateAccount");
-        } else if (window.location.hash === "#login") {
-          renderPage("Login");
-          setCurrentMenuPage("Login");
-        } else if (window.location.hash === "#dashboard") {
+        } else {
           renderPage("Login");
           history.replaceState(null, "", "#login");
           setCurrentMenuPage("Login");
-        } else {
-          // First-time visitors get an intentionally blank Home view.
-          mainContent.replaceChildren();
-          setCurrentMenuPage("Home");
         }
+      };
+
+      try {
+        const { data, error } = await supabaseClient.auth.getSession();
+        if (error) throw error;
+        openRoute(data.session);
       } catch (error) {
         console.error("Could not initialize the page session:", error);
         updateAuthMenu(null);
-        if (window.location.hash === "#login") {
+        const currentRoute = route();
+        if (currentRoute === "#login") {
           renderPage("Login");
           setCurrentMenuPage("Login");
-        } else if (window.location.hash === "#create-account") {
+        } else if (currentRoute === "#create-account") {
           renderPage("CreateAccount");
           setCurrentMenuPage("CreateAccount");
         } else {
-          // Do not force visitors to the Login page on initial load failure.
+          // Preserve the requested route where possible if session lookup fails.
           mainContent.replaceChildren();
           setCurrentMenuPage("Home");
         }
