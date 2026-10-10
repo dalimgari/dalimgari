@@ -1912,8 +1912,51 @@
         ]}
       };
       if (section.id === "customization" || section.id === "settings") {
-        // Keep Customization and Settings intentionally empty for now; do not load or display stored records.
+        // Show the agreed category structure without loading stored records or pretending controls are already wired.
         content.replaceChildren();
+        const isCustomization = section.id === "customization";
+        const title = document.createElement("h2");
+        title.className = "dashboard-section-title";
+        title.textContent = isCustomization ? "Customization" : "Settings";
+        const intro = document.createElement("p");
+        intro.className = "dashboard-section-description";
+        intro.textContent = isCustomization
+          ? "Control the website’s appearance and page layout."
+          : "Manage general website behavior and content rules.";
+        const grid = document.createElement("div");
+        grid.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px;margin-top:18px";
+        const categories = isCustomization ? [
+          ["Appearance & Theme", "Colors, visual theme, and overall appearance."],
+          ["Header & Footer", "Header layout, footer content, and shared navigation."],
+          ["Homepage Layout", "Order and arrangement of homepage sections."],
+          ["Section Visibility", "Choose which supported sections appear on the homepage."],
+          ["Typography", "Site-wide font choices, sizes, and text hierarchy."],
+          ["Responsive Layout", "Spacing and layout behavior across mobile, tablet, and desktop."]
+        ] : [
+          ["General", "Site title, description, basic identity, and general defaults."],
+          ["Homepage Defaults", "Default homepage behavior and fallback content."],
+          ["Content", "Default content rules and publishing-related behavior."],
+          ["Users & Access", "Account and access rules; privileged operations must remain server-side."],
+          ["Privacy & Visibility", "Public/private visibility defaults and privacy-related behavior."],
+          ["Maintenance & Features", "Maintenance mode and supported feature switches."]
+        ];
+        for (const [name, description] of categories) {
+          const card = document.createElement("section");
+          card.style.cssText = "min-width:0;padding:16px;border:1px solid #e5e7eb;border-radius:10px;background:#fff";
+          const heading = document.createElement("h3");
+          heading.style.cssText = "margin:0 0 8px;font-size:15px;line-height:1.4;color:#222";
+          heading.textContent = name;
+          const detail = document.createElement("p");
+          detail.style.cssText = "margin:0;color:#666;font-size:13px;line-height:1.6;overflow-wrap:anywhere";
+          detail.textContent = description;
+          card.append(heading, detail);
+          grid.append(card);
+        }
+        const note = document.createElement("p");
+        note.className = "dashboard-section-description";
+        note.style.marginTop = "18px";
+        note.textContent = "Category structure only: configuration controls, saving, and applying changes have not been connected yet. This screen does not change website behavior or database records.";
+        content.append(title, intro, grid, note);
         return;
       }
       if (section.id === "overview") {
