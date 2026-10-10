@@ -1529,6 +1529,7 @@
         { id: "overview", label: "Overview", description: "Dashboard overview." },
         { id: "hero", label: "Hero", description: "Manage the homepage hero headline and welcome message." },
         { id: "post", label: "Post", description: "Post management section." },
+        { id: "media", label: "Media", description: "Upload media to Storage, keep reusable public links, and manage uploaded files." },
         { id: "page", label: "Page", description: "Page management section." },
         { id: "user", label: "User", description: "User management section." },
         { id: "role", label: "Role", description: "Role management section." },
@@ -1704,7 +1705,7 @@
         const intro = document.createElement("p"); intro.className="dashboard-section-description"; intro.textContent="Content management and database summary.";
         const stats = document.createElement("div"); stats.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-top:18px";
         content.append(title,intro,stats);
-        const targets=[["Posts","post"],["Pages","pages"],["Users","profiles"],["Roles","roles"],["Permissions","permissions"]];
+        const targets=[["Posts","post"],["Media","media_assets"],["Pages","pages"],["Users","profiles"],["Roles","roles"],["Permissions","permissions"]];
         for (const [label,table] of targets) {
           const card=document.createElement("div");card.style.cssText="padding:16px;border:1px solid #e5e7eb;border-radius:10px;background:#fff";
           const l=document.createElement("div");l.style.cssText="font-size:13px;color:#666";l.textContent=label;
@@ -1939,6 +1940,303 @@
             save.textContent = "Save Hero";
           }
         });
+        return;
+      }
+      if (section.id === "media") {
+        content.replaceChildren();
+        const wrap = document.createElement("div");
+        wrap.className = "dashboard-crud";
+        const formCard = document.createElement("section");
+        formCard.className = "dashboard-crud-card";
+        const formHeading = document.createElement("h3");
+        formHeading.textContent = "Upload Media";
+        const hint = document.createElement("p");
+        hint.className = "dashboard-crud-hint";
+        hint.textContent = "Add a title, choose a file, then upload. Each file gets a reusable public URL. Supported: images, video, audio and PDF; maximum 50 MB per file.";
+        const form = document.createElement("form");
+        form.className = "dashboard-crud-form";
+        const titleHolder = document.createElement("div");
+        titleHolder.className = "dashboard-crud-field full";
+        const titleLabel = document.createElement("label");
+        titleLabel.htmlFor = "dashboard-media-title";
+        titleLabel.textContent = "Title";
+        const titleInput = document.createElement("input");
+        titleInput.id = titleLabel.htmlFor;
+        titleInput.name = "title";
+        titleInput.type = "text";
+        titleInput.required = true;
+        titleInput.maxLength = 180;
+        titleInput.placeholder = "e.g. Dalimgari logo";
+        titleInput.className = "dashboard-crud-input";
+        titleHolder.append(titleLabel, titleInput);
+        const fileHolder = document.createElement("div");
+        fileHolder.className = "dashboard-crud-field full";
+        const fileLabel = document.createElement("label");
+        fileLabel.htmlFor = "dashboard-media-file";
+        fileLabel.textContent = "File";
+        const fileInput = document.createElement("input");
+        fileInput.id = fileLabel.htmlFor;
+        fileInput.name = "file";
+        fileInput.type = "file";
+        fileInput.required = true;
+        fileInput.accept = "image/jpeg,image/png,image/webp,image/gif,image/avif,image/svg+xml,video/mp4,video/webm,video/quicktime,audio/mpeg,audio/mp4,audio/wav,audio/ogg,application/pdf";
+        fileInput.className = "dashboard-crud-input";
+        fileHolder.append(fileLabel, fileInput);
+        const actions = document.createElement("div");
+        actions.className = "dashboard-crud-actions dashboard-crud-field full";
+        const uploadButton = document.createElement("button");
+        uploadButton.type = "submit";
+        uploadButton.className = "action-button primary";
+        uploadButton.textContent = "Upload Media";
+        const clearButton = document.createElement("button");
+        clearButton.type = "button";
+        clearButton.className = "action-button";
+        clearButton.textContent = "Clear";
+        actions.append(uploadButton, clearButton);
+        const status = document.createElement("p");
+        status.className = "dashboard-crud-status";
+        status.setAttribute("role", "status");
+        status.setAttribute("aria-live", "polite");
+        form.append(titleHolder, fileHolder, actions, status);
+        formCard.append(formHeading, hint, form);
+        const listCard = document.createElement("section");
+        listCard.className = "dashboard-crud-card";
+        const listHeading = document.createElement("h3");
+        listHeading.textContent = "Uploaded Media";
+        const listHint = document.createElement("p");
+        listHint.className = "dashboard-crud-hint";
+        listHint.textContent = "Copy a URL to use it in a post, page, or another part of the website.";
+        const list = document.createElement("div");
+        list.className = "dashboard-crud-list";
+        listCard.append(listHeading, listHint, list);
+        wrap.append(formCard, listCard);
+        content.append(wrap);
+
+        const allowedTypes = new Set([
+          "image/jpeg","image/png","image/webp","image/gif","image/avif","image/svg+xml",
+          "video/mp4","video/webm","video/quicktime","audio/mpeg","audio/mp4","audio/wav","audio/ogg",
+          "application/pdf"
+        ]);
+        const maxFileSize = 50 * 1024 * 1024;
+        function setMediaStatus(message, type = "info") {
+          status.textContent = message;
+          status.style.color = type === "error" ? "#a12622" : type === "success" ? "#176b43" : "#555";
+        }
+        function formatBytes(bytes) {
+          if (!Number.isFinite(Number(bytes))) return "—";
+          const value = Number(bytes);
+          if (value < 1024) return value + " B";
+          if (value < 1024 * 1024) return (value / 1024).toFixed(1) + " KB";
+          return (value / (1024 * 1024)).toFixed(1) + " MB";
+        }
+        function makeAction(label, className, handler) {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = className || "action-button";
+          button.textContent = label;
+          button.addEventListener("click", handler);
+          return button;
+        }
+        async function copyMediaUrl(url, button) {
+          try {
+            await navigator.clipboard.writeText(url);
+            const oldLabel = button.textContent;
+            button.textContent = "Copied";
+            setTimeout(() => { if (button.isConnected) button.textContent = oldLabel; }, 1400);
+          } catch (_) {
+            const holder = document.createElement("textarea");
+            holder.value = url;
+            holder.style.cssText = "position:fixed;opacity:0;pointer-events:none";
+            document.body.append(holder);
+            holder.select();
+            const copied = document.execCommand("copy");
+            holder.remove();
+            setMediaStatus(copied ? "Link copied." : "Copy failed. Select and copy the URL from the table.", copied ? "success" : "error");
+          }
+        }
+        async function loadMediaRecords() {
+          if (!isCurrent()) return;
+          list.replaceChildren();
+          const loading = document.createElement("p");
+          loading.className = "dashboard-crud-empty";
+          loading.textContent = "Loading media…";
+          list.append(loading);
+          const { data, error } = await supabaseClient.from("media_assets")
+            .select("id,title,original_filename,storage_path,public_url,mime_type,size_bytes,created_at")
+            .order("created_at", { ascending: false }).limit(500);
+          if (!isCurrent()) return;
+          list.replaceChildren();
+          if (error) {
+            const message = document.createElement("p");
+            message.className = "dashboard-crud-empty";
+            message.textContent = "Could not load media: " + error.message;
+            list.append(message);
+            return;
+          }
+          if (!data || !data.length) {
+            const empty = document.createElement("p");
+            empty.className = "dashboard-crud-empty";
+            empty.textContent = "No media uploaded yet.";
+            list.append(empty);
+            return;
+          }
+          const table = document.createElement("table");
+          table.className = "dashboard-crud-table";
+          const thead = document.createElement("thead");
+          const headRow = document.createElement("tr");
+          ["Preview","Title / file","Type","Size","Public URL","Uploaded","Actions"].forEach(label => {
+            const th = document.createElement("th");
+            th.textContent = label;
+            headRow.append(th);
+          });
+          thead.append(headRow);
+          table.append(thead);
+          const tbody = document.createElement("tbody");
+          for (const record of data) {
+            const row = document.createElement("tr");
+            const previewCell = document.createElement("td");
+            if (String(record.mime_type || "").startsWith("image/")) {
+              const preview = document.createElement("img");
+              preview.src = record.public_url;
+              preview.alt = record.title || "";
+              preview.loading = "lazy";
+              preview.style.cssText = "display:block;width:64px;height:48px;object-fit:cover;border-radius:6px;background:#f3f4f6";
+              previewCell.append(preview);
+            } else {
+              previewCell.textContent = String(record.mime_type || "File").split("/")[0];
+            }
+            row.append(previewCell);
+            const nameCell = document.createElement("td");
+            const title = document.createElement("strong");
+            title.textContent = record.title || "Untitled";
+            title.style.display = "block";
+            const filename = document.createElement("small");
+            filename.textContent = record.original_filename || "";
+            filename.style.cssText = "display:block;color:#666;margin-top:4px";
+            nameCell.append(title, filename);
+            row.append(nameCell);
+            for (const value of [
+              record.mime_type || "—",
+              formatBytes(record.size_bytes),
+              record.public_url || "",
+              record.created_at ? new Date(record.created_at).toLocaleString() : "—"
+            ]) {
+              const cell = document.createElement("td");
+              if (value === record.public_url && record.public_url) {
+                const link = document.createElement("a");
+                link.href = record.public_url;
+                link.target = "_blank";
+                link.rel = "noopener noreferrer";
+                link.textContent = record.public_url;
+                link.style.cssText = "display:block;max-width:300px;overflow-wrap:anywhere";
+                cell.append(link);
+              } else {
+                cell.textContent = String(value);
+              }
+              row.append(cell);
+            }
+            const actionCell = document.createElement("td");
+            actionCell.style.minWidth = "190px";
+            const copyButton = makeAction("Copy link", "action-button primary", () => copyMediaUrl(record.public_url, copyButton));
+            const openButton = makeAction("Open", "action-button", () => window.open(record.public_url, "_blank", "noopener,noreferrer"));
+            openButton.style.marginLeft = "6px";
+            const deleteButton = makeAction("Delete", "action-button", async () => {
+              if (!confirm("Delete this media file? Any existing use of its URL will stop working.")) return;
+              copyButton.disabled = openButton.disabled = deleteButton.disabled = true;
+              try {
+                const { error: storageError } = await supabaseClient.storage.from("media-library").remove([record.storage_path]);
+                if (storageError) throw storageError;
+                const { error: rowError } = await supabaseClient.from("media_assets").delete().eq("id", record.id);
+                if (rowError) throw rowError;
+                setMediaStatus("Media deleted.", "success");
+                await loadMediaRecords();
+              } catch (deleteError) {
+                setMediaStatus("Could not delete media: " + (deleteError.message || "Please try again."), "error");
+                copyButton.disabled = openButton.disabled = deleteButton.disabled = false;
+              }
+            });
+            deleteButton.style.marginLeft = "6px";
+            actionCell.append(copyButton, openButton, deleteButton);
+            row.append(actionCell);
+            tbody.append(row);
+          }
+          table.append(tbody);
+          list.append(table);
+        }
+        clearButton.addEventListener("click", () => {
+          form.reset();
+          setMediaStatus("");
+          titleInput.focus();
+        });
+        fileInput.addEventListener("change", () => {
+          const file = fileInput.files && fileInput.files[0];
+          if (!file) return;
+          if (!allowedTypes.has(file.type) || file.size > maxFileSize) {
+            fileInput.value = "";
+            setMediaStatus("Choose a supported image, video, audio or PDF file up to 50 MB.", "error");
+          } else {
+            setMediaStatus("");
+            if (!titleInput.value.trim()) titleInput.value = file.name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ");
+          }
+        });
+        form.addEventListener("submit", async event => {
+          event.preventDefault();
+          const file = fileInput.files && fileInput.files[0];
+          const title = titleInput.value.trim();
+          if (!title) { setMediaStatus("Enter a title.", "error"); titleInput.focus(); return; }
+          if (!file) { setMediaStatus("Choose a file to upload.", "error"); return; }
+          if (!allowedTypes.has(file.type) || file.size > maxFileSize) {
+            setMediaStatus("Choose a supported image, video, audio or PDF file up to 50 MB.", "error");
+            return;
+          }
+          uploadButton.disabled = true;
+          clearButton.disabled = true;
+          uploadButton.textContent = "Uploading…";
+          setMediaStatus("Uploading file…");
+          let uploadedPath = "";
+          try {
+            const user = await getCurrentUser();
+            if (!user || String(user.app_metadata?.role || "").toLowerCase() !== "admin") throw new Error("Admin access is required.");
+            const rawExtension = (file.name.match(/\.([a-zA-Z0-9]{1,10})$/) || [])[1] || "";
+            const extension = rawExtension.toLowerCase() || ({
+              "image/jpeg":"jpg","image/svg+xml":"svg","audio/mpeg":"mp3","audio/wav":"wav","application/pdf":"pdf"
+            }[file.type] || "bin");
+            const uniqueName = Date.now() + "-" + crypto.randomUUID() + "." + extension;
+            uploadedPath = "uploads/" + uniqueName;
+            const { error: uploadError } = await supabaseClient.storage.from("media-library").upload(uploadedPath, file, {
+              contentType: file.type,
+              cacheControl: "3600",
+              upsert: false
+            });
+            if (uploadError) throw uploadError;
+            const { data: urlData } = supabaseClient.storage.from("media-library").getPublicUrl(uploadedPath);
+            const publicUrl = urlData.publicUrl;
+            const { error: insertError } = await supabaseClient.from("media_assets").insert({
+              title,
+              original_filename: file.name,
+              storage_path: uploadedPath,
+              public_url: publicUrl,
+              mime_type: file.type,
+              size_bytes: file.size,
+              uploaded_by: user.id
+            });
+            if (insertError) {
+              await supabaseClient.storage.from("media-library").remove([uploadedPath]);
+              uploadedPath = "";
+              throw insertError;
+            }
+            form.reset();
+            setMediaStatus("Media uploaded and saved successfully.", "success");
+            await loadMediaRecords();
+          } catch (uploadError) {
+            setMediaStatus("Upload failed: " + (uploadError.message || "Please try again."), "error");
+          } finally {
+            uploadButton.disabled = false;
+            clearButton.disabled = false;
+            uploadButton.textContent = "Upload Media";
+          }
+        });
+        await loadMediaRecords();
         return;
       }
       const config=configs[section.id];
