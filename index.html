@@ -1014,6 +1014,16 @@
     }
 
     async function renderStoredPage(rawSlug, session) {
+      const siteConfig = await applyDalimgariSiteConfig();
+      const maintenance = siteConfig.ui_settings_maintenance_features || {};
+      const currentRole = String((session && session.user && session.user.app_metadata && session.user.app_metadata.role) || "").toLowerCase();
+      if (maintenance.maintenance_mode && currentRole !== "admin") {
+        const notice = document.createElement("section");
+        notice.style.cssText = "width:min(100% - 32px,760px);margin:48px auto;padding:28px;border:1px solid #e5e7eb;border-radius:14px;background:#fff;text-align:center";
+        const heading = document.createElement("h1"); heading.textContent = "We’ll be back soon";
+        const detail = document.createElement("p"); detail.textContent = "The website is temporarily under maintenance. Please check again later.";
+        notice.append(heading, detail); mainContent.replaceChildren(notice); return;
+      }
       document.title = "Dalimgari";
       mainContent.style.alignItems = "flex-start";
       mainContent.style.justifyContent = "flex-start";
