@@ -807,8 +807,14 @@
       menuLinks.forEach((item) => item.dataset.page === pageName ? item.setAttribute("aria-current", "page") : item.removeAttribute("aria-current"));
     }
     async function getCurrentUser() {
-      const { data } = await supabaseClient.auth.getUser();
-      return data.user || null;
+      try {
+        const { data, error } = await supabaseClient.auth.getUser();
+        if (error) throw error;
+        return data.user || null;
+      } catch (error) {
+        console.error("Could not load the current user:", error);
+        return null;
+      }
     }
     function metadataValue(user, key) { return (user.user_metadata && user.user_metadata[key]) || ""; }
     function formatProfileImageSize(bytes) {
@@ -1635,7 +1641,7 @@
       page.append(heading,form);mainContent.replaceChildren(page);
     }
 
-    // Keep menu actions synchronized with the real Supabase session.    // Keep menu actions synchronized with the real Supabase session.
+    // Keep menu actions synchronized with the real Supabase session.
     supabaseClient.auth.onAuthStateChange((event, session) => {
       updateAuthMenu(session);
       if (session && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) {
@@ -1646,56 +1652,81 @@
     });
 
     (async () => {
-      const { data } = await supabaseClient.auth.getSession();
-      updateAuthMenu(data.session);
-      if (data.session) {
-        renderPage("Profile");
-        history.replaceState(null, "", "#profile");
-        setCurrentMenuPage("Profile");
-      } else if (window.location.hash === "#create-account") {
-        renderPage("CreateAccount");
-      } else if (window.location.hash === "#login") {
+      try {
+        const { data, error } = await supabaseClient.auth.getSession();
+        if (error) throw error;
+        updateAuthMenu(data.session);
+        if (data.session) {
+          renderPage("Profile");
+          history.replaceState(null, "", "#profile");
+          setCurrentMenuPage("Profile");
+        } else if (window.location.hash === "#create-account") {
+          renderPage("CreateAccount");
+        } else if (window.location.hash === "#login" || !window.location.hash) {
+          renderPage("Login");
+          history.replaceState(null, "", "#login");
+          setCurrentMenuPage("Login");
+        } else if (window.location.hash === "#dashboard") {
+          renderPage("Login");
+          history.replaceState(null, "", "#login");
+          setCurrentMenuPage("Login");
+        } else {
+          renderPage("Login");
+          setCurrentMenuPage("Login");
+        }
+      } catch (error) {
+        console.error("Could not initialize the page session:", error);
+        updateAuthMenu(null);
         renderPage("Login");
         setCurrentMenuPage("Login");
-      } else if (window.location.hash === "#dashboard") {
-        renderPage("Profile");
-        history.replaceState(null, "", "#profile");
-        setCurrentMenuPage("Profile");
       }
     })();
 
     menuLinks.forEach((link) => {
       link.addEventListener("click", async () => {
         const pageName = link.dataset.page;
-        if (pageName === "Logout") {
-          link.disabled = true;
-          link.textContent = "Logging out...";
-          const { error } = await supabaseClient.auth.signOut();
-          link.disabled = false;
-          if (error) {
-            link.textContent = "Logout";
-            return;
+        try {
+          if (pageName === "Logout") {
+            link.disabled = true;
+            link.textContent = "Logging out...";
+            const { error } = await supabaseClient.auth.signOut();
+            if (error) throw error;
+            updateAuthMenu(null);
+            renderPage("Login");
+            history.replaceState(null, "", "#login");
+            setCurrentMenuPage("Login");
+          } else {
+            let session = null;
+            try {
+              const { data, error } = await supabaseClient.auth.getSession();
+              if (error) throw error;
+              session = data.session;
+            } catch (sessionError) {
+              console.error("Could not check the session during navigation:", sessionError);
+            }
+            updateAuthMenu(session);
+            if (session && (pageName === "Login" || pageName === "CreateAccount")) {
+              renderPage("Profile");
+              history.replaceState(null, "", "#profile");
+              setCurrentMenuPage("Profile");
+            } else {
+              renderPage(pageName);
+              setCurrentMenuPage(pageName);
+            }
           }
+        } catch (error) {
+          console.error("Menu navigation failed:", error);
           updateAuthMenu(null);
           renderPage("Login");
           history.replaceState(null, "", "#login");
           setCurrentMenuPage("Login");
-        } else {
-          const { data } = await supabaseClient.auth.getSession();
-          updateAuthMenu(data.session);
-          if (data.session && (pageName === "Login" || pageName === "CreateAccount")) {
-            renderPage("Profile");
-            history.replaceState(null, "", "#profile");
-            setCurrentMenuPage("Profile");
-          } else {
-            renderPage(pageName);
-            setCurrentMenuPage(pageName);
-          }
+        } finally {
+          link.disabled = false;
+          floatingMenu.hidden = true;
+          menuButton.setAttribute("aria-expanded", "false");
+          menuButton.setAttribute("aria-label", "Open menu");
+          if (pageName === "Logout") link.textContent = "Login";
         }
-
-        floatingMenu.hidden = true;
-        menuButton.setAttribute("aria-expanded", "false");
-        menuButton.setAttribute("aria-label", "Open menu");
       });
     });
   </script>
