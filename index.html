@@ -519,8 +519,14 @@
     let activeSession = null;
 
     function updateAuthMenu(session) {
-      // Navigation labels stay the same for signed-in and signed-out visitors.
       activeSession = session || null;
+      const loginAction = document.querySelector('.menu-link[data-page="Login"], .menu-link[data-page="Logout"]');
+      if (loginAction) {
+        const signedIn = Boolean(activeSession);
+        loginAction.dataset.page = signedIn ? "Logout" : "Login";
+        loginAction.textContent = signedIn ? "Logout" : "Login";
+        loginAction.setAttribute("aria-label", signedIn ? "Log out of your account" : "Log in to your account");
+      }
     }
 
     function renderPage(pageName) {
