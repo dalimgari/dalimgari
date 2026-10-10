@@ -1754,25 +1754,33 @@
       await applyDalimgariSiteConfig();
       const user = await getCurrentUser();
       const role = String((user && user.app_metadata && user.app_metadata.role) || "").toLowerCase();
-      if (!user || role !== "admin") {
-        renderPage("Profile");
-        history.replaceState(null, "", "#profile");
-        setCurrentMenuPage("Profile");
-        return;
-      }
-
-      const sections = [
+      const isAdmin=role==="admin";
+      let permissionNames=[];
+      if(user&&!isAdmin){const {data,error}=await supabaseClient.rpc("get_my_permissions");if(!error&&Array.isArray(data))permissionNames=data;}
+      const permissionSet=new Set(permissionNames);
+      const canContent=["content.view","content.create","content.edit","content.delete"].some(name=>permissionSet.has(name));
+      if(!user||(!isAdmin&&permissionNames.length===0)){renderPage("Profile");history.replaceState(null,"","#profile");setCurrentMenuPage("Profile");return;}
+      const allSections = [
         { id: "overview", label: "Overview", description: "Dashboard overview." },
         { id: "hero", label: "Hero", description: "Create and manage homepage hero content." },
         { id: "post", label: "Post", description: "Create and manage posts." },
         { id: "page", label: "Page", description: "Create and manage pages." },
         { id: "album", label: "Album", description: "Group related content and media." },
         { id: "user", label: "User", description: "Manage accounts and administrator access." },
-        { id: "role", label: "Role", description: "Role management section." },
-                { id: "customization", label: "Customization", description: "Website customization section." },
+        { id: "role", label: "Role", description: "Manage roles, permissions and user assignments." },
+        { id: "customization", label: "Customization", description: "Website customization section." },
         { id: "settings", label: "Settings", description: "Dashboard settings section." },
         { id: "recycle", label: "Recycle Bin", description: "Restore deleted items or permanently remove them after the retention period." }
       ];
+      const sections=allSections.filter(section=>{
+        if(isAdmin||section.id==="overview")return true;
+        if(section.id==="user")return false;
+        if(["hero","post","page","album"].includes(section.id))return canContent;
+        if(section.id==="role")return permissionSet.has("roles.manage");
+        if(["customization","settings"].includes(section.id))return permissionSet.has("settings.manage");
+        if(section.id==="recycle")return ["content.delete","roles.manage","settings.manage"].some(name=>permissionSet.has(name));
+        return false;
+      });
 
       const page = document.createElement("section");
       page.className = "dashboard-page";
@@ -2660,8 +2668,49 @@
         }
         finally{save.disabled=false;remove.disabled=true;}
       });
+      async function renderRoleAssignments(){
+        if(section.id!=="role"||!isCurrent())return;
+        const panel=document.createElement("section");panel.className="dashboard-crud-card";panel.style.marginTop="18px";
+        const heading=document.createElement("h3");heading.textContent="Assign a role to each user";
+        const hint=document.createElement("p");hint.className="dashboard-crud-hint";hint.textContent="Each user can have one role. The role's permissions control access to dashboard sections and database operations.";
+        const statusLine=document.createElement("p");statusLine.className="dashboard-crud-status";statusLine.setAttribute("role","status");
+        const list=document.createElement("div");list.style.cssText="display:grid;gap:12px";
+        panel.append(heading,hint,list,statusLine);content.append(panel);
+        const [profilesResult,rolesResult,assignmentsResult]=await Promise.all([
+          supabaseClient.from("profiles").select("id,full_name").order("full_name").limit(500),
+          supabaseClient.from("roles").select("id,name").order("name").limit(200),
+          supabaseClient.from("user_roles").select("user_id,role_id").limit(1000)
+        ]);
+        if(!isCurrent())return;
+        const failed=[profilesResult.error,rolesResult.error,assignmentsResult.error].find(Boolean);
+        if(failed){statusLine.textContent="Could not load role assignments: "+failed.message;statusLine.style.color="#a12622";return;}
+        const assignments=new Map((assignmentsResult.data||[]).map(row=>[row.user_id,row.role_id]));
+        const roles=rolesResult.data||[];
+        if(!profilesResult.data?.length){list.textContent="No user profiles are available.";return;}
+        for(const profile of profilesResult.data){
+          const row=document.createElement("div");row.className="section-order-row";
+          const name=document.createElement("div");name.className="section-order-name";name.textContent=(profile.full_name||"User")+" · "+String(profile.id).slice(0,8);
+          const select=document.createElement("select");select.className="dashboard-crud-input";select.style.maxWidth="260px";select.setAttribute("aria-label","Role for "+(profile.full_name||profile.id));
+          const none=document.createElement("option");none.value="";none.textContent="No role";select.append(none);
+          for(const roleRow of roles){const option=document.createElement("option");option.value=roleRow.id;option.textContent=roleRow.name;select.append(option);}
+          select.value=assignments.get(profile.id)||"";
+          const saveAssignment=document.createElement("button");saveAssignment.type="button";saveAssignment.className="action-button primary";saveAssignment.textContent="Save role";
+          saveAssignment.addEventListener("click",async()=>{
+            saveAssignment.disabled=true;statusLine.textContent="Saving role assignment…";statusLine.style.color="";
+            try{
+              if(select.value){const {error}=await supabaseClient.from("user_roles").upsert({user_id:profile.id,role_id:select.value},{onConflict:"user_id"});if(error)throw error;}
+              else{const {error}=await supabaseClient.from("user_roles").delete().eq("user_id",profile.id);if(error)throw error;}
+              statusLine.textContent="Role assignment saved. The user may need to refresh or sign in again.";statusLine.style.color="#176b43";
+            }catch(error){statusLine.textContent="Could not save role assignment: "+(error.message||"Please try again.");statusLine.style.color="#a12622";}
+            finally{saveAssignment.disabled=false;}
+          });
+          row.append(name,select,saveAssignment);list.append(row);
+        }
+        if(!roles.length)statusLine.textContent="Create a role and assign permissions above before assigning users.";
+      }
       if(!isCurrent())return;
       resetForm();await loadRecords();
+      if(section.id==="role")await renderRoleAssignments();
     }
 
     async function renderEditProfile() {
