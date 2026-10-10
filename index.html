@@ -985,7 +985,7 @@
         if(!file.type.startsWith("image/")&&!file.type.startsWith("video/")){fileInput.value="";state().uploading=false;setStatus("Choose an image or video file only.","error");return;}
         if(file.size>100*1024*1024){fileInput.value="";state().uploading=false;setStatus("File is larger than the 100 MB limit.","error");return;}
         const title=String(titleInput.value||"").trim();
-        fileInput.disabled=true;setStatus("Uploading media and generating its URL…");
+        fileInput.disabled=true;setStatus("Uploading media…");
         try{
           const rawExt=(file.name.split(".").pop()||"").toLowerCase();
           const ext=/^[a-z0-9]{1,10}$/.test(rawExt)?rawExt:(file.type==="image/jpeg"?"jpg":file.type.split("/")[1]||"bin");
@@ -1231,6 +1231,7 @@
         for(const name of ["media_file","existing_file","media_url"]){
           const holder=controls[name]?.closest(".dashboard-crud-field");
           if(holder)holder.hidden=(name==="media_file"&&method!=="new_file")||(name==="existing_file"&&method!=="existing_file")||(name==="media_url"&&method!=="media_url");
+          if(controls[name])controls[name].disabled=(name==="media_file"&&method!=="new_file"&& !mediaUploadInProgress)||(name==="existing_file"&&method!=="existing_file")||(name==="media_url"&&method!=="media_url");
         }
       }
       async function loadExistingMediaFiles(){
@@ -1241,7 +1242,7 @@
         select.replaceChildren();
         const blank=document.createElement("option");blank.value="";blank.textContent="Select an already uploaded file";select.append(blank);
         if(error){setStatus(error.message||"Could not load existing media files.","error");return;}
-        const files=(data||[]).filter(item=>item.name&&!item.id?false:!!item.name).filter(item=>!item.name.startsWith("."));
+        const files=(data||[]).filter(item=>!!item.name&&!!item.id&&!item.name.startsWith("."));
         files.forEach(item=>{
           const opt=document.createElement("option");opt.value="posts/"+user.id+"/"+item.name;
           const meta=item.metadata||{};
@@ -1362,6 +1363,20 @@
           if((section.id==="customization"||section.id==="settings")&&def.name==="value")value=JSON.stringify(value??null,null,2);
           input.value=value==null?"":String(value);
         });
+        if(section.id==="post"){
+          if(record.source_type==="upload"&&record.storage_path){
+            controls.media_method.value="existing_file";
+            await loadExistingMediaFiles();
+            let option=Array.from(controls.existing_file.options).find(opt=>opt.value===record.storage_path);
+            if(!option){option=document.createElement("option");option.value=record.storage_path;option.textContent=record.storage_path.split("/").pop();controls.existing_file.append(option);}
+            controls.existing_file.value=record.storage_path;selectedExistingPath=record.storage_path;selectedExistingType=record.media_type||"";
+          }else if(record.media_url){
+            controls.media_method.value="media_url";
+          }else{
+            controls.media_method.value="";
+          }
+          updateMediaMethodVisibility();
+        }
         save.textContent=config.readOnlyCreate?"Save Profile":"Update";save.disabled=false;remove.disabled=!!config.noDelete;setStatus("Selected record loaded into the form.");
         if(section.id==="album")await refreshAlbumMedia();
       }
@@ -1450,7 +1465,7 @@
               if(signedError)throw signedError;
               mediaUrl=signedData.signedUrl;
               controls.media_url.value=mediaUrl;
-              mediaType=mediaType||(/\.(mp4|webm|mov|m4v|ogv)$/i.test(mediaPath)?"video":"photo");
+              if(!mediaType||!mediaType.startsWith("image/")&&!mediaType.startsWith("video/"))mediaType=/\.(mp4|webm|mov|m4v|ogv)$/i.test(mediaPath)?"video":"photo";
             }
             const slug=selectedId?String(selectedRecordData?.url||"").trim():("p-"+generateOpaqueToken(16));
             if(!slug)throw new Error("Could not generate a secure Post URL. Please try again.");
