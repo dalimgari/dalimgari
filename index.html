@@ -1593,6 +1593,15 @@
             history.replaceState(null, "", "#login");
             setCurrentMenuPage("Login");
           }
+        } else if (currentRoute === "#login") {
+          if (session) {
+            renderPage("Profile");
+            history.replaceState(null, "", "#profile");
+            setCurrentMenuPage("Profile");
+          } else {
+            renderPage("Login");
+            setCurrentMenuPage("Login");
+          }
         } else if (currentRoute === "#dashboard" || currentRoute.startsWith("#dashboard-")) {
           if (session) {
             renderPage("Dashboard");
