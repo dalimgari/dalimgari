@@ -943,8 +943,8 @@
               time.style.cssText="margin:0;font-size:clamp(24px,4vw,36px);line-height:1.2;font-variant-numeric:tabular-nums";
               const updateClock=()=>{
                 const now=new Date();
-                date.textContent=new Intl.DateTimeFormat(undefined,{dateStyle:"full"}).format(now);
-                time.textContent=new Intl.DateTimeFormat(undefined,{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(now);
+                date.textContent=new Intl.DateTimeFormat("en-US",{dateStyle:"full"}).format(now);
+                time.textContent=new Intl.DateTimeFormat("en-US",{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(now);
               };
               updateClock();
               card.append(date,time);
@@ -2100,7 +2100,7 @@
           for(const item of data){
             const row=document.createElement("tr");
             const nameCell=document.createElement("td");nameCell.textContent=item.title||"Widget";
-            const typeCell=document.createElement("td");typeCell.textContent=item.widget_type==="datetime"?"সময় ও তারিখ":item.widget_type==="map"?"ম্যাপ":item.widget_type;
+            const typeCell=document.createElement("td");typeCell.textContent=item.widget_type==="datetime"?"Date & Time":item.widget_type==="map"?"Map":item.widget_type;
             const visibilityCell=document.createElement("td");
             const select=document.createElement("select");select.className="dashboard-crud-input";select.style.minWidth="110px";
             [["true","Show"],["false","Hide"]].forEach(([value,label])=>{const option=document.createElement("option");option.value=value;option.textContent=label;select.append(option);});
