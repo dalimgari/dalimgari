@@ -2234,7 +2234,7 @@
           if(selectedId){result=await supabaseClient.from(config.table).update(payload).eq(config.table==="site_settings"||config.table==="site_customizations"?"id":"id",selectedId).select().single();}
           else{
             if(config.readOnlyCreate)throw new Error("Profiles are created through the account registration flow.");
-            if(["post","pages"].includes(config.table))payload.created_by=user.id;
+            if(["post","pages","hero_items","albums"].includes(config.table))payload.created_by=user.id;
             result=await supabaseClient.from(config.table).insert(payload).select().single();
           }
           if(result.error)throw result.error;
