@@ -900,6 +900,138 @@
       document.title = (data.title ? data.title + " | " : "") + "Dalimgari";
     }
 
+    async function renderPublicMediaUpload() {
+      mainContent.replaceChildren();
+      const page = document.createElement("section");
+      page.className = "dashboard-page";
+      const heading = document.createElement("h1");
+      heading.className = "dashboard-section-title";
+      heading.textContent = "Media Upload";
+      const description = document.createElement("p");
+      description.className = "dashboard-section-description";
+      description.textContent = "Upload an image, video, audio file or PDF without an admin account. Maximum file size: 10 MB.";
+      const card = document.createElement("section");
+      card.className = "dashboard-crud-card";
+      card.style.marginTop = "18px";
+      const form = document.createElement("form");
+      form.className = "dashboard-crud-form";
+      const titleField = document.createElement("label");
+      titleField.className = "dashboard-crud-field";
+      const titleLabel = document.createElement("span");
+      titleLabel.textContent = "Title";
+      const titleInput = document.createElement("input");
+      titleInput.type = "text";
+      titleInput.maxLength = 160;
+      titleInput.required = true;
+      titleInput.autocomplete = "off";
+      titleInput.placeholder = "Enter a title";
+      titleField.append(titleLabel, titleInput);
+      const fileField = document.createElement("label");
+      fileField.className = "dashboard-crud-field";
+      const fileLabel = document.createElement("span");
+      fileLabel.textContent = "Choose media";
+      const fileInput = document.createElement("input");
+      fileInput.type = "file";
+      fileInput.accept = "image/jpeg,image/png,image/webp,image/gif,image/avif,image/svg+xml,video/mp4,video/webm,video/quicktime,audio/mpeg,audio/mp4,audio/wav,audio/ogg,application/pdf";
+      fileInput.required = true;
+      fileField.append(fileLabel, fileInput);
+      const status = document.createElement("p");
+      status.className = "dashboard-crud-status";
+      status.setAttribute("role", "status");
+      status.setAttribute("aria-live", "polite");
+      status.style.gridColumn = "1 / -1";
+      const actions = document.createElement("div");
+      actions.style.cssText = "display:flex;gap:10px;align-items:center;flex-wrap:wrap;grid-column:1 / -1";
+      const submit = document.createElement("button");
+      submit.type = "submit";
+      submit.className = "action-button primary";
+      submit.textContent = "Upload Media";
+      const resultLink = document.createElement("a");
+      resultLink.hidden = true;
+      resultLink.target = "_blank";
+      resultLink.rel = "noopener noreferrer";
+      resultLink.textContent = "Open uploaded file";
+      actions.append(submit, resultLink);
+      form.append(titleField, fileField, status, actions);
+      card.append(form);
+      page.append(heading, description, card);
+      mainContent.append(page);
+      document.title = "Media Upload | Dalimgari";
+
+      const allowedTypes = new Set(["image/jpeg","image/png","image/webp","image/gif","image/avif","image/svg+xml","video/mp4","video/webm","video/quicktime","audio/mpeg","audio/mp4","audio/wav","audio/ogg","application/pdf"]);
+      const maxSize = 10 * 1024 * 1024;
+      const setStatus = (message, isError = false) => {
+        status.textContent = message;
+        status.style.color = isError ? "#a12622" : "#176b43";
+      };
+      fileInput.addEventListener("change", () => {
+        resultLink.hidden = true;
+        const file = fileInput.files && fileInput.files[0];
+        if (!file) return;
+        if (!allowedTypes.has(file.type) || file.size > maxSize) {
+          fileInput.value = "";
+          setStatus("Choose a supported image, video, audio or PDF file up to 10 MB.", true);
+          return;
+        }
+        if (!titleInput.value.trim()) titleInput.value = file.name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ");
+        setStatus("");
+      });
+      form.addEventListener("submit", async event => {
+        event.preventDefault();
+        resultLink.hidden = true;
+        const file = fileInput.files && fileInput.files[0];
+        const title = titleInput.value.trim();
+        if (!title || title.length > 160) { setStatus("Enter a title (maximum 160 characters).", true); return; }
+        if (!file || !allowedTypes.has(file.type) || file.size <= 0 || file.size > maxSize) {
+          setStatus("Choose a supported media file up to 10 MB.", true); return;
+        }
+        submit.disabled = true;
+        submit.textContent = "Uploading…";
+        setStatus("Preparing secure upload…");
+        let uploadedPath = "";
+        let client = null;
+        try {
+          const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
+          if (sessionError) throw sessionError;
+          let user = sessionData.session && sessionData.session.user;
+          if (!user) {
+            const { data: anonymousData, error: anonymousError } = await supabaseClient.auth.signInAnonymously();
+            if (anonymousError) throw new Error("Anonymous uploads are not enabled in Supabase Auth. Enable Anonymous Sign-Ins and try again.");
+            user = anonymousData.user || (anonymousData.session && anonymousData.session.user);
+          }
+          if (!user) throw new Error("Could not start a temporary upload session. Please reload and try again.");
+          const isAdmin = String(user.app_metadata && user.app_metadata.role || "").toLowerCase() === "admin";
+          const isAnonymous = user.is_anonymous === true || (user.app_metadata && user.app_metadata.provider === "anonymous");
+          if (!isAdmin && !isAnonymous) throw new Error("Please log out first, then reopen this upload page.");
+          const extension = ((file.name.match(/\.([a-zA-Z0-9]{1,10})$/) || [])[1] || ({ "image/jpeg":"jpg","image/svg+xml":"svg","audio/mpeg":"mp3","audio/wav":"wav","application/pdf":"pdf" }[file.type] || "bin")).toLowerCase();
+          uploadedPath = user.id + "/uploads/" + Date.now() + "-" + crypto.randomUUID() + "." + extension;
+          const { error: storageError } = await supabaseClient.storage.from("public-media-inbox").upload(uploadedPath, file, { contentType: file.type, cacheControl: "0", upsert: false });
+          if (storageError) throw storageError;
+          const { data: urlData } = supabaseClient.storage.from("public-media-inbox").getPublicUrl(uploadedPath);
+          const publicUrl = urlData.publicUrl;
+          const { error: rowError } = await supabaseClient.from("public_media_uploads").insert({
+            title, original_filename: file.name, storage_path: uploadedPath, public_url: publicUrl, mime_type: file.type, size_bytes: file.size
+          });
+          if (rowError) {
+            await supabaseClient.storage.from("public-media-inbox").remove([uploadedPath]);
+            uploadedPath = "";
+            throw rowError;
+          }
+          resultLink.href = publicUrl;
+          resultLink.hidden = false;
+          titleInput.value = "";
+          fileInput.value = "";
+          setStatus("Upload completed successfully. The public link is ready.");
+        } catch (error) {
+          const detail = [error && error.message, error && error.statusCode, error && error.error].filter(Boolean).join(" — ");
+          setStatus("Upload failed: " + (detail || "Please try again."), true);
+        } finally {
+          submit.disabled = false;
+          submit.textContent = "Upload Media";
+        }
+      });
+    }
+
     function renderPage(pageName) {
       mainContent.style.removeProperty("align-items");
       mainContent.style.removeProperty("justify-content");
@@ -2681,7 +2813,11 @@
           ? "#forgot-password"
           : (params.has("page") && params.get("page") && !window.location.hash
             ? "#stored-page" : (window.location.hash.toLowerCase() || "#home"));
-        if (currentRoute === "#stored-page") {
+        if (currentRoute === "#media-upload") {
+          updateAuthMenu(data.session);
+          await renderPublicMediaUpload();
+          setCurrentMenuPage("Media Upload");
+        } else if (currentRoute === "#stored-page") {
           updateAuthMenu(data.session);
           await renderStoredPage(params.get("page"), data.session);
           setCurrentMenuPage("Home");
