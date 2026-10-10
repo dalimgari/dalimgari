@@ -1800,13 +1800,22 @@
           if(result.error)throw result.error;
           const savedId=result.data?.id||selectedId;
           if(section.id==="post"&&mediaFile){
+            if(mediaFile.size>104857600)throw new Error("The selected file exceeds the 100 MB upload limit.");
+            if(!/^(image|video)\//i.test(mediaFile.type))throw new Error("Choose a valid photo or video file.");
+            // Refresh the JWT so the Storage RLS policy sees the latest admin role.
+            const {data:refreshedSession,error:refreshError}=await supabaseClient.auth.refreshSession();
+            if(refreshError)throw new Error("Could not refresh your login before uploading: "+refreshError.message);
+            if(refreshedSession.session?.user?.app_metadata?.role!=="admin")throw new Error("Your current login token does not have the admin role. Sign out and sign in again, then retry the upload.");
             const safeName=mediaFile.name.replace(/[^a-zA-Z0-9._-]/g,"_").slice(-120)||"media";
             const storagePath="posts/"+savedId+"/"+Date.now()+"-"+safeName;
             const {error:uploadError}=await supabaseClient.storage.from("site-media").upload(storagePath,mediaFile,{contentType:mediaFile.type,upsert:false,cacheControl:"3600"});
-            if(uploadError)throw uploadError;
+            if(uploadError)throw new Error("Photo/video upload failed: "+uploadError.message);
             const mediaType=mediaFile.type.toLowerCase().startsWith("video/")?"video":"photo";
             const {error:mediaUpdateError}=await supabaseClient.from("post").update({storage_path:storagePath,media_url:storagePath,media_type:mediaType,source_type:"upload",updated_at:new Date().toISOString()}).eq("id",savedId);
-            if(mediaUpdateError)throw mediaUpdateError;
+            if(mediaUpdateError){
+              await supabaseClient.storage.from("site-media").remove([storagePath]);
+              throw new Error("File uploaded but could not be attached to the post: "+mediaUpdateError.message);
+            }
           }
           const wasUpdating=Boolean(selectedId);resetForm();setStatus(wasUpdating?"Record updated successfully.":"Record created successfully.","success");await loadRecords();
         }catch(error){setStatus(error.message||"Could not save record.","error");}
