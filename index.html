@@ -1774,7 +1774,7 @@
       ];
       const sections=allSections.filter(section=>{
         if(isAdmin||section.id==="overview")return true;
-        if(section.id==="user")return false;
+        if(section.id==="user")return permissionSet.has("users.manage");
         if(["hero","post","page","album"].includes(section.id))return canContent;
         if(section.id==="role")return permissionSet.has("roles.manage");
         if(["customization","settings"].includes(section.id))return permissionSet.has("settings.manage");
