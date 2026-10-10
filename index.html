@@ -296,6 +296,7 @@
     .profile-actions{display:flex;flex-direction:column;align-items:flex-start;gap:10px;margin-top:18px}.action-button{min-height:44px;padding:0 16px;border:1px solid #ddd;border-radius:9px;background:#fff;color:#222;font:inherit;font-weight:600;cursor:pointer}.action-button.primary{background:#222;border-color:#222;color:#fff}
     .profile-input{width:100%;margin:0 0 15px;padding:12px 13px;border:1px solid #dcdcdc;border-radius:9px;background:#fff;color:#222;font:inherit;font-size:15px}
     .edit-profile-form label{display:block;margin:0 0 6px;color:#444;font-size:14px}.profile-status{margin:12px 0;font-size:14px;line-height:1.5}.back-profile{margin-bottom:18px}
+    .profile-picture-editor{padding:16px;margin-bottom:18px;border:1px solid #eee;border-radius:12px;background:#f8f9fb}.profile-picture-row{display:flex;align-items:center;gap:16px}.profile-avatar-large{width:88px;height:88px;flex:0 0 88px;border:1px solid #eee}.profile-avatar img,.profile-avatar-large img{width:100%;height:100%;object-fit:cover}.profile-picture-controls{min-width:0}.profile-picture-controls label{margin-bottom:8px}.profile-picture-controls input{max-width:100%}.profile-picture-status{font-size:13px;overflow-wrap:anywhere}@media(max-width:480px){.profile-picture-row{align-items:flex-start;flex-direction:column}}
     
     
     @media(max-width:560px){.profile-page{padding:17px;margin:18px auto}.profile-details{grid-template-columns:1fr}.profile-actions .action-button{flex:1 1 100%}.profile-heading{font-size:22px}}
@@ -1573,6 +1574,38 @@
         let input;if(type==="textarea"){input=document.createElement("textarea");input.rows=4;}else{input=document.createElement("input");input.type=type;}
         input.className="profile-input";input.id="edit-"+name;input.name=name;input.value=value||"";form.append(label,input);return input;
       }
+      const avatarSection=document.createElement("section");avatarSection.className="profile-picture-editor";
+      const avatarHeading=document.createElement("h2");avatarHeading.textContent="Profile Picture";
+      const avatarRow=document.createElement("div");avatarRow.className="profile-picture-row";
+      const avatarPreview=document.createElement("div");avatarPreview.className="profile-avatar profile-avatar-large";
+      const currentAvatarUrl=metadataValue(user,"avatar_url");
+      if(currentAvatarUrl){const img=document.createElement("img");img.src=currentAvatarUrl;img.alt="Profile picture";avatarPreview.append(img);}
+      else{avatarPreview.textContent=(profile.full_name||metadataValue(user,"full_name")||metadataValue(user,"name")||(user.email||"M").split("@")[0]).charAt(0).toUpperCase();}
+      const avatarControls=document.createElement("div");avatarControls.className="profile-picture-controls";
+      const avatarLabel=document.createElement("label");avatarLabel.htmlFor="edit-profile-picture";avatarLabel.textContent="Change profile picture";
+      const avatarInput=document.createElement("input");avatarInput.type="file";avatarInput.id="edit-profile-picture";avatarInput.accept="image/*";
+      const avatarStatus=document.createElement("p");avatarStatus.className="profile-picture-status";avatarStatus.setAttribute("role","status");
+      avatarControls.append(avatarLabel,avatarInput,avatarStatus);avatarRow.append(avatarPreview,avatarControls);avatarSection.append(avatarHeading,avatarRow);form.append(avatarSection);
+      avatarInput.addEventListener("change",async()=>{
+        const file=avatarInput.files&&avatarInput.files[0];if(!file)return;
+        if(!file.type.startsWith("image/")){avatarStatus.textContent="Please choose an image file.";avatarInput.value="";return;}
+        if(file.size>10*1024*1024){avatarStatus.textContent="Image must be 10 MB or smaller.";avatarInput.value="";return;}
+        avatarInput.disabled=true;avatarStatus.textContent="Saving profile picture…";let objectUrl="";
+        try{
+          const image=new Image();objectUrl=URL.createObjectURL(file);
+          await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;image.src=objectUrl;});
+          const side=Math.min(image.naturalWidth,image.naturalHeight);if(!side)throw new Error("Invalid image.");
+          const canvas=document.createElement("canvas");canvas.width=256;canvas.height=256;
+          const context=canvas.getContext("2d");if(!context)throw new Error("Image processing is unavailable.");
+          context.drawImage(image,(image.naturalWidth-side)/2,(image.naturalHeight-side)/2,side,side,0,0,256,256);
+          const compressedImage=canvas.toDataURL("image/jpeg",0.8);
+          const result=await supabaseClient.auth.updateUser({data:{avatar_url:compressedImage}});if(result.error)throw result.error;
+          avatarPreview.replaceChildren();const img=document.createElement("img");img.src=compressedImage;img.alt="Profile picture";avatarPreview.append(img);
+          avatarStatus.textContent="Profile picture updated.";
+        }catch(error){avatarStatus.textContent="Could not update the profile picture. Please try another image.";}
+        finally{if(objectUrl)URL.revokeObjectURL(objectUrl);avatarInput.disabled=false;avatarInput.value="";}
+      });
+
       const fullName=field("Full Name","full_name","text",profile.full_name||metadataValue(user,"full_name")||metadataValue(user,"name"));
       field("Phone Number","phone","tel",profile.phone);
       field("Date of Birth","date_of_birth","date",profile.date_of_birth);
