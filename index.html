@@ -2690,7 +2690,7 @@
         if(!profilesResult.data?.length){list.textContent="No user profiles are available.";return;}
         for(const profile of profilesResult.data){
           const row=document.createElement("div");row.className="section-order-row";
-          const name=document.createElement("div");name.className="section-order-name";name.textContent=(profile.full_name||"User")+" · "+String(profile.id).slice(0,8);
+          const name=document.createElement("div");name.className="section-order-name";const isProtectedSuperAdmin=profile.id==="c5b6d47e-3e78-4d4e-bc15-6f137a8c1e75";name.textContent=isProtectedSuperAdmin?(profile.full_name||"Dalimgari")+" · SUPER ADMIN · PROTECTED":(profile.full_name||"User")+" · "+String(profile.id).slice(0,8);
           const select=document.createElement("select");select.className="dashboard-crud-input";select.style.maxWidth="260px";select.setAttribute("aria-label","Role for "+(profile.full_name||profile.id));
           const none=document.createElement("option");none.value="";none.textContent="No role";select.append(none);
           for(const roleRow of roles){const option=document.createElement("option");option.value=roleRow.id;option.textContent=roleRow.name;select.append(option);}
