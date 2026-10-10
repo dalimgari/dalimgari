@@ -987,18 +987,16 @@
         const title=String(titleInput.value||"").trim();
         fileInput.disabled=true;setStatus("Uploading media and generating its URL…");
         try{
-          const fileBase=String(file.name||"").replace(/\.[^.]+$/,"");
-          const base=generateUrlValue(title)||generateUrlValue(fileBase)||sectionId;
           const rawExt=(file.name.split(".").pop()||"").toLowerCase();
           const ext=/^[a-z0-9]{1,10}$/.test(rawExt)?rawExt:(file.type==="image/jpeg"?"jpg":file.type.split("/")[1]||"bin");
-          const path=sectionId+"s/"+user.id+"/"+base+"-"+Date.now()+"."+ext;
+          const randomBytes=new Uint8Array(24);crypto.getRandomValues(randomBytes);
+          const randomPart=Array.from(randomBytes,b=>b.toString(16).padStart(2,"0")).join("");
+          const path=sectionId+"s/"+user.id+"/"+randomPart+"."+ext;
           const {error:uploadError}=await supabaseClient.storage.from("site-media").upload(path,file,{contentType:file.type,upsert:false});
           if(uploadError)throw uploadError;
-          const {data:signedData,error:signedError}=await supabaseClient.storage.from("site-media").createSignedUrl(path,31536000);
-          if(signedError)throw signedError;
-          state().path=path;state().url=signedData.signedUrl;state().type=file.type;
-          mediaUrlInput.value=signedData.signedUrl;
-          setStatus("Media uploaded. You can edit the Media URL before saving.","success");
+          state().path=path;state().url="";state().type=file.type;
+          mediaUrlInput.value="";
+          setStatus("Media uploaded. Its private URL will be generated when you press Publish.","success");
         }catch(error){setStatus(error.message||"Media upload failed.","error");}
         finally{fileInput.disabled=false;state().uploading=false;}
       });
@@ -1014,9 +1012,9 @@
         post: { table:"post", label:"Posts", fields:[
           {name:"title",label:"Title",type:"text",required:true},
           {name:"description",label:"Description (optional)",type:"textarea",full:true},
-          {name:"url",label:"Post URL",type:"text",required:true,help:"Generated from the title; you can edit it."},
+          {name:"url",label:"Post URL",type:"text",full:true,help:"Generated automatically with a hard-to-guess random value when you press Publish."},
           {name:"media_file",label:"Choose Media File",type:"file",accept:"image/*,video/*",full:true,help:"Choose one photo or one video. Maximum file size: 100 MB."},
-          {name:"media_url",label:"Media URL",type:"url",full:true,help:"A Storage URL is generated when you choose a file. You can edit it or enter a custom server URL."},
+          {name:"media_url",label:"Media URL",type:"url",full:true,help:"For an uploaded file, a hard-to-guess Storage URL is generated when you press Publish. Without a file, enter an existing media URL."},
           {name:"album_id",label:"Album (optional)",type:"album"},
           {name:"visibility",label:"Visibility",type:"select",options:[["public","Public"],["private","Only Me"]]}
         ]},
@@ -1207,7 +1205,7 @@
         holder.append(label,input);
         if(def.help){const help=document.createElement("small");help.className="dashboard-crud-hint";help.textContent=def.help;holder.append(help);}
         form.insertBefore(holder,actions);controls[def.name]=input;
-        if((def.name==="url")&&(section.id==="post"||section.id==="page"||section.id==="album")) {
+        if((def.name==="url")&&(section.id==="page"||section.id==="album")) {
           let urlEdited=false;input.addEventListener("input",()=>{urlEdited=true;});
           const titleInput=()=>controls.title;
           const makeSlug=()=>section.id==="album"?generateAlbumUrlValue(titleInput().value):generateUrlValue(titleInput().value);
@@ -1215,6 +1213,10 @@
           input.addEventListener("blur",()=>{if(!input.value.trim()&&titleInput().value.trim())input.value=makeSlug();});
         }
         return input;
+      }
+      function generateOpaqueToken(byteCount=24){
+        const bytes=new Uint8Array(byteCount);crypto.getRandomValues(bytes);
+        return Array.from(bytes,b=>b.toString(16).padStart(2,"0")).join("");
       }
       function generateUrlValue(value){return String(value||"").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");}
       function generateAlbumUrlValue(value){return String(value||"").toLowerCase().normalize("NFKC").replace(/[^\p{L}\p{N}]+/gu,"-").replace(/^-|-$/g,"");}
@@ -1384,13 +1386,21 @@
           if(section.id==="post"){
             const title=String(controls.title.value||"").trim();
             if(!title)throw new Error("Enter a title.");
-            const mediaUrl=String(controls.media_url.value||"").trim();
+            let mediaUrl=String(controls.media_url.value||"").trim();
             const existingStoragePath=selectedRecordData?.storage_path||null;
-            if(mediaUploadInProgress)throw new Error("Please wait for the selected media file to finish uploading; its Media URL will be filled automatically.");
+            if(mediaUploadInProgress)throw new Error("Please wait for the selected media file to finish uploading.");
+            if(selectedUploadedPath&&!mediaUrl){
+              const {data:signedData,error:signedError}=await supabaseClient.storage.from("site-media").createSignedUrl(selectedUploadedPath,31536000);
+              if(signedError)throw signedError;
+              mediaUrl=signedData.signedUrl;
+              controls.media_url.value=mediaUrl;
+              selectedUploadedUrl=mediaUrl;
+            }
             if(!mediaUrl&&!selectedUploadedPath&&!existingStoragePath)throw new Error("Media URL is required when no media file has been uploaded. Select a photo/video file or enter a Media URL.");
             if(mediaUrl){let parsed;try{parsed=new URL(mediaUrl);}catch{throw new Error("Media URL must be a valid http(s) URL.");}if(!["http:","https:"].includes(parsed.protocol))throw new Error("Media URL must start with http:// or https://.");}
-            const slug=String(controls.url.value||"").trim()||generateUrlValue(title);
-            if(!slug)throw new Error("Enter a Post URL or use a title containing letters or numbers.");
+            const slug=selectedId?String(controls.url.value||selectedRecordData?.url||"").trim():("p-"+generateOpaqueToken(16));
+            if(!slug)throw new Error("Could not generate a secure Post URL. Please try again.");
+            controls.url.value=slug;
             payload.caption=title;payload.url=slug;payload.title=title;payload.media_url=mediaUrl||null;
             if(selectedUploadedPath&&mediaUrl===selectedUploadedUrl){
               payload.storage_path=selectedUploadedPath;
