@@ -2303,6 +2303,9 @@
       }
       function resetForm(){
         selectedId=null;selectedRecordData=null;form.reset();
+        if(config.table==="post"&&controls.visibility)controls.visibility.value=(dalimgariRuntimeConfig.ui_settings_content_defaults||{}).default_visibility||"public";
+        if(config.table==="pages"&&controls.visibility)controls.visibility.value=(dalimgariRuntimeConfig.ui_settings_content_defaults||{}).default_page_visibility||"public";
+        if(config.table==="albums"&&controls.visibility)controls.visibility.value=(dalimgariRuntimeConfig.ui_settings_privacy_visibility||{}).default_album_visibility||"public";
         save.textContent=config.readOnlyCreate?"Save Profile":"Create";save.disabled=false;remove.disabled=true;setStatus("");
         list.querySelectorAll(".dashboard-crud-row").forEach(row=>row.classList.remove("is-selected"));
       }
