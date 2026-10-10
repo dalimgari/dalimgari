@@ -748,7 +748,7 @@
     }
 
     function generatePageSlug(value) {
-      return String(value || "").trim().toLowerCase().replace(/^\\/+|\\/+$/g, "")
+      return String(value || "").trim().toLowerCase().replaceAll("/", "")
         .replace(/[^a-z0-9-]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
     }
 
