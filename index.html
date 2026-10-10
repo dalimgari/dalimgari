@@ -981,7 +981,9 @@
       if(!fileInput||!mediaUrlInput||!titleInput)return;
       fileInput.addEventListener("change",async()=>{
         const file=fileInput.files?.[0];if(!file)return;
+        state().path="";state().url="";state().type="";
         state().uploading=true;
+        mediaUrlInput.value="";
         if(!file.type.startsWith("image/")&&!file.type.startsWith("video/")){fileInput.value="";state().uploading=false;setStatus("Choose an image or video file only.","error");return;}
         if(file.size>100*1024*1024){fileInput.value="";state().uploading=false;setStatus("File is larger than the 100 MB limit.","error");return;}
         const title=String(titleInput.value||"").trim();
@@ -1012,10 +1014,9 @@
         post: { table:"post", label:"Posts", fields:[
           {name:"title",label:"Title",type:"text",required:true},
           {name:"description",label:"Description (optional)",type:"textarea",full:true},
-          {name:"media_method",label:"Media Method",type:"select",required:true,full:true,options:[["","Choose one method"],["new_file","New File"],["existing_file","Existed File"],["media_url","Media URL"]],help:"Choose exactly one method for this post."},
           {name:"media_file",label:"New File",type:"file",accept:"image/*,video/*",full:true,help:"Choose one photo or one video. Maximum file size: 100 MB."},
           {name:"existing_file",label:"Existed File",type:"select",full:true,options:[["","Select an already uploaded file"]],help:"Choose a file already stored in Supabase Storage."},
-          {name:"media_url",label:"Media URL",type:"url",full:true,help:"Required only when neither New File nor Existed File is selected. Enter a media URL hosted on another server."},
+          {name:"media_url",label:"Media URL",type:"url",full:true,help:"Use this only for media hosted on another server. Otherwise choose a new file or an already uploaded file."},
           {name:"album_id",label:"Album (optional)",type:"album"},
           {name:"visibility",label:"Visibility",type:"select",options:[["public","Public"],["private","Only Me"]]}
         ]},
@@ -1225,18 +1226,6 @@
       if(section.id==="post"||section.id==="page"){} 
       for(const def of config.fields)makeField(def);
       let selectedExistingPath="",selectedExistingType="";
-      function updateMediaMethodVisibility(){
-        if(section.id!=="post")return;
-        const method=controls.media_method.value;
-        for(const name of ["media_file","existing_file","media_url"]){
-          const holder=controls[name]?.closest(".dashboard-crud-field");
-          if(holder)holder.hidden=(name==="media_file"&&method!=="new_file")||(name==="existing_file"&&method!=="existing_file");
-          if(controls[name]){
-            controls[name].disabled=(name==="media_file"&&method!=="new_file"&&!mediaUploadInProgress)||(name==="existing_file"&&method!=="existing_file");
-            if(name==="media_url"){controls[name].disabled=false;controls[name].type=method==="media_url"?"url":"text";}
-          }
-        }
-      }
       async function loadExistingMediaFiles(){
         const select=controls.existing_file;if(!select)return;
         select.replaceChildren();
@@ -1256,16 +1245,21 @@
         if(!files.length){const opt=document.createElement("option");opt.value="";opt.textContent="No uploaded files found";opt.disabled=true;select.append(opt);}
       }
       if(section.id==="post"){
-        controls.media_method.addEventListener("change",async()=>{
+        controls.media_file.addEventListener("change",()=>{
+          if(!controls.media_file.files?.length)return;
+          selectedUploadedPath="";selectedUploadedUrl="";selectedUploadState={type:""};
           selectedExistingPath="";selectedExistingType="";
-          if(controls.media_method.value!=="media_url")controls.media_url.value="";
-          if(controls.media_method.value==="existing_file")await loadExistingMediaFiles();
-          updateMediaMethodVisibility();
+          controls.existing_file.value="";
+          controls.media_url.value="";
         });
         controls.existing_file.addEventListener("change",async()=>{
           selectedExistingPath=controls.existing_file.value;
           selectedExistingType=controls.existing_file.selectedOptions[0]?.dataset.type||"";
-          controls.media_url.value="";
+          if(selectedExistingPath){
+            selectedUploadedPath="";selectedUploadedUrl="";selectedUploadState={type:""};
+            controls.media_file.value="";
+            controls.media_url.value="";
+          }
           if(!selectedExistingPath)return;
           setStatus("Preparing Media URL for the selected file…");
           try{
@@ -1275,7 +1269,14 @@
             setStatus("Existing file selected. Its Media URL is ready; Publish will create a new Post URL.","success");
           }catch(error){setStatus(error.message||"Could not prepare the selected file URL.","error");}
         });
-        updateMediaMethodVisibility();
+        controls.media_url.addEventListener("input",()=>{
+          if(!controls.media_url.value.trim())return;
+          selectedUploadedPath="";selectedUploadedUrl="";selectedUploadState={type:""};
+          selectedExistingPath="";selectedExistingType="";
+          controls.media_file.value="";
+          controls.existing_file.value="";
+        });
+        loadExistingMediaFiles();
         attachMediaUploadComponent({sectionId:section.id,user,controls,setStatus,state:()=>({get path(){return selectedUploadedPath;},set path(v){selectedUploadedPath=v;},get url(){return selectedUploadedUrl;},set url(v){selectedUploadedUrl=v;},get type(){return selectedUploadState.type;},set type(v){selectedUploadState.type=v;},get uploading(){return mediaUploadInProgress;},set uploading(v){mediaUploadInProgress=v;}})});
       }
       function resetForm(){
@@ -1461,31 +1462,24 @@
           if(section.id==="post"){
             const title=String(controls.title.value||"").trim();
             if(!title)throw new Error("Enter a title.");
-            const method=String(controls.media_method.value||"");
             let mediaUrl=String(controls.media_url.value||"").trim();
             let mediaPath="",mediaType="",sourceType="";
             if(mediaUploadInProgress)throw new Error("Please wait for the selected media file to finish uploading.");
-            if(method==="new_file"){
-              if(!selectedUploadedPath)throw new Error("Select a file in New File.");
+            if(selectedUploadedPath){
               mediaPath=selectedUploadedPath;mediaType=selectedUploadState.type;sourceType="upload";
-            }else if(method==="existing_file"){
-              if(!selectedExistingPath)throw new Error("Select an uploaded file in Existed File.");
+            }else if(selectedExistingPath){
               mediaPath=selectedExistingPath;mediaType=selectedExistingType;sourceType="upload";
-            }else if(method==="media_url"){
-              if(!mediaUrl)throw new Error("Enter an external Media URL.");
+            }else{
+              if(!mediaUrl)throw new Error("Choose a new file, select an already uploaded file, or enter an external Media URL.");
               let parsed;try{parsed=new URL(mediaUrl);}catch{throw new Error("Media URL must be a valid http(s) URL.");}
               if(!["http:","https:"].includes(parsed.protocol))throw new Error("Media URL must start with http:// or https://.");
               sourceType="external";
-            }else{
-              throw new Error("Choose exactly one method: New File, Existed File, or Media URL.");
             }
             if(mediaPath){
-              if(method==="new_file"||!mediaUrl){
-                const {data:signedData,error:signedError}=await supabaseClient.storage.from("site-media").createSignedUrl(mediaPath,31536000);
-                if(signedError)throw signedError;
-                mediaUrl=signedData.signedUrl;
-                controls.media_url.value=mediaUrl;
-              }
+              const {data:signedData,error:signedError}=await supabaseClient.storage.from("site-media").createSignedUrl(mediaPath,31536000);
+              if(signedError)throw signedError;
+              mediaUrl=signedData.signedUrl;
+              controls.media_url.value=mediaUrl;
               if(!mediaType||!mediaType.startsWith("image/")&&!mediaType.startsWith("video/"))mediaType=/\.(mp4|webm|mov|m4v|ogv)$/i.test(mediaPath)?"video":"photo";
             }
             const slug=selectedId?String(selectedRecordData?.url||"").trim():("p-"+generateOpaqueToken(16));
