@@ -1059,6 +1059,31 @@
     }
     function metadataValue(user, key) { return (user.user_metadata && user.user_metadata[key]) || ""; }
 
+    async function loadUserProfile(user) {
+      const { data, error } = await supabaseClient.from("profiles")
+        .select("id,full_name,phone,date_of_birth,bio,avatar_url")
+        .eq("id", user.id).maybeSingle();
+      if (error) {
+        console.error("Could not load the user record from the profiles table:", error);
+        return {
+          id: user.id,
+          full_name: metadataValue(user, "full_name") || metadataValue(user, "name") || "",
+          phone: metadataValue(user, "phone") || "",
+          date_of_birth: metadataValue(user, "date_of_birth") || null,
+          bio: metadataValue(user, "bio") || "",
+          avatar_url: metadataValue(user, "avatar_url") || ""
+        };
+      }
+      return data || {
+        id: user.id,
+        full_name: metadataValue(user, "full_name") || metadataValue(user, "name") || "",
+        phone: metadataValue(user, "phone") || "",
+        date_of_birth: metadataValue(user, "date_of_birth") || null,
+        bio: metadataValue(user, "bio") || "",
+        avatar_url: metadataValue(user, "avatar_url") || ""
+      };
+    }
+
     function profileImageExtension(mimeType) {
       const extensions = {
         "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp",
@@ -1086,8 +1111,8 @@
       return data.signedUrl;
     }
 
-    async function resolveProfileAvatarUrl(user) {
-      const raw = metadataValue(user, "avatar_url");
+    async function resolveProfileAvatarUrl(user, profile = null) {
+      const raw = (profile && profile.avatar_url) || metadataValue(user, "avatar_url");
       if (!raw) return "";
       if (raw.startsWith("data:image/")) {
         try {
@@ -1120,13 +1145,14 @@
     async function renderProfile() {
       const user = await getCurrentUser();
       if (!user) { renderPage("Login"); history.replaceState(null, "", "#login"); setCurrentMenuPage("Login"); return; }
-      const name = metadataValue(user, "full_name") || metadataValue(user, "name") || "";
+      const profile = await loadUserProfile(user);
+      const name = profile.full_name || metadataValue(user, "full_name") || metadataValue(user, "name") || "";
       const role = user.app_metadata && String(user.app_metadata.role || "").toLowerCase() === "admin" ? "ADMIN" : "MEMBER";
       const page = document.createElement("section"); page.className = "profile-page";
       const heading = document.createElement("h1"); heading.className = "profile-heading"; heading.textContent = "My Profile";
       const summary = document.createElement("div"); summary.className = "profile-summary";
       const avatar = document.createElement("div"); avatar.className = "profile-avatar";
-      const avatarUrl = await resolveProfileAvatarUrl(user);
+      const avatarUrl = await resolveProfileAvatarUrl(user, profile);
       if (avatarUrl) { const avatarImage = document.createElement("img"); avatarImage.src = avatarUrl; avatarImage.alt = "Profile picture"; avatar.append(avatarImage); }
       else { avatar.textContent = name.charAt(0).toUpperCase() || "?"; }
       const identity = document.createElement("div");
@@ -1138,7 +1164,7 @@
       const info = document.createElement("section"); info.className = "profile-section";
       const infoHeading = document.createElement("h2"); infoHeading.textContent = "Profile Information";
       const details = document.createElement("div"); details.className = "profile-details";
-      [["Full Name",name],["Phone Number",metadataValue(user,"phone")||"Not added"],["Date of Birth",metadataValue(user,"date_of_birth")||"Not added"],["Bio",metadataValue(user,"bio")||"No bio yet"]].forEach(([label,value])=>{
+      [["Full Name",name],["Phone Number",profile.phone||"Not added"],["Date of Birth",profile.date_of_birth||"Not added"],["Bio",profile.bio||"No bio yet"]].forEach(([label,value])=>{
         const item=document.createElement("div"), l=document.createElement("p"), v=document.createElement("p");
         l.className="detail-label";l.textContent=label;v.className="detail-value";v.textContent=value;item.append(l,v);details.append(item);
       });
@@ -1755,6 +1781,7 @@
     async function renderEditProfile() {
       const user=await getCurrentUser();
       if(!user){renderPage("Login");history.replaceState(null,"","#login");return;}
+      const profile=await loadUserProfile(user);
       const page=document.createElement("section");page.className="profile-page";
       const heading=document.createElement("h1");heading.className="profile-heading";heading.textContent="Edit Profile";
       const form=document.createElement("form");form.className="edit-profile-form";
@@ -1767,9 +1794,9 @@
       const avatarHeading = document.createElement("h2"); avatarHeading.textContent = "Profile Picture";
       const avatarEditorRow = document.createElement("div"); avatarEditorRow.className = "profile-picture-editor-row";
       const avatarPreview = document.createElement("div"); avatarPreview.className = "profile-avatar profile-avatar-large";
-      const currentAvatarUrl = await resolveProfileAvatarUrl(user);
+      const currentAvatarUrl = await resolveProfileAvatarUrl(user, profile);
       if (currentAvatarUrl) { const previewImage = document.createElement("img"); previewImage.src = currentAvatarUrl; previewImage.alt = "Profile picture"; avatarPreview.append(previewImage); }
-      else { avatarPreview.textContent = (metadataValue(user, "full_name") || metadataValue(user, "name") || (user.email || "M").split("@")[0]).charAt(0).toUpperCase(); }
+      else { avatarPreview.textContent = (profile.full_name || metadataValue(user, "full_name") || metadataValue(user, "name") || (user.email || "M").split("@")[0]).charAt(0).toUpperCase(); }
       const avatarUploadArea = document.createElement("div"); avatarUploadArea.className = "profile-picture-upload-area";
       const pictureInput = document.createElement("input"); pictureInput.type = "file"; pictureInput.accept = "image/*"; pictureInput.className = "avatar-upload"; pictureInput.setAttribute("aria-label", "Choose profile picture");
       const picturePicker = document.createElement("label"); picturePicker.className = "attachment-picker profile-picture-picker";
@@ -1791,7 +1818,7 @@
       avatarEditorRow.append(avatarPreview, avatarUploadArea);
       avatarSection.append(avatarHeading, avatarEditorRow);
       form.append(avatarSection);
-      const fullName=field("Full Name","full_name","text",metadataValue(user,"full_name")||metadataValue(user,"name"));
+      const fullName=field("Full Name","full_name","text",profile.full_name||metadataValue(user,"full_name")||metadataValue(user,"name"));
       pictureInput.addEventListener("change", async () => {
         const file = pictureInput.files && pictureInput.files[0];
         if (!file) return;
@@ -1819,9 +1846,9 @@
           pictureInput.disabled = false; picturePicker.classList.remove("is-uploading"); pictureButton.textContent = "Choose image"; pictureInput.value = "";
         }
       });
-      field("Phone Number","phone","tel",metadataValue(user,"phone"));
-      field("Date of Birth","date_of_birth","date",metadataValue(user,"date_of_birth"));
-      field("Bio","bio","textarea",metadataValue(user,"bio"));
+      field("Phone Number","phone","tel",profile.phone);
+      field("Date of Birth","date_of_birth","date",profile.date_of_birth);
+      field("Bio","bio","textarea",profile.bio);
       const status=document.createElement("p");status.className="profile-status";status.setAttribute("role","status");
       const actions=document.createElement("div");actions.className="profile-actions";
       const save=document.createElement("button");save.className="action-button primary";save.type="submit";save.textContent="Save Changes";
@@ -1830,8 +1857,16 @@
       actions.append(save,cancel);form.append(status,actions);
       form.addEventListener("submit",async(event)=>{
         event.preventDefault();save.disabled=true;save.textContent="Saving...";
-        const {error}=await supabaseClient.auth.updateUser({data:{full_name:fullName.value.trim(),phone:form.elements.phone.value.trim(),date_of_birth:form.elements.date_of_birth.value,bio:form.elements.bio.value.trim()}});
-        if(error){status.style.color="#a12622";status.textContent="Could not save your profile. Please try again.";save.disabled=false;save.textContent="Save Changes";return;}
+        const profileData = {
+          id: user.id,
+          full_name: fullName.value.trim(),
+          phone: form.elements.phone.value.trim() || null,
+          date_of_birth: form.elements.date_of_birth.value || null,
+          bio: form.elements.bio.value.trim() || null,
+          updated_at: new Date().toISOString()
+        };
+        const { error } = await supabaseClient.from("profiles").upsert(profileData, { onConflict: "id" });
+        if(error){status.style.color="#a12622";status.textContent="Could not save your profile to the user table. Please try again.";save.disabled=false;save.textContent="Save Changes";return;}
         renderPage("Profile");history.replaceState(null,"","#profile");
       });
       page.append(heading,form);mainContent.replaceChildren(page);
