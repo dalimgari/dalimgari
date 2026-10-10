@@ -981,8 +981,9 @@
       if(!fileInput||!mediaUrlInput||!titleInput)return;
       fileInput.addEventListener("change",async()=>{
         const file=fileInput.files?.[0];if(!file)return;
-        if(!file.type.startsWith("image/")&&!file.type.startsWith("video/")){fileInput.value="";setStatus("Choose an image or video file only.","error");return;}
-        if(file.size>100*1024*1024){fileInput.value="";setStatus("File is larger than the 100 MB limit.","error");return;}
+        state().uploading=true;
+        if(!file.type.startsWith("image/")&&!file.type.startsWith("video/")){fileInput.value="";state().uploading=false;setStatus("Choose an image or video file only.","error");return;}
+        if(file.size>100*1024*1024){fileInput.value="";state().uploading=false;setStatus("File is larger than the 100 MB limit.","error");return;}
         const title=String(titleInput.value||"").trim();
         fileInput.disabled=true;setStatus("Uploading media and generating its URL…");
         try{
@@ -999,7 +1000,7 @@
           mediaUrlInput.value=signedData.signedUrl;
           setStatus("Media uploaded. You can edit the Media URL before saving.","success");
         }catch(error){setStatus(error.message||"Media upload failed.","error");}
-        finally{fileInput.disabled=false;}
+        finally{fileInput.disabled=false;state().uploading=false;}
       });
     }
 
@@ -1189,7 +1190,7 @@
         albumMediaCard.hidden=true;wrap.append(albumMediaCard);
       }
       content.append(wrap);
-      let selectedId=null, records=[], selectedRecordData=null, selectedUploadedPath="", selectedUploadedUrl="", selectedUploadState={type:""};
+      let selectedId=null, records=[], selectedRecordData=null, selectedUploadedPath="", selectedUploadedUrl="", selectedUploadState={type:""}, mediaUploadInProgress=false;
       const albums=availableAlbums;
       const controls={};
       function setStatus(message,type){status.textContent=message;status.style.color=type==="error"?"#a12622":type==="success"?"#176b43":"#555";}
@@ -1219,7 +1220,7 @@
       function generateAlbumUrlValue(value){return String(value||"").toLowerCase().normalize("NFKC").replace(/[^\p{L}\p{N}]+/gu,"-").replace(/^-|-$/g,"");}
       if(section.id==="post"||section.id==="page"){} 
       for(const def of config.fields)makeField(def);
-      if(section.id==="post") attachMediaUploadComponent({sectionId:section.id,user,controls,setStatus,state:()=>({get path(){return selectedUploadedPath;},set path(v){selectedUploadedPath=v;},get url(){return selectedUploadedUrl;},set url(v){selectedUploadedUrl=v;},get type(){return selectedUploadState.type;},set type(v){selectedUploadState.type=v;}})});
+      if(section.id==="post") attachMediaUploadComponent({sectionId:section.id,user,controls,setStatus,state:()=>({get path(){return selectedUploadedPath;},set path(v){selectedUploadedPath=v;},get url(){return selectedUploadedUrl;},set url(v){selectedUploadedUrl=v;},get type(){return selectedUploadState.type;},set type(v){selectedUploadState.type=v;},get uploading(){return mediaUploadInProgress;},set uploading(v){mediaUploadInProgress=v;}})});
       function resetForm(){
         selectedId=null;selectedRecordData=null;selectedUploadedPath="";selectedUploadedUrl="";selectedUploadState={type:""};form.reset();
         save.textContent=config.editOnly?"Select a media item":(config.readOnlyCreate?"Save Profile":(section.id==="post"?"Publish":"Create"));save.disabled=!!config.editOnly;remove.disabled=true;setStatus("");
