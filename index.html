@@ -625,6 +625,40 @@
       if (dashboardAction) dashboardAction.hidden = role !== "admin" || dashboardAction.getAttribute("aria-current") === "page";
     }
 
+    async function createContentMediaUrl(path) {
+      if (!path) return "";
+      const { data, error } = await supabaseClient.storage.from("content-files").createSignedUrl(path, 3600);
+      if (error) { console.warn("Could not create a content media URL:", error.message); return ""; }
+      return data?.signedUrl || "";
+    }
+
+    async function renderContentMedia(container, media) {
+      if (!Array.isArray(media) || !media.length) return;
+      const gallery = document.createElement("div");
+      gallery.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:18px";
+      for (const item of media) {
+        const url = await createContentMediaUrl(item.path);
+        if (!url) continue;
+        const tile = document.createElement("div");
+        tile.style.cssText = "min-width:0;padding:10px;border:1px solid #e5e7eb;border-radius:10px;overflow-wrap:anywhere";
+        if (String(item.mime_type || "").startsWith("image/")) {
+          const image = document.createElement("img"); image.src = url; image.alt = item.name || ""; image.loading = "lazy";
+          image.style.cssText = "display:block;width:100%;max-height:320px;object-fit:contain;border-radius:6px"; tile.append(image);
+        } else if (String(item.mime_type || "").startsWith("video/")) {
+          const video = document.createElement("video"); video.src = url; video.controls = true;
+          video.style.cssText = "display:block;width:100%;max-height:320px;border-radius:6px"; tile.append(video);
+        } else if (String(item.mime_type || "").startsWith("audio/")) {
+          const audio = document.createElement("audio"); audio.src = url; audio.controls = true; audio.style.width = "100%"; tile.append(audio);
+        } else {
+          const link = document.createElement("a"); link.href = url; link.target = "_blank"; link.rel = "noopener noreferrer";
+          link.textContent = item.name || "Open file"; tile.append(link);
+        }
+        if (item.name) { const caption=document.createElement("p"); caption.textContent=item.name; caption.style.cssText="margin:8px 0 0;font-size:13px"; tile.append(caption); }
+        gallery.append(tile);
+      }
+      if (gallery.childElementCount) container.append(gallery);
+    }
+
     async function renderHome() {
       document.title = "Dalimgari";
       // Home content starts below the header instead of being vertically centered.
@@ -714,18 +748,25 @@
 
       // The uploader is a normal homepage section, not a separate page or route.
 
-      const { data, error } = await supabaseClient.from("site_customizations")
-        .select("value").eq("key", "home_hero").maybeSingle();
-      if (error || !data || !data.value) return;
-
-      let heroData = data.value;
-      if (typeof heroData === "string") {
-        try { heroData = JSON.parse(heroData); } catch (_) { return; }
+      const { data: heroRecord } = await supabaseClient.from("hero_items")
+        .select("title,description,media,visibility").eq("visibility","public").order("created_at",{ascending:false}).limit(1).maybeSingle();
+      let headline = String(heroRecord?.title || "").trim();
+      let welcomeMessage = String(heroRecord?.description || "").trim();
+      let heroImageUrl = "";
+      const heroMedia = Array.isArray(heroRecord?.media) ? heroRecord.media : [];
+      const firstImage = heroMedia.find(item => String(item.mime_type || "").startsWith("image/"));
+      if (firstImage?.path) heroImageUrl = await createContentMediaUrl(firstImage.path);
+      if (!heroRecord) {
+        const { data, error } = await supabaseClient.from("site_customizations").select("value").eq("key", "home_hero").maybeSingle();
+        if (error || !data || !data.value) return;
+        let heroData = data.value;
+        if (typeof heroData === "string") { try { heroData = JSON.parse(heroData); } catch (_) { return; } }
+        if (!heroData || typeof heroData !== "object") return;
+        headline = String(heroData.headline || "").trim();
+        welcomeMessage = String(heroData.welcomeMessage || "").trim();
+        heroImageUrl = String(heroData.heroImageUrl || "").trim();
       }
-      if (!heroData || typeof heroData !== "object") return;
-      const headline = String(heroData.headline || "").trim();
-      const welcomeMessage = String(heroData.welcomeMessage || "").trim();
-      const heroImageUrl = String(heroData.heroImageUrl || "").trim();
+      if (!headline && !welcomeMessage && !heroImageUrl) return;
 
       // Keep the image as the floating hero surface and layer its text over the center.
       const imageFrame = document.createElement("div");
@@ -858,13 +899,13 @@
         const slug = generatePageSlug(slot.getAttribute("data-dalimgari-include"));
         if (!slug) { slot.remove(); continue; }
         const { data, error } = await supabaseClient.from("pages")
-          .select("title,content,url,visibility").eq("url", slug).maybeSingle();
+          .select("title,content,url,visibility,media").eq("url", slug).maybeSingle();
         if (error || !data) {
           slot.replaceChildren();
           slot.textContent = "Included page is unavailable.";
           continue;
         }
-        await renderHtmlInto(slot, data.content || "", session, depth + 1);
+        await renderHtmlInto(slot, data.content || "", session, depth + 1);\n        await renderContentMedia(slot, data.media || []);
       }
     }
 
@@ -885,7 +926,7 @@
       mainContent.append(shell);
       if (!slug) { shell.textContent = "Page not found."; return; }
       const { data, error } = await supabaseClient.from("pages")
-        .select("title,content,url,visibility").eq("url", slug).maybeSingle();
+        .select("title,content,url,visibility,media").eq("url", slug).maybeSingle();
       if (error || !data) {
         const message = document.createElement("p");
         message.textContent = "This page is unavailable or you do not have permission to view it.";
@@ -899,7 +940,7 @@
       const content = document.createElement("div");
       content.className = "stored-html-page-content";
       shell.append(content);
-      await renderHtmlInto(content, data.content || "", session);
+      await renderHtmlInto(content, data.content || "", session);\n      await renderContentMedia(content, data.media || []);
       document.title = (data.title ? data.title + " | " : "") + "Dalimgari";
     }
 
