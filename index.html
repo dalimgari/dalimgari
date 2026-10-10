@@ -905,7 +905,8 @@
           slot.textContent = "Included page is unavailable.";
           continue;
         }
-        await renderHtmlInto(slot, data.content || "", session, depth + 1);\n        await renderContentMedia(slot, data.media || []);
+        await renderHtmlInto(slot, data.content || "", session, depth + 1);
+        await renderContentMedia(slot, data.media || []);
       }
     }
 
@@ -940,7 +941,8 @@
       const content = document.createElement("div");
       content.className = "stored-html-page-content";
       shell.append(content);
-      await renderHtmlInto(content, data.content || "", session);\n      await renderContentMedia(content, data.media || []);
+      await renderHtmlInto(content, data.content || "", session);
+      await renderContentMedia(content, data.media || []);
       document.title = (data.title ? data.title + " | " : "") + "Dalimgari";
     }
 
