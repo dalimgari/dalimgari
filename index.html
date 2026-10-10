@@ -1415,26 +1415,30 @@
             if(sessionError)throw new Error("Session refresh failed: "+sessionError.message);
             if(sessionData.session?.user?.app_metadata?.role!=="admin")throw new Error("Admin role is missing from the current session. Sign out and sign in again.");
             const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,"_").slice(-100)||"test-media";
-            path="posts/upload-test-"+Date.now()+"/"+safeName;
-            const {error:uploadError}=await supabaseClient.storage.from("site-media").upload(path,file,{contentType:file.type,upsert:false,cacheControl:"60"});
-            if(uploadError){
-              resultRow.http_status=uploadError.statusCode||uploadError.status||"400";
-              resultRow.error_name=uploadError.name||"StorageApiError";
-              resultRow.error_message=[uploadError.error,uploadError.message,uploadError.details,uploadError.hint].filter(Boolean).join(" | ")||"HTTP 400 error (no detailed response returned by SDK)";
+            path="posts/"+crypto.randomUUID()+"/"+safeName;
+            const accessToken=sessionData.session?.access_token;
+            if(!accessToken)throw new Error("No active access token after session refresh.");
+            const storageUrl="https://yopfogoyjxwxplnabqii.supabase.co/storage/v1/object/site-media/"+path.split("/").map(encodeURIComponent).join("/");
+            const uploadResponse=await fetch(storageUrl,{method:"POST",headers:{"apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvcGZvZ295anh3eHBsbmFicWlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyOTMyNjQsImV4cCI6MjEwNDg2OTI2fQ.dIVH8sp3qyD_AGmt1bNFVOpQKdrgcX734HkrEuOacB4".replace("MjEwNDg2OTI2fQ","MjEwNDg2OTI2fQ"),"Authorization":"Bearer "+accessToken,"Content-Type":file.type||"application/octet-stream","Cache-Control":"max-age=60","x-upsert":"false"},body:file});
+            const uploadBody=await uploadResponse.text();
+            if(!uploadResponse.ok){
+              resultRow.http_status=String(uploadResponse.status);
+              resultRow.error_name="StorageRESTError";
+              resultRow.error_message=uploadBody.slice(0,1200)||uploadResponse.statusText||"No response body";
               throw new Error(resultRow.error_name+" | "+resultRow.http_status+" | "+resultRow.error_message);
             }
-            resultRow.upload_status="success";resultRow.http_status="200";
-            const {error:removeError}=await supabaseClient.storage.from("site-media").remove([path]);
-            if(removeError){resultRow.cleanup_status="FAILED: "+removeError.message;resultRow.error_message="Upload succeeded; cleanup failed: "+removeError.message;}
-            else{resultRow.cleanup_status="Removed test file";}
+            resultRow.upload_status="success";resultRow.http_status=String(uploadResponse.status);
+            const deleteResponse=await fetch("https://yopfogoyjxwxplnabqii.supabase.co/storage/v1/object/site-media",{method:"DELETE",headers:{"apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvcGZvZ295anh3eHBsbmFicWlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyOTMyNjQsImV4cCI6MjEwNDg2OTI2fQ.dIVH8sp3qyD_AGmt1bNFVOpQKdrgcX734HkrEuOacB4".replace("MjEwNDg2OTI2fQ","MjEwNDg2OTI2fQ"),"Authorization":"Bearer "+accessToken,"Content-Type":"application/json"},body:JSON.stringify({prefixes:[path]})});
+            const deleteBody=await deleteResponse.text();
+            if(!deleteResponse.ok){resultRow.cleanup_status="FAILED ("+deleteResponse.status+"): "+(deleteBody.slice(0,500)||deleteResponse.statusText);resultRow.error_message="Upload succeeded; cleanup failed: "+resultRow.cleanup_status;}
+            else{resultRow.cleanup_status="Removed test file ("+deleteResponse.status+")";}
             status.style.color=resultRow.cleanup_status.startsWith("FAILED")?"#a12622":"#176b43";
-            status.textContent=resultRow.cleanup_status.startsWith("FAILED")?"Upload succeeded, but test file cleanup failed: "+removeError.message:"Upload test successful. Test file was removed.";
+            status.textContent=resultRow.cleanup_status.startsWith("FAILED")?"Upload succeeded, but test file cleanup failed: "+resultRow.cleanup_status:"Upload test successful. Test file was removed.";
           }catch(error){
             resultRow.upload_status="failed";resultRow.error_message=String(error?.message||error).slice(0,1500);
             status.style.color="#a12622";status.textContent="Upload test failed: "+resultRow.error_message;
             if(path&&resultRow.upload_status==="failed"){
-              const {error:cleanupError}=await supabaseClient.storage.from("site-media").remove([path]);
-              resultRow.cleanup_status=cleanupError?"Cleanup failed: "+cleanupError.message:"Removed partial test file";
+              resultRow.cleanup_status="Upload failed before a test object was confirmed; no cleanup request sent.";
             }
           }finally{
             const {error:logError}=await supabaseClient.from("media_upload_tests").insert(resultRow);
