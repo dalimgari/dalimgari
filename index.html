@@ -656,7 +656,8 @@
         return section;
       });
 
-      page.append(heroSection, ...extraSections);
+      // Keep Media Upload immediately below the hero, before the other homepage sections.
+      page.append(heroSection, extraSections[4], ...extraSections.slice(0, 4));
       mainContent.replaceChildren(page);
 
       // Optional homepage placement map, configured in Dashboard > Customizations
