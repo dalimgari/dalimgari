@@ -1625,6 +1625,7 @@
     }
 
     async function renderDashboard() {
+      await applyDalimgariSiteConfig();
       const user = await getCurrentUser();
       const role = String((user && user.app_metadata && user.app_metadata.role) || "").toLowerCase();
       if (!user || role !== "admin") {
