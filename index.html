@@ -1255,17 +1255,6 @@
       const edit=document.createElement("button");edit.className="action-button primary";edit.textContent="Edit Profile";edit.type="button";
       edit.addEventListener("click",()=>{renderPage("EditProfile");history.replaceState(null,"","#edit-profile");});
       actions.append(edit);
-      if (role === "ADMIN") {
-        const dashboard = document.createElement("button");
-        dashboard.className = "action-button";
-        dashboard.textContent = "Dashboard";
-        dashboard.type = "button";
-        dashboard.addEventListener("click", () => {
-          renderPage("Dashboard");
-          history.replaceState(null, "", "#dashboard");
-        });
-        actions.append(dashboard);
-      }
       page.append(heading,summary,info,actions);mainContent.replaceChildren(page);setCurrentMenuPage("Profile");
     }
 
