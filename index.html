@@ -928,20 +928,8 @@
       const widget=document.querySelector(".home-widget"), albumSection=document.querySelector(".home-album"), pageCards=document.querySelector(".home-page-card");
       const makeGrid=()=>{const grid=document.createElement("div");grid.className="home-content-grid";return grid;};
       const makeCard=(title,description)=>{const card=document.createElement("article");card.className="home-content-card";const h=document.createElement("h3");h.textContent=title||"Untitled";card.append(h);if(description){const p=document.createElement("p");p.textContent=description;card.append(p);}return card;};
-      if(widget){
-        const {data:posts,error}=await supabaseClient.from("post").select("id,title,caption,description,url,custom_url,media,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(24);
-        if(!error&&posts?.length){
-          const grid=makeGrid();
-          for(const post of posts){
-            const card=makeCard(post.title||post.caption,post.description||"");
-            const external=String(post.custom_url||"").trim();
-            if(/^https?:\/\//i.test(external)){const link=document.createElement("a");link.href=external;link.textContent="Open external content";link.target="_blank";link.rel="noopener noreferrer";card.append(link);}
-            if(Array.isArray(post.media)&&post.media.length)await renderContentMedia(card,post.media);
-            grid.append(card);
-          }
-          widget.append(grid);
-        }
-      }
+      // Widgets are a separate content type. Do not populate this section from posts.
+      // It remains empty until actual widget records/rendering are implemented.
       if(albumSection){
         const {data:albums,error}=await supabaseClient.from("albums").select("id,title,description,url,cover_path,media,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(24);
         if(!error&&albums?.length){
