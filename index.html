@@ -1230,8 +1230,11 @@
         const method=controls.media_method.value;
         for(const name of ["media_file","existing_file","media_url"]){
           const holder=controls[name]?.closest(".dashboard-crud-field");
-          if(holder)holder.hidden=(name==="media_file"&&method!=="new_file")||(name==="existing_file"&&method!=="existing_file")||(name==="media_url"&&method!=="media_url");
-          if(controls[name])controls[name].disabled=(name==="media_file"&&method!=="new_file"&& !mediaUploadInProgress)||(name==="existing_file"&&method!=="existing_file")||(name==="media_url"&&method!=="media_url");
+          if(holder)holder.hidden=(name==="media_file"&&method!=="new_file")||(name==="existing_file"&&method!=="existing_file");
+          if(controls[name]){
+            controls[name].disabled=(name==="media_file"&&method!=="new_file"&&!mediaUploadInProgress)||(name==="existing_file"&&method!=="existing_file");
+            if(name==="media_url"){controls[name].disabled=false;controls[name].type=method==="media_url"?"url":"text";}
+          }
         }
       }
       async function loadExistingMediaFiles(){
@@ -1255,6 +1258,7 @@
       if(section.id==="post"){
         controls.media_method.addEventListener("change",async()=>{
           selectedExistingPath="";selectedExistingType="";
+          if(controls.media_method.value!=="media_url")controls.media_url.value="";
           if(controls.media_method.value==="existing_file")await loadExistingMediaFiles();
           updateMediaMethodVisibility();
         });
