@@ -1383,6 +1383,12 @@
             let option=Array.from(controls.existing_file.options).find(opt=>opt.value===record.storage_path);
             if(!option){option=document.createElement("option");option.value=record.storage_path;option.textContent=record.storage_path.split("/").pop();controls.existing_file.append(option);}
             controls.existing_file.value=record.storage_path;selectedExistingPath=record.storage_path;selectedExistingType=record.media_type||"";
+            controls.media_url.value="";
+            try{
+              const {data:signedData,error:signedError}=await supabaseClient.storage.from("site-media").createSignedUrl(record.storage_path,31536000);
+              if(signedError)throw signedError;
+              controls.media_url.value=signedData.signedUrl;
+            }catch(error){setStatus(error.message||"Could not refresh the selected file URL.","error");}
           }else if(record.media_url){
             controls.media_method.value="media_url";
           }else{
