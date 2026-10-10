@@ -1530,7 +1530,7 @@
     // Keep menu actions synchronized with the real Supabase session.
     supabaseClient.auth.onAuthStateChange((event, session) => {
       updateAuthMenu(session);
-      if (session && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) {
+      if (session && event === "SIGNED_IN") {
         renderPage("Profile");
         history.replaceState(null, "", "#profile");
         setCurrentMenuPage("Profile");
