@@ -2130,7 +2130,8 @@
                   const location=String(locationInput&&locationInput.value||"").trim();
                   if(!location)throw new Error("Enter the exact address, place name, or Google Maps link.");
                   const previousSettings=item.settings&&typeof item.settings==="object"?item.settings:{};
-                  let embedUrl="https://maps.google.com/maps?q="+encodeURIComponent(location)+"&output=embed";
+                  const coordinateInput=/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/.test(location);
+                  let embedUrl="https://maps.google.com/maps?q="+encodeURIComponent(location)+(coordinateInput?"&z=19":"")+"&output=embed";
                   let resolvedLocation=location;
                   let mapsLink=false;
                   try{
@@ -2145,6 +2146,7 @@
                     const {data:resolved,error:resolveError}=await supabaseClient.functions.invoke("resolve-map-link",{body:{url:location}});
                     if(resolveError)throw new Error("Could not resolve this Google Maps link. Try sharing the place link again.");
                     if(!resolved||!resolved.embed_url)throw new Error((resolved&&resolved.error)||"Could not identify a place from this Google Maps link.");
+                    if(resolved.exact_coordinates!==true)throw new Error("Exact pin coordinates were not found. Share the exact pin from Google Maps or enter its latitude,longitude coordinates.");
                     embedUrl=resolved.embed_url;
                     resolvedLocation=resolved.location||location;
                   }
