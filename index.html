@@ -876,7 +876,7 @@
         }
       }
       if (pillBar.childElementCount) {
-        pageTitleSection.append(pillBar);
+        page.insertBefore(pillBar,pageTitleSection);
         const pillMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
         let pillAutoTimer = null;
         const stopPillAutoScroll = () => {
