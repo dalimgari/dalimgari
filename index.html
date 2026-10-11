@@ -651,6 +651,11 @@
     }
     .dashboard-crud-row:hover, .dashboard-crud-row.is-selected { background-color:color-mix(in srgb,var(--dg-primary,#222) 8%,var(--dg-surface,#fff)); }
     .menu-link[aria-current="page"], .menu-link:hover { color:var(--dg-primary,#222); }
+    footer { background-color:var(--dg-surface,#fff); color:var(--dg-muted,#666); border-color:var(--dg-border,#e5e7eb); }
+    .home-page, .dashboard-page { color:var(--dg-text,#222); }
+    .home-page :is(h1,h2,h3,h4), .gallery-page :is(h1,h2,h3,h4), .stored-html-page :is(h1,h2,h3,h4) { color:var(--dg-text,#222); }
+    .home-page :is(.home-content-card,.home-album-card), .gallery-page :is(.gallery-tile,.media-tile) { border-color:var(--dg-border,#e5e7eb); border-radius:var(--dg-card-radius,14px); }
+    .dashboard-page :is(button,a,[role="tab"]):focus-visible, .home-page :is(button,a):focus-visible { outline-color:var(--dg-primary,#222); }
 </style>
 </head>
 <body>
@@ -3213,6 +3218,7 @@
           else { input.value = field.value ?? ""; }
           if (field.min !== undefined) input.min=String(field.min);
           if (field.max !== undefined) input.max=String(field.max);
+          if (field.step !== undefined) input.step=String(field.step);
           inputMap.set(group.id+"."+field.name,input);
           wrap.append(label,input);
           return wrap;
