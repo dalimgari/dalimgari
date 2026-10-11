@@ -5,6 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dalimgari</title>
   <style>
+    /* Central theme tokens: components should consume these instead of fixed visual values. */
+    :root {
+      --dg-primary:#222222;
+      --dg-secondary:#5b6472;
+      --dg-bg:#ffffff;
+      --dg-surface:#ffffff;
+      --dg-text:#222222;
+      --dg-muted:#666666;
+      --dg-border:#e5e7eb;
+      --dg-control-radius:9px;
+      --dg-card-radius:14px;
+      --dg-shadow-opacity:.06;
+      --dg-line-height:1.5;
+    }
     * {
       box-sizing: border-box;
     }
@@ -591,7 +605,53 @@
       line-height: 1.5;
       text-align: center;
     }
-  </style>
+  
+    /* Shared component layer. Keep layout/behavior unchanged; expose visual styling to theme tokens. */
+    body { background-color:var(--dg-bg,#fff); color:var(--dg-text,#222); line-height:var(--dg-line-height,1.5); }
+    header, .floating-menu, .login-form, .profile-page, .profile-section,
+    .profile-picture-editor, .dashboard-section-content, .dashboard-crud-card,
+    .home-content-card, .gallery-page, .stored-html-page {
+      background-color:var(--dg-surface,#fff);
+      color:var(--dg-text,#222);
+      border-color:var(--dg-border,#e5e7eb);
+    }
+    header { box-shadow:0 8px 20px -8px rgba(0,0,0,var(--dg-shadow-opacity,.06)); }
+    .current-page-label, .profile-heading, .dashboard-heading,
+    .dashboard-section-title, .dashboard-crud-card h3, .home-content-card h2,
+    .home-content-card h3, .profile-name, .detail-value { color:var(--dg-text,#222); }
+    .profile-email, .detail-label, .dashboard-section-description,
+    .dashboard-crud-hint, .dashboard-crud-empty, .home-content-card p,
+    .dashboard-crud-status, .profile-status, .profile-picture-status { color:var(--dg-muted,#666); }
+    .profile-page, .profile-section, .profile-picture-editor, .dashboard-crud-card,
+    .home-content-card { border-radius:var(--dg-card-radius,14px); }
+    .login-field, .profile-input, .dashboard-crud-input,
+    .dashboard-page input, .dashboard-page select, .dashboard-page textarea {
+      background-color:var(--dg-surface,#fff);
+      color:var(--dg-text,#222);
+      border-color:var(--dg-border,#d1d5db);
+      border-radius:var(--dg-control-radius,9px);
+    }
+    .action-button, .login-submit, .dashboard-nav-button,
+    .dashboard-crud-actions button, .dashboard-page button:not(.menu-button),
+    .home-page button:not(.menu-button) {
+      border-radius:var(--dg-control-radius,9px);
+    }
+    .action-button.primary, .login-submit, .dashboard-nav-button[aria-selected="true"],
+    .dashboard-page .action-button.primary {
+      background-color:var(--dg-primary,#222);
+      border-color:var(--dg-primary,#222);
+      color:#fff;
+    }
+    a:not(.menu-link) { color:var(--dg-primary,#222); }
+    .dashboard-crud-table th { color:var(--dg-text,#222); background-color:var(--dg-bg,#f8fafc); }
+    .dashboard-crud-table th, .dashboard-crud-table td,
+    .profile-section, .profile-picture-editor, .dashboard-crud-card,
+    .home-content-card, .dashboard-crud-input, .profile-input, .login-field {
+      border-color:var(--dg-border,#e5e7eb);
+    }
+    .dashboard-crud-row:hover, .dashboard-crud-row.is-selected { background-color:color-mix(in srgb,var(--dg-primary,#222) 8%,var(--dg-surface,#fff)); }
+    .menu-link[aria-current="page"], .menu-link:hover { color:var(--dg-primary,#222); }
+</style>
 </head>
 <body>
   <header>
@@ -904,18 +964,23 @@
       if(titleLabel && (!titleLabel.textContent || titleLabel.textContent==="Home"))titleLabel.textContent=title;
       const root=document.documentElement;
       const validColor=value=>/^#[0-9a-f]{6}$/i.test(String(value||""))?String(value):"";
-      const primaryColor=validColor(theme.primary_color), surfaceColor=validColor(theme.surface_color), textColor=validColor(theme.text_color), backgroundColor=validColor(theme.background_color);
-      if(primaryColor)root.style.setProperty("--dg-primary",primaryColor);
-      if(backgroundColor)document.body.style.backgroundColor=backgroundColor;
-      if(textColor)document.body.style.color=textColor;
-      if(surfaceColor)root.style.setProperty("--dg-surface",surfaceColor);
+      const setColor=(token,value)=>{const color=validColor(value);if(color)root.style.setProperty(token,color);};
+      setColor("--dg-primary",theme.primary_color);
+      setColor("--dg-secondary",theme.secondary_color);
+      setColor("--dg-bg",theme.background_color);
+      setColor("--dg-surface",theme.surface_color);
+      setColor("--dg-text",theme.text_color);
+      setColor("--dg-muted",theme.muted_text_color);
+      setColor("--dg-border",theme.border_color);
+      const setBoundedNumber=(token,value,min,max,suffix="px")=>{const n=Number(value);if(Number.isFinite(n)&&n>=min&&n<=max)root.style.setProperty(token,n+suffix);};
+      setBoundedNumber("--dg-card-radius",theme.card_radius,0,32);
+      setBoundedNumber("--dg-control-radius",theme.control_radius,0,24);
+      const shadow=Number(theme.shadow_strength);
+      if(Number.isFinite(shadow)&&shadow>=0&&shadow<=30)root.style.setProperty("--dg-shadow-opacity",(shadow/100).toFixed(2));
+      setBoundedNumber("--dg-line-height",typography.line_height,1.2,2.2,"");
       let configStyle=document.getElementById("dalimgari-runtime-theme");
       if(!configStyle){configStyle=document.createElement("style");configStyle.id="dalimgari-runtime-theme";document.head.append(configStyle);}
-      const themeRules=[];
-      if(primaryColor)themeRules.push(".action-button.primary,.login-submit,.dashboard-nav-button[aria-selected='true']{background-color:"+primaryColor+" !important;border-color:"+primaryColor+" !important}");
-      if(surfaceColor)themeRules.push(".dashboard-section-content,.dashboard-crud-card,.login-form,.profile-page{background-color:"+surfaceColor+" !important}");
-      if(textColor)themeRules.push(".dashboard-section-content,.dashboard-crud-card,.login-form,.profile-page{color:"+textColor+" !important}");
-      configStyle.textContent=themeRules.join("\n");
+      configStyle.textContent="";
       if(typography.font_family&&typography.font_family!=="system")document.body.style.fontFamily=typography.font_family;
       else document.body.style.removeProperty("font-family");
       if(Number(typography.base_font_size)>=12&&Number(typography.base_font_size)<=22)document.body.style.fontSize=Number(typography.base_font_size)+"px";
@@ -3052,10 +3117,16 @@
             {name:"tagline",label:"Tagline",type:"text",value:""}
           ]},
           {id:"theme",title:"Appearance & Theme",key:"ui_customization_theme",fields:[
-            {name:"primary_color",label:"Primary color",type:"color",value:"#222222"},
+            {name:"primary_color",label:"Primary color / buttons / links",type:"color",value:"#222222"},
+            {name:"secondary_color",label:"Secondary color",type:"color",value:"#5b6472"},
             {name:"background_color",label:"Page background",type:"color",value:"#ffffff"},
-            {name:"surface_color",label:"Cards and surfaces",type:"color",value:"#ffffff"},
-            {name:"text_color",label:"Main text color",type:"color",value:"#222222"}
+            {name:"surface_color",label:"Cards, forms and surfaces",type:"color",value:"#ffffff"},
+            {name:"text_color",label:"Main text color",type:"color",value:"#222222"},
+            {name:"muted_text_color",label:"Secondary text color",type:"color",value:"#666666"},
+            {name:"border_color",label:"Borders and dividers",type:"color",value:"#e5e7eb"},
+            {name:"card_radius",label:"Card corner radius (px)",type:"number",value:14,min:0,max:32},
+            {name:"control_radius",label:"Button and input corner radius (px)",type:"number",value:9,min:0,max:24},
+            {name:"shadow_strength",label:"Shadow strength (%)",type:"number",value:6,min:0,max:30}
           ]},
           {id:"header_footer",title:"Header & Footer",key:"ui_customization_header_footer",fields:[
             {name:"show_header",label:"Show site header",type:"checkbox",value:true},
@@ -3073,7 +3144,8 @@
           ]},
           {id:"typography",title:"Typography",key:"ui_customization_typography",fields:[
             {name:"font_family",label:"Font family",type:"select",value:"system",options:[["system","System default"],["Arial, sans-serif","Arial"],["Georgia, serif","Georgia"],["Verdana, sans-serif","Verdana"],["Tahoma, sans-serif","Tahoma"]]},
-            {name:"base_font_size",label:"Base font size (px)",type:"number",value:16,min:12,max:22}
+            {name:"base_font_size",label:"Base font size (px)",type:"number",value:16,min:12,max:22},
+            {name:"line_height",label:"Text line height",type:"number",value:1.5,min:1.2,max:2.2,step:0.1}
           ]},
           {id:"responsive",title:"Responsive Layout",key:"ui_customization_responsive",fields:[
             {name:"content_width",label:"Maximum content width (px)",type:"number",value:1200,min:640,max:1800},
