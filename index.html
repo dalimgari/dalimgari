@@ -939,19 +939,80 @@
             const widgetHeading=card.querySelector("h3");if(widgetHeading)widgetHeading.remove();
             if(item.widget_type==="datetime"){
               const date=document.createElement("p");
-              date.style.cssText="margin:4px 0 8px;color:#5b6472;font-size:14px";
+              date.style.cssText="margin:4px 0 0;color:#5b6472;font-size:14px";
               const time=document.createElement("h2");
-              time.style.cssText="margin:0;font-size:clamp(24px,4vw,36px);line-height:1.2;font-variant-numeric:tabular-nums";
+              time.style.cssText="margin:0 0 8px;font-size:clamp(24px,4vw,36px);line-height:1.2;font-variant-numeric:tabular-nums";
               const banglaDate=document.createElement("p");
               banglaDate.style.cssText="margin:0 0 8px;color:#5b6472;font-size:14px";
+              const clockLayout=document.createElement("div");
+              clockLayout.style.cssText="display:flex;align-items:center;justify-content:space-between;gap:18px;width:100%;min-width:0";
+              const clockDetails=document.createElement("div");
+              clockDetails.style.cssText="flex:1;min-width:0";
+              clockDetails.append(time,banglaDate,date);
+              const dialWrap=document.createElement("div");
+              dialWrap.style.cssText="flex:0 0 clamp(108px,22vw,164px);width:clamp(108px,22vw,164px);max-width:44%;aspect-ratio:1";
+              const svgNS="http://www.w3.org/2000/svg";
+              const dial=document.createElementNS(svgNS,"svg");
+              dial.setAttribute("viewBox","0 0 160 160");
+              dial.setAttribute("role","img");
+              dial.setAttribute("aria-label","Analog clock showing Bangladesh time");
+              dial.style.cssText="display:block;width:100%;height:100%;overflow:visible";
+              const face=document.createElementNS(svgNS,"circle");
+              face.setAttribute("cx","80");face.setAttribute("cy","80");face.setAttribute("r","75");
+              face.setAttribute("fill","var(--card-bg, #fff)");face.setAttribute("stroke","var(--border-color, #d1d5db)");face.setAttribute("stroke-width","2");
+              dial.append(face);
+              for(let tick=0;tick<60;tick++){
+                const angle=tick*Math.PI/30;
+                const major=tick%5===0;
+                const line=document.createElementNS(svgNS,"line");
+                line.setAttribute("x1",String(80+Math.sin(angle)*(major?61:66)));
+                line.setAttribute("y1",String(80-Math.cos(angle)*(major?61:66)));
+                line.setAttribute("x2",String(80+Math.sin(angle)*70));
+                line.setAttribute("y2",String(80-Math.cos(angle)*70));
+                line.setAttribute("stroke","var(--text-color, #374151)");
+                line.setAttribute("stroke-width",major?"2.5":"1");
+                line.setAttribute("stroke-linecap","round");
+                dial.append(line);
+              }
+              for(let numeral=1;numeral<=12;numeral++){
+                const angle=numeral*Math.PI/6;
+                const label=document.createElementNS(svgNS,"text");
+                label.setAttribute("x",String(80+Math.sin(angle)*49));
+                label.setAttribute("y",String(80-Math.cos(angle)*49+4));
+                label.setAttribute("text-anchor","middle");
+                label.setAttribute("font-size","11");
+                label.setAttribute("font-weight","600");
+                label.setAttribute("fill","var(--text-color, #374151)");
+                label.textContent=String(numeral);
+                dial.append(label);
+              }
+              const makeHand=(length,width,color)=>{
+                const hand=document.createElementNS(svgNS,"line");
+                hand.setAttribute("x1","80");hand.setAttribute("y1","80");
+                hand.setAttribute("x2","80");hand.setAttribute("y2",String(80-length));
+                hand.setAttribute("stroke",color);hand.setAttribute("stroke-width",String(width));
+                hand.setAttribute("stroke-linecap","round");
+                dial.append(hand);
+                return hand;
+              };
+              const hourHand=makeHand(34,4,"var(--text-color, #374151)");
+              const minuteHand=makeHand(48,2.8,"var(--text-color, #374151)");
+              const secondHand=makeHand(55,1.2,"#dc2626");
+              const pin=document.createElementNS(svgNS,"circle");
+              pin.setAttribute("cx","80");pin.setAttribute("cy","80");pin.setAttribute("r","3.5");pin.setAttribute("fill","#dc2626");
+              dial.append(pin);
+              dialWrap.append(dial);
+              clockLayout.append(clockDetails,dialWrap);
+              card.append(clockLayout);
               const updateClock=()=>{
                 const now=new Date();
                 const bangladeshTimeZone="Asia/Dhaka";
-                date.textContent=new Intl.DateTimeFormat("en-US",{dateStyle:"full",timeZone:bangladeshTimeZone}).format(now);
                 time.textContent=new Intl.DateTimeFormat("en-US",{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false,timeZone:bangladeshTimeZone}).format(now);
-                const parts=new Intl.DateTimeFormat("en-GB",{timeZone:bangladeshTimeZone,year:"numeric",month:"numeric",day:"numeric"}).formatToParts(now);
+                date.textContent=new Intl.DateTimeFormat("en-US",{dateStyle:"full",timeZone:bangladeshTimeZone}).format(now);
+                const parts=new Intl.DateTimeFormat("en-GB",{timeZone:bangladeshTimeZone,year:"numeric",month:"numeric",day:"numeric",hour:"numeric",minute:"numeric",second:"numeric",hourCycle:"h23"}).formatToParts(now);
                 const part=name=>Number(parts.find(part=>part.type===name)?.value);
                 const year=part("year"),month=part("month"),day=part("day");
+                const hour=part("hour"),minute=part("minute"),second=part("second");
                 const banglaYear=year-(month>4||(month===4&&day>=14)?593:594);
                 const startYear=month>4||(month===4&&day>=14)?year:year-1;
                 const elapsed=Math.floor((Date.UTC(year,month-1,day)-Date.UTC(startYear,3,14))/86400000);
@@ -964,11 +1025,13 @@
                 const weekdayNames=["Robibar","Shombar","Mongolbar","Budhbar","Brihospotibar","Shukrobar","Shonibar"];
                 const weekday=new Date(Date.UTC(year,month-1,day)).getUTCDay();
                 banglaDate.textContent=weekdayNames[weekday]+", "+monthNames[banglaMonth]+" "+(remaining+1)+", "+banglaYear;
+                hourHand.setAttribute("transform","rotate("+((hour%12)*30+minute*0.5)+" 80 80)");
+                minuteHand.setAttribute("transform","rotate("+(minute*6+second*0.1)+" 80 80)");
+                secondHand.setAttribute("transform","rotate("+(second*6)+" 80 80)");
               };
               updateClock();
-              card.append(time,banglaDate,date);
               const clockTimer=setInterval(()=>{if(!card.isConnected){clearInterval(clockTimer);return;}updateClock();},1000);
-            }else if(item.widget_type==="map"){
+            }            }else if(item.widget_type==="map"){
               const map=document.createElement("iframe");
               const locationQuery=String(settings.location||"Saudi Arabia").trim();
               const configuredZoom=Number(settings.zoom);
