@@ -3363,7 +3363,8 @@
         presetControls.append(presetSelect, presetApply);
         presetCard.append(presetHeading, presetDescription, presetControls, presetStatus);
         form.append(presetCard);
-        async function loadPresets() {
+        async function loadPresets(preferredName="") {
+          const previousName=preferredName||presetSelect.value;
           const {data,error}=await supabaseClient.from("site_customizations").select("value").eq("key","ui_customization_presets").maybeSingle();
           if(error)throw error;
           let stored=data?.value||{};
@@ -3377,6 +3378,7 @@
           }else{
             names.forEach(name=>{const option=document.createElement("option");option.value=name;option.textContent=name;presetSelect.append(option)});
             presetApply.disabled=false;
+            presetSelect.value=names.includes(previousName)?previousName:names[0];
           }
         }
         presetApply.addEventListener("click",async()=>{
@@ -3386,16 +3388,32 @@
           presetApply.disabled=true;save.disabled=true;reload.disabled=true;presetStatus.textContent="Applying "+name+"…";presetStatus.style.color="";
           try{
             const user=await getCurrentUser();if(!user)throw new Error("Your admin session has expired. Please sign in again.");
+            let savedGroups=0;
             for(const group of groupDefs){
               const value=preset.settings[group.key];
               if(!value||typeof value!=="object"||Array.isArray(value))continue;
               const row={key:group.key,value,description:group.title,updated_by:user.id,updated_at:new Date().toISOString()};
               const {error}=await supabaseClient.from("site_customizations").upsert(row,{onConflict:"key"});
               if(error)throw error;
+              savedGroups++;
+            }
+            if(!savedGroups)throw new Error("This preset contains no settings that can be applied.");
+            const expectedTheme=preset.settings.ui_customization_theme||{};
+            const {data:verifyRow,error:verifyError}=await supabaseClient.from("site_customizations").select("value").eq("key","ui_customization_theme").maybeSingle();
+            if(verifyError)throw verifyError;
+            let savedTheme=verifyRow?.value||{};
+            if(typeof savedTheme==="string"){try{savedTheme=JSON.parse(savedTheme)}catch(_){savedTheme={}}}
+            if(expectedTheme.primary_color&&String(savedTheme.primary_color||"").toLowerCase()!==String(expectedTheme.primary_color).toLowerCase()) {
+              throw new Error("Preset save verification failed. The theme was not stored; check database permissions and try again.");
             }
             await applyDalimgariSiteConfig(true);
             await loadConfig();
-            presetStatus.textContent='Applied "'+name+'" preset to the website.';presetStatus.style.color="#176b43";
+            presetSelect.value=name;
+            const livePrimary=getComputedStyle(document.documentElement).getPropertyValue("--dg-primary").trim().toLowerCase();
+            if(expectedTheme.primary_color&&livePrimary!==String(expectedTheme.primary_color).toLowerCase()) {
+              throw new Error("Settings were saved, but the page theme did not update. Reload the page and try again.");
+            }
+            presetStatus.textContent='Applied "'+name+'" preset. '+savedGroups+' settings groups saved and verified.';presetStatus.style.color="#176b43";
           }catch(error){presetStatus.textContent="Could not apply preset: "+(error.message||"Unknown error");presetStatus.style.color="#a12622"}
           finally{presetApply.disabled=false;save.disabled=false;reload.disabled=false}
         });
