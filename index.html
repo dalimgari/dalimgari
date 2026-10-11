@@ -756,6 +756,197 @@
       return cfg;
     }
 
+    async function renderGalleryPage(initialAlbumId=null, session=null) {
+      const params=new URLSearchParams(window.location.hash.includes("?")?window.location.hash.split("?").slice(1).join("?"):"");
+      const selectedAlbumId=initialAlbumId||params.get("album")||"";
+      const initialView=params.get("view")||"all";
+      const siteConfig=await applyDalimgariSiteConfig();
+      document.title=String((siteConfig.ui_settings_general||{}).site_title||"Dalimgari").trim()||"Dalimgari";
+      mainContent.style.alignItems="flex-start";
+      mainContent.style.justifyContent="flex-start";
+
+      const shell=document.createElement("section");
+      shell.className="gallery-page";
+      shell.style.cssText="width:100%;max-width:1200px;min-width:0;margin:0 auto;padding:24px 16px 40px;box-sizing:border-box";
+      const heading=document.createElement("h1");
+      heading.textContent="Gallery";
+      heading.style.cssText="margin:0 0 16px;font-size:clamp(24px,4vw,32px)";
+      const nav=document.createElement("nav");
+      nav.setAttribute("aria-label","Gallery filters and albums");
+      nav.style.cssText="position:sticky;top:104px;z-index:9;display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;overflow-y:hidden;padding:10px 2px 12px;margin:0 0 22px;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);overscroll-behavior-x:contain;scrollbar-width:thin";
+      const view=document.createElement("div");
+      view.className="gallery-view";
+      view.style.cssText="width:100%;min-width:0";
+      shell.append(heading,nav,view);
+      mainContent.replaceChildren(shell);
+
+      const pill=(label,kind,value,active)=>{
+        const button=document.createElement("button");
+        button.type="button";
+        button.className="gallery-pill";
+        button.textContent=label;
+        button.dataset.kind=kind;
+        if(value)button.dataset.value=value;
+        button.setAttribute("aria-pressed",String(active));
+        button.style.cssText="flex:0 0 auto;min-height:40px;padding:0 16px;border:1px solid "+(active?"#222":"#dedede")+";border-radius:999px;background:"+(active?"#222":"#fff")+";color:"+(active?"#fff":"#333")+";font:inherit;font-size:14px;font-weight:600;white-space:nowrap;cursor:pointer";
+        nav.append(button);
+        return button;
+      };
+      const allPill=pill("All","view","all",!selectedAlbumId&&initialView==="all");
+      const photoPill=pill("Photo","view","photo",!selectedAlbumId&&initialView==="photo");
+      const videoPill=pill("Video","view","video",!selectedAlbumId&&initialView==="video");
+
+      const [albumResult,postResult,pageResult,heroResult]=await Promise.all([
+        supabaseClient.from("albums").select("id,title,description,url,cover_path,media,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(200),
+        supabaseClient.from("post").select("id,title,media,visibility,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(500),
+        supabaseClient.from("pages").select("id,title,media,visibility,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(500),
+        supabaseClient.from("hero_items").select("id,title,media,visibility,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(200)
+      ]);
+      const albums=!albumResult.error&&Array.isArray(albumResult.data)?albumResult.data:[];
+      const sources=[
+        ...(Array.isArray(postResult.data)?postResult.data:[]),
+        ...(Array.isArray(pageResult.data)?pageResult.data:[]),
+        ...(Array.isArray(heroResult.data)?heroResult.data:[])
+      ];
+      const mediaForAlbum=album=>Array.isArray(album.media)?album.media.filter(item=>item&&item.path):[];
+      const inferMime=item=>{
+        if(item.mime_type)return String(item.mime_type).toLowerCase();
+        const path=String(item.path||item.name||"").toLowerCase().split("?")[0];
+        if(/\.(jpe?g|png|gif|webp|avif|bmp|svg)$/.test(path))return "image/unknown";
+        if(/\.(mp4|webm|mov|m4v|ogv)$/.test(path))return "video/unknown";
+        if(/\.(mp3|wav|ogg|m4a|aac|flac)$/.test(path))return "audio/unknown";
+        return "application/octet-stream";
+      };
+      const uniqueMedia=[];
+      const seen=new Set();
+      const addMedia=(raw,sourceTitle="")=>{
+        if(!raw||!raw.path)return;
+        const item={...raw,mime_type:inferMime(raw),source_title:sourceTitle||raw.source_title||""};
+        const key=String(item.media_id||item.path);
+        if(seen.has(key))return;
+        seen.add(key);
+        uniqueMedia.push(item);
+      };
+      for(const album of albums){
+        for(const item of mediaForAlbum(album))addMedia(item,album.title);
+        if(album.cover_path)addMedia({path:album.cover_path,mime_type:"image/unknown",title:album.title,alt_text:album.title},album.title);
+      }
+      for(const source of sources)for(const item of (Array.isArray(source.media)?source.media:[]))addMedia(item,source.title);
+      for(const album of albums)pill(album.title||"Untitled","album",album.id,selectedAlbumId===album.id);
+
+      const galleryGrid=(items)=>{
+        const grid=document.createElement("div");
+        grid.style.cssText="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr));gap:14px;width:100%;min-width:0";
+        for(const item of items){
+          if(!item||!item.path)continue;
+          const tile=document.createElement("figure");
+          tile.style.cssText="min-width:0;margin:0;overflow:hidden;border-radius:10px;background:#f3f4f6";
+          const urlPromise=createContentMediaUrl(item.path);
+          const mime=inferMime(item);
+          let mediaElement;
+          if(mime.startsWith("image/")){
+            mediaElement=document.createElement("img");
+            mediaElement.alt=item.alt_text||item.title||item.name||"";
+            mediaElement.loading="lazy";
+            mediaElement.decoding="async";
+            mediaElement.style.cssText="display:block;width:100%;aspect-ratio:4/3;object-fit:cover";
+          }else if(mime.startsWith("video/")){
+            mediaElement=document.createElement("video");
+            mediaElement.controls=true;
+            mediaElement.preload="metadata";
+            mediaElement.style.cssText="display:block;width:100%;aspect-ratio:4/3;object-fit:contain";
+          }else if(mime.startsWith("audio/")){
+            mediaElement=document.createElement("audio");
+            mediaElement.controls=true;
+            mediaElement.style.cssText="display:block;width:calc(100% - 20px);margin:10px";
+          }else{
+            mediaElement=document.createElement("a");
+            mediaElement.textContent=item.title||item.name||"Open file";
+            mediaElement.target="_blank";
+            mediaElement.rel="noopener noreferrer";
+            mediaElement.style.cssText="display:block;padding:18px;overflow-wrap:anywhere";
+          }
+          Promise.resolve(urlPromise).then(url=>{
+            if(!url){tile.remove();return;}
+            if(mediaElement.tagName==="A")mediaElement.href=url;
+            else mediaElement.src=url;
+          });
+          if(mediaElement.tagName!=="A")tile.append(mediaElement);
+          const captionText=item.title||item.name||"";
+          if(captionText){
+            const caption=document.createElement("figcaption");
+            caption.textContent=captionText;
+            caption.style.cssText="padding:8px 10px;font-size:13px;line-height:1.4;overflow-wrap:anywhere";
+            tile.append(caption);
+          }
+          grid.append(tile);
+        }
+        return grid;
+      };
+      const updatePills=(kind,value)=>{
+        nav.querySelectorAll(".gallery-pill").forEach(button=>{
+          const active=button.dataset.kind===kind&&button.dataset.value===value;
+          button.setAttribute("aria-pressed",String(active));
+          button.style.background=active?"#222":"#fff";
+          button.style.color=active?"#fff":"#333";
+          button.style.borderColor=active?"#222":"#dedede";
+        });
+      };
+      const showView=(kind,value,writeHistory=true)=>{
+        view.replaceChildren();
+        let items=[];
+        if(kind==="album"){
+          const album=albums.find(item=>item.id===value);
+          if(!album){
+            const message=document.createElement("p");message.textContent="This album is unavailable.";view.append(message);
+            updatePills("view","all");return;
+          }
+          const title=document.createElement("h2");title.textContent=album.title||"Untitled";title.style.cssText="margin:0 0 8px;font-size:clamp(21px,3vw,28px)";
+          view.append(title);
+          if(album.description){
+            const description=document.createElement("p");description.textContent=album.description;description.style.cssText="margin:0 0 18px;color:#5b6472;white-space:pre-wrap;line-height:1.6";view.append(description);
+          }
+          items=mediaForAlbum(album);
+          if(album.cover_path&&!items.some(item=>item.path===album.cover_path))items.push({path:album.cover_path,mime_type:"image/unknown",title:album.title,alt_text:album.title});
+          if(items.length)view.append(galleryGrid(items));
+          else{const empty=document.createElement("p");empty.textContent="No media in this album.";view.append(empty);}
+          updatePills("album",value);
+          if(writeHistory)history.pushState(null,"","#gallery?album="+encodeURIComponent(value));
+        }else{
+          const selected=kind==="photo"?uniqueMedia.filter(item=>inferMime(item).startsWith("image/")):kind==="video"?uniqueMedia.filter(item=>inferMime(item).startsWith("video/")):uniqueMedia;
+          const title=document.createElement("h2");title.textContent=kind==="photo"?"Photo":kind==="video"?"Video":"All public media";title.style.cssText="margin:0 0 14px;font-size:clamp(20px,3vw,26px)";
+          view.append(title);
+          if(selected.length)view.append(galleryGrid(selected));
+          else{const empty=document.createElement("p");empty.textContent="No public media found.";view.append(empty);}
+          if(kind==="all"){
+            for(const album of albums){
+              const section=document.createElement("section");
+              section.style.cssText="margin-top:32px;padding-top:22px;border-top:1px solid #e5e7eb";
+              const sectionTitle=document.createElement("h2");sectionTitle.textContent=album.title||"Untitled";sectionTitle.style.cssText="margin:0 0 14px;font-size:clamp(19px,3vw,24px)";
+              section.append(sectionTitle);
+              const albumItems=mediaForAlbum(album);
+              if(album.cover_path&&!albumItems.some(item=>item.path===album.cover_path))albumItems.push({path:album.cover_path,mime_type:"image/unknown",title:album.title,alt_text:album.title});
+              if(albumItems.length)section.append(galleryGrid(albumItems));
+              else{const empty=document.createElement("p");empty.textContent="No media in this album.";section.append(empty);}
+              view.append(section);
+            }
+          }
+          updatePills("view",kind);
+          if(writeHistory)history.pushState(null,"",kind==="all"?"#gallery":"#gallery?view="+encodeURIComponent(kind));
+        }
+        view.scrollIntoView({behavior:"smooth",block:"start"});
+      };
+      nav.addEventListener("click",event=>{
+        const button=event.target.closest(".gallery-pill");
+        if(!button)return;
+        showView(button.dataset.kind,button.dataset.value||"all",true);
+      });
+      const selectedAlbum=albums.find(album=>album.id===selectedAlbumId);
+      if(selectedAlbum)showView("album",selectedAlbum.id,false);
+      else if(initialView==="photo"||initialView==="video")showView(initialView,initialView,false);
+      else showView("all","all",false);
+    }
+
     async function renderHome() {
       const siteConfig = await applyDalimgariSiteConfig();
       const maintenance = siteConfig.ui_settings_maintenance_features || {};
@@ -1151,58 +1342,37 @@
               const heading=card.querySelector("h3");
               card.insertBefore(cover,heading||card.firstChild);
             }
-            // Keep album contents off the homepage; only the album preview card is shown.
+            // Homepage keeps one card per album; opening it navigates to Gallery.
+            card.classList.add("home-album-open");
+            card.dataset.albumId=album.id;
             card.style.flex="0 0 clamp(240px,30vw,320px)";
             card.style.maxWidth="85vw";
             card.tabIndex=0;
             card.setAttribute("role","button");
-            card.setAttribute("aria-label","Open album: "+(album.title||"Untitled"));
+            card.setAttribute("aria-label","Open album in Gallery: "+(album.title||"Untitled"));
             card.style.cursor="pointer";
-            let detailView=null;
-            const openAlbum=async()=>{
-              if(!detailView){
-                detailView=document.createElement("section");
-                detailView.className="home-album-detail";
-                detailView.style.cssText="width:100%;max-width:100%;min-width:0;padding:20px;border:1px solid #e5e7eb;border-radius:14px;background:#fff;box-sizing:border-box";
-                const back=document.createElement("button");
-                back.type="button";
-                back.className="action-button";
-                back.textContent="Back to albums";
-                back.style.marginBottom="18px";
-                back.addEventListener("click",()=>{
-                  detailView.hidden=true;
-                  grid.hidden=false;
-                  grid.scrollIntoView({behavior:"smooth",block:"nearest"});
-                });
-                const detailHeading=document.createElement("h2");
-                detailHeading.textContent=album.title||"Untitled";
-                detailHeading.style.cssText="margin:0 0 10px;font-size:clamp(21px,3vw,28px);overflow-wrap:anywhere";
-                detailView.append(back,detailHeading);
-                if(album.description){
-                  const detailDescription=document.createElement("p");
-                  detailDescription.textContent=album.description;
-                  detailDescription.style.cssText="margin:0 0 18px;color:#5b6472;line-height:1.6;white-space:pre-wrap";
-                  detailView.append(detailDescription);
-                }
-                const imageMedia=media.filter(item=>String(item.mime_type||"").startsWith("image/")&&item.path);
-                if(imageMedia.length)await renderContentMedia(detailView,imageMedia);
-                else{
-                  const empty=document.createElement("p");
-                  empty.textContent="No images in this album.";
-                  detailView.append(empty);
-                }
-                albumSection.append(detailView);
-              }
-              grid.hidden=true;
-              detailView.hidden=false;
-              detailView.scrollIntoView({behavior:"smooth",block:"start"});
-            };
-            card.addEventListener("click",openAlbum);
-            card.addEventListener("keydown",event=>{
-              if(event.key==="Enter"||event.key===" "){event.preventDefault();openAlbum();}
-            });
             grid.append(card);
           }
+          grid.addEventListener("click",event=>{
+            const card=event.target.closest(".home-album-open");
+            if(!card||!grid.contains(card))return;
+            const albumId=card.dataset.albumId;
+            if(!albumId)return;
+            history.pushState(null,"","#gallery?album="+encodeURIComponent(albumId));
+            renderGalleryPage(albumId);
+            setCurrentMenuPage("Gallery");
+          });
+          grid.addEventListener("keydown",event=>{
+            if(event.key!=="Enter"&&event.key!==" ")return;
+            const card=event.target.closest(".home-album-open");
+            if(!card||!grid.contains(card))return;
+            event.preventDefault();
+            const albumId=card.dataset.albumId;
+            if(!albumId)return;
+            history.pushState(null,"","#gallery?album="+encodeURIComponent(albumId));
+            renderGalleryPage(albumId);
+            setCurrentMenuPage("Gallery");
+          });
           if(albums.length>1){
             const originals=Array.from(grid.children);
             for(const original of originals){
@@ -3469,7 +3639,7 @@
           return "#forgot-password";
         }
         if (params.has("page") && params.get("page") && !window.location.hash) return "#stored-page";
-        return window.location.hash.toLowerCase() || "#home";
+        return (window.location.hash.split("?")[0].toLowerCase() || "#home");
       };
       const openRoute = (session) => {
         updateAuthMenu(session);
@@ -3480,6 +3650,10 @@
         } else if (currentRoute === "#home") {
           renderHome();
           setCurrentMenuPage("Home");
+        } else if (currentRoute === "#gallery") {
+          const galleryParams=new URLSearchParams(window.location.hash.includes("?")?window.location.hash.split("?").slice(1).join("?"):"");
+          renderGalleryPage(galleryParams.get("album"),session);
+          setCurrentMenuPage("Gallery");
         } else if (currentRoute === "#profile") {
           if (session) {
             renderPage("Profile");
@@ -3564,7 +3738,7 @@
           (hashParams.get("type") === "recovery" && hashParams.has("access_token"))
           ? "#forgot-password"
           : (params.has("page") && params.get("page") && !window.location.hash
-            ? "#stored-page" : (window.location.hash.toLowerCase() || "#home"));
+            ? "#stored-page" : (window.location.hash.split("?")[0].toLowerCase() || "#home"));
         if (currentRoute === "#media-upload") {
           // Backward compatibility: the uploader now lives on Home.
           history.replaceState(null, "", "#home");
@@ -3579,6 +3753,11 @@
           updateAuthMenu(data.session);
           renderHome();
           setCurrentMenuPage("Home");
+        } else if (currentRoute === "#gallery") {
+          updateAuthMenu(data.session);
+          const galleryParams=new URLSearchParams(window.location.hash.includes("?")?window.location.hash.split("?").slice(1).join("?"):"");
+          renderGalleryPage(galleryParams.get("album"),data.session);
+          setCurrentMenuPage("Gallery");
         } else if (currentRoute === "#forgot-password") {
           updateAuthMenu(data.session);
           renderPage("ForgotPassword");
