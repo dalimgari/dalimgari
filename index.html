@@ -3362,7 +3362,7 @@
         presetStatus.setAttribute("role", "status");
         presetControls.append(presetSelect, presetApply);
         presetCard.append(presetHeading, presetDescription, presetControls, presetStatus);
-        form.append(presetCard);
+        if(isCustomization)form.append(presetCard);
         async function loadPresets(preferredName="") {
           const previousName=preferredName||presetSelect.value;
           const {data,error}=await supabaseClient.from("site_customizations").select("value").eq("key","ui_customization_presets").maybeSingle();
