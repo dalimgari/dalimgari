@@ -1151,9 +1151,56 @@
               const heading=card.querySelector("h3");
               card.insertBefore(cover,heading||card.firstChild);
             }
-            if(media.length)await renderContentMedia(card,media);
+            // Keep album contents off the homepage; only the album preview card is shown.
             card.style.flex="0 0 clamp(240px,30vw,320px)";
             card.style.maxWidth="85vw";
+            card.tabIndex=0;
+            card.setAttribute("role","button");
+            card.setAttribute("aria-label","Open album: "+(album.title||"Untitled"));
+            card.style.cursor="pointer";
+            let detailView=null;
+            const openAlbum=async()=>{
+              if(!detailView){
+                detailView=document.createElement("section");
+                detailView.className="home-album-detail";
+                detailView.style.cssText="width:100%;max-width:100%;min-width:0;padding:20px;border:1px solid #e5e7eb;border-radius:14px;background:#fff;box-sizing:border-box";
+                const back=document.createElement("button");
+                back.type="button";
+                back.className="action-button";
+                back.textContent="Back to albums";
+                back.style.marginBottom="18px";
+                back.addEventListener("click",()=>{
+                  detailView.hidden=true;
+                  grid.hidden=false;
+                  grid.scrollIntoView({behavior:"smooth",block:"nearest"});
+                });
+                const detailHeading=document.createElement("h2");
+                detailHeading.textContent=album.title||"Untitled";
+                detailHeading.style.cssText="margin:0 0 10px;font-size:clamp(21px,3vw,28px);overflow-wrap:anywhere";
+                detailView.append(back,detailHeading);
+                if(album.description){
+                  const detailDescription=document.createElement("p");
+                  detailDescription.textContent=album.description;
+                  detailDescription.style.cssText="margin:0 0 18px;color:#5b6472;line-height:1.6;white-space:pre-wrap";
+                  detailView.append(detailDescription);
+                }
+                const imageMedia=media.filter(item=>String(item.mime_type||"").startsWith("image/")&&item.path);
+                if(imageMedia.length)await renderContentMedia(detailView,imageMedia);
+                else{
+                  const empty=document.createElement("p");
+                  empty.textContent="No images in this album.";
+                  detailView.append(empty);
+                }
+                albumSection.append(detailView);
+              }
+              grid.hidden=true;
+              detailView.hidden=false;
+              detailView.scrollIntoView({behavior:"smooth",block:"start"});
+            };
+            card.addEventListener("click",openAlbum);
+            card.addEventListener("keydown",event=>{
+              if(event.key==="Enter"||event.key===" "){event.preventDefault();openAlbum();}
+            });
             grid.append(card);
           }
           if(albums.length>1){
