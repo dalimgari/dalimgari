@@ -2262,7 +2262,7 @@
         { id: "overview", label: "Overview", description: "Dashboard overview." },
         { id: "hero", label: "Hero", description: "Create and manage homepage hero content." },
         { id: "post", label: "Post", description: "Create and manage posts." },
-        { id: "page", label: "Page", description: "Create and manage pages." },
+        { id: "page", label: "Page", description: "Create and manage custom pages." },
         { id: "album", label: "Album", description: "Group related content and media." },
         { id: "media-library", label: "Media Library", description: "Manage reusable media files and their metadata." },
         { id: "widget", label: "Widget", description: "Manage homepage widgets and their Show/Hide visibility." },
@@ -2785,7 +2785,7 @@
           {name:"album_id",label:"Album",type:"select",options:[["","No album"]]},
           {name:"visibility",label:"Visibility",type:"select",required:true,options:[["public","Public"],["private","Private"]]}
         ]},
-        page:{table:"pages",label:"Page",fields:[
+        page:{table:"pages",label:"Custom Page",fields:[
           {name:"title",label:"Title",type:"text",required:true},
           {name:"description",label:"Description",type:"textarea",full:true},
           {name:"url",label:"URL",type:"text",required:true,help:"A unique URL slug. Use English letters, numbers, and hyphens; you can edit it."},
