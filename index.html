@@ -1061,6 +1061,10 @@
         Number(heroVisual.description_width)>=280&&Number(heroVisual.description_width)<=1200?".home-hero-text-overlay p:not(.home-tagline){max-width:"+Number(heroVisual.description_width)+"px!important}":"",
         heroVisual.text_align==="left"?".home-hero-text-overlay{align-items:flex-start!important;text-align:left!important}":heroVisual.text_align==="right"?".home-hero-text-overlay{align-items:flex-end!important;text-align:right!important}":".home-hero-text-overlay{align-items:center!important;text-align:center!important}",
         heroVisual.vertical_align==="top"?".home-hero-text-overlay{justify-content:flex-start!important}":heroVisual.vertical_align==="bottom"?".home-hero-text-overlay{justify-content:flex-end!important}":".home-hero-text-overlay{justify-content:center!important}",
+        /^#[0-9a-f]{6}$/i.test(String(heroVisual.text_color||""))?".home-hero-text-overlay{color:"+String(heroVisual.text_color)+"!important}":"",
+        /^#[0-9a-f]{6}$/i.test(String(heroVisual.heading_color||""))?".home-hero-text-overlay h1{color:"+String(heroVisual.heading_color)+"!important}":"",
+        /^#[0-9a-f]{6}$/i.test(String(heroVisual.description_color||""))?".home-hero-text-overlay p:not(.home-tagline){color:"+String(heroVisual.description_color)+"!important}":"",
+        /^#[0-9a-f]{6}$/i.test(String(heroVisual.tagline_color||""))?".home-hero-text-overlay .home-tagline{color:"+String(heroVisual.tagline_color)+"!important}":"" ,
         heroVisual.show_tagline===false?".home-hero-text-overlay .home-tagline{display:none!important}":"",
         heroVisual.image_fit?".home-hero-image-frame > img{object-fit:"+heroImageFit+"!important}":"",
         heroVisual.image_position?".home-hero-image-frame > img{object-position:"+heroImagePosition+"!important}":"",
@@ -3277,6 +3281,10 @@
             {name:"overlay_color",label:"Image overlay color",type:"color",value:"#0f172a"},
             {name:"overlay_opacity",label:"Overlay opacity (%)",type:"number",value:48,min:0,max:90},
             {name:"overlay_enabled",label:"Enable image overlay",type:"checkbox",value:true},
+            {name:"text_color",label:"Hero text color (fallback)",type:"color",value:"#ffffff"},
+            {name:"heading_color",label:"Hero heading color",type:"color",value:"#ffffff"},
+            {name:"description_color",label:"Hero description color",type:"color",value:"#ffffff"},
+            {name:"tagline_color",label:"Hero tagline color",type:"color",value:"#ffffff"},
             {name:"show_tagline",label:"Show site tagline in Hero",type:"checkbox",value:true}
           ]}
         ] : [
