@@ -985,7 +985,7 @@
     let dalimgariHomeObserver = null;
     // Loads public-safe configuration saved by the dashboard and applies supported settings.
     async function applyDalimgariSiteConfig(force=false) {
-      const keys=["ui_customization_identity","ui_customization_theme","ui_customization_header_footer","ui_customization_layout","ui_customization_typography","ui_customization_responsive","ui_customization_components","ui_customization_media","ui_customization_page_style","ui_customization_effects","ui_settings_general","ui_settings_homepage_defaults","ui_settings_content_defaults","ui_settings_users_access","ui_settings_privacy_visibility","ui_settings_maintenance_features"];
+      const keys=["ui_customization_identity","ui_customization_theme","ui_customization_header_footer","ui_customization_layout","ui_customization_typography","ui_customization_responsive","ui_customization_components","ui_customization_media","ui_customization_page_style","ui_customization_effects","ui_customization_hero","ui_settings_general","ui_settings_homepage_defaults","ui_settings_content_defaults","ui_settings_users_access","ui_settings_privacy_visibility","ui_settings_maintenance_features"];
       const {data,error}=await supabaseClient.from("site_customizations").select("key,value").in("key",keys);
       if(error){console.warn("Site configuration could not be loaded:",error.message);return {};}
       const cfg={};
@@ -994,7 +994,7 @@
       const identity=cfg.ui_customization_identity||{}, general=cfg.ui_settings_general||{};
       const theme=cfg.ui_customization_theme||{}, header=cfg.ui_customization_header_footer||{};
       const layout=cfg.ui_customization_layout||{}, typography=cfg.ui_customization_typography||{};
-      const responsive=cfg.ui_customization_responsive||{}, components=cfg.ui_customization_components||{}, media=cfg.ui_customization_media||{}, pageStyle=cfg.ui_customization_page_style||{}, effects=cfg.ui_customization_effects||{}, features=cfg.ui_settings_maintenance_features||{};
+      const responsive=cfg.ui_customization_responsive||{}, components=cfg.ui_customization_components||{}, media=cfg.ui_customization_media||{}, pageStyle=cfg.ui_customization_page_style||{}, effects=cfg.ui_customization_effects||{}, heroVisual=cfg.ui_customization_hero||{}, features=cfg.ui_settings_maintenance_features||{};
       const homepageDefaults=cfg.ui_settings_homepage_defaults||{};
       const title=String(general.site_title||identity.site_title||"Dalimgari").trim()||"Dalimgari";
       document.title=title;
@@ -1039,6 +1039,11 @@
       const safeMenuGap=Number(header.menu_gap);
       const safeColumns=Number(media.gallery_columns);
       const animationRule=effects.animations_enabled===false ? " *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}" : "";
+      const heroOverlayHex=/^#[0-9a-f]{6}$/i.test(String(heroVisual.overlay_color||""))?String(heroVisual.overlay_color):"#0f172a";
+      const heroOverlayRgb=heroOverlayHex.match(/[0-9a-f]{2}/ig).map(part=>parseInt(part,16)).join(",");
+      const heroOverlayOpacity=Math.max(0,Math.min(90,Number(heroVisual.overlay_opacity)||0))/100;
+      const heroImageFit=["cover","contain"].includes(heroVisual.image_fit)?heroVisual.image_fit:"cover";
+      const heroImagePosition=["center","top","bottom","left","right"].includes(heroVisual.image_position)?heroVisual.image_position:"center";
       configStyle.textContent=[
         safeWidth>=640&&safeWidth<=1800?".stored-html-page,.gallery-page{max-width:"+safeWidth+"px!important}":"",
         safeTitleSize>=20&&safeTitleSize<=56?".stored-html-page h1,.gallery-page h1{font-size:"+safeTitleSize+"px!important}":"",
@@ -1046,7 +1051,20 @@
         safeMenuGap>=0&&safeMenuGap<=32?".floating-menu{gap:"+safeMenuGap+"px!important}":"",
         safeColumns>=1&&safeColumns<=6?".gallery-page .gallery-grid,.gallery-page .media-grid{grid-template-columns:repeat("+safeColumns+",minmax(0,1fr))!important}":"",
         media.image_fit==="contain"?".home-page img,.gallery-page img,.stored-html-page img{object-fit:contain!important}":media.image_fit==="cover"?".home-page img,.gallery-page img,.stored-html-page img{object-fit:cover!important}":"",
-        animationRule
+        animationRule,
+        Number(heroVisual.desktop_height)>=180&&Number(heroVisual.desktop_height)<=900?".home-hero-image-frame{height:"+Number(heroVisual.desktop_height)+"px!important;aspect-ratio:auto!important}":"",
+        Number(heroVisual.desktop_height)===0?".home-hero-image-frame{height:auto!important;aspect-ratio:16/9!important}":"",
+        Number(heroVisual.mobile_height)>=140&&Number(heroVisual.mobile_height)<=700?"@media(max-width:600px){.home-hero-image-frame{height:"+Number(heroVisual.mobile_height)+"px!important;aspect-ratio:auto!important}}":"",
+        Number(heroVisual.mobile_height)===0?"@media(max-width:600px){.home-hero-image-frame{height:auto!important;aspect-ratio:16/9!important}}":"",
+        Number(heroVisual.border_radius)>=0&&Number(heroVisual.border_radius)<=48?".home-hero-image-frame{border-radius:"+Number(heroVisual.border_radius)+"px!important}":"",
+        Number(heroVisual.content_width)>=320&&Number(heroVisual.content_width)<=1200?".home-hero-text-overlay h1,.home-hero-text-overlay p{max-width:"+Number(heroVisual.content_width)+"px!important}":"",
+        heroVisual.text_align==="left"?".home-hero-text-overlay{align-items:flex-start!important;text-align:left!important}":heroVisual.text_align==="right"?".home-hero-text-overlay{align-items:flex-end!important;text-align:right!important}":".home-hero-text-overlay{align-items:center!important;text-align:center!important}",
+        heroVisual.vertical_align==="top"?".home-hero-text-overlay{justify-content:flex-start!important}":heroVisual.vertical_align==="bottom"?".home-hero-text-overlay{justify-content:flex-end!important}":".home-hero-text-overlay{justify-content:center!important}",
+        heroVisual.show_tagline===false?".home-hero-text-overlay .home-tagline{display:none!important}":"",
+        heroVisual.image_fit?".home-hero-image-frame > img{object-fit:"+heroImageFit+"!important}":"",
+        heroVisual.image_position?".home-hero-image-frame > img{object-position:"+heroImagePosition+"!important}":"",
+        Object.prototype.hasOwnProperty.call(heroVisual,"overlay_enabled")&&heroVisual.overlay_enabled===false?".home-hero-image-frame > div[aria-hidden='true']{display:none!important}":"",
+        Object.prototype.hasOwnProperty.call(heroVisual,"overlay_enabled")&&heroVisual.overlay_enabled!==false?".home-hero-image-frame > div[aria-hidden='true']{display:block!important;background:linear-gradient(90deg,rgba("+heroOverlayRgb+","+heroOverlayOpacity+"),rgba("+heroOverlayRgb+","+(heroOverlayOpacity*0.42)+"),rgba("+heroOverlayRgb+","+heroOverlayOpacity+"))!important}":""
       ].filter(Boolean).join("\n");
       if(typography.font_family&&typography.font_family!=="system")document.body.style.fontFamily=typography.font_family;
       else document.body.style.removeProperty("font-family");
@@ -3244,6 +3262,20 @@
           {id:"effects",title:"Effects & Animation",key:"ui_customization_effects",fields:[
             {name:"transition_speed",label:"Transition speed (ms)",type:"number",value:180,min:0,max:600},
             {name:"animations_enabled",label:"Enable UI animations",type:"checkbox",value:true}
+          ]},
+          {id:"hero",title:"Hero Section",key:"ui_customization_hero",fields:[
+            {name:"desktop_height",label:"Desktop height (px, 0 = 16:9 auto)",type:"number",value:0,min:0,max:900},
+            {name:"mobile_height",label:"Mobile height (px, 0 = 16:9 auto)",type:"number",value:0,min:0,max:700},
+            {name:"border_radius",label:"Hero corner radius (px)",type:"number",value:20,min:0,max:48},
+            {name:"content_width",label:"Text content maximum width (px)",type:"number",value:900,min:320,max:1200},
+            {name:"text_align",label:"Text alignment",type:"select",value:"center",options:[["left","Left"],["center","Center"],["right","Right"]]},
+            {name:"vertical_align",label:"Vertical text position",type:"select",value:"center",options:[["top","Top"],["center","Center"],["bottom","Bottom"]]},
+            {name:"image_fit",label:"Hero image fit",type:"select",value:"cover",options:[["cover","Cover"],["contain","Contain"]]},
+            {name:"image_position",label:"Hero image position",type:"select",value:"center",options:[["center","Center"],["top","Top"],["bottom","Bottom"],["left","Left"],["right","Right"]]},
+            {name:"overlay_color",label:"Image overlay color",type:"color",value:"#0f172a"},
+            {name:"overlay_opacity",label:"Overlay opacity (%)",type:"number",value:48,min:0,max:90},
+            {name:"overlay_enabled",label:"Enable image overlay",type:"checkbox",value:true},
+            {name:"show_tagline",label:"Show site tagline in Hero",type:"checkbox",value:true}
           ]}
         ] : [
           {id:"general",title:"General",key:"ui_settings_general",fields:[
