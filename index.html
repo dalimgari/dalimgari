@@ -2081,13 +2081,13 @@
 
       if(section.id==="widget"){
         content.replaceChildren();
-        const wrap=document.createElement("div");wrap.className="dashboard-crud";
-        const card=document.createElement("section");card.className="dashboard-crud-card";
+        const wrap=document.createElement("div");wrap.className="dashboard-crud";wrap.style.cssText="display:grid;gap:18px;width:100%";
+        const headingCard=document.createElement("section");headingCard.className="dashboard-crud-card";
         const title=document.createElement("h3");title.textContent="Homepage Widgets";
-        const hint=document.createElement("p");hint.className="dashboard-crud-hint";hint.textContent="Choose Show or Hide for each widget, then save. Only widgets set to Show appear in the homepage Widget section.";
+        const hint=document.createElement("p");hint.className="dashboard-crud-hint";hint.textContent="Manage each widget independently. Choose its visibility and adjust map settings, then save that widget's card.";
         const status=document.createElement("p");status.className="dashboard-crud-status";status.setAttribute("role","status");status.setAttribute("aria-live","polite");
-        const list=document.createElement("div");list.className="dashboard-crud-list";
-        card.append(title,hint,status,list);wrap.append(card);content.append(wrap);
+        const list=document.createElement("div");list.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:16px;align-items:start;width:100%";
+        headingCard.append(title,hint,status);wrap.append(headingCard,list);content.append(wrap);
         async function loadWidgets(){
           list.replaceChildren();
           const loading=document.createElement("p");loading.className="dashboard-crud-empty";loading.textContent="Loading widgets…";list.append(loading);
@@ -2096,90 +2096,79 @@
           if(error){list.replaceChildren();const msg=document.createElement("p");msg.className="dashboard-crud-empty";msg.textContent="Could not load widgets: "+error.message;list.append(msg);status.textContent="Load failed.";status.style.color="#a12622";return;}
           list.replaceChildren();
           if(!Array.isArray(data)||!data.length){const empty=document.createElement("p");empty.className="dashboard-crud-empty";empty.textContent="No widgets found.";list.append(empty);return;}
-          const table=document.createElement("table");table.className="dashboard-crud-table";
-          const thead=document.createElement("thead"),headRow=document.createElement("tr");
-          ["Widget","Type","Location","Default Zoom","Visibility","Action"].forEach(label=>{const th=document.createElement("th");th.textContent=label;headRow.append(th);});
-          thead.append(headRow);table.append(thead);
-          const tbody=document.createElement("tbody");
           for(const item of data){
-            const row=document.createElement("tr");
-            const nameCell=document.createElement("td");nameCell.textContent=item.title||"Widget";
-            const typeCell=document.createElement("td");typeCell.textContent=item.widget_type==="datetime"?"Date & Time":item.widget_type==="map"?"Map":item.widget_type;
-            const locationCell=document.createElement("td");
-            let locationInput=null;
+            const settings=item.settings&&typeof item.settings==="object"?item.settings:{};
+            const widgetCard=document.createElement("section");widgetCard.className="dashboard-crud-card";widgetCard.style.cssText="display:grid;gap:14px;align-content:start;min-width:0";
+            const cardHeader=document.createElement("div");cardHeader.style.cssText="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:12px;border-bottom:1px solid #e5e7eb";
+            const titleGroup=document.createElement("div");titleGroup.style.cssText="display:grid;gap:4px;min-width:0";
+            const name=document.createElement("h3");name.textContent=item.title||"Widget";name.style.cssText="margin:0;font-size:17px;overflow-wrap:anywhere";
+            const type=document.createElement("p");type.textContent=item.widget_type==="datetime"?"Date & Time":item.widget_type==="map"?"Map":String(item.widget_type||"Widget");type.style.cssText="margin:0;color:#6b7280;font-size:12px";
+            titleGroup.append(name,type);
+            const badge=document.createElement("span");badge.textContent=item.is_visible?"Visible":"Hidden";badge.style.cssText="flex:0 0 auto;padding:4px 8px;border:1px solid "+(item.is_visible?"#bbf7d0":"#e5e7eb")+";border-radius:999px;background:"+(item.is_visible?"#f0fdf4":"#f9fafb")+";color:"+(item.is_visible?"#166534":"#4b5563")+";font-size:12px;font-weight:600";
+            cardHeader.append(titleGroup,badge);widgetCard.append(cardHeader);
+            let locationInput=null,zoomInput=null,zoomValue=null;
             if(item.widget_type==="map"){
-              locationInput=document.createElement("input");locationInput.type="text";locationInput.className="dashboard-crud-input";
-              locationInput.value=String((item.settings&&item.settings.location)||"");
-              locationInput.placeholder="Address, place name, or Google Maps link";
-              locationInput.setAttribute("aria-label","Exact map location");
-              locationInput.style.minWidth="240px";
-              locationCell.append(locationInput);
-            }else{locationCell.textContent="—";}
-            const zoomCell=document.createElement("td");
-            let zoomInput=null;
-            if(item.widget_type==="map"){
-              const previousSettings=item.settings&&typeof item.settings==="object"?item.settings:{};
-              const savedZoom=Number(previousSettings.zoom);
-              const initialZoom=Number.isFinite(savedZoom)?Math.max(1,Math.min(21,Math.round(savedZoom))):13;
-              const zoomWrap=document.createElement("div");zoomWrap.style.cssText="display:grid;gap:6px;min-width:150px";
-              const zoomLabel=document.createElement("label");zoomLabel.textContent="Zoom: ";zoomLabel.style.cssText="font-size:13px;font-weight:600";
-              const zoomValue=document.createElement("output");zoomValue.value=String(initialZoom);zoomValue.textContent=String(initialZoom);zoomValue.style.cssText="font-size:13px;font-weight:600";
-              zoomLabel.append(zoomValue);
-              zoomInput=document.createElement("input");zoomInput.type="range";zoomInput.min="1";zoomInput.max="21";zoomInput.step="1";zoomInput.value=String(initialZoom);zoomInput.setAttribute("aria-label","Default map zoom for "+(item.title||"Map"));zoomInput.style.cssText="width:100%;min-width:140px;min-height:24px;accent-color:#222";
+              const locationField=document.createElement("div");locationField.className="dashboard-crud-field";
+              const locationLabel=document.createElement("label");locationLabel.textContent="Location";locationLabel.style.cssText="color:#444;font-size:13px;font-weight:600";
+              locationInput=document.createElement("input");locationInput.type="text";locationInput.className="dashboard-crud-input";locationInput.value=String(settings.location||"");locationInput.placeholder="Address, place name, or Google Maps link";locationInput.setAttribute("aria-label","Map location for "+(item.title||"Map"));
+              locationField.append(locationLabel,locationInput);widgetCard.append(locationField);
+              const zoomField=document.createElement("div");zoomField.className="dashboard-crud-field";zoomField.style.cssText="display:grid;gap:8px";
+              const zoomHeader=document.createElement("div");zoomHeader.style.cssText="display:flex;justify-content:space-between;align-items:center;gap:8px";
+              const zoomLabel=document.createElement("label");zoomLabel.textContent="Default Zoom";zoomLabel.style.cssText="color:#444;font-size:13px;font-weight:600";
+              const savedZoom=Number(settings.zoom);const initialZoom=Number.isFinite(savedZoom)?Math.max(1,Math.min(21,Math.round(savedZoom))):13;
+              zoomValue=document.createElement("output");zoomValue.value=String(initialZoom);zoomValue.textContent=String(initialZoom);zoomValue.style.cssText="font-size:13px;font-weight:700;color:#374151";
+              zoomHeader.append(zoomLabel,zoomValue);
+              zoomInput=document.createElement("input");zoomInput.type="range";zoomInput.min="1";zoomInput.max="21";zoomInput.step="1";zoomInput.value=String(initialZoom);zoomInput.setAttribute("aria-label","Default map zoom for "+(item.title||"Map"));zoomInput.style.cssText="display:block;width:100%;min-height:26px;accent-color:#374151;cursor:pointer";
               zoomInput.addEventListener("input",()=>{zoomValue.value=zoomInput.value;zoomValue.textContent=zoomInput.value;});
-              zoomWrap.append(zoomLabel,zoomInput);zoomCell.append(zoomWrap);
-            }else{zoomCell.textContent="—";}
-            const visibilityCell=document.createElement("td");
-            const select=document.createElement("select");select.className="dashboard-crud-input";select.style.minWidth="110px";
-            [["true","Show"],["false","Hide"]].forEach(([value,label])=>{const option=document.createElement("option");option.value=value;option.textContent=label;select.append(option);});
-            select.value=String(Boolean(item.is_visible));
-            select.setAttribute("aria-label","Visibility for "+(item.title||"Widget"));
-            visibilityCell.append(select);
-            const actionCell=document.createElement("td");
-            const saveRow=document.createElement("button");saveRow.type="button";saveRow.className="action-button primary";saveRow.textContent="Save";
-            saveRow.addEventListener("click",async()=>{
-              saveRow.disabled=true;status.textContent="Saving widget settings…";status.style.color="";
+              const zoomHelp=document.createElement("p");zoomHelp.textContent="Lower values show a wider area; higher values zoom in.";zoomHelp.style.cssText="margin:0;color:#6b7280;font-size:12px;line-height:1.45";
+              zoomField.append(zoomHeader,zoomInput,zoomHelp);widgetCard.append(zoomField);
+            }
+            const visibilityField=document.createElement("div");visibilityField.className="dashboard-crud-field";
+            const visibilityLabel=document.createElement("label");visibilityLabel.textContent="Homepage Visibility";visibilityLabel.style.cssText="color:#444;font-size:13px;font-weight:600";
+            const select=document.createElement("select");select.className="dashboard-crud-input";select.style.minWidth="0";
+            [["true","Show on homepage"],["false","Hide from homepage"]].forEach(([value,label])=>{const option=document.createElement("option");option.value=value;option.textContent=label;select.append(option);});
+            select.value=String(Boolean(item.is_visible));select.setAttribute("aria-label","Visibility for "+(item.title||"Widget"));
+            select.addEventListener("change",()=>{badge.textContent=select.value==="true"?"Visible":"Hidden";badge.style.background=select.value==="true"?"#f0fdf4":"#f9fafb";badge.style.borderColor=select.value==="true"?"#bbf7d0":"#e5e7eb";badge.style.color=select.value==="true"?"#166534":"#4b5563";});
+            visibilityField.append(visibilityLabel,select);widgetCard.append(visibilityField);
+            const cardStatus=document.createElement("p");cardStatus.className="dashboard-crud-status";cardStatus.style.cssText="margin:0;min-height:18px";cardStatus.setAttribute("role","status");cardStatus.setAttribute("aria-live","polite");
+            const actions=document.createElement("div");actions.className="dashboard-crud-actions";actions.style.cssText="margin-top:0";
+            const saveButton=document.createElement("button");saveButton.type="button";saveButton.className="action-button primary";saveButton.textContent="Save Widget";
+            saveButton.addEventListener("click",async()=>{
+              saveButton.disabled=true;cardStatus.textContent="Saving widget settings…";cardStatus.style.color="#6b7280";
               try{
                 const current=await getCurrentUser();if(!current)throw new Error("Your admin session has expired. Please sign in again.");
                 const update={is_visible:select.value==="true",updated_by:current.id,updated_at:new Date().toISOString()};
                 if(item.widget_type==="map"){
                   const location=String(locationInput&&locationInput.value||"").trim();
-                  if(!location)throw new Error("Enter the exact address, place name, or Google Maps link.");
+                  if(!location)throw new Error("Enter the address, place name, or Google Maps link.");
                   const previousSettings=item.settings&&typeof item.settings==="object"?item.settings:{};
+                  const zoom=zoomInput?Number(zoomInput.value):13;
                   const coordinateInput=/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/.test(location);
-                  const zoomValue=zoomInput?Number(zoomInput.value):13;
-                  let embedUrl="https://maps.google.com/maps?q="+encodeURIComponent(location)+"&z="+zoomValue+"&output=embed";
+                  let embedUrl="https://maps.google.com/maps?q="+encodeURIComponent(location)+"&z="+zoom+"&output=embed";
                   let resolvedLocation=location;
                   let mapsLink=false;
                   try{
-                    const parsedLocationUrl=new URL(location);
-                    const host=parsedLocationUrl.hostname.toLowerCase();
-                    mapsLink=parsedLocationUrl.protocol==="https:"&&(
-                      host==="maps.app.goo.gl"||host==="goo.gl"||
-                      ((host==="google.com"||host==="www.google.com"||host==="maps.google.com")&&parsedLocationUrl.pathname.startsWith("/maps"))
-                    );
+                    const parsedLocationUrl=new URL(location);const host=parsedLocationUrl.hostname.toLowerCase();
+                    mapsLink=parsedLocationUrl.protocol==="https:"&&(host==="maps.app.goo.gl"||host==="goo.gl"||((host==="google.com"||host==="www.google.com"||host==="maps.google.com")&&parsedLocationUrl.pathname.startsWith("/maps")));
                   }catch(_){}
                   if(mapsLink){
                     const {data:resolved,error:resolveError}=await supabaseClient.functions.invoke("resolve-map-link",{body:{url:location}});
                     if(resolveError){let msg="";try{const response=resolveError.context;if(response&&typeof response.json==="function"){const details=await response.json();msg=String(details&&details.error||"");}}catch(_){}throw new Error(msg||resolveError.message||"Could not resolve this Google Maps link. Try sharing the place link again.");}
                     if(!resolved||!resolved.embed_url)throw new Error((resolved&&resolved.error)||"Could not identify a place from this Google Maps link.");
                     if(resolved.exact_coordinates!==true)throw new Error("Exact pin coordinates were not found. Share the exact pin from Google Maps or enter its latitude,longitude coordinates.");
-                    embedUrl=resolved.embed_url;
-                    resolvedLocation=resolved.location||location;
+                    embedUrl=resolved.embed_url;resolvedLocation=resolved.location||location;
                   }
-                  try{const parsedEmbed=new URL(embedUrl);if(["maps.google.com","www.google.com"].includes(parsedEmbed.hostname))parsedEmbed.searchParams.set("z",String(zoomValue));embedUrl=parsedEmbed.toString();}catch(_){}
-                  update.settings={...previousSettings,location,zoom:zoomValue,embed_url:embedUrl,resolved_location:resolvedLocation};
+                  try{const parsedEmbed=new URL(embedUrl);if(["maps.google.com","www.google.com"].includes(parsedEmbed.hostname))parsedEmbed.searchParams.set("z",String(zoom));embedUrl=parsedEmbed.toString();}catch(_){}
+                  update.settings={...previousSettings,location,zoom,embed_url:embedUrl,resolved_location:resolvedLocation};
                 }
                 const {error:updateError}=await supabaseClient.from("widgets").update(update).eq("id",item.id);
                 if(updateError)throw updateError;
-                status.textContent=item.widget_type==="map"?"Map location or Google Maps link saved.":"Widget visibility saved.";
-                status.style.color="#176b43";
+                cardStatus.textContent="Widget settings saved.";cardStatus.style.color="#176b43";
                 await loadWidgets();
-              }catch(err){status.textContent="Save failed: "+(err.message||"Unknown error");status.style.color="#a12622";saveRow.disabled=false;}
+              }catch(err){cardStatus.textContent="Save failed: "+(err.message||"Unknown error");cardStatus.style.color="#a12622";saveButton.disabled=false;}
             });
-            actionCell.append(saveRow);row.append(nameCell,typeCell,locationCell,zoomCell,visibilityCell,actionCell);tbody.append(row);
+            actions.append(saveButton);widgetCard.append(actions,cardStatus);list.append(widgetCard);
           }
-          table.append(tbody);list.append(table);
         }
         await loadWidgets();
         return;
