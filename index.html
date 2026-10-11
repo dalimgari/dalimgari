@@ -501,6 +501,8 @@
     .section-order-moves { display:flex; gap:5px; }
     .section-order-moves button { min-width:36px; min-height:36px; padding:4px 8px; }
     .home-content-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr)); gap:16px; width:100%; }
+    .home-album-carousel::-webkit-scrollbar { display:none; }
+    .home-album-carousel { scrollbar-width:none; -ms-overflow-style:none; }
     .home-content-card { min-width:0; padding:16px; border:1px solid #e5e7eb; border-radius:14px; background:#fff; overflow-wrap:anywhere; }
     .home-content-card h2,.home-content-card h3 { margin:0 0 8px; font-size:18px; line-height:1.35; }
     .home-content-card p { margin:0 0 10px; color:#5b6472; line-height:1.55; white-space:pre-wrap; }
@@ -1107,6 +1109,8 @@
         const {data:albums,error}=await supabaseClient.from("albums").select("id,title,description,url,cover_path,media,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(24);
         if(!error&&albums?.length){
           const grid=makeGrid();
+          grid.classList.add("home-album-carousel");
+          grid.style.cssText="display:flex;flex-wrap:nowrap;gap:16px;width:100%;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;scroll-behavior:auto;overscroll-behavior-x:contain;padding:2px 1px 12px";
           for(const album of albums){
             const card=makeCard(album.title,album.description||"");
             const media=Array.isArray(album.media)?album.media:[];
@@ -1148,7 +1152,38 @@
               card.insertBefore(cover,heading||card.firstChild);
             }
             if(media.length)await renderContentMedia(card,media);
+            card.style.flex="0 0 clamp(240px,30vw,320px)";
+            card.style.maxWidth="85vw";
             grid.append(card);
+          }
+          if(albums.length>1){
+            const originals=Array.from(grid.children);
+            for(const original of originals){
+              const clone=original.cloneNode(true);
+              clone.setAttribute("aria-hidden","true");
+              clone.querySelectorAll("a,button,input,select,textarea,[tabindex]").forEach(el=>el.setAttribute("tabindex","-1"));
+              grid.append(clone);
+            }
+            let paused=false,lastTime=0;
+            const reducedMotion=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            const animateAlbums=(time)=>{
+              if(!grid.isConnected)return;
+              if(!lastTime)lastTime=time;
+              const delta=Math.min(50,time-lastTime);lastTime=time;
+              if(!paused&&!reducedMotion){
+                grid.scrollLeft+=delta*0.025;
+                const loopWidth=grid.scrollWidth/2;
+                if(loopWidth>0&&grid.scrollLeft>=loopWidth)grid.scrollLeft-=loopWidth;
+              }
+              requestAnimationFrame(animateAlbums);
+            };
+            grid.addEventListener("mouseenter",()=>paused=true);
+            grid.addEventListener("mouseleave",()=>paused=false);
+            grid.addEventListener("focusin",()=>paused=true);
+            grid.addEventListener("focusout",()=>paused=false);
+            grid.addEventListener("touchstart",()=>paused=true,{passive:true});
+            grid.addEventListener("touchend",()=>paused=false,{passive:true});
+            requestAnimationFrame(animateAlbums);
           }
           albumSection.append(grid);
         }
