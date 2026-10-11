@@ -2083,6 +2083,7 @@
           const alt=document.createElement("input");alt.className="dashboard-crud-input";alt.placeholder="Alt text (optional)";alt.value=asset.alt_text||"";
           const filename=document.createElement("p");filename.className="dashboard-crud-hint";filename.textContent=(asset.original_filename||"File")+" · "+(asset.size_bytes?Math.round(asset.size_bytes/1024)+" KB":"size unknown");
           const linkInfo=document.createElement("p");linkInfo.className="dashboard-crud-hint";linkInfo.textContent="Media ID: "+asset.id;
+          const attachmentArea=document.createElement("div");attachmentArea.style.cssText="display:grid;gap:8px;margin:8px 0";
           const actions=document.createElement("div");actions.className="dashboard-crud-actions";
           const save=document.createElement("button");save.type="button";save.className="action-button primary";save.textContent="Save Metadata";
           const del=document.createElement("button");del.type="button";del.className="action-button";del.textContent="Delete File";
@@ -2108,17 +2109,53 @@
             finally{save.disabled=false;}
           });
           del.addEventListener("click",async()=>{
-            if(!confirm("Permanently delete this media file? This cannot be undone."))return;
-            del.disabled=true;
+            del.disabled=true;attachmentArea.replaceChildren();
             try{
-              const {data:links,error:linkError}=await supabaseClient.from("media_links").select("id").eq("media_id",asset.id).limit(1);
-              if(linkError)throw linkError;if(links?.length)throw new Error("This file is linked to content. Detach it from every section before deleting.");
+              const {data:links,error:linkError}=await supabaseClient.from("media_links").select("id,source_table,source_id").eq("media_id",asset.id);
+              if(linkError)throw linkError;
+              if(links?.length){
+                const heading=document.createElement("p");heading.className="dashboard-crud-hint";heading.textContent="This file is attached in the following locations. Detach it here, then click Delete File again.";attachmentArea.append(heading);
+                const labels={hero_items:"Hero",post:"Post",pages:"Page",albums:"Album"};
+                for(const link of links){
+                  const row=document.createElement("div");row.style.cssText="border:1px solid #d1d5db;border-radius:8px;padding:10px;display:grid;gap:6px";
+                  const info=document.createElement("p");info.className="dashboard-crud-hint";
+                  if(!Object.prototype.hasOwnProperty.call(labels,link.source_table)){info.textContent="Unknown location ("+link.source_table+"), record ID: "+link.source_id;row.append(info);attachmentArea.append(row);continue;}
+                  const {data:source,error:sourceError}=await supabaseClient.from(link.source_table).select("id,title,url").eq("id",link.source_id).maybeSingle();
+                  if(sourceError)throw sourceError;
+                  const recordTitle=source?.title||source?.url||link.source_id;
+                  info.textContent=labels[link.source_table]+": "+recordTitle+(source?.url?" · URL: "+source.url:"");
+                  const detach=document.createElement("button");detach.type="button";detach.className="action-button";detach.textContent="Detach from "+labels[link.source_table];
+                  detach.addEventListener("click",async()=>{
+                    detach.disabled=true;
+                    try{
+                      const {data:current,error:currentError}=await supabaseClient.from(link.source_table).select("media").eq("id",link.source_id).maybeSingle();
+                      if(currentError)throw currentError;
+                      const media=Array.isArray(current?.media)?current.media:[];
+                      const updated=media.filter(item=>String(item.media_id||"")!==String(asset.id)&&String(item.path||item.storage_path||"")!==String(asset.storage_path));
+                      if(updated.length!==media.length){
+                        const {error:updateError}=await supabaseClient.from(link.source_table).update({media:updated,updated_at:new Date().toISOString()}).eq("id",link.source_id);
+                        if(updateError)throw updateError;
+                      }
+                      const {error:unlinkError}=await supabaseClient.from("media_links").delete().eq("id",link.id);
+                      if(unlinkError)throw unlinkError;
+                      row.remove();say("Detached from "+labels[link.source_table]+": "+recordTitle+".");
+                      if(!attachmentArea.querySelector("button")){
+                        attachmentArea.replaceChildren();say("All attachments removed. Click Delete File again to permanently delete this file.");
+                      }
+                    }catch(e){say("Detach failed: "+(e.message||"Unknown error"),true);detach.disabled=false;}
+                  });
+                  row.append(info,detach);attachmentArea.append(row);
+                }
+                return;
+              }
+              if(!confirm("Permanently delete this media file? This cannot be undone."))return;
               const {error:storageError}=await supabaseClient.storage.from(asset.storage_bucket||"content-files").remove([asset.storage_path]);if(storageError)throw storageError;
               const {error}=await supabaseClient.from("media_assets").delete().eq("id",asset.id);if(error)throw error;
               assets=assets.filter(x=>x.id!==asset.id);draw();say("Media file permanently deleted.");
-            }catch(e){say("Delete failed: "+(e.message||"Unknown error"),true);del.disabled=false;}
+            }catch(e){say("Delete failed: "+(e.message||"Unknown error"),true);}
+            finally{del.disabled=false;}
           });
-          actions.append(save,del);tile.append(preview,title,description,tags,alt,filename,linkInfo,actions);list.append(tile);
+          actions.append(save,del);tile.append(preview,title,description,tags,alt,filename,linkInfo,attachmentArea,actions);list.append(tile);
         }
       }
       search.addEventListener("input",draw);
