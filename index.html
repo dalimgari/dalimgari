@@ -1377,13 +1377,7 @@
             setCurrentMenuPage("Gallery");
           });
           if(albums.length>1){
-            const originals=Array.from(grid.children);
-            for(const original of originals){
-              const clone=original.cloneNode(true);
-              clone.setAttribute("aria-hidden","true");
-              clone.querySelectorAll("a,button,input,select,textarea,[tabindex]").forEach(el=>el.setAttribute("tabindex","-1"));
-              grid.append(clone);
-            }
+            // Keep exactly one homepage card per album; never clone cards for the carousel.
             let paused=false,lastTime=0;
             const reducedMotion=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
             const animateAlbums=(time)=>{
@@ -1391,9 +1385,11 @@
               if(!lastTime)lastTime=time;
               const delta=Math.min(50,time-lastTime);lastTime=time;
               if(!paused&&!reducedMotion){
-                grid.scrollLeft+=delta*0.025;
-                const loopWidth=grid.scrollWidth/2;
-                if(loopWidth>0&&grid.scrollLeft>=loopWidth)grid.scrollLeft-=loopWidth;
+                const maxScroll=Math.max(0,grid.scrollWidth-grid.clientWidth);
+                if(maxScroll>0){
+                  grid.scrollLeft+=delta*0.025;
+                  if(grid.scrollLeft>=maxScroll)grid.scrollLeft=0;
+                }
               }
               requestAnimationFrame(animateAlbums);
             };
