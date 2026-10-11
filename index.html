@@ -941,14 +941,29 @@
               date.style.cssText="margin:4px 0 8px;color:#5b6472;font-size:14px";
               const time=document.createElement("h2");
               time.style.cssText="margin:0;font-size:clamp(24px,4vw,36px);line-height:1.2;font-variant-numeric:tabular-nums";
+              const banglaDate=document.createElement("p");
+              banglaDate.style.cssText="margin:0 0 8px;color:#5b6472;font-size:14px";
               const updateClock=()=>{
                 const now=new Date();
                 const bangladeshTimeZone="Asia/Dhaka";
                 date.textContent=new Intl.DateTimeFormat("en-US",{dateStyle:"full",timeZone:bangladeshTimeZone}).format(now);
                 time.textContent=new Intl.DateTimeFormat("en-US",{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false,timeZone:bangladeshTimeZone}).format(now);
+                const parts=new Intl.DateTimeFormat("en-GB",{timeZone:bangladeshTimeZone,year:"numeric",month:"numeric",day:"numeric"}).formatToParts(now);
+                const part=name=>Number(parts.find(part=>part.type===name)?.value);
+                const year=part("year"),month=part("month"),day=part("day");
+                const banglaYear=year-(month>4||(month===4&&day>=14)?593:594);
+                const startYear=month>4||(month===4&&day>=14)?year:year-1;
+                const elapsed=Math.floor((Date.UTC(year,month-1,day)-Date.UTC(startYear,3,14))/86400000);
+                const leapYear=startYear+1;
+                const isLeap=leapYear%4===0&&(leapYear%100!==0||leapYear%400===0);
+                const monthNames=["Boishakh","Joishtho","Ashar","Srabon","Bhadro","Ashwin","Kartik","Agrahayan","Poush","Magh","Falgun","Chaitra"];
+                const monthLengths=[31,31,31,31,31,31,30,30,30,30,isLeap?30:29,30];
+                let remaining=elapsed,banglaMonth=0;
+                while(banglaMonth<monthLengths.length-1&&remaining>=monthLengths[banglaMonth]){remaining-=monthLengths[banglaMonth];banglaMonth++;}
+                banglaDate.textContent=(remaining+1)+" "+monthNames[banglaMonth]+" "+banglaYear;
               };
               updateClock();
-              card.append(date,time);
+              card.append(date,banglaDate,time);
               const clockTimer=setInterval(()=>{if(!card.isConnected){clearInterval(clockTimer);return;}updateClock();},1000);
             }else if(item.widget_type==="map"){
               const map=document.createElement("iframe");
