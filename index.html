@@ -935,7 +935,8 @@
           const grid=makeGrid();
           for(const item of widgets){
             const settings=item.settings&&typeof item.settings==="object"?item.settings:{};
-            const card=makeCard(item.title||"Widget","");
+            const card=makeCard("","");
+            const widgetHeading=card.querySelector("h3");if(widgetHeading)widgetHeading.remove();
             if(item.widget_type==="datetime"){
               const date=document.createElement("p");
               date.style.cssText="margin:4px 0 8px;color:#5b6472;font-size:14px";
@@ -965,7 +966,7 @@
                 banglaDate.textContent=weekdayNames[weekday]+", "+monthNames[banglaMonth]+" "+(remaining+1)+", "+banglaYear;
               };
               updateClock();
-              card.append(date,banglaDate,time);
+              card.append(time,date,banglaDate);
               const clockTimer=setInterval(()=>{if(!card.isConnected){clearInterval(clockTimer);return;}updateClock();},1000);
             }else if(item.widget_type==="map"){
               const map=document.createElement("iframe");
