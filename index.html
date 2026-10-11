@@ -822,9 +822,11 @@
       const addMedia=(raw,sourceTitle="")=>{
         if(!raw||!raw.path)return;
         const item={...raw,mime_type:inferMime(raw),source_title:sourceTitle||raw.source_title||""};
-        const key=String(item.media_id||item.path);
-        if(seen.has(key))return;
-        seen.add(key);
+        const pathKey="path:"+String(item.path);
+        const idKey=item.media_id?"id:"+String(item.media_id):"";
+        if(seen.has(pathKey)||(idKey&&seen.has(idKey)))return;
+        seen.add(pathKey);
+        if(idKey)seen.add(idKey);
         uniqueMedia.push(item);
       };
       for(const album of albums){
