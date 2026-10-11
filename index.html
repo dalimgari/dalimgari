@@ -855,10 +855,21 @@
         for (const storedPage of publicPages) {
           if (!storedPage.url || !storedPage.title) continue;
           const pill = document.createElement("a");
-          pill.href = window.location.pathname + "?page=" + encodeURIComponent(storedPage.url);
+          pill.href = "#home-page-" + encodeURIComponent(storedPage.url);
+          pill.dataset.pageUrl = String(storedPage.url);
           pill.textContent = storedPage.title;
           pill.className = "home-page-pill";
           pill.style.cssText = "display:inline-flex;flex:0 0 auto;align-items:center;justify-content:center;min-height:40px;white-space:nowrap;padding:8px 16px;border:1px solid #dedede;border-radius:999px;background:#fff;color:#333;text-decoration:none;font-size:14px;font-weight:600;line-height:1.35";
+          pill.addEventListener("click",(event)=>{
+            event.preventDefault();
+            const target=Array.from(document.querySelectorAll(".home-page-html-card")).find(card=>card.dataset.pageUrl===pill.dataset.pageUrl);
+            if(target){
+              target.scrollIntoView({behavior:"smooth",block:"start"});
+              target.focus({preventScroll:true});
+            }else{
+              pageCards?.scrollIntoView({behavior:"smooth",block:"start"});
+            }
+          });
           pill.addEventListener("mouseenter",()=>{pill.style.background="#f3f4f6";});
           pill.addEventListener("mouseleave",()=>{pill.style.background="#fff";});
           pillBar.append(pill);
@@ -1106,12 +1117,16 @@
         }
       }
       if(pageCards){
-        const {data:pages,error}=await supabaseClient.from("pages").select("title,description,content,url,media,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(24);
+        const {data:pages,error}=await supabaseClient.from("pages").select("title,description,content,url,media,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(200);
         if(!error&&pages?.length){
           const grid=makeGrid();
           for(const page of pages){
             const card=makeCard(page.title,page.description||"");
             card.classList.add("home-page-html-card");
+            card.dataset.pageUrl=String(page.url||"");
+            card.id="home-page-"+String(page.url||"").replace(/[^a-zA-Z0-9_-]/g,"-");
+            card.tabIndex=-1;
+            card.style.scrollMarginTop="24px";
             const preview=document.createElement("div");
             preview.className="home-page-html-preview";
             preview.setAttribute("aria-label",(page.title||"Page")+" HTML preview");
