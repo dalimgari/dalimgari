@@ -3046,7 +3046,6 @@
             try{
               const {data:asset,error:assetError}=await supabaseClient.from("media_assets").insert({title,original_filename:file.name,storage_bucket:"content-files",storage_path:path,mime_type:file.type||"application/octet-stream",size_bytes:file.size,created_by:user.id}).select("id,title,storage_path").single();
               if(assetError)throw assetError;
-              newlyCreatedMedia.push({id:asset.id,path,title});
               existingMedia.push({path,name:file.name,mime_type:file.type,size_bytes:file.size,media_id:asset.id,title});
             }catch(assetError){
               await supabaseClient.storage.from("content-files").remove([path]);
