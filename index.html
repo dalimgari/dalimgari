@@ -1031,7 +1031,7 @@
               };
               updateClock();
               const clockTimer=setInterval(()=>{if(!card.isConnected){clearInterval(clockTimer);return;}updateClock();},1000);
-            }            }else if(item.widget_type==="map"){
+            }else if(item.widget_type==="map"){
               const map=document.createElement("iframe");
               const locationQuery=String(settings.location||"Saudi Arabia").trim();
               const configuredZoom=Number(settings.zoom);
