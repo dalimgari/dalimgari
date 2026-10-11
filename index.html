@@ -1214,7 +1214,7 @@
       mainContent.append(shell);
       if (!slug) { shell.textContent = "Page not found."; return; }
       const { data, error } = await supabaseClient.from("pages")
-        .select("title,content,url,visibility,media").eq("url", slug).maybeSingle();
+        .select("title,description,content,url,visibility,media").eq("url", slug).maybeSingle();
       if (error || !data) {
         const message = document.createElement("p");
         message.textContent = "This page is unavailable or you do not have permission to view it.";
@@ -1225,6 +1225,12 @@
       heading.textContent = data.title || "";
       heading.style.cssText = "margin:0 0 12px;overflow-wrap:anywhere";
       shell.append(heading);
+      if (data.description) {
+        const description = document.createElement("p");
+        description.textContent = data.description;
+        description.style.cssText = "margin:0 0 24px;color:#5b6472;font-size:17px;line-height:1.65;overflow-wrap:anywhere";
+        shell.append(description);
+      }
       const content = document.createElement("div");
       content.className = "stored-html-page-content";
       shell.append(content);
