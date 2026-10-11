@@ -562,7 +562,7 @@
     .dg-lightbox-actions { display:flex; flex:0 0 auto; gap:6px; }
     .dg-lightbox-actions button { min-width:38px; min-height:38px; padding:6px 10px; border:1px solid rgba(255,255,255,.28); border-radius:9px; background:rgba(255,255,255,.12); color:#fff; font:inherit; font-size:14px; cursor:pointer; }
     .dg-lightbox-actions button:hover,.dg-lightbox-actions button:focus-visible { background:rgba(255,255,255,.24); outline:2px solid rgba(255,255,255,.65); outline-offset:2px; }
-    .dg-lightbox-stage { display:flex; align-items:center; justify-content:center; width:100%; height:calc(100% - 58px); min-height:0; overflow:auto; overscroll-behavior:contain; touch-action:pan-x pan-y; }
+    .dg-lightbox-stage { display:flex; align-items:center; justify-content:center; width:100%; height:calc(100% - 58px); min-height:0; overflow:auto; overscroll-behavior:contain; touch-action:none; }
     .dg-lightbox-image { display:block; flex:0 0 auto; max-width:none; max-height:none; height:auto; object-fit:contain; border-radius:3px; box-shadow:0 12px 40px rgba(0,0,0,.35); cursor:zoom-in; }
     .dg-image-lightbox.is-zoomed .dg-lightbox-image { cursor:zoom-out; }
     @media(max-width:560px) {
@@ -739,6 +739,50 @@
         zoom = zoom > 1 ? 1 : Math.min(2, zoom + 0.5);
         applyZoom();
       });
+      // Mobile pinch-to-zoom and one-finger panning while zoomed.
+      let pinchStartDistance = 0;
+      let pinchStartZoom = 1;
+      let lastTouchX = 0;
+      let lastTouchY = 0;
+      const touchDistance = touches => {
+        const dx = touches[0].clientX - touches[1].clientX;
+        const dy = touches[0].clientY - touches[1].clientY;
+        return Math.hypot(dx, dy);
+      };
+      stage.addEventListener("touchstart", event => {
+        if (event.touches.length === 2) {
+          pinchStartDistance = touchDistance(event.touches);
+          pinchStartZoom = zoom;
+        } else if (event.touches.length === 1) {
+          lastTouchX = event.touches[0].clientX;
+          lastTouchY = event.touches[0].clientY;
+        }
+      }, {passive:true});
+      stage.addEventListener("touchmove", event => {
+        if (event.touches.length === 2) {
+          event.preventDefault();
+          const distance = touchDistance(event.touches);
+          if (pinchStartDistance > 0) {
+            zoom = Math.max(0.5, Math.min(5, pinchStartZoom * distance / pinchStartDistance));
+            applyZoom();
+          }
+        } else if (event.touches.length === 1 && zoom > 1) {
+          event.preventDefault();
+          const touch = event.touches[0];
+          stage.scrollLeft -= touch.clientX - lastTouchX;
+          stage.scrollTop -= touch.clientY - lastTouchY;
+          lastTouchX = touch.clientX;
+          lastTouchY = touch.clientY;
+        }
+      }, {passive:false});
+      stage.addEventListener("touchend", event => {
+        if (event.touches.length < 2) pinchStartDistance = 0;
+        if (event.touches.length === 1) {
+          lastTouchX = event.touches[0].clientX;
+          lastTouchY = event.touches[0].clientY;
+        }
+      }, {passive:true});
+      stage.addEventListener("touchcancel", () => { pinchStartDistance = 0; }, {passive:true});
       close.addEventListener("click", closePreview);
       lightbox.addEventListener("click", event => { if (event.target === lightbox) closePreview(); });
       document.addEventListener("keydown", event => {
