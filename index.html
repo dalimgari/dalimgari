@@ -2645,6 +2645,47 @@
       if (!config) return;
       if(!isCurrent())return;
       content.replaceChildren();
+      if(section.id==="page"){
+        const autoCard=document.createElement("section");autoCard.className="dashboard-crud-card";
+        const autoTitle=document.createElement("h3");autoTitle.textContent="Homepage Page Button Auto-scroll";
+        const autoHint=document.createElement("p");autoHint.className="dashboard-crud-hint";autoHint.textContent="Turn automatic scrolling on or off and set how often the homepage Page buttons advance.";
+        const autoForm=document.createElement("form");autoForm.className="dashboard-crud";
+        const enabledLabel=document.createElement("label");enabledLabel.style.display="flex";enabledLabel.style.alignItems="center";enabledLabel.style.gap="10px";enabledLabel.textContent="Enable auto-scroll";
+        const enabledInput=document.createElement("input");enabledInput.type="checkbox";enabledInput.style.width="auto";enabledInput.style.minHeight="auto";enabledLabel.prepend(enabledInput);
+        const intervalLabel=document.createElement("label");intervalLabel.textContent="Slide interval (seconds)";
+        const intervalInput=document.createElement("input");intervalInput.className="dashboard-crud-input";intervalInput.type="number";intervalInput.min="1";intervalInput.max="60";intervalInput.step="1";intervalInput.value="3";intervalLabel.append(intervalInput);
+        const autoStatus=document.createElement("p");autoStatus.className="dashboard-crud-status";autoStatus.setAttribute("role","status");
+        const autoSave=document.createElement("button");autoSave.type="submit";autoSave.className="action-button primary";autoSave.textContent="Save Auto-scroll Settings";
+        const autoReload=document.createElement("button");autoReload.type="button";autoReload.className="action-button";autoReload.textContent="Reload Saved Values";
+        autoForm.append(enabledLabel,intervalLabel,autoStatus,autoSave,autoReload);autoCard.append(autoTitle,autoHint,autoForm);content.append(autoCard);
+        async function loadAutoSettings(){
+          autoReload.disabled=true;autoStatus.textContent="Loading saved settings…";
+          try{
+            const {data,error}=await supabaseClient.from("site_customizations").select("value").eq("key","home_page_pill_autoscroll").maybeSingle();
+            if(error)throw error;
+            let value=data?.value;if(typeof value==="string"){try{value=JSON.parse(value)}catch(_){value={}}}
+            if(!value||typeof value!=="object"||Array.isArray(value))value={};
+            enabledInput.checked=value.enabled!==false;
+            intervalInput.value=String(Math.max(1,Math.min(60,Number(value.interval_seconds)||3)));
+            autoStatus.textContent="Saved settings loaded.";autoStatus.style.color="#176b43";
+          }catch(error){autoStatus.textContent="Could not load settings: "+(error.message||"Unknown error");autoStatus.style.color="#a12622"}
+          finally{autoReload.disabled=false}
+        }
+        autoReload.addEventListener("click",loadAutoSettings);
+        autoForm.addEventListener("submit",async event=>{
+          event.preventDefault();autoSave.disabled=true;autoReload.disabled=true;autoStatus.textContent="Saving…";autoStatus.style.color="";
+          try{
+            const user=await getCurrentUser();if(!user)throw new Error("Your admin session has expired. Please sign in again.");
+            const seconds=Number(intervalInput.value);if(!Number.isInteger(seconds)||seconds<1||seconds>60)throw new Error("Enter a whole number from 1 to 60 seconds.");
+            const value={enabled:enabledInput.checked,interval_seconds:seconds};
+            const {error}=await supabaseClient.from("site_customizations").upsert({key:"home_page_pill_autoscroll",value,description:"Homepage Page button auto-scroll settings",updated_by:user.id,updated_at:new Date().toISOString()},{onConflict:"key"});
+            if(error)throw error;
+            autoStatus.textContent="Saved. Reload the homepage to apply the updated settings.";autoStatus.style.color="#176b43";
+          }catch(error){autoStatus.textContent="Save failed: "+(error.message||"Unknown error");autoStatus.style.color="#a12622"}
+          finally{autoSave.disabled=false;autoReload.disabled=false}
+        });
+        loadAutoSettings();
+      }
       const wrap=document.createElement("div");wrap.className="dashboard-crud";
       const formCard=document.createElement("section");formCard.className="dashboard-crud-card";
       const formHeading=document.createElement("h3");formHeading.textContent="Create / Edit "+config.label;
