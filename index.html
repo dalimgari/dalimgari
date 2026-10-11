@@ -1377,19 +1377,32 @@
             setCurrentMenuPage("Gallery");
           });
           if(albums.length>1){
-            // Keep exactly one homepage card per album; never clone cards for the carousel.
-            let paused=false,lastTime=0;
+            // Seamless carousel loop with one DOM card per album; rotate passed cards instead of cloning.
+            let paused=false,lastTime=0,normalizingScroll=false;
+            const rotatePassedCards=()=>{
+              if(normalizingScroll||!grid.isConnected)return;
+              normalizingScroll=true;
+              let guard=0;
+              while(grid.firstElementChild&&guard<grid.children.length){
+                const first=grid.firstElementChild;
+                const gap=parseFloat(getComputedStyle(grid).columnGap)||0;
+                const shift=first.getBoundingClientRect().width+gap;
+                if(shift<=0||grid.scrollLeft+0.5<shift)break;
+                grid.append(first);
+                grid.scrollLeft=Math.max(0,grid.scrollLeft-shift);
+                guard++;
+              }
+              normalizingScroll=false;
+            };
+            grid.addEventListener("scroll",rotatePassedCards,{passive:true});
             const reducedMotion=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
             const animateAlbums=(time)=>{
               if(!grid.isConnected)return;
               if(!lastTime)lastTime=time;
               const delta=Math.min(50,time-lastTime);lastTime=time;
               if(!paused&&!reducedMotion){
-                const maxScroll=Math.max(0,grid.scrollWidth-grid.clientWidth);
-                if(maxScroll>0){
-                  grid.scrollLeft+=delta*0.025;
-                  if(grid.scrollLeft>=maxScroll)grid.scrollLeft=0;
-                }
+                grid.scrollLeft+=delta*0.025;
+                rotatePassedCards();
               }
               requestAnimationFrame(animateAlbums);
             };
