@@ -858,7 +858,39 @@
           pillBar.append(pill);
         }
       }
-      if (pillBar.childElementCount) pageTitleSection.append(pillBar);
+      if (pillBar.childElementCount) {
+        pageTitleSection.append(pillBar);
+        const pillMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+        let pillAutoTimer = null;
+        const stopPillAutoScroll = () => {
+          if (pillAutoTimer !== null) {
+            window.clearInterval(pillAutoTimer);
+            pillAutoTimer = null;
+          }
+        };
+        const startPillAutoScroll = () => {
+          stopPillAutoScroll();
+          if (pillMotion.matches || pillBar.children.length < 2) return;
+          pillAutoTimer = window.setInterval(() => {
+            const pills = Array.from(pillBar.querySelectorAll(".home-page-pill"));
+            if (pills.length < 2 || pillBar.scrollWidth <= pillBar.clientWidth + 2) return;
+            const currentLeft = pillBar.scrollLeft;
+            const nextPill = pills.find(pill => pill.offsetLeft > currentLeft + 3);
+            if (!nextPill || currentLeft + pillBar.clientWidth >= pillBar.scrollWidth - 3) {
+              pillBar.scrollTo({left: 0, behavior: "smooth"});
+            } else {
+              pillBar.scrollTo({left: nextPill.offsetLeft - pillBar.offsetLeft, behavior: "smooth"});
+            }
+          }, 3000);
+        };
+        pillBar.addEventListener("mouseenter", stopPillAutoScroll);
+        pillBar.addEventListener("mouseleave", startPillAutoScroll);
+        pillBar.addEventListener("focusin", stopPillAutoScroll);
+        pillBar.addEventListener("focusout", startPillAutoScroll);
+        if (pillMotion.addEventListener) pillMotion.addEventListener("change", startPillAutoScroll);
+        else if (pillMotion.addListener) pillMotion.addListener(startPillAutoScroll);
+        startPillAutoScroll();
+      }
       await renderHomepageContentCards(siteConfig);
 
       // The uploader is a normal homepage section, not a separate page or route.
