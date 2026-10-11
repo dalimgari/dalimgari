@@ -1070,8 +1070,18 @@
       const heroOverlayOpacity=Math.max(0,Math.min(90,Number(heroVisual.overlay_opacity)||0))/100;
       const heroImageFit=["cover","contain"].includes(heroVisual.image_fit)?heroVisual.image_fit:"cover";
       const heroImagePosition=["center","top","bottom","left","right"].includes(heroVisual.image_position)?heroVisual.image_position:"center";
+      const themeComponentRules = [
+        ".home-page .home-page-pill[aria-pressed='true'],.home-page .home-page-html-card>a,.home-page .home-hero a[role='button'],.home-page .home-hero button{background-color:var(--dg-primary,#222)!important;border-color:var(--dg-primary,#222)!important;color:#fff!important}",
+        ".home-page .home-page-pill[aria-pressed='false']{background-color:var(--dg-surface,#fff)!important;border-color:var(--dg-border,#e5e7eb)!important;color:var(--dg-text,#222)!important}",
+        ".home-page .home-page-html-card{background-color:var(--dg-surface,#fff)!important;border-color:var(--dg-border,#e5e7eb)!important;color:var(--dg-text,#222)!important}",
+        ".home-page .home-page-html-card>h2,.home-page .home-page-html-card>h3{color:var(--dg-text,#222)!important}",
+        ".home-page .home-page-html-preview{background-color:var(--dg-surface,#fff)!important;border-color:var(--dg-border,#e5e7eb)!important;color:var(--dg-text,#222)!important}",
+        ".home-page .home-page-html-preview a{color:var(--dg-link,var(--dg-primary,#222))!important}",
+        ".home-page .home-page-html-card>a{background-color:var(--dg-primary,#222)!important;border-color:var(--dg-primary,#222)!important;color:#fff!important}"
+      ].join("\n");
       configStyle.textContent=[
         backgroundImageRule,
+        themeComponentRules,
         safeWidth>=640&&safeWidth<=1800?".stored-html-page,.gallery-page{max-width:"+safeWidth+"px!important}":"",
         safeTitleSize>=20&&safeTitleSize<=56?".stored-html-page h1,.gallery-page h1{font-size:"+safeTitleSize+"px!important}":"",
         safeParagraphSpacing>=0&&safeParagraphSpacing<=48?".stored-html-page p{margin-bottom:"+safeParagraphSpacing+"px!important}":"",
