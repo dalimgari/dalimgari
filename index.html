@@ -2183,7 +2183,7 @@
               if(!confirm("Permanently delete this media file? This cannot be undone."))return;
               const {error:storageError}=await supabaseClient.storage.from(asset.storage_bucket||"content-files").remove([asset.storage_path]);if(storageError)throw storageError;
               const {error}=await supabaseClient.from("media_assets").delete().eq("id",asset.id);if(error)throw error;
-              assets=assets.filter(x=>x.id!==asset.id);say("Media file permanently deleted.");draw();
+              assets=assets.filter(x=>x.id!==asset.id);draw();say("Media file permanently deleted.");
             }catch(e){say("Delete failed: "+(e.message||"Unknown error"),true,tileStatus);}
             finally{del.disabled=false;}
           });
@@ -2778,7 +2778,7 @@
                 if(item.original_table==="permissions") await restoreLinks("role_permissions",related.role_permissions);
                 const {error:trashError}=await supabaseClient.from("recycle_bin").delete().eq("id",item.id);
                 if(trashError)throw trashError;
-                recycleStatus("Item restored successfully.",false,rowStatus);await loadTrash();
+                await loadTrash();recycleStatus("Item restored successfully.");
               }catch(error){recycleStatus(error.message||"Could not restore item.",true,rowStatus);restore.disabled=false;purge.disabled=false;}
             });
             purge.addEventListener("click",async()=>{
@@ -2788,7 +2788,7 @@
                 await removeRecycleStorageFiles(item);
                 const {error}=await supabaseClient.from("recycle_bin").delete().eq("id",item.id);
                 if(error)throw error;
-                recycleStatus("Item permanently deleted.",false,rowStatus);await loadTrash();
+                await loadTrash();recycleStatus("Item permanently deleted.");
               }catch(error){recycleStatus(error.message||"Could not permanently delete item.",true,rowStatus);restore.disabled=false;purge.disabled=false;}
             });
             actionCell.append(restore,purge,rowStatus);row.append(actionCell);tbody.append(row);
