@@ -2144,7 +2144,7 @@
                   }catch(_){}
                   if(mapsLink){
                     const {data:resolved,error:resolveError}=await supabaseClient.functions.invoke("resolve-map-link",{body:{url:location}});
-                    if(resolveError)throw new Error("Could not resolve this Google Maps link. Try sharing the place link again.");
+                    if(resolveError){let msg="";try{const response=resolveError.context;if(response&&typeof response.json==="function"){const details=await response.json();msg=String(details&&details.error||"");}}catch(_){}throw new Error(msg||resolveError.message||"Could not resolve this Google Maps link. Try sharing the place link again.");}
                     if(!resolved||!resolved.embed_url)throw new Error((resolved&&resolved.error)||"Could not identify a place from this Google Maps link.");
                     if(resolved.exact_coordinates!==true)throw new Error("Exact pin coordinates were not found. Share the exact pin from Google Maps or enter its latitude,longitude coordinates.");
                     embedUrl=resolved.embed_url;
