@@ -583,6 +583,7 @@
     </button>
     <nav class="floating-menu" id="floating-menu" aria-label="Main menu" hidden>
       <button class="menu-link" type="button" data-page="Home">Home</button>
+      <button class="menu-link" type="button" data-page="Gallery">Gallery</button>
       <button class="menu-link" type="button" data-page="Profile">Profile</button>
       <button class="menu-link" type="button" data-page="Login">Login</button>
       <button class="menu-link menu-dashboard" type="button" data-page="Dashboard" hidden>Dashboard</button>
@@ -3870,6 +3871,13 @@
             renderHome();
             history.replaceState(null, "", "#home");
             setCurrentMenuPage("Home");
+          } else if (pageName === "Gallery") {
+            const { data, error } = await supabaseClient.auth.getSession();
+            if (error) throw error;
+            const session = data.session || null;
+            renderGalleryPage(null, session);
+            history.replaceState(null, "", "#gallery");
+            setCurrentMenuPage("Gallery");
           } else if (pageName === "Logout") {
             link.disabled = true;
             link.textContent = "Logging out...";
