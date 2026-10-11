@@ -831,10 +831,16 @@
       const pillBar = document.createElement("nav");
       pillBar.setAttribute("aria-label", "Pages");
       pillBar.style.cssText = "display:flex;flex-wrap:nowrap;align-items:center;gap:10px;width:100%;overflow-x:auto;overflow-y:hidden;padding:4px 2px 10px;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:#c7c7c7 #f5f5f5";
-      const [{data: publicPages, error: pagesError}, {data: pageOrderSetting}] = await Promise.all([
+      const [{data: publicPages, error: pagesError}, {data: pageOrderSetting}, {data: pillMotionSetting}] = await Promise.all([
         supabaseClient.from("pages").select("id,title,url,visibility,created_at").eq("visibility","public").order("created_at",{ascending:true}).limit(200),
-        supabaseClient.from("site_customizations").select("value").eq("key","home_page_order").maybeSingle()
+        supabaseClient.from("site_customizations").select("value").eq("key","home_page_order").maybeSingle(),
+        supabaseClient.from("site_customizations").select("value").eq("key","home_page_pill_autoscroll").maybeSingle()
       ]);
+      let pillMotionConfig = pillMotionSetting?.value;
+      if (typeof pillMotionConfig === "string") { try { pillMotionConfig = JSON.parse(pillMotionConfig); } catch (_) { pillMotionConfig = {}; } }
+      if (!pillMotionConfig || typeof pillMotionConfig !== "object" || Array.isArray(pillMotionConfig)) pillMotionConfig = {};
+      const pillAutoEnabled = pillMotionConfig.enabled !== false;
+      const pillAutoInterval = Math.max(1, Math.min(60, Number(pillMotionConfig.interval_seconds) || 3));
       if (!pagesError && Array.isArray(publicPages) && publicPages.length) {
         let pageOrder = pageOrderSetting?.value;
         if (typeof pageOrder === "string") { try { pageOrder = JSON.parse(pageOrder); } catch (_) { pageOrder = []; } }
@@ -870,7 +876,7 @@
         };
         const startPillAutoScroll = () => {
           stopPillAutoScroll();
-          if (pillMotion.matches || pillBar.children.length < 2) return;
+          if (!pillAutoEnabled || pillMotion.matches || pillBar.children.length < 2) return;
           pillAutoTimer = window.setInterval(() => {
             const pills = Array.from(pillBar.querySelectorAll(".home-page-pill"));
             if (pills.length < 2 || pillBar.scrollWidth <= pillBar.clientWidth + 2) return;
@@ -881,7 +887,7 @@
             } else {
               pillBar.scrollTo({left: nextPill.offsetLeft - pillBar.offsetLeft, behavior: "smooth"});
             }
-          }, 3000);
+          }, pillAutoInterval * 1000);
         };
         pillBar.addEventListener("mouseenter", stopPillAutoScroll);
         pillBar.addEventListener("mouseleave", startPillAutoScroll);
