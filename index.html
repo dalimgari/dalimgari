@@ -18,6 +18,18 @@
       --dg-card-radius:14px;
       --dg-shadow-opacity:.06;
       --dg-line-height:1.5;
+      --dg-link:#222222;
+      --dg-success:#16794b;
+      --dg-warning:#a15c00;
+      --dg-error:#b42318;
+      --dg-section-gap:24px;
+      --dg-card-gap:16px;
+      --dg-card-padding:16px;
+      --dg-button-height:40px;
+      --dg-input-height:42px;
+      --dg-image-radius:8px;
+      --dg-transition:180ms;
+      --dg-header-height:64px;
     }
     * {
       box-sizing: border-box;
@@ -652,6 +664,17 @@
     .dashboard-crud-row:hover, .dashboard-crud-row.is-selected { background-color:color-mix(in srgb,var(--dg-primary,#222) 8%,var(--dg-surface,#fff)); }
     .menu-link[aria-current="page"], .menu-link:hover { color:var(--dg-primary,#222); }
     footer { background-color:var(--dg-surface,#fff); color:var(--dg-muted,#666); border-color:var(--dg-border,#e5e7eb); }
+    a:not(.menu-link) { color:var(--dg-link,var(--dg-primary,#222)); }
+    .home-page { row-gap:var(--dg-section-gap,24px); }
+    .home-content-card, .dashboard-crud-card, .profile-section, .profile-picture-editor { padding:var(--dg-card-padding,16px); }
+    .action-button, .login-submit, .dashboard-nav-button { min-height:var(--dg-button-height,40px); transition:background-color var(--dg-transition,180ms),color var(--dg-transition,180ms),border-color var(--dg-transition,180ms),transform var(--dg-transition,180ms); }
+    .login-field, .profile-input, .dashboard-crud-input { min-height:var(--dg-input-height,42px); }
+    .home-page img, .gallery-page img, .stored-html-page img, .profile-page img { border-radius:var(--dg-image-radius,8px); }
+    .home-content-card, .dashboard-crud-card { transition:box-shadow var(--dg-transition,180ms),transform var(--dg-transition,180ms); }
+    .dg-lightbox-image { border-radius:var(--dg-image-radius,3px); }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior:auto !important; animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; }
+    }
     .home-page, .dashboard-page { color:var(--dg-text,#222); }
     .home-page :is(h1,h2,h3,h4), .gallery-page :is(h1,h2,h3,h4), .stored-html-page :is(h1,h2,h3,h4) { color:var(--dg-text,#222); }
     .home-page :is(.home-content-card,.home-album-card), .gallery-page :is(.gallery-tile,.media-tile) { border-color:var(--dg-border,#e5e7eb); border-radius:var(--dg-card-radius,14px); }
@@ -962,7 +985,7 @@
     let dalimgariHomeObserver = null;
     // Loads public-safe configuration saved by the dashboard and applies supported settings.
     async function applyDalimgariSiteConfig(force=false) {
-      const keys=["ui_customization_identity","ui_customization_theme","ui_customization_header_footer","ui_customization_layout","ui_customization_typography","ui_customization_responsive","ui_settings_general","ui_settings_homepage_defaults","ui_settings_content_defaults","ui_settings_users_access","ui_settings_privacy_visibility","ui_settings_maintenance_features"];
+      const keys=["ui_customization_identity","ui_customization_theme","ui_customization_header_footer","ui_customization_layout","ui_customization_typography","ui_customization_responsive","ui_customization_components","ui_customization_media","ui_customization_page_style","ui_customization_effects","ui_settings_general","ui_settings_homepage_defaults","ui_settings_content_defaults","ui_settings_users_access","ui_settings_privacy_visibility","ui_settings_maintenance_features"];
       const {data,error}=await supabaseClient.from("site_customizations").select("key,value").in("key",keys);
       if(error){console.warn("Site configuration could not be loaded:",error.message);return {};}
       const cfg={};
@@ -971,7 +994,7 @@
       const identity=cfg.ui_customization_identity||{}, general=cfg.ui_settings_general||{};
       const theme=cfg.ui_customization_theme||{}, header=cfg.ui_customization_header_footer||{};
       const layout=cfg.ui_customization_layout||{}, typography=cfg.ui_customization_typography||{};
-      const responsive=cfg.ui_customization_responsive||{}, features=cfg.ui_settings_maintenance_features||{};
+      const responsive=cfg.ui_customization_responsive||{}, components=cfg.ui_customization_components||{}, media=cfg.ui_customization_media||{}, pageStyle=cfg.ui_customization_page_style||{}, effects=cfg.ui_customization_effects||{}, features=cfg.ui_settings_maintenance_features||{};
       const homepageDefaults=cfg.ui_settings_homepage_defaults||{};
       const title=String(general.site_title||identity.site_title||"Dalimgari").trim()||"Dalimgari";
       document.title=title;
@@ -990,15 +1013,41 @@
       setColor("--dg-text",theme.text_color);
       setColor("--dg-muted",theme.muted_text_color);
       setColor("--dg-border",theme.border_color);
+      setColor("--dg-link",theme.link_color);
+      setColor("--dg-success",theme.success_color);
+      setColor("--dg-warning",theme.warning_color);
+      setColor("--dg-error",theme.error_color);
       const setBoundedNumber=(token,value,min,max,suffix="px")=>{const n=Number(value);if(Number.isFinite(n)&&n>=min&&n<=max)root.style.setProperty(token,n+suffix);};
       setBoundedNumber("--dg-card-radius",theme.card_radius,0,32);
       setBoundedNumber("--dg-control-radius",theme.control_radius,0,24);
       const shadow=Number(theme.shadow_strength);
       if(Number.isFinite(shadow)&&shadow>=0&&shadow<=30)root.style.setProperty("--dg-shadow-opacity",(shadow/100).toFixed(2));
       setBoundedNumber("--dg-line-height",typography.line_height,1.2,2.2,"");
+      setBoundedNumber("--dg-section-gap",layout.section_gap,0,64);
+      setBoundedNumber("--dg-card-gap",layout.card_gap,0,48);
+      setBoundedNumber("--dg-card-padding",components.card_padding,0,40);
+      setBoundedNumber("--dg-button-height",components.button_height,32,64);
+      setBoundedNumber("--dg-input-height",components.input_height,32,64);
+      setBoundedNumber("--dg-image-radius",media.image_radius,0,32);
+      setBoundedNumber("--dg-transition",effects.transition_speed,0,600,"ms");
+      setBoundedNumber("--dg-header-height",header.header_height,44,120);
       let configStyle=document.getElementById("dalimgari-runtime-theme");
       if(!configStyle){configStyle=document.createElement("style");configStyle.id="dalimgari-runtime-theme";document.head.append(configStyle);}
-      configStyle.textContent="";
+      const safeWidth=Number(pageStyle.page_content_width);
+      const safeTitleSize=Number(pageStyle.page_title_size);
+      const safeParagraphSpacing=Number(pageStyle.paragraph_spacing);
+      const safeMenuGap=Number(header.menu_gap);
+      const safeColumns=Number(media.gallery_columns);
+      const animationRule=effects.animations_enabled===false ? " *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}" : "";
+      configStyle.textContent=[
+        safeWidth>=640&&safeWidth<=1800?".stored-html-page,.gallery-page{max-width:"+safeWidth+"px!important}":"",
+        safeTitleSize>=20&&safeTitleSize<=56?".stored-html-page h1,.gallery-page h1{font-size:"+safeTitleSize+"px!important}":"",
+        safeParagraphSpacing>=0&&safeParagraphSpacing<=48?".stored-html-page p{margin-bottom:"+safeParagraphSpacing+"px!important}":"",
+        safeMenuGap>=0&&safeMenuGap<=32?".floating-menu{gap:"+safeMenuGap+"px!important}":"",
+        safeColumns>=1&&safeColumns<=6?".gallery-page .gallery-grid,.gallery-page .media-grid{grid-template-columns:repeat("+safeColumns+",minmax(0,1fr))!important}":"",
+        media.image_fit==="contain"?".home-page img,.gallery-page img,.stored-html-page img{object-fit:contain!important}":media.image_fit==="cover"?".home-page img,.gallery-page img,.stored-html-page img{object-fit:cover!important}":"",
+        animationRule
+      ].filter(Boolean).join("\n");
       if(typography.font_family&&typography.font_family!=="system")document.body.style.fontFamily=typography.font_family;
       else document.body.style.removeProperty("font-family");
       if(Number(typography.base_font_size)>=12&&Number(typography.base_font_size)<=22)document.body.style.fontSize=Number(typography.base_font_size)+"px";
@@ -3142,6 +3191,10 @@
             {name:"text_color",label:"Main text color",type:"color",value:"#222222"},
             {name:"muted_text_color",label:"Secondary text color",type:"color",value:"#666666"},
             {name:"border_color",label:"Borders and dividers",type:"color",value:"#e5e7eb"},
+            {name:"link_color",label:"Link color",type:"color",value:"#222222"},
+            {name:"success_color",label:"Success color",type:"color",value:"#16794b"},
+            {name:"warning_color",label:"Warning color",type:"color",value:"#a15c00"},
+            {name:"error_color",label:"Error color",type:"color",value:"#b42318"},
             {name:"card_radius",label:"Card corner radius (px)",type:"number",value:14,min:0,max:32},
             {name:"control_radius",label:"Button and input corner radius (px)",type:"number",value:9,min:0,max:24},
             {name:"shadow_strength",label:"Shadow strength (%)",type:"number",value:6,min:0,max:30}
@@ -3150,6 +3203,8 @@
             {name:"show_header",label:"Show site header",type:"checkbox",value:true},
             {name:"header_sticky",label:"Keep header sticky while scrolling",type:"checkbox",value:true},
             {name:"show_footer",label:"Show site footer",type:"checkbox",value:true},
+            {name:"header_height",label:"Header height (px)",type:"number",value:64,min:44,max:120},
+            {name:"menu_gap",label:"Menu item gap (px)",type:"number",value:8,min:0,max:32},
             {name:"footer_text",label:"Footer text",type:"text",value:"© 2026 Dalimgari. All rights reserved."}
           ]},
           {id:"layout",title:"Homepage Layout & Section Visibility",key:"ui_customization_layout",fields:[
@@ -3158,6 +3213,8 @@
             {name:"show_widget",label:"Show Widget section",type:"checkbox",value:true},
             {name:"show_album",label:"Show Album section",type:"checkbox",value:true},
             {name:"show_page_card",label:"Show Page Card section",type:"checkbox",value:true},
+            {name:"section_gap",label:"Homepage section spacing (px)",type:"number",value:24,min:0,max:64},
+            {name:"card_gap",label:"Card spacing (px)",type:"number",value:16,min:0,max:48},
             {name:"section_order",label:"Homepage section order",type:"order",full:true,value:'["hero","page_title","widget","album","page_card"]'}
           ]},
           {id:"typography",title:"Typography",key:"ui_customization_typography",fields:[
@@ -3168,6 +3225,25 @@
           {id:"responsive",title:"Responsive Layout",key:"ui_customization_responsive",fields:[
             {name:"content_width",label:"Maximum content width (px)",type:"number",value:1200,min:640,max:1800},
             {name:"mobile_padding",label:"Mobile side padding (px)",type:"number",value:16,min:8,max:32}
+          ]},
+          {id:"components",title:"Cards, Buttons & Forms",key:"ui_customization_components",fields:[
+            {name:"card_padding",label:"Card inner spacing (px)",type:"number",value:16,min:0,max:40},
+            {name:"button_height",label:"Button height (px)",type:"number",value:40,min:32,max:64},
+            {name:"input_height",label:"Input height (px)",type:"number",value:42,min:32,max:64}
+          ]},
+          {id:"media",title:"Images & Media",key:"ui_customization_media",fields:[
+            {name:"image_radius",label:"Image corner radius (px)",type:"number",value:8,min:0,max:32},
+            {name:"gallery_columns",label:"Gallery columns (1–6)",type:"number",value:3,min:1,max:6},
+            {name:"image_fit",label:"Image fit",type:"select",value:"cover",options:[["cover","Cover"],["contain","Contain"]]}
+          ]},
+          {id:"page_style",title:"Page Styling",key:"ui_customization_page_style",fields:[
+            {name:"page_content_width",label:"Custom page content width (px)",type:"number",value:1200,min:640,max:1800},
+            {name:"page_title_size",label:"Page title size (px)",type:"number",value:32,min:20,max:56},
+            {name:"paragraph_spacing",label:"Paragraph spacing (px)",type:"number",value:12,min:0,max:48}
+          ]},
+          {id:"effects",title:"Effects & Animation",key:"ui_customization_effects",fields:[
+            {name:"transition_speed",label:"Transition speed (ms)",type:"number",value:180,min:0,max:600},
+            {name:"animations_enabled",label:"Enable UI animations",type:"checkbox",value:true}
           ]}
         ] : [
           {id:"general",title:"General",key:"ui_settings_general",fields:[
