@@ -655,7 +655,7 @@
         const tile = document.createElement("div");
         tile.style.cssText = "min-width:0;padding:10px;border:1px solid #e5e7eb;border-radius:10px;overflow-wrap:anywhere";
         if (String(item.mime_type || "").startsWith("image/")) {
-          const image = document.createElement("img"); image.src = url; image.alt = item.name || ""; image.loading = "lazy";
+          const image = document.createElement("img"); image.src = url; image.alt = item.alt_text || item.title || item.name || ""; image.loading = "lazy";
           image.style.cssText = "display:block;width:100%;max-height:320px;object-fit:contain;border-radius:6px"; tile.append(image);
         } else if (String(item.mime_type || "").startsWith("video/")) {
           const video = document.createElement("video"); video.src = url; video.controls = true;
@@ -666,7 +666,7 @@
           const link = document.createElement("a"); link.href = url; link.target = "_blank"; link.rel = "noopener noreferrer";
           link.textContent = item.name || "Open file"; tile.append(link);
         }
-        if (item.name) { const caption=document.createElement("p"); caption.textContent=item.name; caption.style.cssText="margin:8px 0 0;font-size:13px"; tile.append(caption); }
+        if (item.title || item.name) { const caption=document.createElement("p"); caption.textContent=item.title || item.name; caption.style.cssText="margin:8px 0 0;font-size:13px"; tile.append(caption); }
         gallery.append(tile);
       }
       if (gallery.childElementCount) container.append(gallery);
@@ -2092,6 +2092,17 @@
             try{
               const payload={title:cleanTitle,description:description.value.trim()||null,tags:tags.value.split(",").map(x=>x.trim()).filter(Boolean),alt_text:alt.value.trim()||null,updated_at:new Date().toISOString()};
               const {error}=await supabaseClient.from("media_assets").update(payload).eq("id",asset.id);if(error)throw error;
+              const {data:links,error:linksError}=await supabaseClient.from("media_links").select("source_table,source_id").eq("media_id",asset.id);
+              if(linksError)throw linksError;
+              for(const link of links||[]){
+                if(!["albums","post","pages","hero_items"].includes(link.source_table))continue;
+                const {data:source,error:sourceError}=await supabaseClient.from(link.source_table).select("media").eq("id",link.source_id).maybeSingle();
+                if(sourceError)throw sourceError;
+                const media=Array.isArray(source?.media)?source.media:[];
+                const updated=media.map(item=>String(item.path||item.storage_path||"")===String(asset.storage_path)?{...item,media_id:asset.id,title:cleanTitle,alt_text:payload.alt_text}:item);
+                const {error:updateSourceError}=await supabaseClient.from(link.source_table).update({media:updated,updated_at:new Date().toISOString()}).eq("id",link.source_id);
+                if(updateSourceError)throw updateSourceError;
+              }
               Object.assign(asset,payload);say("Media metadata saved.");
             }catch(e){say("Save failed: "+(e.message||"Unknown error"),true);}
             finally{save.disabled=false;}
