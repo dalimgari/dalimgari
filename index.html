@@ -952,11 +952,13 @@
             }else if(item.widget_type==="map"){
               const map=document.createElement("iframe");
               const locationQuery=String(settings.location||"Saudi Arabia").trim();
-              const generatedEmbed="https://maps.google.com/maps?q="+encodeURIComponent(locationQuery)+"&output=embed";
+              const configuredZoom=Number(settings.zoom);
+              const zoom=Number.isFinite(configuredZoom)?Math.max(1,Math.min(21,Math.round(configuredZoom))):13;
+              const generatedEmbed="https://maps.google.com/maps?q="+encodeURIComponent(locationQuery)+"&z="+zoom+"&output=embed";
               const embed=String(settings.embed_url||generatedEmbed).trim();
-              let validMapUrl=false;
-              try{const parsed=new URL(embed);validMapUrl=parsed.protocol==="https:"&&["maps.google.com","www.google.com","www.openstreetmap.org","openstreetmap.org"].includes(parsed.hostname);}catch(_){}
-              map.src=validMapUrl?embed:generatedEmbed;
+              let validMapUrl=false,displayEmbed=embed;
+              try{const parsed=new URL(embed);validMapUrl=parsed.protocol==="https:"&&["maps.google.com","www.google.com","openstreetmap.org","www.openstreetmap.org"].includes(parsed.hostname);if(["maps.google.com","www.google.com"].includes(parsed.hostname)){parsed.searchParams.set("z",String(zoom));displayEmbed=parsed.toString();}}catch(_){}
+              map.src=validMapUrl?displayEmbed:generatedEmbed;
               map.title=item.title||"Map";
               map.loading="lazy";
               map.referrerPolicy="no-referrer-when-downgrade";
@@ -2096,7 +2098,7 @@
           if(!Array.isArray(data)||!data.length){const empty=document.createElement("p");empty.className="dashboard-crud-empty";empty.textContent="No widgets found.";list.append(empty);return;}
           const table=document.createElement("table");table.className="dashboard-crud-table";
           const thead=document.createElement("thead"),headRow=document.createElement("tr");
-          ["Widget","Type","Location","Visibility","Action"].forEach(label=>{const th=document.createElement("th");th.textContent=label;headRow.append(th);});
+          ["Widget","Type","Location","Default Zoom","Visibility","Action"].forEach(label=>{const th=document.createElement("th");th.textContent=label;headRow.append(th);});
           thead.append(headRow);table.append(thead);
           const tbody=document.createElement("tbody");
           for(const item of data){
@@ -2113,6 +2115,20 @@
               locationInput.style.minWidth="240px";
               locationCell.append(locationInput);
             }else{locationCell.textContent="—";}
+            const zoomCell=document.createElement("td");
+            let zoomInput=null;
+            if(item.widget_type==="map"){
+              const previousSettings=item.settings&&typeof item.settings==="object"?item.settings:{};
+              const savedZoom=Number(previousSettings.zoom);
+              const initialZoom=Number.isFinite(savedZoom)?Math.max(1,Math.min(21,Math.round(savedZoom))):13;
+              const zoomWrap=document.createElement("div");zoomWrap.style.cssText="display:grid;gap:6px;min-width:150px";
+              const zoomLabel=document.createElement("label");zoomLabel.textContent="Zoom: ";zoomLabel.style.cssText="font-size:13px;font-weight:600";
+              const zoomValue=document.createElement("output");zoomValue.value=String(initialZoom);zoomValue.textContent=String(initialZoom);zoomValue.style.cssText="font-size:13px;font-weight:600";
+              zoomLabel.append(zoomValue);
+              zoomInput=document.createElement("input");zoomInput.type="range";zoomInput.min="1";zoomInput.max="21";zoomInput.step="1";zoomInput.value=String(initialZoom);zoomInput.setAttribute("aria-label","Default map zoom for "+(item.title||"Map"));zoomInput.style.cssText="width:100%;min-width:140px;min-height:24px;accent-color:#222";
+              zoomInput.addEventListener("input",()=>{zoomValue.value=zoomInput.value;zoomValue.textContent=zoomInput.value;});
+              zoomWrap.append(zoomLabel,zoomInput);zoomCell.append(zoomWrap);
+            }else{zoomCell.textContent="—";}
             const visibilityCell=document.createElement("td");
             const select=document.createElement("select");select.className="dashboard-crud-input";select.style.minWidth="110px";
             [["true","Show"],["false","Hide"]].forEach(([value,label])=>{const option=document.createElement("option");option.value=value;option.textContent=label;select.append(option);});
@@ -2131,7 +2147,8 @@
                   if(!location)throw new Error("Enter the exact address, place name, or Google Maps link.");
                   const previousSettings=item.settings&&typeof item.settings==="object"?item.settings:{};
                   const coordinateInput=/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/.test(location);
-                  let embedUrl="https://maps.google.com/maps?q="+encodeURIComponent(location)+(coordinateInput?"&z=19":"")+"&output=embed";
+                  const zoomValue=zoomInput?Number(zoomInput.value):13;
+                  let embedUrl="https://maps.google.com/maps?q="+encodeURIComponent(location)+"&z="+zoomValue+"&output=embed";
                   let resolvedLocation=location;
                   let mapsLink=false;
                   try{
@@ -2150,7 +2167,8 @@
                     embedUrl=resolved.embed_url;
                     resolvedLocation=resolved.location||location;
                   }
-                  update.settings={...previousSettings,location,embed_url:embedUrl,resolved_location:resolvedLocation};
+                  try{const parsedEmbed=new URL(embedUrl);if(["maps.google.com","www.google.com"].includes(parsedEmbed.hostname))parsedEmbed.searchParams.set("z",String(zoomValue));embedUrl=parsedEmbed.toString();}catch(_){}
+                  update.settings={...previousSettings,location,zoom:zoomValue,embed_url:embedUrl,resolved_location:resolvedLocation};
                 }
                 const {error:updateError}=await supabaseClient.from("widgets").update(update).eq("id",item.id);
                 if(updateError)throw updateError;
@@ -2159,7 +2177,7 @@
                 await loadWidgets();
               }catch(err){status.textContent="Save failed: "+(err.message||"Unknown error");status.style.color="#a12622";saveRow.disabled=false;}
             });
-            actionCell.append(saveRow);row.append(nameCell,typeCell,locationCell,visibilityCell,actionCell);tbody.append(row);
+            actionCell.append(saveRow);row.append(nameCell,typeCell,locationCell,zoomCell,visibilityCell,actionCell);tbody.append(row);
           }
           table.append(tbody);list.append(table);
         }
