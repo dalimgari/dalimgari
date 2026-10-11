@@ -1,0 +1,3265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dalimgari</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    /* Global responsive sizing and overflow protection for every page/component. */
+    html, body { max-width:100%; }
+    body { overflow-x:clip; }
+    main, header, footer, main > * { min-width:0; max-width:100%; }
+    img, video, canvas, iframe, object, embed { max-width:100%; }
+    input, select, textarea, button, table, pre, code, output {
+      max-width:100%;
+    }
+    input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]),
+    select, textarea {
+      box-sizing:border-box;
+      min-width:0;
+      max-width:100%;
+    }
+    textarea {
+      width:100%;
+      height:auto;
+      min-height:96px;
+      max-height:60vh;
+      overflow:auto;
+      resize:vertical;
+      white-space:pre-wrap;
+      overflow-wrap:anywhere;
+    }
+    button { overflow-wrap:anywhere; }
+    table { max-width:100%; }
+    th, td { overflow-wrap:anywhere; word-break:break-word; }
+    pre, code, output { overflow-wrap:anywhere; }
+    :is(input, select, textarea, button, a, [tabindex]):focus-visible {
+      scroll-margin-block:24px;
+      scroll-margin-inline:16px;
+    }
+
+    html {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+    }
+
+    body {
+      width: 100%;
+      min-height: 100vh;
+      min-height: 100dvh;
+      height: auto;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      background-color: #ffffff;
+    }
+
+    header {
+      position: sticky;
+      top: 12px;
+      z-index: 10;
+      flex: 0 0 80px;
+      width: calc(100% - 32px);
+      margin: 12px 16px 0;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px -8px rgba(0, 0, 0, 0.16);
+    }
+
+    .current-page-label {
+      min-width: 0;
+      margin: 0 auto 0 0;
+      padding-right: 16px;
+      color: #222222;
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 1.3;
+      overflow-wrap: anywhere;
+    }
+
+    .login-title,
+    .profile-heading,
+    .dashboard-heading {
+      display: none;
+    }
+
+    .menu-button {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 0;
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .menu-button:hover,
+    .menu-button:focus-visible {
+      background-color: #f5f5f5;
+      outline: none;
+    }
+
+    .menu-button span {
+      display: block;
+      width: 20px;
+      height: 2px;
+      border-radius: 2px;
+      background-color: #333333;
+    }
+
+    .floating-menu {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      box-sizing: border-box;
+      width: clamp(176px, 42vw, 220px);
+      max-width: calc(100vw - 24px);
+      max-height: min(320px, calc(100vh - 96px));
+      max-height: min(320px, calc(100dvh - 96px));
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding: 6px;
+      border: 1px solid #eeeeee;
+      border-radius: 12px;
+      background-color: #ffffff;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
+
+    .floating-menu[hidden] {
+      display: none;
+    }
+
+    .menu-link[hidden] {
+      display: none;
+    }
+
+    .menu-link.menu-dashboard {
+      margin-top: 10px;
+      padding-top: 18px;
+      border-top: 1px solid #eeeeee;
+      border-radius: 0 0 9px 9px;
+    }
+
+    .menu-link {
+      display: block;
+      box-sizing: border-box;
+      width: 100%;
+      min-width: 0;
+      padding: 10px 12px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: #333333;
+      font: inherit;
+      font-size: 14px;
+      line-height: 1.3;
+      text-align: left;
+      overflow-wrap: anywhere;
+      cursor: pointer;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    .menu-link:hover,
+    .menu-link:focus-visible,
+    .menu-link[aria-current="page"] {
+      background-color: #f3f4f6;
+      color: #111827;
+      outline: none;
+    }
+
+    main {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 1 0 auto;
+      min-height: 0;
+      width: 100%;
+      background-color: #ffffff;
+    }
+
+    .login-form {
+      width: min(100% - 32px, 400px);
+      padding: 28px;
+      border: 1px solid #eeeeee;
+      border-radius: 16px;
+      background: #ffffff;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
+    }
+
+    .login-title {
+      margin: 0 0 20px;
+      color: #222222;
+      font-size: 24px;
+      line-height: 1.3;
+    }
+
+    .login-field {
+      display: block;
+      width: 100%;
+      height: 48px;
+      margin-bottom: 14px;
+      padding: 0 14px;
+      border: 1px solid #dcdcdc;
+      border-radius: 9px;
+      background: #ffffff;
+      color: #222222;
+      font: inherit;
+      font-size: 15px;
+    }
+
+    .login-field:focus {
+      border-color: #777777;
+      outline: 2px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .remember-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin: 0 0 12px;
+      color: #444444;
+      font-size: 14px;
+    }
+
+    .remember-row input {
+      width: 16px;
+      height: 16px;
+      margin: 0;
+      accent-color: #222222;
+      cursor: pointer;
+    }
+
+    .remember-row label {
+      cursor: pointer;
+    }
+
+    .forgot-password {
+      display: block;
+      margin: 2px 0 20px;
+      color: #333333;
+      font-size: 14px;
+      text-align: right;
+      text-decoration: none;
+    }
+
+    .forgot-password:hover,
+    .create-account:hover {
+      text-decoration: underline;
+    }
+
+    .login-submit {
+      display: block;
+      width: 100%;
+      min-height: 48px;
+      border: 0;
+      border-radius: 9px;
+      background: #222222;
+      color: #ffffff;
+      font: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .login-submit:hover {
+      background: #444444;
+    }
+
+    .login-message {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      margin: 14px 0 0;
+      padding: 12px 13px;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      font-size: 14px;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+
+    .login-message:empty {
+      display: none;
+    }
+
+    .login-message::before {
+      flex: 0 0 auto;
+      font-weight: 700;
+    }
+
+    .login-message[data-type="error"] {
+      color: #a12622;
+      background: #fff4f2;
+      border-color: #f6d5d1;
+    }
+
+    .login-message[data-type="error"]::before { content: "×"; }
+
+    .login-message[data-type="success"] {
+      color: #176b43;
+      background: #effaf3;
+      border-color: #ccebd7;
+    }
+
+    .login-message[data-type="success"]::before { content: "✓"; }
+
+    .login-message[data-type="info"] {
+      color: #245b8f;
+      background: #f1f7ff;
+      border-color: #d7e8fb;
+    }
+
+    .login-message[data-type="info"]::before { content: "i"; }
+
+    .create-account {
+      display: block;
+      margin-top: 20px;
+      color: #333333;
+      font-size: 14px;
+      text-align: center;
+      text-decoration: none;
+    }
+
+
+    .profile-page{width:min(100% - 32px,760px);margin:28px auto;padding:24px;border:1px solid #eee;border-radius:16px;background:#fff;box-shadow:0 10px 30px rgba(0,0,0,.06)}
+    .profile-heading{margin:0 0 20px;color:#222;font-size:24px}
+    .profile-summary{display:flex;align-items:center;gap:16px;padding:18px;border-radius:12px;background:#f8f9fb;margin-bottom:20px}
+    .profile-avatar{width:64px;height:64px;flex:0 0 64px;display:grid;place-items:center;border-radius:50%;overflow:hidden;background:#e5e7eb;color:#374151;font-size:24px;font-weight:700}
+    .profile-name{margin:0 0 5px;font-size:20px;overflow-wrap:anywhere}.profile-email{margin:0;color:#666;font-size:14px;overflow-wrap:anywhere}
+    .role-badge{display:inline-block;margin-left:7px;padding:4px 8px;border-radius:999px;background:#e8eefc;color:#244a8f;font-size:10px;vertical-align:middle;letter-spacing:.4px}
+    .profile-section{padding:18px;margin-bottom:16px;border:1px solid #eee;border-radius:12px}.profile-section h2{margin:0 0 14px;font-size:17px}
+    .profile-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.detail-label{margin:0 0 5px;color:#777;font-size:12px}.detail-value{margin:0;color:#222;font-size:15px;overflow-wrap:anywhere;white-space:pre-wrap}
+    .profile-actions{display:flex;flex-direction:column;align-items:flex-start;gap:10px;margin-top:18px}.action-button{min-height:44px;padding:0 16px;border:1px solid #ddd;border-radius:9px;background:#fff;color:#222;font:inherit;font-weight:600;cursor:pointer}.action-button.primary{background:#222;border-color:#222;color:#fff}
+    .profile-input{width:100%;margin:0 0 15px;padding:12px 13px;border:1px solid #dcdcdc;border-radius:9px;background:#fff;color:#222;font:inherit;font-size:15px}
+    .edit-profile-form label{display:block;margin:0 0 6px;color:#444;font-size:14px}.profile-status{margin:12px 0;font-size:14px;line-height:1.5}.back-profile{margin-bottom:18px}
+    .profile-picture-editor{padding:16px;margin-bottom:18px;border:1px solid #eee;border-radius:12px;background:#f8f9fb}.profile-picture-row{display:flex;align-items:center;gap:16px}.profile-avatar-large{width:88px;height:88px;flex:0 0 88px;border:1px solid #eee}.profile-avatar img,.profile-avatar-large img{width:100%;height:100%;object-fit:cover}
+    .profile-avatar img{display:block}.profile-picture-controls{min-width:0}.profile-picture-controls label{margin-bottom:8px}.profile-picture-controls input{max-width:100%}.profile-picture-status{font-size:13px;overflow-wrap:anywhere}@media(max-width:480px){.profile-picture-row{align-items:flex-start;flex-direction:column}}
+    
+    
+    @media(max-width:560px){.profile-page{padding:17px;margin:18px auto}.profile-details{grid-template-columns:1fr}.profile-actions .action-button{flex:1 1 100%}.profile-heading{font-size:22px}}
+
+    .dashboard-page {
+      display: block;
+      align-self: flex-start;
+      width: calc(100% - 32px);
+      max-width: 1200px;
+      margin: 28px auto;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .dashboard-heading {
+      margin: 0 0 18px;
+      color: #222222;
+      font-size: 26px;
+      line-height: 1.3;
+    }
+
+    .dashboard-navigation-area {
+      width: 100%;
+      margin: 0 0 22px;
+      padding: 12px 0 16px;
+      border-bottom: 1px solid #eeeeee;
+    }
+
+    .dashboard-navigation {
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 2px 2px 8px;
+      overscroll-behavior-x: contain;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: #c7c7c7 #f5f5f5;
+    }
+
+    .dashboard-nav-button {
+      flex: 0 0 auto;
+      min-height: 42px;
+      padding: 0 17px;
+      border: 1px solid #dedede;
+      border-radius: 999px;
+      background: #ffffff;
+      color: #333333;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+
+    .dashboard-nav-button:hover,
+    .dashboard-nav-button:focus-visible {
+      border-color: #999999;
+      outline: none;
+    }
+
+    .dashboard-nav-button[aria-selected="true"] {
+      border-color: #222222;
+      background: #222222;
+      color: #ffffff;
+    }
+
+    .dashboard-section-content {
+      min-height: 220px;
+      padding: 22px;
+      border: 1px solid #eeeeee;
+      border-radius: 14px;
+      background: #ffffff;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+    }
+
+    .dashboard-section-title {
+      margin: 0 0 10px;
+      color: #222222;
+      font-size: 21px;
+      line-height: 1.35;
+    }
+
+    .dashboard-section-description {
+      margin: 0;
+      color: #666666;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 560px) {
+      .dashboard-page {
+        width: calc(100% - 24px);
+        margin: 20px auto;
+      }
+
+      .dashboard-navigation-area {
+        margin-bottom: 16px;
+        padding-top: 8px;
+      }
+
+      .dashboard-navigation {
+        gap: 8px;
+      }
+
+      .dashboard-nav-button {
+        min-height: 40px;
+        padding: 0 14px;
+        font-size: 13px;
+      }
+
+      .dashboard-section-content {
+        min-height: 180px;
+        padding: 17px;
+      }
+    }
+
+
+    .dashboard-crud { display:grid; gap:22px; }
+    .dashboard-crud-card { padding:18px; border:1px solid #e5e7eb; border-radius:12px; background:#fff; }
+    .dashboard-crud-card h3 { margin:0 0 16px; font-size:17px; color:#222; }
+    .dashboard-crud-form { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+    .dashboard-crud-field { display:flex; flex-direction:column; gap:6px; min-width:0; }
+    .dashboard-crud-field.full { grid-column:1/-1; }
+    .dashboard-crud-field label { color:#444; font-size:13px; font-weight:600; }
+    .dashboard-crud-input { width:100%; min-height:42px; padding:10px 12px; border:1px solid #d1d5db; border-radius:8px; background:#fff; color:#222; font:inherit; font-size:14px; }
+    .dashboard-crud-input:focus { outline:2px solid #dbeafe; border-color:#64748b; }
+    .dashboard-crud-actions { display:flex; flex-wrap:wrap; gap:9px; margin-top:16px; }
+    .dashboard-crud-status { min-height:20px; margin:12px 0 0; font-size:13px; line-height:1.5; overflow-wrap:anywhere; }
+    .dashboard-crud-list { width:100%; overflow-x:auto; }
+    .dashboard-crud-table { width:100%; border-collapse:collapse; font-size:13px; }
+    .dashboard-crud-table th,.dashboard-crud-table td { padding:11px 10px; border-bottom:1px solid #eee; text-align:left; vertical-align:top; }
+    .dashboard-crud-table th { color:#555; background:#f8fafc; white-space:nowrap; }
+    .dashboard-crud-row { cursor:pointer; }
+    .dashboard-crud-row:hover,.dashboard-crud-row.is-selected { background:#f1f5f9; }
+    .dashboard-crud-row:focus { outline:2px solid #94a3b8; outline-offset:-2px; }
+    .dashboard-crud-empty { padding:20px 10px; color:#777; text-align:center; }
+    .section-order-control { display:grid; gap:8px; width:100%; }
+    .section-order-row { display:flex; align-items:center; gap:10px; min-width:0; padding:10px; border:1px solid #e5e7eb; border-radius:10px; background:#fff; }
+    .section-order-index { flex:0 0 30px; width:30px; height:30px; display:grid; place-items:center; border-radius:8px; background:#f3f4f6; color:#374151; font-weight:700; }
+    .section-order-name { flex:1 1 auto; min-width:0; font-weight:600; }
+    .section-order-moves { display:flex; gap:5px; }
+    .section-order-moves button { min-width:36px; min-height:36px; padding:4px 8px; }
+    .home-content-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr)); gap:16px; width:100%; }
+    .home-content-card { min-width:0; padding:16px; border:1px solid #e5e7eb; border-radius:14px; background:#fff; overflow-wrap:anywhere; }
+    .home-content-card h2,.home-content-card h3 { margin:0 0 8px; font-size:18px; line-height:1.35; }
+    .home-content-card p { margin:0 0 10px; color:#5b6472; line-height:1.55; white-space:pre-wrap; }
+    .home-content-card a { color:var(--dg-primary,#222); overflow-wrap:anywhere; }
+    .home-content-card img { display:block; width:100%; max-height:260px; object-fit:cover; border-radius:9px; margin:0 0 12px; }
+    .home-tagline { margin:0 0 12px; font-size:clamp(14px,2vw,19px); font-weight:600; opacity:.92; }
+    .dashboard-crud-hint { margin:0 0 14px; color:#666; font-size:13px; line-height:1.5; }
+    @media(max-width:600px) { .dashboard-crud-form { grid-template-columns:1fr; } .dashboard-crud-field.full { grid-column:auto; } .dashboard-crud-card { padding:14px; } }
+
+    /* Consistent sizing and overflow handling for every dashboard control. */
+    .dashboard-page, .dashboard-page * { box-sizing:border-box; min-width:0; }
+    .dashboard-page { max-width:100%; overflow-wrap:anywhere; }
+    .dashboard-page button, .dashboard-page input, .dashboard-page select,
+    .dashboard-page textarea, .dashboard-page table { max-width:100%; }
+    .dashboard-page button { white-space:normal; overflow-wrap:anywhere; }
+    .dashboard-page input, .dashboard-page select, .dashboard-page textarea {
+      font:inherit; line-height:1.45;
+    }
+    .dashboard-page input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+    .dashboard-page select, .dashboard-page textarea {
+      display:block; width:100%; max-width:100%; min-height:42px;
+    }
+    .dashboard-page textarea {
+      height:auto; min-height:112px; max-height:60vh; overflow:auto;
+      resize:vertical; white-space:pre-wrap; overflow-wrap:anywhere;
+    }
+    .dashboard-page .dashboard-crud-form,
+    .dashboard-page .dashboard-crud-field,
+    .dashboard-page .dashboard-crud-card,
+    .dashboard-page .dashboard-section-content { min-width:0; max-width:100%; }
+    .dashboard-page .dashboard-crud-list {
+      display:block; width:100%; max-width:100%; overflow-x:auto; overflow-y:hidden;
+      overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch;
+    }
+    .dashboard-page .dashboard-crud-table {
+      width:100%; min-width:640px; max-width:none; table-layout:auto;
+    }
+    .dashboard-page .dashboard-crud-table th,
+    .dashboard-page .dashboard-crud-table td {
+      max-width:320px; white-space:normal; overflow-wrap:anywhere; word-break:break-word;
+    }
+    .dashboard-page :is(input, select, textarea, button, [tabindex]):focus-visible {
+      scroll-margin-block:24px; scroll-margin-inline:16px;
+    }
+    @media(max-width:600px) {
+      .dashboard-page { width:calc(100% - 24px); }
+      .dashboard-page .dashboard-section-content { padding:14px; }
+      .dashboard-page .dashboard-crud-card { padding:12px; }
+      .dashboard-page .dashboard-crud-table { min-width:600px; }
+    }
+
+    footer {
+      position: relative;
+      flex: 0 0 auto;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background-color: #fafafa;
+      border-top: 1px solid #f0f0f0;
+      box-shadow: 0 -5px 18px rgba(0, 0, 0, 0.035);
+      color: #777777;
+      font-size: 13px;
+      letter-spacing: 0.2px;
+      line-height: 1.5;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <span class="current-page-label" id="current-page-label" aria-live="polite">Home</span>
+    <button class="menu-button" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="floating-menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <nav class="floating-menu" id="floating-menu" aria-label="Main menu" hidden>
+      <button class="menu-link" type="button" data-page="Home">Home</button>
+      <button class="menu-link" type="button" data-page="Profile">Profile</button>
+      <button class="menu-link" type="button" data-page="Login">Login</button>
+      <button class="menu-link menu-dashboard" type="button" data-page="Dashboard" hidden>Dashboard</button>
+    </nav>
+  </header>
+
+  <main id="main-content" aria-live="polite">
+  </main>
+
+  <footer>
+    © 2026 Dalimgari. All rights reserved.
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const supabaseClient = window.supabase.createClient(
+      "https://yopfogoyjxwxplnabqii.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvcGZvZ295anh3eHBsbmFicWlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyOTMyNjQsImV4cCI6MjEwNDg2OTI2NH0.dIVH8sp3qyD_AGmt1bNFVOpQKdrgcX734HkrEuOacB4"
+    );
+
+    const menuButton = document.querySelector(".menu-button");
+    const floatingMenu = document.querySelector("#floating-menu");
+    const mainContent = document.querySelector("#main-content");
+    const menuLinks = document.querySelectorAll(".menu-link");
+
+    // Site-wide: automatically scroll focused controls into view on every page.
+    document.addEventListener("focusin", (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement) ||
+          !target.matches("input, select, textarea, button, a, [tabindex]")) return;
+      requestAnimationFrame(() => {
+        if (!target.isConnected) return;
+        const rect = target.getBoundingClientRect();
+        const viewportHeight = document.documentElement.clientHeight;
+        const viewportWidth = document.documentElement.clientWidth;
+        if (rect.top < 8 || rect.bottom > viewportHeight - 8 ||
+            rect.left < 8 || rect.right > viewportWidth - 8) {
+          target.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+        }
+      });
+    });
+
+    let activeSession = null;
+
+    function updateAuthMenu(session) {
+      activeSession = session || null;
+      const loginAction = document.querySelector('.menu-link[data-page="Login"], .menu-link[data-page="Logout"]');
+      if (loginAction) {
+        const signedIn = Boolean(activeSession);
+        loginAction.dataset.page = signedIn ? "Logout" : "Login";
+        loginAction.textContent = signedIn ? "Logout" : "Login";
+        loginAction.setAttribute("aria-label", signedIn ? "Log out of your account" : "Log in to your account");
+      }
+      const dashboardAction = document.querySelector('.menu-link[data-page="Dashboard"]');
+      const role = String((activeSession && activeSession.user && activeSession.user.app_metadata && activeSession.user.app_metadata.role) || "").toLowerCase();
+      if (dashboardAction) dashboardAction.hidden = role !== "admin" || dashboardAction.getAttribute("aria-current") === "page";
+    }
+
+    async function createContentMediaUrl(path) {
+      if (!path) return "";
+      const { data, error } = await supabaseClient.storage.from("content-files").createSignedUrl(path, 3600);
+      if (error) { console.warn("Could not create a content media URL:", error.message); return ""; }
+      return data?.signedUrl || "";
+    }
+
+    async function renderContentMedia(container, media) {
+      if (!Array.isArray(media) || !media.length) return;
+      const gallery = document.createElement("div");
+      gallery.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:18px";
+      for (const item of media) {
+        const url = await createContentMediaUrl(item.path);
+        if (!url) continue;
+        const tile = document.createElement("div");
+        tile.style.cssText = "min-width:0;padding:10px;border:1px solid #e5e7eb;border-radius:10px;overflow-wrap:anywhere";
+        if (String(item.mime_type || "").startsWith("image/")) {
+          const image = document.createElement("img"); image.src = url; image.alt = item.name || ""; image.loading = "lazy";
+          image.style.cssText = "display:block;width:100%;max-height:320px;object-fit:contain;border-radius:6px"; tile.append(image);
+        } else if (String(item.mime_type || "").startsWith("video/")) {
+          const video = document.createElement("video"); video.src = url; video.controls = true;
+          video.style.cssText = "display:block;width:100%;max-height:320px;border-radius:6px"; tile.append(video);
+        } else if (String(item.mime_type || "").startsWith("audio/")) {
+          const audio = document.createElement("audio"); audio.src = url; audio.controls = true; audio.style.width = "100%"; tile.append(audio);
+        } else {
+          const link = document.createElement("a"); link.href = url; link.target = "_blank"; link.rel = "noopener noreferrer";
+          link.textContent = item.name || "Open file"; tile.append(link);
+        }
+        if (item.name) { const caption=document.createElement("p"); caption.textContent=item.name; caption.style.cssText="margin:8px 0 0;font-size:13px"; tile.append(caption); }
+        gallery.append(tile);
+      }
+      if (gallery.childElementCount) container.append(gallery);
+    }
+
+
+    let dalimgariRuntimeConfig = {};
+    let dalimgariHomeObserver = null;
+    // Loads public-safe configuration saved by the dashboard and applies supported settings.
+    async function applyDalimgariSiteConfig(force=false) {
+      const keys=["ui_customization_identity","ui_customization_theme","ui_customization_header_footer","ui_customization_layout","ui_customization_typography","ui_customization_responsive","ui_settings_general","ui_settings_homepage_defaults","ui_settings_content_defaults","ui_settings_users_access","ui_settings_privacy_visibility","ui_settings_maintenance_features"];
+      const {data,error}=await supabaseClient.from("site_customizations").select("key,value").in("key",keys);
+      if(error){console.warn("Site configuration could not be loaded:",error.message);return {};}
+      const cfg={};
+      for(const row of data||[]){let value=row.value||{};if(typeof value==="string"){try{value=JSON.parse(value)}catch(_){value={}}}cfg[row.key]=value&&typeof value==="object"?value:{};}
+      dalimgariRuntimeConfig = cfg;
+      const identity=cfg.ui_customization_identity||{}, general=cfg.ui_settings_general||{};
+      const theme=cfg.ui_customization_theme||{}, header=cfg.ui_customization_header_footer||{};
+      const layout=cfg.ui_customization_layout||{}, typography=cfg.ui_customization_typography||{};
+      const responsive=cfg.ui_customization_responsive||{}, features=cfg.ui_settings_maintenance_features||{};
+      const homepageDefaults=cfg.ui_settings_homepage_defaults||{};
+      const title=String(general.site_title||identity.site_title||"Dalimgari").trim()||"Dalimgari";
+      document.title=title;
+      let descriptionMeta=document.querySelector('meta[name="description"]');
+      if(!descriptionMeta){descriptionMeta=document.createElement("meta");descriptionMeta.name="description";document.head.append(descriptionMeta);}
+      descriptionMeta.content=String(general.site_description||"").trim();
+      const titleLabel=document.querySelector("#current-page-label");
+      if(titleLabel && (!titleLabel.textContent || titleLabel.textContent==="Home"))titleLabel.textContent=title;
+      const root=document.documentElement;
+      const validColor=value=>/^#[0-9a-f]{6}$/i.test(String(value||""))?String(value):"";
+      const primaryColor=validColor(theme.primary_color), surfaceColor=validColor(theme.surface_color), textColor=validColor(theme.text_color), backgroundColor=validColor(theme.background_color);
+      if(primaryColor)root.style.setProperty("--dg-primary",primaryColor);
+      if(backgroundColor)document.body.style.backgroundColor=backgroundColor;
+      if(textColor)document.body.style.color=textColor;
+      if(surfaceColor)root.style.setProperty("--dg-surface",surfaceColor);
+      let configStyle=document.getElementById("dalimgari-runtime-theme");
+      if(!configStyle){configStyle=document.createElement("style");configStyle.id="dalimgari-runtime-theme";document.head.append(configStyle);}
+      const themeRules=[];
+      if(primaryColor)themeRules.push(".action-button.primary,.login-submit,.dashboard-nav-button[aria-selected='true']{background-color:"+primaryColor+" !important;border-color:"+primaryColor+" !important}");
+      if(surfaceColor)themeRules.push(".dashboard-section-content,.dashboard-crud-card,.login-form,.profile-page{background-color:"+surfaceColor+" !important}");
+      if(textColor)themeRules.push(".dashboard-section-content,.dashboard-crud-card,.login-form,.profile-page{color:"+textColor+" !important}");
+      configStyle.textContent=themeRules.join("\n");
+      if(typography.font_family&&typography.font_family!=="system")document.body.style.fontFamily=typography.font_family;
+      else document.body.style.removeProperty("font-family");
+      if(Number(typography.base_font_size)>=12&&Number(typography.base_font_size)<=22)document.body.style.fontSize=Number(typography.base_font_size)+"px";
+      const siteHeader=document.querySelector("body > header"), siteFooter=document.querySelector("body > footer");
+      if(siteHeader){siteHeader.hidden=header.show_header===false;siteHeader.style.position=header.header_sticky===false?"relative":"sticky";}
+      if(siteFooter){siteFooter.hidden=header.show_footer===false;if(header.footer_text)siteFooter.textContent=header.footer_text;}
+      const home=document.querySelector(".home-page");
+      if(home){
+        const width=Number(responsive.content_width);
+        if(width>=640&&width<=1800)home.style.maxWidth=width+"px";
+        const padding=Number(responsive.mobile_padding);
+        if(padding>=8&&padding<=32)home.style.paddingLeft=padding+"px",home.style.paddingRight=padding+"px";
+        const sectionMap={"hero":".home-hero","page_title":".home-page-title","widget":".home-widget","album":".home-album","page_card":".home-page-card"};
+        for(const [key,selector] of Object.entries(sectionMap)){
+          const el=home.querySelector(selector);if(!el)continue;
+          const field="show_"+key;
+          if(Object.prototype.hasOwnProperty.call(layout,field))el.hidden=!layout[field];
+          if(features.enable_homepage_media===false&&(key==="widget"||key==="album"))el.hidden=true;
+        }
+        if(Array.isArray(layout.section_order)){
+          const ordered=layout.section_order.map(key=>sectionMap[key]).filter(Boolean).map(selector=>home.querySelector(selector)).filter(Boolean);
+          const rest=Array.from(home.children).filter(el=>!ordered.includes(el));
+          home.append(...ordered,...rest);
+        }
+        if(dalimgariHomeObserver){dalimgariHomeObserver.disconnect();dalimgariHomeObserver=null;}
+        const syncEmptySections=()=>{
+          for(const [key,selector] of Object.entries(sectionMap)){
+            const el=home.querySelector(selector);if(!el)continue;
+            const field="show_"+key;
+            const disabledByLayout=Object.prototype.hasOwnProperty.call(layout,field)&&layout[field]===false;
+            const disabledByFeature=features.enable_homepage_media===false&&(key==="widget"||key==="album");
+            const empty=!el.textContent.trim()&&!el.querySelector("img,video,iframe,canvas,button,a");
+            el.hidden=disabledByLayout||disabledByFeature||(!homepageDefaults.show_empty_sections&&empty);
+          }
+        };
+        if(!homepageDefaults.show_empty_sections&&typeof MutationObserver!=="undefined"){
+          dalimgariHomeObserver=new MutationObserver(syncEmptySections);
+          dalimgariHomeObserver.observe(home,{subtree:true,childList:true,characterData:true});
+        }
+        syncEmptySections();
+      }
+      return cfg;
+    }
+
+    async function renderHome() {
+      const siteConfig = await applyDalimgariSiteConfig();
+      const maintenance = siteConfig.ui_settings_maintenance_features || {};
+      const currentUser = await getCurrentUser();
+      const currentRole = String((currentUser && currentUser.app_metadata && currentUser.app_metadata.role) || "").toLowerCase();
+      if (maintenance.maintenance_mode && currentRole !== "admin") {
+        const notice = document.createElement("section");
+        notice.style.cssText = "width:min(100% - 32px,760px);margin:48px auto;padding:28px;border:1px solid #e5e7eb;border-radius:14px;background:#fff;text-align:center";
+        const heading = document.createElement("h1"); heading.textContent = "We’ll be back soon";
+        const detail = document.createElement("p"); detail.textContent = "The website is temporarily under maintenance. Please check again later.";
+        notice.append(heading, detail);
+        mainContent.replaceChildren(notice);
+        return;
+      }
+      const homepageDefaults = siteConfig.ui_settings_homepage_defaults || {};
+      if (!window.location.hash && homepageDefaults.default_home_route === "login") {
+        history.replaceState(null, "", "#login");
+        renderPage("Login");
+        return;
+      }
+      document.title = String((siteConfig.ui_settings_general||{}).site_title || "Dalimgari").trim() || "Dalimgari";
+      // Home content starts below the header instead of being vertically centered.
+      mainContent.style.alignItems = "flex-start";
+      mainContent.style.justifyContent = "flex-start";
+
+      const page = document.createElement("section");
+      page.className = "home-page";
+      page.setAttribute("aria-label", "Home page sections");
+      page.style.cssText = "width:100%;max-width:1200px;min-height:1px;margin:0 auto;padding:0 16px 32px";
+
+      const heroSection = document.createElement("section");
+      heroSection.className = "home-section home-hero";
+      heroSection.setAttribute("aria-label", "Hero");
+      heroSection.style.cssText = "width:100%;min-width:0;max-width:100%;padding:24px 0 32px";
+
+      const sectionNames = [
+        ["Page Title", "home-page-title"],
+        ["Widget", "home-widget"],
+        ["Album", "home-album"],
+        ["Page Card", "home-page-card"],
+      ];
+      const extraSections = sectionNames.map(([name, className]) => {
+        const section = document.createElement("section");
+        section.className = "home-section " + className;
+        section.setAttribute("aria-label", name);
+        section.style.cssText = "width:100%;min-width:0;max-width:100%;min-height:1px;padding:0 0 24px;box-sizing:border-box";
+        return section;
+      });
+
+      // Keep Media Upload immediately below the hero, before the other homepage sections.
+      page.append(heroSection, ...extraSections);
+      mainContent.replaceChildren(page);
+      await applyDalimgariSiteConfig();
+
+      // Optional homepage placement map, configured in Dashboard > Customizations
+      // with key "home_page_includes" and JSON such as {"home-page-title":"about-us"}.
+      const { data: includeConfigRow } = await supabaseClient.from("site_customizations")
+        .select("value").eq("key", "home_page_includes").maybeSingle();
+      let homeIncludes = includeConfigRow?.value || {};
+      if (typeof homeIncludes === "string") {
+        try { homeIncludes = JSON.parse(homeIncludes); } catch (_) { homeIncludes = {}; }
+      }
+      if (homeIncludes && typeof homeIncludes === "object" && !Array.isArray(homeIncludes)) {
+        for (const [sectionClass, rawSlug] of Object.entries(homeIncludes)) {
+          const target = [heroSection, ...extraSections].find(section => section.classList.contains(sectionClass));
+          const slug = generatePageSlug(rawSlug);
+          if (!target || !slug) continue;
+          const { data: includedPage, error: includeError } = await supabaseClient.from("pages")
+            .select("content").eq("url", slug).maybeSingle();
+          if (!includeError && includedPage) await renderHtmlInto(target, includedPage.content || "", null);
+        }
+      }
+
+      // Public Pages appear as pill buttons in the homepage Page Title section.
+      const pageTitleSection = extraSections[0];
+      const pillBar = document.createElement("nav");
+      pillBar.setAttribute("aria-label", "Pages");
+      pillBar.style.cssText = "display:flex;flex-wrap:wrap;gap:10px;width:100%;padding:4px 0 12px";
+      const [{data: publicPages, error: pagesError}, {data: pageOrderSetting}] = await Promise.all([
+        supabaseClient.from("pages").select("id,title,url,visibility,created_at").eq("visibility","public").order("created_at",{ascending:true}).limit(200),
+        supabaseClient.from("site_customizations").select("value").eq("key","home_page_order").maybeSingle()
+      ]);
+      if (!pagesError && Array.isArray(publicPages) && publicPages.length) {
+        let pageOrder = pageOrderSetting?.value;
+        if (typeof pageOrder === "string") { try { pageOrder = JSON.parse(pageOrder); } catch (_) { pageOrder = []; } }
+        if (pageOrder && !Array.isArray(pageOrder) && Array.isArray(pageOrder.ids)) pageOrder = pageOrder.ids;
+        if (!Array.isArray(pageOrder)) pageOrder = [];
+        const rank = new Map(pageOrder.map((id,index)=>[String(id),index]));
+        publicPages.sort((a,b) => {
+          const ar=rank.has(String(a.id))?rank.get(String(a.id)):Number.MAX_SAFE_INTEGER;
+          const br=rank.has(String(b.id))?rank.get(String(b.id)):Number.MAX_SAFE_INTEGER;
+          return ar-br || new Date(a.created_at||0)-new Date(b.created_at||0);
+        });
+        for (const storedPage of publicPages) {
+          if (!storedPage.url || !storedPage.title) continue;
+          const pill = document.createElement("a");
+          pill.href = window.location.pathname + "?page=" + encodeURIComponent(storedPage.url);
+          pill.textContent = storedPage.title;
+          pill.className = "home-page-pill";
+          pill.style.cssText = "display:inline-flex;align-items:center;justify-content:center;min-height:40px;max-width:100%;padding:8px 16px;border:1px solid #dedede;border-radius:999px;background:#fff;color:#333;text-decoration:none;font-size:14px;font-weight:600;line-height:1.35;overflow-wrap:anywhere";
+          pill.addEventListener("mouseenter",()=>{pill.style.background="#f3f4f6";});
+          pill.addEventListener("mouseleave",()=>{pill.style.background="#fff";});
+          pillBar.append(pill);
+        }
+      }
+      if (pillBar.childElementCount) pageTitleSection.append(pillBar);
+      await renderHomepageContentCards(siteConfig);
+
+      // The uploader is a normal homepage section, not a separate page or route.
+
+      const { data: heroRecord } = await supabaseClient.from("hero_items")
+        .select("title,description,media,visibility").eq("visibility","public").order("created_at",{ascending:false}).limit(1).maybeSingle();
+      let headline = String(heroRecord?.title || "").trim();
+      let welcomeMessage = String(heroRecord?.description || "").trim();
+      let heroImageUrl = "";
+      const heroMedia = Array.isArray(heroRecord?.media) ? heroRecord.media : [];
+      const firstImage = heroMedia.find(item => String(item.mime_type || "").startsWith("image/"));
+      if (firstImage?.path) heroImageUrl = await createContentMediaUrl(firstImage.path);
+      if (!heroRecord) {
+        const { data, error } = await supabaseClient.from("site_customizations").select("value").eq("key", "home_hero").maybeSingle();
+        if (!error && data && data.value) {
+          let heroData=data.value;
+          if(typeof heroData==="string"){try{heroData=JSON.parse(heroData)}catch(_){heroData={}}}
+          if(heroData&&typeof heroData==="object"){
+            headline=String(heroData.headline||"").trim();
+            welcomeMessage=String(heroData.welcomeMessage||"").trim();
+            heroImageUrl=String(heroData.heroImageUrl||"").trim();
+          }
+        }
+      }
+      if (!headline && !welcomeMessage && !heroImageUrl && !String((siteConfig.ui_customization_identity||{}).tagline||"").trim()) return;
+
+      // Keep the image as the floating hero surface and layer its text over the center.
+      const imageFrame = document.createElement("div");
+      imageFrame.className = "home-hero-image-frame";
+      imageFrame.style.cssText = "position:relative;isolation:isolate;display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:100%;aspect-ratio:16/9;margin:0;overflow:hidden;border:1px solid rgba(148,163,184,.35);border-radius:20px;background:linear-gradient(135deg,#e2e8f0,#f8fafc);box-shadow:0 14px 36px rgba(15,23,42,.16)";
+      if (heroImageUrl) {
+        const image = document.createElement("img");
+        image.src = heroImageUrl;
+        image.alt = "";
+        image.loading = "eager";
+        image.decoding = "async";
+        image.style.cssText = "position:absolute;inset:0;z-index:-2;display:block;width:100%;height:100%;max-width:100%;object-fit:cover;object-position:center";
+        imageFrame.append(image);
+        const shade = document.createElement("div");
+        shade.setAttribute("aria-hidden", "true");
+        shade.style.cssText = "position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(15,23,42,.48),rgba(15,23,42,.2),rgba(15,23,42,.48))";
+        imageFrame.append(shade);
+      }
+
+      const textOverlay = document.createElement("div");
+      textOverlay.className = "home-hero-text-overlay";
+      textOverlay.style.cssText = "position:relative;z-index:1;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-height:100%;overflow-y:auto;padding:clamp(16px,4vw,44px);text-align:center;color:" + (heroImageUrl ? "#fff" : "#334155") + ";text-shadow:" + (heroImageUrl ? "0 2px 12px rgba(0,0,0,.5)" : "none");
+      const tagline=String((siteConfig.ui_customization_identity||{}).tagline||"").trim();
+      if(tagline){const tag=document.createElement("p");tag.className="home-tagline";tag.textContent=tagline;textOverlay.append(tag);}
+      if (headline) {
+        const heading = document.createElement("h1");
+        heading.textContent = headline;
+        heading.style.cssText = "max-width:900px;margin:0 0 12px;font-size:clamp(24px,5.5vw,52px);line-height:1.12;font-weight:750;overflow-wrap:anywhere";
+        textOverlay.append(heading);
+      }
+      if (welcomeMessage) {
+        const welcome = document.createElement("p");
+        welcome.textContent = welcomeMessage;
+        welcome.style.cssText = "max-width:760px;margin:0;font-size:clamp(14px,2.5vw,20px);line-height:1.55;overflow-wrap:anywhere";
+        textOverlay.append(welcome);
+      }
+      imageFrame.append(textOverlay);
+      heroSection.append(imageFrame);
+    }
+
+    async function renderHomepageContentCards(siteConfig){
+      const widget=document.querySelector(".home-widget"), albumSection=document.querySelector(".home-album"), pageCards=document.querySelector(".home-page-card");
+      const makeGrid=()=>{const grid=document.createElement("div");grid.className="home-content-grid";return grid;};
+      const makeCard=(title,description)=>{const card=document.createElement("article");card.className="home-content-card";const h=document.createElement("h3");h.textContent=title||"Untitled";card.append(h);if(description){const p=document.createElement("p");p.textContent=description;card.append(p);}return card;};
+      // Only configured widgets belong in the homepage Widget section.
+      if(widget){
+        const {data:widgets,error}=await supabaseClient.from("widgets").select("id,widget_type,title,is_visible,settings").eq("is_visible",true).order("created_at",{ascending:true});
+        if(!error&&Array.isArray(widgets)&&widgets.length){
+          const grid=makeGrid();
+          for(const item of widgets){
+            const settings=item.settings&&typeof item.settings==="object"?item.settings:{};
+            const card=makeCard("","");
+            const widgetHeading=card.querySelector("h3");if(widgetHeading)widgetHeading.remove();
+            if(item.widget_type==="datetime"){
+              const date=document.createElement("p");
+              date.style.cssText="margin:4px 0 0;color:#5b6472;font-size:14px";
+              const time=document.createElement("h2");
+              time.style.cssText="margin:0 0 8px;font-size:clamp(24px,4vw,36px);line-height:1.2;font-variant-numeric:tabular-nums";
+              const banglaDate=document.createElement("p");
+              banglaDate.style.cssText="margin:0 0 8px;color:#5b6472;font-size:14px";
+              const clockLayout=document.createElement("div");
+              clockLayout.style.cssText="display:flex;align-items:center;justify-content:space-between;gap:18px;width:100%;min-width:0";
+              const clockDetails=document.createElement("div");
+              clockDetails.style.cssText="flex:1;min-width:0";
+              clockDetails.append(time,banglaDate,date);
+              const dialWrap=document.createElement("div");
+              dialWrap.style.cssText="flex:0 0 clamp(108px,22vw,164px);width:clamp(108px,22vw,164px);max-width:44%;aspect-ratio:1";
+              const svgNS="http://www.w3.org/2000/svg";
+              const dial=document.createElementNS(svgNS,"svg");
+              dial.setAttribute("viewBox","0 0 160 160");
+              dial.setAttribute("role","img");
+              dial.setAttribute("aria-label","Analog clock showing Bangladesh time");
+              dial.style.cssText="display:block;width:100%;height:100%;overflow:visible";
+              const face=document.createElementNS(svgNS,"circle");
+              face.setAttribute("cx","80");face.setAttribute("cy","80");face.setAttribute("r","75");
+              face.setAttribute("fill","var(--card-bg, #fff)");face.setAttribute("stroke","var(--border-color, #d1d5db)");face.setAttribute("stroke-width","2");
+              dial.append(face);
+              for(let tick=0;tick<60;tick++){
+                const angle=tick*Math.PI/30;
+                const major=tick%5===0;
+                const line=document.createElementNS(svgNS,"line");
+                line.setAttribute("x1",String(80+Math.sin(angle)*(major?61:66)));
+                line.setAttribute("y1",String(80-Math.cos(angle)*(major?61:66)));
+                line.setAttribute("x2",String(80+Math.sin(angle)*70));
+                line.setAttribute("y2",String(80-Math.cos(angle)*70));
+                line.setAttribute("stroke","var(--text-color, #374151)");
+                line.setAttribute("stroke-width",major?"2.5":"1");
+                line.setAttribute("stroke-linecap","round");
+                dial.append(line);
+              }
+              for(let numeral=1;numeral<=12;numeral++){
+                const angle=numeral*Math.PI/6;
+                const label=document.createElementNS(svgNS,"text");
+                label.setAttribute("x",String(80+Math.sin(angle)*49));
+                label.setAttribute("y",String(80-Math.cos(angle)*49+4));
+                label.setAttribute("text-anchor","middle");
+                label.setAttribute("font-size","11");
+                label.setAttribute("font-weight","600");
+                label.setAttribute("fill","var(--text-color, #374151)");
+                label.textContent=String(numeral);
+                dial.append(label);
+              }
+              const makeHand=(length,width,color)=>{
+                const hand=document.createElementNS(svgNS,"line");
+                hand.setAttribute("x1","80");hand.setAttribute("y1","80");
+                hand.setAttribute("x2","80");hand.setAttribute("y2",String(80-length));
+                hand.setAttribute("stroke",color);hand.setAttribute("stroke-width",String(width));
+                hand.setAttribute("stroke-linecap","round");
+                dial.append(hand);
+                return hand;
+              };
+              const hourHand=makeHand(34,4,"var(--text-color, #374151)");
+              const minuteHand=makeHand(48,2.8,"var(--text-color, #374151)");
+              const secondHand=makeHand(55,1.2,"#dc2626");
+              const pin=document.createElementNS(svgNS,"circle");
+              pin.setAttribute("cx","80");pin.setAttribute("cy","80");pin.setAttribute("r","3.5");pin.setAttribute("fill","#dc2626");
+              dial.append(pin);
+              dialWrap.append(dial);
+              clockLayout.append(clockDetails,dialWrap);
+              card.append(clockLayout);
+              const updateClock=()=>{
+                const now=new Date();
+                const bangladeshTimeZone="Asia/Dhaka";
+                time.textContent=new Intl.DateTimeFormat("en-US",{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false,timeZone:bangladeshTimeZone}).format(now);
+                date.textContent=new Intl.DateTimeFormat("en-US",{dateStyle:"full",timeZone:bangladeshTimeZone}).format(now);
+                const parts=new Intl.DateTimeFormat("en-GB",{timeZone:bangladeshTimeZone,year:"numeric",month:"numeric",day:"numeric",hour:"numeric",minute:"numeric",second:"numeric",hourCycle:"h23"}).formatToParts(now);
+                const part=name=>Number(parts.find(part=>part.type===name)?.value);
+                const year=part("year"),month=part("month"),day=part("day");
+                const hour=part("hour"),minute=part("minute"),second=part("second");
+                const banglaYear=year-(month>4||(month===4&&day>=14)?593:594);
+                const startYear=month>4||(month===4&&day>=14)?year:year-1;
+                const elapsed=Math.floor((Date.UTC(year,month-1,day)-Date.UTC(startYear,3,14))/86400000);
+                const leapYear=startYear+1;
+                const isLeap=leapYear%4===0&&(leapYear%100!==0||leapYear%400===0);
+                const monthNames=["Boishakh","Joishtho","Ashar","Srabon","Bhadro","Ashwin","Kartik","Agrahayan","Poush","Magh","Falgun","Chaitra"];
+                const monthLengths=[31,31,31,31,31,31,30,30,30,30,isLeap?30:29,30];
+                let remaining=elapsed,banglaMonth=0;
+                while(banglaMonth<monthLengths.length-1&&remaining>=monthLengths[banglaMonth]){remaining-=monthLengths[banglaMonth];banglaMonth++;}
+                const weekdayNames=["Robibar","Shombar","Mongolbar","Budhbar","Brihospotibar","Shukrobar","Shonibar"];
+                const weekday=new Date(Date.UTC(year,month-1,day)).getUTCDay();
+                banglaDate.textContent=weekdayNames[weekday]+", "+monthNames[banglaMonth]+" "+(remaining+1)+", "+banglaYear;
+                hourHand.setAttribute("transform","rotate("+((hour%12)*30+minute*0.5)+" 80 80)");
+                minuteHand.setAttribute("transform","rotate("+(minute*6+second*0.1)+" 80 80)");
+                secondHand.setAttribute("transform","rotate("+(second*6)+" 80 80)");
+              };
+              updateClock();
+              const clockTimer=setInterval(()=>{if(!card.isConnected){clearInterval(clockTimer);return;}updateClock();},1000);
+            }else if(item.widget_type==="map"){
+              const map=document.createElement("iframe");
+              const locationQuery=String(settings.location||"Saudi Arabia").trim();
+              const configuredZoom=Number(settings.zoom);
+              const zoom=Number.isFinite(configuredZoom)?Math.max(1,Math.min(21,Math.round(configuredZoom))):13;
+              const generatedEmbed="https://maps.google.com/maps?q="+encodeURIComponent(locationQuery)+"&z="+zoom+"&output=embed";
+              const embed=String(settings.embed_url||generatedEmbed).trim();
+              let validMapUrl=false,displayEmbed=embed;
+              try{const parsed=new URL(embed);validMapUrl=parsed.protocol==="https:"&&["maps.google.com","www.google.com","openstreetmap.org","www.openstreetmap.org"].includes(parsed.hostname);if(["maps.google.com","www.google.com"].includes(parsed.hostname)){parsed.searchParams.set("z",String(zoom));displayEmbed=parsed.toString();}}catch(_){}
+              map.src=validMapUrl?displayEmbed:generatedEmbed;
+              map.title=item.title||"Map";
+              map.loading="lazy";
+              map.referrerPolicy="no-referrer-when-downgrade";
+              map.setAttribute("allowfullscreen","");
+              map.style.cssText="display:block;width:100%;height:300px;max-width:100%;border:0;border-radius:10px;background:#f3f4f6";
+              card.append(map);
+            }
+            grid.append(card);
+          }
+          widget.append(grid);
+        }
+      }
+      if(albumSection){
+        const {data:albums,error}=await supabaseClient.from("albums").select("id,title,description,url,cover_path,media,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(24);
+        if(!error&&albums?.length){
+          const grid=makeGrid();
+          for(const album of albums){
+            const card=makeCard(album.title,album.description||"");
+            const media=Array.isArray(album.media)?album.media:[];
+            if(media.length)await renderContentMedia(card,media);
+            else if(album.cover_path){const url=await createContentMediaUrl(album.cover_path);if(url){const image=document.createElement("img");image.src=url;image.alt=album.title||"";image.loading="lazy";card.append(image);}}
+            grid.append(card);
+          }
+          albumSection.append(grid);
+        }
+      }
+      if(pageCards){
+        const {data:pages,error}=await supabaseClient.from("pages").select("title,url,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(24);
+        if(!error&&pages?.length){
+          const grid=makeGrid();
+          for(const page of pages){
+            const card=makeCard(page.title,"");
+            if(page.url){const link=document.createElement("a");link.href=window.location.pathname+"?page="+encodeURIComponent(page.url);link.textContent="Open page";card.append(link);}
+            grid.append(card);
+          }
+          pageCards.append(grid);
+        }
+      }
+    }
+
+    function sanitizePageHtml(html) {
+      const parsed = new DOMParser().parseFromString(String(html || ""), "text/html");
+      parsed.querySelectorAll("script,iframe,object,embed,base,meta,link,title,foreignObject").forEach(node => node.remove());
+      const pageStyles = Array.from(parsed.querySelectorAll("style"));
+      pageStyles.forEach(node => node.remove());
+      parsed.querySelectorAll("*").forEach(node => {
+        Array.from(node.attributes).forEach(attribute => {
+          const name = attribute.name.toLowerCase();
+          const value = String(attribute.value || "").trim().toLowerCase();
+          if (name.startsWith("on") || name === "srcdoc" ||
+              ((name === "href" || name === "src" || name === "xlink:href" || name === "action" || name === "formaction") &&
+               (value.startsWith("javascript:") || value.startsWith("data:text/html:")))) {
+            node.removeAttribute(attribute.name);
+          }
+        });
+        if (node.tagName === "FORM") {
+          node.removeAttribute("action");
+          node.removeAttribute("method");
+        }
+      });
+      pageStyles.forEach(style => parsed.body.append(style));
+      return parsed.body;
+    }
+
+    function splitPageCssSelectors(value) {
+      const selectors = [];
+      let start = 0, depth = 0, quote = "";
+      for (let i = 0; i < value.length; i++) {
+        const ch = value[i];
+        if (quote) { if (ch === quote && value[i - 1] !== "\\") quote = ""; continue; }
+        if (ch === "'" || ch === '"') { quote = ch; continue; }
+        if (ch === "(" || ch === "[") depth++;
+        else if (ch === ")" || ch === "]") depth--;
+        else if (ch === "," && depth === 0) { selectors.push(value.slice(start, i).trim()); start = i + 1; }
+      }
+      selectors.push(value.slice(start).trim());
+      return selectors.filter(Boolean);
+    }
+
+    function scopePageCss(cssText, prefix) {
+      let output = "", cursor = 0;
+      while (cursor < cssText.length) {
+        const open = cssText.indexOf("{", cursor);
+        if (open < 0) { output += cssText.slice(cursor); break; }
+        let depth = 1, close = open + 1, quote = "";
+        for (; close < cssText.length && depth > 0; close++) {
+          const ch = cssText[close];
+          if (quote) { if (ch === quote && cssText[close - 1] !== "\\") quote = ""; continue; }
+          if (ch === "'" || ch === '"') { quote = ch; continue; }
+          if (ch === "{") depth++;
+          else if (ch === "}") depth--;
+        }
+        if (depth !== 0) { output += cssText.slice(cursor); break; }
+        const selector = cssText.slice(cursor, open).trim();
+        const body = cssText.slice(open + 1, close - 1);
+        output += cssText.slice(cursor, open);
+        if (/^@(media|supports|container|layer|document)\b/i.test(selector)) {
+          output = output.slice(0, output.length - (cssText.slice(cursor, open).length));
+          output += selector + "{" + scopePageCss(body, prefix) + "}";
+        } else if (/^@(-webkit-)?keyframes\b|^@font-face\b|^@property\b|^@counter-style\b/i.test(selector)) {
+          output += "{" + body + "}";
+        } else if (selector.startsWith("@")) {
+          output += "{" + body + "}";
+        } else {
+          const scoped = splitPageCssSelectors(selector).map(item => {
+            if (/^(html|body|:root)(\b|$)/i.test(item)) {
+              return item.replace(/^(html|body|:root)(\b|$)/i, prefix);
+            }
+            return prefix + " " + item;
+          }).join(", ");
+          output = output.slice(0, output.length - (cssText.slice(cursor, open).length));
+          output += scoped + "{" + body + "}";
+        }
+        cursor = close;
+      }
+      return output;
+    }
+
+    function scopePageStyles(container) {
+      container.querySelectorAll("style").forEach(style => {
+        style.textContent = scopePageCss(style.textContent || "", ".stored-html-page .stored-html-page-content.stored-html-page-content");
+      });
+    }
+
+    async function renderHtmlInto(container, html, session, depth=0) {
+      const safeBody = sanitizePageHtml(html);
+      container.replaceChildren(...Array.from(safeBody.childNodes).map(node => document.importNode(node, true)));
+      scopePageStyles(container);
+      const includes = Array.from(container.querySelectorAll("[data-dalimgari-include]"));
+      for (const slot of includes) {
+        if (depth >= 5) { slot.textContent = "Page include depth limit reached."; continue; }
+        const slug = generatePageSlug(slot.getAttribute("data-dalimgari-include"));
+        if (!slug) { slot.remove(); continue; }
+        const { data, error } = await supabaseClient.from("pages")
+          .select("title,content,url,visibility,media").eq("url", slug).maybeSingle();
+        if (error || !data) {
+          slot.replaceChildren();
+          slot.textContent = "Included page is unavailable.";
+          continue;
+        }
+        await renderHtmlInto(slot, data.content || "", session, depth + 1);
+        await renderContentMedia(slot, data.media || []);
+      }
+    }
+
+    function generatePageSlug(value) {
+      return String(value || "").trim().toLowerCase().replaceAll("/", "")
+        .replace(/[^a-z0-9-]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+    }
+
+    async function renderStoredPage(rawSlug, session) {
+      const siteConfig = await applyDalimgariSiteConfig();
+      const maintenance = siteConfig.ui_settings_maintenance_features || {};
+      const currentRole = String((session && session.user && session.user.app_metadata && session.user.app_metadata.role) || "").toLowerCase();
+      if (maintenance.maintenance_mode && currentRole !== "admin") {
+        const notice = document.createElement("section");
+        notice.style.cssText = "width:min(100% - 32px,760px);margin:48px auto;padding:28px;border:1px solid #e5e7eb;border-radius:14px;background:#fff;text-align:center";
+        const heading = document.createElement("h1"); heading.textContent = "We’ll be back soon";
+        const detail = document.createElement("p"); detail.textContent = "The website is temporarily under maintenance. Please check again later.";
+        notice.append(heading, detail); mainContent.replaceChildren(notice); return;
+      }
+      const siteTitle = String((siteConfig.ui_settings_general||{}).site_title || "Dalimgari").trim() || "Dalimgari";
+      document.title = siteTitle;
+      mainContent.style.alignItems = "flex-start";
+      mainContent.style.justifyContent = "flex-start";
+      mainContent.replaceChildren();
+      const slug = generatePageSlug(rawSlug);
+      const shell = document.createElement("article");
+      shell.className = "stored-html-page";
+      shell.style.cssText = "width:100%;max-width:1100px;box-sizing:border-box;margin:0 auto;padding:24px 16px 40px;overflow-wrap:anywhere";
+      mainContent.append(shell);
+      if (!slug) { shell.textContent = "Page not found."; return; }
+      const { data, error } = await supabaseClient.from("pages")
+        .select("title,content,url,visibility,media").eq("url", slug).maybeSingle();
+      if (error || !data) {
+        const message = document.createElement("p");
+        message.textContent = "This page is unavailable or you do not have permission to view it.";
+        shell.append(message);
+        return;
+      }
+      const heading = document.createElement("h1");
+      heading.textContent = data.title || "";
+      heading.style.cssText = "margin:0 0 12px;overflow-wrap:anywhere";
+      shell.append(heading);
+      const content = document.createElement("div");
+      content.className = "stored-html-page-content";
+      shell.append(content);
+      await renderHtmlInto(content, data.content || "", session);
+      await renderContentMedia(content, data.media || []);
+      document.title = (data.title ? data.title + " | " : "") + siteTitle;
+    }
+
+    function renderPage(pageName) {
+      mainContent.style.removeProperty("align-items");
+      mainContent.style.removeProperty("justify-content");
+
+      if (activeSession && (pageName === "Login" || pageName === "CreateAccount")) {
+        pageName = "Profile";
+        history.replaceState(null, "", "#profile");
+      }
+      mainContent.replaceChildren();
+
+      if (pageName === "CreateAccount") { renderCreateAccount(); return; }
+      if (pageName === "ForgotPassword") { renderForgotPassword(); return; }
+      if (pageName === "Profile") { renderProfile(); return; }
+      if (pageName === "EditProfile") { renderEditProfile(); return; }
+      if (pageName === "Dashboard") { renderDashboard(); return; }
+      if (pageName !== "Login") return;
+
+      const form = document.createElement("form");
+      form.className = "login-form";
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const submitButton = form.querySelector(".login-submit");
+        const message = form.querySelector(".login-message");
+        submitButton.disabled = true;
+        submitButton.textContent = "Logging in...";
+        message.textContent = "";
+        message.removeAttribute("data-type");
+
+        let loginResult;
+        try {
+          loginResult = await supabaseClient.auth.signInWithPassword({
+            email: email.value.trim(),
+            password: password.value
+          });
+        } catch (error) {
+          loginResult = { error };
+        }
+
+        const { error } = loginResult;
+        if (error) {
+          const errorText = (error.message || "").toLowerCase();
+          message.dataset.type = "error";
+          if (errorText.includes("invalid login credentials")) {
+            message.textContent = "Email or password is incorrect.";
+          } else if (errorText.includes("email not confirmed")) {
+            message.textContent = "Please confirm your email before logging in.";
+          } else if (errorText.includes("rate limit") || errorText.includes("too many requests")) {
+            message.textContent = "Too many attempts. Please wait a little and try again.";
+          } else if (errorText.includes("fetch") || errorText.includes("network")) {
+            message.textContent = "Connection problem. Check your internet and try again.";
+          } else {
+            message.textContent = "We couldn’t log you in. Please try again.";
+          }
+          submitButton.disabled = false;
+          submitButton.textContent = "Login";
+          return;
+        }
+
+        if (remember.checked) {
+          localStorage.setItem("dalimgari-remember-email", "true");
+          localStorage.setItem("dalimgari-saved-email", email.value.trim());
+        } else {
+          localStorage.removeItem("dalimgari-remember-email");
+          localStorage.removeItem("dalimgari-saved-email");
+        }
+
+        renderPage("Profile");
+        history.replaceState(null, "", "#profile");
+        setCurrentMenuPage("Profile");
+      });
+
+      const email = document.createElement("input");
+      email.className = "login-field";
+      email.type = "email";
+      email.name = "email";
+      email.placeholder = "Email Address";
+      email.setAttribute("aria-label", "Email Address");
+      email.autocomplete = "email";
+      email.required = true;
+      if (localStorage.getItem("dalimgari-remember-email") === "true") {
+        email.value = localStorage.getItem("dalimgari-saved-email") || "";
+      }
+
+      const password = document.createElement("input");
+      password.className = "login-field";
+      password.type = "password";
+      password.name = "password";
+      password.placeholder = "Password";
+      password.setAttribute("aria-label", "Password");
+      password.autocomplete = "current-password";
+      password.required = true;
+
+      const rememberRow = document.createElement("div");
+      rememberRow.className = "remember-row";
+
+      const remember = document.createElement("input");
+      remember.type = "checkbox";
+      remember.id = "remember-password";
+      remember.name = "remember-password";
+      remember.checked = localStorage.getItem("dalimgari-remember-email") === "true";
+
+      const rememberLabel = document.createElement("label");
+      rememberLabel.htmlFor = "remember-password";
+      rememberLabel.textContent = "Remember me";
+
+      rememberRow.append(remember, rememberLabel);
+
+      const forgot = document.createElement("a");
+      forgot.className = "forgot-password";
+      forgot.href = "#forgot-password";
+      forgot.textContent = "Forgot password?";
+      forgot.addEventListener("click", (event) => {
+        event.preventDefault();
+        history.pushState(null, "", "#forgot-password");
+        renderPage("ForgotPassword");
+        setCurrentMenuPage("ForgotPassword");
+      });
+
+      const submit = document.createElement("button");
+      submit.className = "login-submit";
+      submit.type = "submit";
+      submit.textContent = "Login";
+
+      const createAccount = document.createElement("a");
+      createAccount.className = "create-account";
+      createAccount.href = "#create-account";
+      createAccount.textContent = "Create new account?";
+      createAccount.addEventListener("click", (event) => {
+        event.preventDefault();
+        renderPage("CreateAccount");
+        setCurrentMenuPage("CreateAccount");
+        history.replaceState(null, "", "#create-account");
+      });
+
+      const message = document.createElement("p");
+      message.className = "login-message";
+      message.setAttribute("role", "alert");
+
+      form.append(email, password, rememberRow, forgot, submit, message, createAccount);
+      mainContent.append(form);
+    }
+
+
+    async function removeRecycleStorageFiles(item){
+      const groups=new Map();
+      const add=(bucket,path)=>{if(!path||typeof path!=="string"||/^https?:\/\//i.test(path))return;const safeBucket=String(bucket||"content-files");if(!groups.has(safeBucket))groups.set(safeBucket,new Set());groups.get(safeBucket).add(path.replace(/^\/+/, ""));};
+      const scan=(value,defaultBucket="content-files")=>{if(!value||typeof value!=="object")return;if(Array.isArray(value)){for(const child of value)scan(child,defaultBucket);return;}const bucket=value.bucket_id||value.bucket||value.storage_bucket||defaultBucket;for(const key of ["path","file_path","storage_path","object_path","cover_path"]){if(typeof value[key]==="string")add(bucket,value[key]);}for(const child of Object.values(value)){if(child&&typeof child==="object")scan(child,bucket);}};
+      scan(item.record_data||{});scan(item.related_data||{});
+      for(const [bucket,pathsSet] of groups){const paths=Array.from(pathsSet);for(let i=0;i<paths.length;i+=1000){const {error}=await supabaseClient.storage.from(bucket).remove(paths.slice(i,i+1000));if(error)throw new Error("Could not remove stored files from "+bucket+": "+error.message);}}
+    }
+
+    async function renderCreateAccount() {
+      const { data: accessRow, error: accessError } = await supabaseClient.from("site_customizations").select("value").eq("key", "ui_settings_users_access").maybeSingle();
+      if(accessError){const notice=document.createElement("section");notice.className="login-form";const heading=document.createElement("h1");heading.className="login-title";heading.textContent="Registration temporarily unavailable";const detail=document.createElement("p");detail.className="login-message";detail.dataset.type="error";detail.textContent="The account creation setting could not be verified. Please try again later.";notice.append(heading,detail);mainContent.replaceChildren(notice);return;}
+      let accessConfig=accessRow&&accessRow.value?accessRow.value:{};
+      if(typeof accessConfig==="string"){try{accessConfig=JSON.parse(accessConfig)}catch(_){accessConfig={}}}
+      if(accessConfig.allow_account_creation===false){const notice=document.createElement("section");notice.className="login-form";const heading=document.createElement("h1");heading.className="login-title";heading.textContent="Account creation is disabled";const detail=document.createElement("p");detail.className="login-message";detail.dataset.type="info";detail.textContent="New account registration is currently disabled.";notice.append(heading,detail);mainContent.replaceChildren(notice);return;}
+      const form = document.createElement("form");
+      form.className = "login-form";
+
+      const heading = document.createElement("h1");
+      heading.className = "login-title";
+      heading.textContent = "Create New Account";
+
+      const email = document.createElement("input");
+      email.className = "login-field";
+      email.type = "email";
+      email.name = "signup-email";
+      email.placeholder = "Email Address";
+      email.setAttribute("aria-label", "Email Address");
+      email.autocomplete = "email";
+      email.required = true;
+
+      const password = document.createElement("input");
+      password.className = "login-field";
+      password.type = "password";
+      password.name = "signup-password";
+      password.placeholder = "Password (at least 8 characters)";
+      password.setAttribute("aria-label", "Password");
+      password.autocomplete = "new-password";
+      password.minLength = 8;
+      password.required = true;
+
+      const confirmPassword = document.createElement("input");
+      confirmPassword.className = "login-field";
+      confirmPassword.type = "password";
+      confirmPassword.name = "confirm-password";
+      confirmPassword.placeholder = "Confirm Password";
+      confirmPassword.setAttribute("aria-label", "Confirm Password");
+      confirmPassword.autocomplete = "new-password";
+      confirmPassword.minLength = 8;
+      confirmPassword.required = true;
+
+      const submit = document.createElement("button");
+      submit.className = "login-submit";
+      submit.type = "submit";
+      submit.textContent = "Create Account";
+
+      const message = document.createElement("p");
+      message.className = "login-message";
+      message.setAttribute("role", "status");
+      message.setAttribute("aria-live", "polite");
+
+      const backToLogin = document.createElement("a");
+      backToLogin.className = "create-account";
+      backToLogin.href = "#login";
+      backToLogin.textContent = "Already have an account? Login";
+      backToLogin.addEventListener("click", (event) => {
+        event.preventDefault();
+        renderPage("Login");
+        history.replaceState(null, "", "#login");
+        setCurrentMenuPage("Login");
+      });
+
+      form.append(heading, email, password, confirmPassword, submit, message, backToLogin);
+      mainContent.append(form);
+
+      function setStatus(text, type) {
+        message.dataset.type = type;
+        message.replaceChildren(document.createTextNode(text));
+      }
+
+      function showExistingAccountMessage() {
+        setStatus("This email may already be registered. Reset your password to continue.", "info");
+        const resetLink = document.createElement("a");
+        resetLink.className = "message-link";
+        resetLink.href = "#forgot-password";
+        resetLink.textContent = "Reset password";
+        resetLink.addEventListener("click", (event) => {
+          event.preventDefault();
+          history.pushState(null, "", "#forgot-password");
+          renderPage("ForgotPassword");
+          setCurrentMenuPage("ForgotPassword");
+        });
+        message.append(resetLink);
+      }
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        setStatus("", "error");
+
+        if (password.value.length < 8) {
+          setStatus("Use at least 8 characters for your password.", "error");
+          password.focus();
+          return;
+        }
+        if (password.value !== confirmPassword.value) {
+          setStatus("Passwords don’t match. Please try again.", "error");
+          confirmPassword.focus();
+          return;
+        }
+
+        submit.disabled = true;
+        submit.textContent = "Creating Account...";
+
+        try {
+          const { data, error } = await supabaseClient.auth.signUp({
+            email: email.value.trim(),
+            password: password.value,
+            options: {
+              emailRedirectTo: "https://dalimgari.github.io/dalimgari/#login"
+            }
+          });
+
+          if (error) {
+            const errorText = (error.message || "").toLowerCase();
+            if (
+              errorText.includes("already registered") ||
+              errorText.includes("already exists") ||
+              errorText.includes("user already")
+            ) {
+              showExistingAccountMessage();
+            } else {
+              const errorText = (error.message || "").toLowerCase();
+              if (errorText.includes("rate limit") || errorText.includes("email rate limit")) {
+                setStatus("Email limit reached. Please try again after one hour.", "error");
+              } else if (errorText.includes("password")) {
+                setStatus("Please choose a stronger valid password.", "error");
+              } else if (errorText.includes("fetch") || errorText.includes("network")) {
+                setStatus("Connection problem. Check your internet and try again.", "error");
+              } else {
+                setStatus("We couldn’t create your account. Please check your details and try again.", "error");
+              }
+            }
+            submit.disabled = false;
+            submit.textContent = "Create Account";
+            return;
+          }
+
+          // Supabase can return an obfuscated user with no identities when
+          // the submitted email already belongs to an account.
+          if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+            showExistingAccountMessage();
+            submit.disabled = false;
+            submit.textContent = "Create Account";
+            return;
+          }
+
+          if (data.session) {
+            setStatus("Your account is ready.", "success");
+            renderPage("Profile");
+            history.replaceState(null, "", "#profile");
+            return;
+          }
+
+          setStatus("Check your inbox to confirm your email.", "success");
+          form.reset();
+          submit.disabled = false;
+          submit.textContent = "Create Account";
+        } catch (error) {
+          setStatus("Connection problem. Please try again.", "error");
+          submit.disabled = false;
+          submit.textContent = "Create Account";
+        }
+      });
+    }
+
+
+
+
+    function renderForgotPassword() {
+      const card = document.createElement("section");
+      card.className = "login-form recovery-form";
+      card.setAttribute("aria-live", "polite");
+
+      const heading = document.createElement("h1");
+      heading.className = "login-title";
+      heading.textContent = "Forgot password?";
+
+      const description = document.createElement("p");
+      description.className = "recovery-description";
+      description.textContent = "Enter the email address linked to your account. If it is registered, a password-reset link will be sent.";
+
+      const form = document.createElement("form");
+      const emailLabel = document.createElement("label");
+      emailLabel.htmlFor = "recovery-email";
+      emailLabel.textContent = "Email Address";
+      const email = document.createElement("input");
+      email.className = "login-field";
+      email.id = "recovery-email";
+      email.type = "email";
+      email.name = "email";
+      email.placeholder = "Email Address";
+      email.autocomplete = "email";
+      email.required = true;
+
+      const message = document.createElement("p");
+      message.className = "login-message";
+      message.setAttribute("role", "status");
+      message.setAttribute("aria-live", "polite");
+
+      const submit = document.createElement("button");
+      submit.className = "login-submit";
+      submit.type = "submit";
+      submit.textContent = "Check Account";
+
+      const back = document.createElement("a");
+      back.className = "create-account";
+      back.href = "#login";
+      back.textContent = "Back to Login";
+      back.addEventListener("click", (event) => {
+        event.preventDefault();
+        history.pushState(null, "", "#login");
+        renderPage("Login");
+        setCurrentMenuPage("Login");
+      });
+
+      form.append(emailLabel, email, submit);
+      card.append(heading, description, form, message, back);
+      mainContent.replaceChildren(card);
+
+      const recoveryStorageKey = "dalimgari-password-recovery";
+      const setStatus = (text, type) => {
+        message.textContent = text;
+        message.dataset.type = type;
+      };
+
+      const showResetForm = () => {
+        heading.textContent = "Reset password";
+        description.textContent = "Enter a new password for your account.";
+        setCurrentMenuPage("ForgotPassword");
+        form.replaceChildren();
+
+        const passwordLabel = document.createElement("label");
+        passwordLabel.htmlFor = "new-password";
+        passwordLabel.textContent = "New Password";
+        const password = document.createElement("input");
+        password.className = "login-field";
+        password.id = "new-password";
+        password.type = "password";
+        password.autocomplete = "new-password";
+        password.placeholder = "New password (at least 8 characters)";
+        password.minLength = 8;
+        password.required = true;
+
+        const confirmLabel = document.createElement("label");
+        confirmLabel.htmlFor = "confirm-new-password";
+        confirmLabel.textContent = "Confirm New Password";
+        const confirmPassword = document.createElement("input");
+        confirmPassword.className = "login-field";
+        confirmPassword.id = "confirm-new-password";
+        confirmPassword.type = "password";
+        confirmPassword.autocomplete = "new-password";
+        confirmPassword.placeholder = "Re-enter new password";
+        confirmPassword.minLength = 8;
+        confirmPassword.required = true;
+
+        const save = document.createElement("button");
+        save.className = "login-submit";
+        save.type = "submit";
+        save.textContent = "Save New Password";
+        form.append(passwordLabel, password, confirmLabel, confirmPassword, save);
+        message.textContent = "";
+        message.removeAttribute("data-type");
+
+        // The auth client has consumed the recovery credentials; keep only the app route.
+        history.replaceState(null, "", window.location.pathname + "#forgot-password");
+        form.onsubmit = async (event) => {
+          event.preventDefault();
+          if (password.value.length < 8) {
+            setStatus("Use at least 8 characters for your password.", "error");
+            return;
+          }
+          if (password.value !== confirmPassword.value) {
+            setStatus("Passwords don’t match. Please try again.", "error");
+            confirmPassword.focus();
+            return;
+          }
+          save.disabled = true;
+          save.textContent = "Saving...";
+          const { error } = await supabaseClient.auth.updateUser({ password: password.value });
+          if (error) {
+            setStatus("We couldn’t update your password. Please try again.", "error");
+            save.disabled = false;
+            save.textContent = "Save New Password";
+            return;
+          }
+          sessionStorage.removeItem(recoveryStorageKey);
+          heading.textContent = "Password updated";
+          description.textContent = "Your password has been changed successfully. You can now return to the login page.";
+          form.replaceChildren();
+          message.textContent = "";
+          back.textContent = "Return to Login";
+          setCurrentMenuPage("ForgotPassword");
+        };
+      };
+
+      form.addEventListener("submit", async (event) => {
+        if (form.dataset.resetMode === "true") return;
+        event.preventDefault();
+        if (!email.checkValidity()) { email.reportValidity(); return; }
+        submit.disabled = true;
+        submit.textContent = "Checking...";
+        message.textContent = "";
+        // Keep the existing redirect URI, which may already be allow-listed in Supabase.
+        const redirectTarget = new URL("forgot-password.html", window.location.href);
+        redirectTarget.hash = "";
+        const { error } = await supabaseClient.auth.resetPasswordForEmail(email.value.trim(), { redirectTo: redirectTarget.href });
+        if (error) setStatus("Couldn’t send the reset email. Please wait a little and try again.", "error");
+        else setStatus("If this email is registered, a reset link will arrive shortly. Check your inbox and spam folder.", "success");
+        submit.disabled = false;
+        submit.textContent = "Check Account";
+      });
+
+      const originalShowResetForm = showResetForm;
+      // Mark the form so the submit listener does not treat password updates as email requests.
+      const safeShowResetForm = () => {
+        form.dataset.resetMode = "true";
+        originalShowResetForm();
+      };
+      supabaseClient.auth.onAuthStateChange((event) => {
+        if (event === "PASSWORD_RECOVERY" && routeIsForgotPassword()) safeShowResetForm();
+      });
+
+      const params = new URLSearchParams(window.location.search);
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+      const hasSavedRecoveryState = sessionStorage.getItem(recoveryStorageKey) === "true";
+      const isRecoveryLink = params.has("code") ||
+        (hashParams.get("type") === "recovery" && hashParams.has("access_token")) ||
+        hasSavedRecoveryState;
+      (async () => {
+        const { data: currentSession } = await supabaseClient.auth.getSession();
+        if (params.has("code")) {
+          const { error } = await supabaseClient.auth.exchangeCodeForSession(params.get("code"));
+          if (error) {
+            sessionStorage.removeItem(recoveryStorageKey);
+            setStatus("This reset link has expired. Request a new one.", "error");
+            return;
+          }
+          sessionStorage.setItem(recoveryStorageKey, "true");
+          history.replaceState(null, "", window.location.pathname + "#forgot-password");
+          safeShowResetForm();
+        } else if (hashParams.get("type") === "recovery" && hashParams.has("access_token")) {
+          sessionStorage.setItem(recoveryStorageKey, "true");
+          safeShowResetForm();
+        } else if (hasSavedRecoveryState && currentSession.session) {
+          safeShowResetForm();
+        } else if (params.has("error") || hashParams.has("error")) {
+          sessionStorage.removeItem(recoveryStorageKey);
+          setStatus("This password-reset link is invalid or has expired. Request a new reset email.", "error");
+        } else if (currentSession.session && !isRecoveryLink) {
+          // A signed-in user can still request a reset link, so keep this route open.
+        }
+      })();
+    }
+
+    function routeIsForgotPassword() {
+      const params = new URLSearchParams(window.location.search);
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+      return window.location.hash.toLowerCase() === "#forgot-password" ||
+        params.has("code") ||
+        (hashParams.get("type") === "recovery" && hashParams.has("access_token")) ||
+        sessionStorage.getItem("dalimgari-password-recovery") === "true";
+    }
+
+    function setCurrentMenuPage(pageName) {
+      const currentPageLabel = document.querySelector("#current-page-label");
+      const displayName = pageName === "Profile" && window.location.hash.toLowerCase() === "#edit-profile"
+        ? "Edit Profile"
+        : pageName === "CreateAccount"
+          ? "Create Account"
+          : pageName === "ForgotPassword"
+            ? "Forgot Password"
+            : pageName;
+      if (currentPageLabel) currentPageLabel.textContent = displayName;
+      const role = String((activeSession && activeSession.user && activeSession.user.app_metadata && activeSession.user.app_metadata.role) || "").toLowerCase();
+      menuLinks.forEach((item) => {
+        const isCurrentPage = item.dataset.page === pageName;
+        if (isCurrentPage) item.setAttribute("aria-current", "page");
+        else item.removeAttribute("aria-current");
+        item.hidden = isCurrentPage || (item.dataset.page === "Dashboard" && role !== "admin");
+      });
+    }
+    async function getCurrentUser() {
+      try {
+        const { data, error } = await supabaseClient.auth.getUser();
+        if (error) throw error;
+        return data.user || null;
+      } catch (error) {
+        console.error("Could not load the current user:", error);
+        return null;
+      }
+    }
+    function metadataValue(user, key) { return (user.user_metadata && user.user_metadata[key]) || ""; }
+    const DEFAULT_AVATAR_URL = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="50" fill="#e5e7eb"/><circle cx="50" cy="36" r="18" fill="#9ca3af"/><path d="M16 91c2-20 16-31 34-31s32 11 34 31" fill="#9ca3af"/></svg>');
+    function setDefaultAvatar(container) {
+      container.replaceChildren();
+      const image = document.createElement("img");
+      image.src = DEFAULT_AVATAR_URL;
+      image.alt = "Default profile avatar";
+      container.append(image);
+    }
+
+    async function resolveAvatarUrl(user) {
+      const avatarUrl = metadataValue(user, "avatar_url");
+      if (!avatarUrl.startsWith("data:image/")) return avatarUrl;
+      try {
+        const response = await fetch(avatarUrl);
+        if (!response.ok) throw new Error("Could not read the existing profile picture.");
+        const imageBlob = await response.blob();
+        const filePath = user.id + "/avatar.jpg";
+        const { error: uploadError } = await supabaseClient.storage
+          .from("profile-pictures")
+          .upload(filePath, imageBlob, { contentType: "image/jpeg", upsert: true, cacheControl: "0" });
+        if (uploadError) throw uploadError;
+        const { data } = supabaseClient.storage.from("profile-pictures").getPublicUrl(filePath);
+        const publicUrl = data.publicUrl + "?v=" + Date.now();
+        const { error: metadataError } = await supabaseClient.auth.updateUser({ data: { avatar_url: publicUrl } });
+        if (metadataError) throw metadataError;
+        return publicUrl;
+      } catch (error) {
+        console.error("Could not move the existing profile picture to Storage:", error);
+        return avatarUrl;
+      }
+    }
+
+    async function loadUserProfile(user) {
+      const { data, error } = await supabaseClient.from("profiles")
+        .select("id,full_name,phone,date_of_birth,bio")
+        .eq("id", user.id).maybeSingle();
+      if (error) {
+        console.error("Could not load the user record from the profiles table:", error);
+        return { id: user.id, full_name: "", phone: "", date_of_birth: null, bio: "" };
+      }
+      return data || { id: user.id, full_name: "", phone: "", date_of_birth: null, bio: "" };
+    }
+
+    async function renderProfile() {
+      const user = await getCurrentUser();
+      if (!user) { renderPage("Login"); history.replaceState(null, "", "#login"); setCurrentMenuPage("Login"); return; }
+      const profile = await loadUserProfile(user);
+      const name = profile.full_name || "";
+      const role = user.app_metadata && String(user.app_metadata.role || "").toLowerCase() === "admin" ? "ADMIN" : "MEMBER";
+      const page = document.createElement("section"); page.className = "profile-page";
+      const heading = document.createElement("h1"); heading.className = "profile-heading"; heading.textContent = "My Profile";
+      const summary = document.createElement("div"); summary.className = "profile-summary";
+      const avatar = document.createElement("div"); avatar.className = "profile-avatar";
+      const avatarUrl = await resolveAvatarUrl(user);
+      if (avatarUrl) {
+        const avatarImage = document.createElement("img");
+        avatarImage.src = avatarUrl;
+        avatarImage.alt = "Profile picture";
+        avatarImage.onerror = () => setDefaultAvatar(avatar);
+        avatar.append(avatarImage);
+      } else {
+        setDefaultAvatar(avatar);
+      }
+      const identity = document.createElement("div");
+      const nameLine = document.createElement("h2"); nameLine.className = "profile-name"; nameLine.append(document.createTextNode(name || "Not added"));
+      const badge = document.createElement("span"); badge.className = "role-badge"; badge.textContent = role; nameLine.append(badge);
+      const email = document.createElement("p"); email.className = "profile-email"; email.textContent = user.email || "";
+      identity.append(nameLine, email);
+      summary.append(avatar, identity);
+      const info = document.createElement("section"); info.className = "profile-section";
+      const infoHeading = document.createElement("h2"); infoHeading.textContent = "Profile Information";
+      const details = document.createElement("div"); details.className = "profile-details";
+      [["Full Name",name],["Phone Number",profile.phone||"Not added"],["Date of Birth",profile.date_of_birth||"Not added"],["Bio",profile.bio||"No bio yet"]].forEach(([label,value])=>{
+        const item=document.createElement("div"), l=document.createElement("p"), v=document.createElement("p");
+        l.className="detail-label";l.textContent=label;v.className="detail-value";v.textContent=value;item.append(l,v);details.append(item);
+      });
+      info.append(infoHeading,details);
+      const actions=document.createElement("div");actions.className="profile-actions";
+      const edit=document.createElement("button");edit.className="action-button primary";edit.textContent="Edit Profile";edit.type="button";
+      edit.addEventListener("click",()=>{renderPage("EditProfile");history.replaceState(null,"","#edit-profile");});
+      actions.append(edit);
+      page.append(heading,summary,info,actions);mainContent.replaceChildren(page);setCurrentMenuPage("Profile");
+    }
+
+    async function renderDashboard() {
+      await applyDalimgariSiteConfig();
+      const user = await getCurrentUser();
+      const role = String((user && user.app_metadata && user.app_metadata.role) || "").toLowerCase();
+      const isAdmin=role==="admin";
+      let permissionNames=[];
+      if(user&&!isAdmin){const {data,error}=await supabaseClient.rpc("get_my_permissions");if(!error&&Array.isArray(data))permissionNames=data;}
+      const permissionSet=new Set(permissionNames);
+      const canContent=["content.view","content.create","content.edit","content.delete"].some(name=>permissionSet.has(name));
+      if(!user||(!isAdmin&&permissionNames.length===0)){renderPage("Profile");history.replaceState(null,"","#profile");setCurrentMenuPage("Profile");return;}
+      const allSections = [
+        { id: "overview", label: "Overview", description: "Dashboard overview." },
+        { id: "hero", label: "Hero", description: "Create and manage homepage hero content." },
+        { id: "post", label: "Post", description: "Create and manage posts." },
+        { id: "page", label: "Page", description: "Create and manage pages." },
+        { id: "album", label: "Album", description: "Group related content and media." },
+        { id: "widget", label: "Widget", description: "Manage homepage widgets and their Show/Hide visibility." },
+        { id: "user", label: "User", description: "Manage accounts and administrator access." },
+        { id: "role", label: "Role", description: "Manage roles, permissions and user assignments." },
+        { id: "customization", label: "Customization", description: "Website customization section." },
+        { id: "settings", label: "Settings", description: "Dashboard settings section." },
+        { id: "recycle", label: "Recycle Bin", description: "Restore deleted items or permanently remove them after the retention period." }
+      ];
+      const sections=allSections.filter(section=>{
+        if(isAdmin||section.id==="overview")return true;
+        if(section.id==="user")return permissionSet.has("users.manage");
+        if(["hero","post","page","album"].includes(section.id))return canContent;
+        if(section.id==="role")return permissionSet.has("roles.manage");
+        if(["customization","settings"].includes(section.id))return permissionSet.has("settings.manage");
+        if(section.id==="recycle")return ["content.delete","roles.manage","settings.manage"].some(name=>permissionSet.has(name));
+        return false;
+      });
+
+      const page = document.createElement("section");
+      page.className = "dashboard-page";
+      page.setAttribute("aria-label", "Admin Dashboard");
+      // Bring focused controls into view when forms are long or content overflows.
+      page.addEventListener("focusin", (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement) ||
+            !target.matches("input, select, textarea, button, [tabindex]")) return;
+        requestAnimationFrame(() => {
+          if (!target.isConnected) return;
+          const rect = target.getBoundingClientRect();
+          const viewportHeight = document.documentElement.clientHeight;
+          const viewportWidth = document.documentElement.clientWidth;
+          if (rect.top < 8 || rect.bottom > viewportHeight - 8 ||
+              rect.left < 8 || rect.right > viewportWidth - 8) {
+            target.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+          }
+        });
+      });
+
+      const heading = document.createElement("h1");
+      heading.className = "dashboard-heading";
+      heading.textContent = "Dashboard";
+
+      const navigationArea = document.createElement("div");
+      navigationArea.className = "dashboard-navigation-area";
+
+      const navigation = document.createElement("div");
+      navigation.className = "dashboard-navigation";
+      navigation.setAttribute("role", "tablist");
+      navigation.setAttribute("aria-label", "Dashboard sections");
+
+      const content = document.createElement("section");
+      content.className = "dashboard-section-content";
+      content.setAttribute("role", "tabpanel");
+      content.setAttribute("aria-live", "polite");
+
+      const sectionTitle = document.createElement("h2");
+      sectionTitle.className = "dashboard-section-title";
+
+      const sectionDescription = document.createElement("p");
+      sectionDescription.className = "dashboard-section-description";
+
+      content.append(sectionTitle, sectionDescription);
+
+      let sectionRenderToken = 0;
+      function selectSection(section) {
+        sectionTitle.textContent = section.label;
+        sectionDescription.textContent = section.description;
+        if (window.location.hash !== "#dashboard-" + section.id) {
+          history.replaceState(null, "", "#dashboard-" + section.id);
+        }
+        content.setAttribute("aria-labelledby", "dashboard-tab-" + section.id);
+        navigation.querySelectorAll(".dashboard-nav-button").forEach((button) => {
+          const selected = button.dataset.section === section.id;
+          button.setAttribute("aria-selected", String(selected));
+          button.tabIndex = selected ? 0 : -1;
+        });
+        const token = ++sectionRenderToken;
+        renderDashboardSection(section, content, token, () => token === sectionRenderToken);
+      }
+
+      sections.forEach((section, index) => {
+        const button = document.createElement("button");
+        button.className = "dashboard-nav-button";
+        button.type = "button";
+        button.textContent = section.label;
+        button.dataset.section = section.id;
+        button.id = "dashboard-tab-" + section.id;
+        button.setAttribute("role", "tab");
+        button.setAttribute("aria-controls", "dashboard-section-panel");
+        button.setAttribute("aria-selected", String(index === 0));
+        button.tabIndex = index === 0 ? 0 : -1;
+        button.addEventListener("click", () => selectSection(section));
+        button.addEventListener("keydown", (event) => {
+          if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
+          event.preventDefault();
+          const currentIndex = sections.findIndex((item) => item.id === section.id);
+          const nextIndex = event.key === "ArrowRight"
+            ? (currentIndex + 1) % sections.length
+            : (currentIndex - 1 + sections.length) % sections.length;
+          const nextButton = navigation.querySelector('[data-section="' + sections[nextIndex].id + '"]');
+          selectSection(sections[nextIndex]);
+          nextButton.focus();
+          nextButton.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
+        });
+        navigation.append(button);
+      });
+
+      content.id = "dashboard-section-panel";
+      content.setAttribute("aria-labelledby", "dashboard-tab-overview");
+      navigationArea.append(navigation);
+      page.append(heading, navigationArea, content);
+
+      const requestedSectionId = window.location.hash.toLowerCase().startsWith("#dashboard-")
+        ? window.location.hash.slice("#dashboard-".length)
+        : "overview";
+      const initialSection = sections.find((section) => section.id === requestedSectionId) || sections[0];
+      selectSection(initialSection);
+      mainContent.replaceChildren(page);
+      setCurrentMenuPage("Dashboard");
+    }
+
+
+    async function renderDashboardSection(section, content, renderToken, isCurrent) {
+      const user = await getCurrentUser();
+      if (!user || String(user.app_metadata?.role || "").toLowerCase() !== "admin") {
+        renderPage("Profile"); history.replaceState(null, "", "#profile"); return;
+      }
+      if (!isCurrent()) return;
+      if (section.id === "user") {
+        content.replaceChildren();
+        const wrap = document.createElement("div");
+        wrap.className = "dashboard-crud";
+        const card = document.createElement("section");
+        card.className = "dashboard-crud-card";
+        const title = document.createElement("h3");
+        title.textContent = "Account Management";
+        const hint = document.createElement("p");
+        hint.className = "dashboard-crud-hint";
+        hint.textContent = "The Super Admin account is permanently protected in website account management. Only the Super Admin can grant or remove administrator access. Project owners may still control the underlying Supabase project.";
+        const isSuperAdminCaller = user.id === "c5b6d47e-3e78-4d4e-bc15-6f137a8c1e75";
+        const status = document.createElement("p");
+        status.className = "dashboard-crud-status";
+        status.setAttribute("role", "status");
+        status.setAttribute("aria-live", "polite");
+        const form = document.createElement("form");
+        form.className = "dashboard-crud-form";
+        form.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:16px 0";
+        const email = document.createElement("input");
+        email.type = "email"; email.required = true; email.autocomplete = "email";
+        email.placeholder = "Email address"; email.setAttribute("aria-label", "New account email");
+        const password = document.createElement("input");
+        password.type = "password"; password.required = true; password.minLength = 8;
+        password.autocomplete = "new-password"; password.placeholder = "Password (8+ characters)";
+        password.setAttribute("aria-label", "New account password");
+        const adminLabel = document.createElement("label");
+        adminLabel.style.cssText = "display:flex;align-items:center;gap:8px;min-height:42px";
+        const adminCheck = document.createElement("input");
+        adminCheck.type = "checkbox"; adminCheck.style.cssText = "width:auto;min-height:auto";
+        const adminText = document.createElement("span"); adminText.textContent = "Make administrator";
+        adminLabel.append(adminCheck, adminText);
+        if (!isSuperAdminCaller) { adminCheck.disabled = true; adminText.textContent = "Only Super Admin can create administrators"; }
+        const create = document.createElement("button");
+        create.type = "submit"; create.className = "action-button primary"; create.textContent = "Create account";
+        form.append(email, password, adminLabel, create);
+        const list = document.createElement("div");
+        list.className = "dashboard-crud-list";
+        card.append(title, hint, status, form, list); wrap.append(card); content.append(wrap);
+
+        function setUserStatus(message, isError = false) {
+          status.textContent = message;
+          status.style.color = isError ? "#a12622" : "#176b43";
+        }
+        async function callUserAdmin(action, values = {}) {
+          const { data, error } = await supabaseClient.functions.invoke("admin-user-management", {
+            body: { action, ...values }
+          });
+          if (error) {
+            let detail = error.message || "Request failed.";
+            try {
+              const context = error.context;
+              if (context && typeof context.json === "function") {
+                const payload = await context.json();
+                if (payload && payload.error) detail = payload.error;
+              }
+            } catch (_) {}
+            throw new Error(detail);
+          }
+          if (data && data.error) throw new Error(data.error);
+          return data;
+        }
+        async function loadAuthUsers() {
+          list.replaceChildren();
+          const loading = document.createElement("p");
+          loading.className = "dashboard-crud-empty"; loading.textContent = "Loading accounts…"; list.append(loading);
+          try {
+            const result = await callUserAdmin("list_users");
+            if (!isCurrent()) return;
+            list.replaceChildren();
+            const users = Array.isArray(result.users) ? result.users : [];
+            if (!users.length) {
+              const empty = document.createElement("p"); empty.className = "dashboard-crud-empty";
+              empty.textContent = "No accounts found."; list.append(empty); return;
+            }
+            const table = document.createElement("table"); table.className = "dashboard-crud-table";
+            const thead = document.createElement("thead"), headRow = document.createElement("tr");
+            ["Email", "Role", "Created", "Last sign-in", "Actions"].forEach((label) => {
+              const th = document.createElement("th"); th.textContent = label; headRow.append(th);
+            });
+            thead.append(headRow); table.append(thead);
+            const tbody = document.createElement("tbody");
+            for (const account of users) {
+              const row = document.createElement("tr");
+              const emailCell = document.createElement("td"); emailCell.textContent = account.email || "(no email)";
+              const roleCell = document.createElement("td"); roleCell.textContent = account.is_super_admin || account.role === "super_admin" ? "SUPER ADMIN · PROTECTED" : account.role === "admin" ? "ADMIN" : "MEMBER";
+              const createdCell = document.createElement("td"); createdCell.textContent = account.created_at ? new Date(account.created_at).toLocaleString() : "—";
+              const signInCell = document.createElement("td"); signInCell.textContent = account.last_sign_in_at ? new Date(account.last_sign_in_at).toLocaleString() : "Never";
+              const actions = document.createElement("td");
+              const isSelf = account.id === user.id;
+              const isProtectedSuperAdmin = account.is_super_admin === true || account.id === "c5b6d47e-3e78-4d4e-bc15-6f137a8c1e75";
+              const roleButton = document.createElement("button");
+              roleButton.type = "button"; roleButton.className = "action-button";
+              roleButton.textContent = isProtectedSuperAdmin ? "Protected" : account.role === "admin" ? "Remove admin" : "Make admin";
+              roleButton.disabled = isProtectedSuperAdmin || !isSuperAdminCaller;
+              roleButton.addEventListener("click", async () => {
+                const makeAdmin = account.role !== "admin";
+                if (!confirm((makeAdmin ? "Grant administrator access to " : "Remove administrator access from ") + (account.email || "this account") + "?")) return;
+                roleButton.disabled = true;
+                try {
+                  await callUserAdmin("set_admin", { user_id: account.id, admin: makeAdmin });
+                  setUserStatus("Account role updated. The affected account may need to sign in again to refresh its session.");
+                  await loadAuthUsers();
+                } catch (error) {
+                  setUserStatus(error.message || "Could not update account role.", true); roleButton.disabled = false;
+                }
+              });
+              if (isProtectedSuperAdmin) {
+                actions.append(roleButton);
+              } else {
+                const deleteButton = document.createElement("button");
+                deleteButton.type = "button"; deleteButton.className = "action-button";
+                deleteButton.textContent = "Delete"; deleteButton.style.marginLeft = "6px";
+                deleteButton.disabled = isSelf;
+                deleteButton.addEventListener("click", async () => {
+                  if (!confirm("Permanently delete the account " + (account.email || "") + "? This cannot be undone.")) return;
+                  deleteButton.disabled = true; roleButton.disabled = true;
+                  try {
+                    await callUserAdmin("delete_user", { user_id: account.id });
+                    setUserStatus("Account deleted."); await loadAuthUsers();
+                  } catch (error) {
+                    setUserStatus(error.message || "Could not delete account.", true);
+                    deleteButton.disabled = false; roleButton.disabled = false;
+                  }
+                });
+                actions.append(roleButton, deleteButton);
+              }
+              row.append(emailCell, roleCell, createdCell, signInCell, actions); tbody.append(row);
+            }
+            table.append(tbody); list.append(table);
+          } catch (error) {
+            if (!isCurrent()) return;
+            list.replaceChildren();
+            const message = document.createElement("p"); message.className = "dashboard-crud-empty";
+            message.textContent = "Could not load accounts: " + (error.message || "Request failed."); list.append(message);
+            setUserStatus(error.message || "Could not load accounts.", true);
+          }
+        }
+        form.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          if (password.value.length < 8) { setUserStatus("Password must be at least 8 characters.", true); password.focus(); return; }
+          create.disabled = true;
+          try {
+            await callUserAdmin("create_user", { email: email.value.trim(), password: password.value, admin: adminCheck.checked });
+            form.reset();
+            setUserStatus("Account created successfully.");
+            await loadAuthUsers();
+          } catch (error) {
+            setUserStatus(error.message || "Could not create account.", true);
+          } finally {
+            create.disabled = false;
+          }
+        });
+        await loadAuthUsers();
+        return;
+      }
+
+      if(section.id==="widget"){
+        content.replaceChildren();
+        const wrap=document.createElement("div");wrap.className="dashboard-crud";wrap.style.cssText="display:grid;gap:18px;width:100%";
+        const headingCard=document.createElement("section");headingCard.className="dashboard-crud-card";
+        const title=document.createElement("h3");title.textContent="Homepage Widgets";
+        const hint=document.createElement("p");hint.className="dashboard-crud-hint";hint.textContent="Manage each widget independently. Choose its visibility and adjust map settings, then save that widget's card.";
+        const status=document.createElement("p");status.className="dashboard-crud-status";status.setAttribute("role","status");status.setAttribute("aria-live","polite");
+        const list=document.createElement("div");list.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:16px;align-items:start;width:100%";
+        headingCard.append(title,hint,status);wrap.append(headingCard,list);content.append(wrap);
+        async function loadWidgets(){
+          list.replaceChildren();
+          const loading=document.createElement("p");loading.className="dashboard-crud-empty";loading.textContent="Loading widgets…";list.append(loading);
+          const {data,error}=await supabaseClient.from("widgets").select("id,widget_type,title,is_visible,settings").order("created_at",{ascending:true});
+          if(!isCurrent())return;
+          if(error){list.replaceChildren();const msg=document.createElement("p");msg.className="dashboard-crud-empty";msg.textContent="Could not load widgets: "+error.message;list.append(msg);status.textContent="Load failed.";status.style.color="#a12622";return;}
+          list.replaceChildren();
+          if(!Array.isArray(data)||!data.length){const empty=document.createElement("p");empty.className="dashboard-crud-empty";empty.textContent="No widgets found.";list.append(empty);return;}
+          for(const item of data){
+            const settings=item.settings&&typeof item.settings==="object"?item.settings:{};
+            const widgetCard=document.createElement("section");widgetCard.className="dashboard-crud-card";widgetCard.style.cssText="display:grid;gap:14px;align-content:start;min-width:0";
+            const cardHeader=document.createElement("div");cardHeader.style.cssText="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:12px;border-bottom:1px solid #e5e7eb";
+            const titleGroup=document.createElement("div");titleGroup.style.cssText="display:grid;gap:4px;min-width:0";
+            const name=document.createElement("h3");name.textContent=item.title||"Widget";name.style.cssText="margin:0;font-size:17px;overflow-wrap:anywhere";
+            const type=document.createElement("p");type.textContent=item.widget_type==="datetime"?"Date & Time":item.widget_type==="map"?"Map":String(item.widget_type||"Widget");type.style.cssText="margin:0;color:#6b7280;font-size:12px";
+            titleGroup.append(name,type);
+            const badge=document.createElement("span");badge.textContent=item.is_visible?"Visible":"Hidden";badge.style.cssText="flex:0 0 auto;padding:4px 8px;border:1px solid "+(item.is_visible?"#bbf7d0":"#e5e7eb")+";border-radius:999px;background:"+(item.is_visible?"#f0fdf4":"#f9fafb")+";color:"+(item.is_visible?"#166534":"#4b5563")+";font-size:12px;font-weight:600";
+            cardHeader.append(titleGroup,badge);widgetCard.append(cardHeader);
+            let locationInput=null,zoomInput=null,zoomValue=null;
+            if(item.widget_type==="map"){
+              const locationField=document.createElement("div");locationField.className="dashboard-crud-field";
+              const locationLabel=document.createElement("label");locationLabel.textContent="Location";locationLabel.style.cssText="color:#444;font-size:13px;font-weight:600";
+              locationInput=document.createElement("input");locationInput.type="text";locationInput.className="dashboard-crud-input";locationInput.value=String(settings.location||"");locationInput.placeholder="Address, place name, or Google Maps link";locationInput.setAttribute("aria-label","Map location for "+(item.title||"Map"));
+              locationField.append(locationLabel,locationInput);widgetCard.append(locationField);
+              const zoomField=document.createElement("div");zoomField.className="dashboard-crud-field";zoomField.style.cssText="display:grid;gap:8px";
+              const zoomHeader=document.createElement("div");zoomHeader.style.cssText="display:flex;justify-content:space-between;align-items:center;gap:8px";
+              const zoomLabel=document.createElement("label");zoomLabel.textContent="Default Zoom";zoomLabel.style.cssText="color:#444;font-size:13px;font-weight:600";
+              const savedZoom=Number(settings.zoom);const initialZoom=Number.isFinite(savedZoom)?Math.max(1,Math.min(21,Math.round(savedZoom))):13;
+              zoomValue=document.createElement("output");zoomValue.value=String(initialZoom);zoomValue.textContent=String(initialZoom);zoomValue.style.cssText="font-size:13px;font-weight:700;color:#374151";
+              zoomHeader.append(zoomLabel,zoomValue);
+              zoomInput=document.createElement("input");zoomInput.type="range";zoomInput.min="1";zoomInput.max="21";zoomInput.step="1";zoomInput.value=String(initialZoom);zoomInput.setAttribute("aria-label","Default map zoom for "+(item.title||"Map"));zoomInput.style.cssText="display:block;width:100%;min-height:26px;accent-color:#374151;cursor:pointer";
+              zoomInput.addEventListener("input",()=>{zoomValue.value=zoomInput.value;zoomValue.textContent=zoomInput.value;});
+              const zoomHelp=document.createElement("p");zoomHelp.textContent="Lower values show a wider area; higher values zoom in.";zoomHelp.style.cssText="margin:0;color:#6b7280;font-size:12px;line-height:1.45";
+              zoomField.append(zoomHeader,zoomInput,zoomHelp);widgetCard.append(zoomField);
+            }
+            const visibilityField=document.createElement("div");visibilityField.className="dashboard-crud-field";
+            const visibilityLabel=document.createElement("label");visibilityLabel.textContent="Homepage Visibility";visibilityLabel.style.cssText="color:#444;font-size:13px;font-weight:600";
+            const select=document.createElement("select");select.className="dashboard-crud-input";select.style.minWidth="0";
+            [["true","Show on homepage"],["false","Hide from homepage"]].forEach(([value,label])=>{const option=document.createElement("option");option.value=value;option.textContent=label;select.append(option);});
+            select.value=String(Boolean(item.is_visible));select.setAttribute("aria-label","Visibility for "+(item.title||"Widget"));
+            select.addEventListener("change",()=>{badge.textContent=select.value==="true"?"Visible":"Hidden";badge.style.background=select.value==="true"?"#f0fdf4":"#f9fafb";badge.style.borderColor=select.value==="true"?"#bbf7d0":"#e5e7eb";badge.style.color=select.value==="true"?"#166534":"#4b5563";});
+            visibilityField.append(visibilityLabel,select);widgetCard.append(visibilityField);
+            const cardStatus=document.createElement("p");cardStatus.className="dashboard-crud-status";cardStatus.style.cssText="margin:0;min-height:18px";cardStatus.setAttribute("role","status");cardStatus.setAttribute("aria-live","polite");
+            const actions=document.createElement("div");actions.className="dashboard-crud-actions";actions.style.cssText="margin-top:0";
+            const saveButton=document.createElement("button");saveButton.type="button";saveButton.className="action-button primary";saveButton.textContent="Save Widget";
+            saveButton.addEventListener("click",async()=>{
+              saveButton.disabled=true;cardStatus.textContent="Saving widget settings…";cardStatus.style.color="#6b7280";
+              try{
+                const current=await getCurrentUser();if(!current)throw new Error("Your admin session has expired. Please sign in again.");
+                const update={is_visible:select.value==="true",updated_by:current.id,updated_at:new Date().toISOString()};
+                if(item.widget_type==="map"){
+                  const location=String(locationInput&&locationInput.value||"").trim();
+                  if(!location)throw new Error("Enter the address, place name, or Google Maps link.");
+                  const previousSettings=item.settings&&typeof item.settings==="object"?item.settings:{};
+                  const zoom=zoomInput?Number(zoomInput.value):13;
+                  const coordinateInput=/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/.test(location);
+                  let embedUrl="https://maps.google.com/maps?q="+encodeURIComponent(location)+"&z="+zoom+"&output=embed";
+                  let resolvedLocation=location;
+                  let mapsLink=false;
+                  try{
+                    const parsedLocationUrl=new URL(location);const host=parsedLocationUrl.hostname.toLowerCase();
+                    mapsLink=parsedLocationUrl.protocol==="https:"&&(host==="maps.app.goo.gl"||host==="goo.gl"||((host==="google.com"||host==="www.google.com"||host==="maps.google.com")&&parsedLocationUrl.pathname.startsWith("/maps")));
+                  }catch(_){}
+                  if(mapsLink){
+                    const {data:resolved,error:resolveError}=await supabaseClient.functions.invoke("resolve-map-link",{body:{url:location}});
+                    if(resolveError){let msg="";try{const response=resolveError.context;if(response&&typeof response.json==="function"){const details=await response.json();msg=String(details&&details.error||"");}}catch(_){}throw new Error(msg||resolveError.message||"Could not resolve this Google Maps link. Try sharing the place link again.");}
+                    if(!resolved||!resolved.embed_url)throw new Error((resolved&&resolved.error)||"Could not identify a place from this Google Maps link.");
+                    if(resolved.exact_coordinates!==true)throw new Error("Exact pin coordinates were not found. Share the exact pin from Google Maps or enter its latitude,longitude coordinates.");
+                    embedUrl=resolved.embed_url;resolvedLocation=resolved.location||location;
+                  }
+                  try{const parsedEmbed=new URL(embedUrl);if(["maps.google.com","www.google.com"].includes(parsedEmbed.hostname))parsedEmbed.searchParams.set("z",String(zoom));embedUrl=parsedEmbed.toString();}catch(_){}
+                  update.settings={...previousSettings,location,zoom,embed_url:embedUrl,resolved_location:resolvedLocation};
+                }
+                const {error:updateError}=await supabaseClient.from("widgets").update(update).eq("id",item.id);
+                if(updateError)throw updateError;
+                cardStatus.textContent="Widget settings saved.";cardStatus.style.color="#176b43";
+                await loadWidgets();
+              }catch(err){cardStatus.textContent="Save failed: "+(err.message||"Unknown error");cardStatus.style.color="#a12622";saveButton.disabled=false;}
+            });
+            actions.append(saveButton);widgetCard.append(actions,cardStatus);list.append(widgetCard);
+          }
+        }
+        await loadWidgets();
+        return;
+      }
+
+      const configs = {
+        hero:{table:"hero_items",label:"Hero",fields:[
+          {name:"title",label:"Title",type:"text",required:true},
+          {name:"description",label:"Description",type:"textarea",full:true},
+          {name:"url",label:"URL",type:"text"},
+          {name:"media",label:"Content Files (Image, Video, Other)",type:"files",full:true,accept:"image/jpeg,image/png,image/webp,image/gif,image/avif,image/svg+xml,video/mp4,video/webm,video/quicktime,audio/mpeg,audio/mp4,audio/wav,audio/ogg,application/pdf"},
+          {name:"visibility",label:"Visibility",type:"select",required:true,options:[["public","Public"],["private","Private"]]}
+        ]},
+        post:{table:"post",label:"Posts",fields:[
+          {name:"title",label:"Title",type:"text",required:true},
+          {name:"description",label:"Description",type:"textarea",full:true},
+          {name:"url",label:"URL",type:"text",required:true,help:"A unique URL slug. Generated from the title; you can edit it."},
+          {name:"media",label:"Content Files (Image, Video, Other)",type:"files",full:true,accept:"image/jpeg,image/png,image/webp,image/gif,image/avif,image/svg+xml,video/mp4,video/webm,video/quicktime,audio/mpeg,audio/mp4,audio/wav,audio/ogg,application/pdf"},
+          {name:"custom_url",label:"Custom Url",type:"url",full:true,help:"Use a file hosted on another server as the content."},
+          {name:"album_id",label:"Album",type:"select",options:[["","No album"]]},
+          {name:"visibility",label:"Visibility",type:"select",required:true,options:[["public","Public"],["private","Private"]]}
+        ]},
+        page:{table:"pages",label:"Page",fields:[
+          {name:"title",label:"Title",type:"text",required:true},
+          {name:"url",label:"URL",type:"text",required:true,help:"A unique URL slug. Generated from the title; you can edit it."},
+          {name:"visibility",label:"Visibility",type:"select",required:true,options:[["public","Public"],["private","Private"]]}
+        ]},
+        album:{table:"albums",label:"Albums",fields:[
+          {name:"title",label:"Title",type:"text",required:true},
+          {name:"description",label:"Description",type:"textarea",full:true},
+          {name:"url",label:"URL",type:"text",required:true,help:"A unique URL slug. Generated from the title; you can edit it."},
+          {name:"media",label:"Content Files (Image, Video, Other)",type:"files",full:true,accept:"image/jpeg,image/png,image/webp,image/gif,image/avif,image/svg+xml,video/mp4,video/webm,video/quicktime,audio/mpeg,audio/mp4,audio/wav,audio/ogg,application/pdf"},
+          {name:"visibility",label:"Visibility",type:"select",required:true,options:[["public","Public"],["private","Private"]]}
+        ]},
+        role:{table:"roles",label:"Roles",fields:[
+          {name:"name",label:"Role name",type:"text",required:true},
+          {name:"description",label:"Description",type:"textarea",full:true},
+          {name:"permissions",label:"Permissions",type:"multiselect",options:[],full:true}
+        ]},
+        customization:{table:"site_customizations",label:"Customizations",fields:[]},
+        settings:{table:"site_settings",label:"Settings",fields:[
+          {name:"key",label:"Setting key",type:"text",required:true},
+          {name:"value",label:"Value (JSON)",type:"textarea",required:true,full:true},
+          {name:"description",label:"Description",type:"textarea",full:true}
+        ]},
+        user:{table:"profiles",label:"User profiles",readOnlyCreate:true,noDelete:true,fields:[
+          {name:"id",label:"Auth user ID",type:"text",readonly:true,required:true,full:true},
+          {name:"full_name",label:"Full name",type:"text"},
+          {name:"phone",label:"Phone",type:"tel"},
+          {name:"date_of_birth",label:"Date of birth",type:"date"},
+          {name:"bio",label:"Bio",type:"textarea",full:true}
+        ]}
+      };
+      if (section.id === "customization" || section.id === "settings") {
+        content.replaceChildren();
+        const isCustomization = section.id === "customization";
+        const title = document.createElement("h2");
+        title.className = "dashboard-section-title";
+        title.textContent = isCustomization ? "Customization" : "Settings";
+        const intro = document.createElement("p");
+        intro.className = "dashboard-section-description";
+        intro.textContent = isCustomization
+          ? "Change appearance, shared layout, typography, and homepage sections. Save applies changes to the public site."
+          : "Configure site identity, homepage behavior, publishing defaults, account creation, privacy, and maintenance.";
+        const form = document.createElement("form");
+        form.className = "dashboard-crud";
+        form.style.marginTop = "18px";
+        const status = document.createElement("p");
+        status.className = "dashboard-crud-status";
+        status.setAttribute("role", "status");
+        const save = document.createElement("button");
+        save.type = "submit";
+        save.className = "action-button primary";
+        save.textContent = "Save and Apply";
+        const reload = document.createElement("button");
+        reload.type = "button";
+        reload.className = "action-button";
+        reload.textContent = "Reload Saved Values";
+        const groupDefs = isCustomization ? [
+          {id:"identity",title:"Site Identity",key:"ui_customization_identity",fields:[
+            {name:"tagline",label:"Tagline",type:"text",value:""}
+          ]},
+          {id:"theme",title:"Appearance & Theme",key:"ui_customization_theme",fields:[
+            {name:"primary_color",label:"Primary color",type:"color",value:"#222222"},
+            {name:"background_color",label:"Page background",type:"color",value:"#ffffff"},
+            {name:"surface_color",label:"Cards and surfaces",type:"color",value:"#ffffff"},
+            {name:"text_color",label:"Main text color",type:"color",value:"#222222"}
+          ]},
+          {id:"header_footer",title:"Header & Footer",key:"ui_customization_header_footer",fields:[
+            {name:"show_header",label:"Show site header",type:"checkbox",value:true},
+            {name:"header_sticky",label:"Keep header sticky while scrolling",type:"checkbox",value:true},
+            {name:"show_footer",label:"Show site footer",type:"checkbox",value:true},
+            {name:"footer_text",label:"Footer text",type:"text",value:"© 2026 Dalimgari. All rights reserved."}
+          ]},
+          {id:"layout",title:"Homepage Layout & Section Visibility",key:"ui_customization_layout",fields:[
+            {name:"show_hero",label:"Show Hero section",type:"checkbox",value:true},
+            {name:"show_page_title",label:"Show Page Title section",type:"checkbox",value:true},
+            {name:"show_widget",label:"Show Widget section",type:"checkbox",value:true},
+            {name:"show_album",label:"Show Album section",type:"checkbox",value:true},
+            {name:"show_page_card",label:"Show Page Card section",type:"checkbox",value:true},
+            {name:"section_order",label:"Homepage section order",type:"order",full:true,value:'["hero","page_title","widget","album","page_card"]'}
+          ]},
+          {id:"typography",title:"Typography",key:"ui_customization_typography",fields:[
+            {name:"font_family",label:"Font family",type:"select",value:"system",options:[["system","System default"],["Arial, sans-serif","Arial"],["Georgia, serif","Georgia"],["Verdana, sans-serif","Verdana"],["Tahoma, sans-serif","Tahoma"]]},
+            {name:"base_font_size",label:"Base font size (px)",type:"number",value:16,min:12,max:22}
+          ]},
+          {id:"responsive",title:"Responsive Layout",key:"ui_customization_responsive",fields:[
+            {name:"content_width",label:"Maximum content width (px)",type:"number",value:1200,min:640,max:1800},
+            {name:"mobile_padding",label:"Mobile side padding (px)",type:"number",value:16,min:8,max:32}
+          ]}
+        ] : [
+          {id:"general",title:"General",key:"ui_settings_general",fields:[
+            {name:"site_title",label:"Site title",type:"text",value:"Dalimgari"},
+            {name:"site_description",label:"Site description",type:"textarea",value:""}
+          ]},
+          {id:"homepage_defaults",title:"Homepage Defaults",key:"ui_settings_homepage_defaults",fields:[
+            {name:"default_home_route",label:"Default route",type:"select",value:"home",options:[["home","Home"],["login","Login"]]},
+            {name:"show_empty_sections",label:"Show empty homepage sections",type:"checkbox",value:false}
+          ]},
+          {id:"content_defaults",title:"Content Defaults",key:"ui_settings_content_defaults",fields:[
+            {name:"default_visibility",label:"Default post visibility",type:"select",value:"public",options:[["public","Public"],["private","Private"]]},
+            {name:"default_page_visibility",label:"Default page visibility",type:"select",value:"public",options:[["public","Public"],["private","Private"]]}
+          ]},
+          {id:"users_access",title:"Users & Access",key:"ui_settings_users_access",fields:[
+            {name:"allow_account_creation",label:"Allow new account creation",type:"checkbox",value:true}
+          ]},
+          {id:"privacy_visibility",title:"Privacy & Visibility",key:"ui_settings_privacy_visibility",fields:[
+            {name:"hide_private_content",label:"Keep private content hidden from public visitors (enforced)",type:"checkbox",value:true,disabled:true},
+            {name:"default_album_visibility",label:"Default album visibility",type:"select",value:"public",options:[["public","Public"],["private","Private"]]}
+          ]},
+          {id:"maintenance_features",title:"Maintenance & Features",key:"ui_settings_maintenance_features",fields:[
+            {name:"maintenance_mode",label:"Enable maintenance mode for public visitors",type:"checkbox",value:false},
+            {name:"enable_homepage_media",label:"Enable homepage media sections",type:"checkbox",value:true}
+          ]}
+        ];
+        const inputMap = new Map();
+        function makeField(field, group) {
+          const wrap = document.createElement("div");
+          wrap.className = "dashboard-crud-field" + (field.type === "textarea" ? " full" : "");
+          const label = document.createElement("label");
+          label.textContent=field.label;
+          if(field.type==="order"){
+            const hidden=document.createElement("input");hidden.type="hidden";hidden.name=field.name;hidden.value=field.value||"[]";
+            inputMap.set(group.id+"."+field.name,hidden);
+            label.htmlFor="cfg-"+group.id+"-"+field.name;label.id=label.htmlFor+"-label";
+            const control=document.createElement("div");control.className="section-order-control";control.setAttribute("aria-labelledby",label.id);
+            const names={hero:"Hero",page_title:"Page Title",widget:"Widget",album:"Album",page_card:"Page Card"};
+            const normalizeOrder=raw=>{let order=[];try{order=Array.isArray(raw)?raw:JSON.parse(String(raw||"[]"));}catch(_){}if(!Array.isArray(order))order=[];const valid=["hero","page_title","widget","album","page_card"];order=order.filter(key=>valid.includes(key));return [...new Set(order),...valid.filter(key=>!order.includes(key))];};
+            const draw=()=>{control.replaceChildren();const order=normalizeOrder(hidden.value);hidden.value=JSON.stringify(order);order.forEach((key,index)=>{const row=document.createElement("div");row.className="section-order-row";const number=document.createElement("span");number.className="section-order-index";number.textContent=String(index+1);const name=document.createElement("span");name.className="section-order-name";name.textContent=names[key];const moves=document.createElement("div");moves.className="section-order-moves";const up=document.createElement("button");up.type="button";up.className="action-button";up.textContent="↑";up.setAttribute("aria-label","Move "+names[key]+" up");up.disabled=index===0;const down=document.createElement("button");down.type="button";down.className="action-button";down.textContent="↓";down.setAttribute("aria-label","Move "+names[key]+" down");down.disabled=index===order.length-1;up.addEventListener("click",()=>{[order[index-1],order[index]]=[order[index],order[index-1]];hidden.value=JSON.stringify(order);draw();});down.addEventListener("click",()=>{[order[index+1],order[index]]=[order[index],order[index+1]];hidden.value=JSON.stringify(order);draw();});moves.append(up,down);row.append(number,name,moves);control.append(row);});};
+            hidden.addEventListener("change",draw);draw();wrap.append(label,hidden,control);return wrap;
+          }
+          const input = field.type === "textarea" ? document.createElement("textarea") : document.createElement("input");
+          if (field.type !== "textarea") input.type = field.type === "select" ? "text" : field.type;
+          if (field.type === "select") {
+            const select = document.createElement("select");
+            select.className = "dashboard-crud-input";
+            (field.options || []).forEach(([value,text])=>{const option=document.createElement("option");option.value=value;option.textContent=text;select.append(option);});
+            inputMap.set(group.id+"."+field.name,select);
+            select.name=field.name;label.htmlFor="cfg-"+group.id+"-"+field.name;
+            select.id=label.htmlFor;wrap.append(label,select);
+            label.textContent=field.label;return wrap;
+          }
+          input.className = "dashboard-crud-input";
+          input.name = field.name;
+          input.id = "cfg-"+group.id+"-"+field.name;
+          label.htmlFor = input.id;
+          label.textContent = field.label;
+          if (field.type === "checkbox") { input.checked = Boolean(field.value); input.disabled = Boolean(field.disabled); input.style.width="auto"; input.style.minHeight="auto"; }
+          else if (field.type === "color") { input.value = field.value; input.style.minHeight="44px"; input.style.padding="4px"; }
+          else { input.value = field.value ?? ""; }
+          if (field.min !== undefined) input.min=String(field.min);
+          if (field.max !== undefined) input.max=String(field.max);
+          inputMap.set(group.id+"."+field.name,input);
+          wrap.append(label,input);
+          return wrap;
+        }
+        for (const group of groupDefs) {
+          const card = document.createElement("section");
+          card.className = "dashboard-crud-card";
+          const heading = document.createElement("h3");heading.textContent=group.title;card.append(heading);
+          const grid = document.createElement("div");grid.className="dashboard-crud-form";
+          for (const field of group.fields) grid.append(makeField(field,group));
+          card.append(grid);form.append(card);
+        }
+        const actions = document.createElement("div");actions.className="dashboard-crud-actions";
+        actions.append(save,reload);form.append(actions,status);
+        content.append(title,intro,form);
+        async function loadConfig() {
+          status.textContent="Loading saved values…";status.style.color="";
+          const table=isCustomization?"site_customizations":"site_settings";
+          const {data,error}=await supabaseClient.from(table).select("key,value").like("key",isCustomization?"ui_customization_%":"ui_settings_%");
+          if(error)throw error;
+          const rows=new Map((data||[]).map(row=>[row.key,typeof row.value==="string"?(()=>{try{return JSON.parse(row.value)}catch(_){return {}}})():(row.value||{})]));
+          for(const group of groupDefs){
+            const values=rows.get(group.key)||{};
+            for(const field of group.fields){
+              const input=inputMap.get(group.id+"."+field.name);
+              if(!input||!Object.prototype.hasOwnProperty.call(values,field.name))continue;
+              const value=values[field.name];
+              if(field.type==="checkbox")input.checked=Boolean(value);
+              else if(field.name==="section_order"&&Array.isArray(value)){input.value=JSON.stringify(value);input.dispatchEvent(new Event("change"));}
+              else input.value=value==null?"":String(value);
+            }
+          }
+          status.textContent="Saved configuration loaded.";status.style.color="#176b43";
+        }
+        function collectGroup(group) {
+          const value={};
+          for(const field of group.fields){
+            const input=inputMap.get(group.id+"."+field.name);
+            if(!input)continue;
+            if(field.name==="hide_private_content")value[field.name]=true;
+            else if(field.type==="checkbox")value[field.name]=input.checked;
+            else if(field.type==="number")value[field.name]=Number(input.value);
+            else if(field.name==="section_order"){
+              let parsed;try{parsed=JSON.parse(input.value||"[]")}catch(_){throw new Error("Section order must be valid JSON.");}
+              const allowed=["hero","page_title","widget","album","page_card"];
+              if(!Array.isArray(parsed)||parsed.some(item=>!allowed.includes(item))||new Set(parsed).size!==parsed.length)throw new Error("Use the section order controls to set each homepage section once.");
+              value[field.name]=[...parsed,...allowed.filter(item=>!parsed.includes(item))];
+            } else value[field.name]=input.value.trim();
+          }
+          for(const field of group.fields){
+            if(field.type==="number"&&(value[field.name]<Number(field.min)||value[field.name]>Number(field.max)))throw new Error(field.label+" must be between "+field.min+" and "+field.max+".");
+          }
+          return value;
+        }
+        reload.addEventListener("click",async()=>{reload.disabled=true;try{await loadConfig()}catch(error){status.textContent="Could not load saved configuration: "+error.message;status.style.color="#a12622"}finally{reload.disabled=false}});
+        form.addEventListener("submit",async event=>{
+          event.preventDefault();save.disabled=true;reload.disabled=true;status.textContent="Saving configuration…";status.style.color="";
+          try{
+            const user=await getCurrentUser();if(!user)throw new Error("Your admin session has expired. Please sign in again.");
+            const table=isCustomization?"site_customizations":"site_settings";
+            for(const group of groupDefs){
+              const value=collectGroup(group);
+              const row={key:group.key,value,description:group.title,updated_by:user.id,updated_at:new Date().toISOString()};
+              const {error}=await supabaseClient.from(table).upsert(row,{onConflict:"key"});
+              if(error)throw error;
+              if(!isCustomization){
+                const publicRow={key:group.key,value,description:"Public-safe mirrored configuration: "+group.title,updated_by:user.id,updated_at:new Date().toISOString()};
+                const mirror=await supabaseClient.from("site_customizations").upsert(publicRow,{onConflict:"key"});
+                if(mirror.error)throw mirror.error;
+              }
+            }
+            await applyDalimgariSiteConfig(true);
+            status.textContent="Saved. Website configuration has been applied.";status.style.color="#176b43";
+          }catch(error){status.textContent="Save failed: "+(error.message||"Unknown error");status.style.color="#a12622"}
+          finally{save.disabled=false;reload.disabled=false}
+        });
+        loadConfig().catch(error=>{status.textContent="Could not load saved configuration: "+error.message;status.style.color="#a12622"});
+        return;
+      }
+      if (section.id === "overview") {
+        content.replaceChildren();
+        const title = document.createElement("h2"); title.className="dashboard-section-title"; title.textContent="Overview";
+        const intro = document.createElement("p"); intro.className="dashboard-section-description"; intro.textContent="Content management and database summary.";
+        const stats = document.createElement("div"); stats.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-top:18px";
+        content.append(title,intro,stats);
+        const targets=[["Heroes","hero_items"],["Posts","post"],["Pages","pages"],["Albums","albums"],["Users","profiles"],["Roles","roles"]];
+        for (const [label,table] of targets) {
+          const card=document.createElement("div");card.style.cssText="padding:16px;border:1px solid #e5e7eb;border-radius:10px;background:#fff";
+          const l=document.createElement("div");l.style.cssText="font-size:13px;color:#666";l.textContent=label;
+          const n=document.createElement("strong");n.style.cssText="display:block;font-size:25px;margin-top:8px";n.textContent="—";card.append(l,n);stats.append(card);
+          let countQuery=supabaseClient.from(table).select("id",{count:"exact",head:true});
+          if(table==="profiles")countQuery=countQuery.neq("id","c5b6d47e-3e78-4d4e-bc15-6f137a8c1e75");
+          countQuery.then(({count,error})=>{if(isCurrent())n.textContent=error?"—":String(count??0);});
+        }
+        return;
+      }
+      if (section.id === "recycle") {
+        content.replaceChildren();
+        const wrap = document.createElement("div"); wrap.className = "dashboard-crud";
+        const card = document.createElement("section"); card.className = "dashboard-crud-card";
+        const h = document.createElement("h3"); h.textContent = "Recycle Bin";
+        const note = document.createElement("p"); note.className = "dashboard-crud-hint";
+        note.textContent = "Deleted items are kept here for 30 days. Restore returns an item to its original section. Items are scheduled for permanent cleanup after the retention period.";
+        const status = document.createElement("p"); status.className = "dashboard-crud-status"; status.setAttribute("role","status");
+        const list = document.createElement("div"); list.className = "dashboard-crud-list";
+        card.append(h,note,status,list); wrap.append(card); content.append(wrap);
+        function recycleStatus(message,isError=false){status.textContent=message;status.style.color=isError?"#a12622":"#176b43";}
+        async function loadTrash(){
+          list.replaceChildren();
+          const loading=document.createElement("p");loading.className="dashboard-crud-empty";loading.textContent="Loading deleted items…";list.append(loading);
+          const {data,error}=await supabaseClient.from("recycle_bin").select("*").order("deleted_at",{ascending:false}).limit(500);
+          if(!isCurrent())return;
+          list.replaceChildren();
+          if(error){const p=document.createElement("p");p.className="dashboard-crud-empty";p.textContent="Could not load recycle bin: "+error.message;list.append(p);return;}
+          if(!data?.length){const p=document.createElement("p");p.className="dashboard-crud-empty";p.textContent="Recycle Bin is empty.";list.append(p);return;}
+          const table=document.createElement("table");table.className="dashboard-crud-table";
+          const thead=document.createElement("thead"),trh=document.createElement("tr");
+          ["Item","Original Section","Deleted","Scheduled permanent deletion","Actions"].forEach(label=>{const th=document.createElement("th");th.textContent=label;trh.append(th);});thead.append(trh);table.append(thead);
+          const tbody=document.createElement("tbody");
+          for(const item of data){
+            const row=document.createElement("tr");
+            const name=item.record_data?.caption||item.record_data?.title||item.record_data?.name||item.record_data?.key||item.record_data?.full_name||item.original_id;
+            [String(name),String(item.original_table),new Date(item.deleted_at).toLocaleString(),new Date(item.purge_after).toLocaleString()].forEach(value=>{const td=document.createElement("td");td.textContent=value;row.append(td);});
+            const actionCell=document.createElement("td");
+            const restore=document.createElement("button");restore.type="button";restore.className="action-button primary";restore.textContent="Restore";
+            const purge=document.createElement("button");purge.type="button";purge.className="action-button";purge.textContent="Delete permanently";purge.style.marginLeft="6px";
+            restore.addEventListener("click",async()=>{
+              if(!confirm("Restore this item to its original section?"))return;
+              restore.disabled=true;purge.disabled=true;
+              try{
+                const original=item.record_data||{};
+                const {error:insertError}=await supabaseClient.from(item.original_table).insert(original);
+                if(insertError){
+                  const keyColumn=original.id?"id":"key";
+                  const keyValue=original.id||original.key;
+                  const {data:existing,error:checkError}=await supabaseClient.from(item.original_table).select(keyColumn).eq(keyColumn,keyValue).maybeSingle();
+                  if(checkError||!existing)throw insertError;
+                }
+                const related=item.related_data||{};
+                async function restoreLinks(tableName,rows){
+                  if(!Array.isArray(rows)||!rows.length)return;
+                  const {error}=await supabaseClient.from(tableName).upsert(rows,{ignoreDuplicates:true});
+                  if(error)throw error;
+                }
+                if(item.original_table==="roles"){
+                  await restoreLinks("user_roles",related.user_roles);
+                  await restoreLinks("role_permissions",related.role_permissions);
+                }
+                if(item.original_table==="permissions") await restoreLinks("role_permissions",related.role_permissions);
+                const {error:trashError}=await supabaseClient.from("recycle_bin").delete().eq("id",item.id);
+                if(trashError)throw trashError;
+                recycleStatus("Item restored successfully.");await loadTrash();
+              }catch(error){recycleStatus(error.message||"Could not restore item.",true);restore.disabled=false;purge.disabled=false;}
+            });
+            purge.addEventListener("click",async()=>{
+              if(!confirm("Permanently delete this item and its stored file, if any? This cannot be undone."))return;
+              restore.disabled=true;purge.disabled=true;
+              try{
+                await removeRecycleStorageFiles(item);
+                const {error}=await supabaseClient.from("recycle_bin").delete().eq("id",item.id);
+                if(error)throw error;
+                recycleStatus("Item permanently deleted.");await loadTrash();
+              }catch(error){recycleStatus(error.message||"Could not permanently delete item.",true);restore.disabled=false;purge.disabled=false;}
+            });
+            actionCell.append(restore,purge);row.append(actionCell);tbody.append(row);
+          }
+          table.append(tbody);list.append(table);
+        }
+        await loadTrash();
+        return;
+      }
+      const config=configs[section.id];
+      if (!config) return;
+      if(!isCurrent())return;
+      content.replaceChildren();
+      const wrap=document.createElement("div");wrap.className="dashboard-crud";
+      const formCard=document.createElement("section");formCard.className="dashboard-crud-card";
+      const formHeading=document.createElement("h3");formHeading.textContent="Create / Edit "+config.label;
+      const hint=document.createElement("p");hint.className="dashboard-crud-hint";hint.textContent=section.id==="user"?"This section edits profile records only. Creating or deleting Supabase Auth accounts requires a secured server-side function.":"Select a row below to load its values here. Save changes to update, or use Delete to remove the selected record.";
+      const form=document.createElement("form");form.className="dashboard-crud-form";
+      const status=document.createElement("p");status.className="dashboard-crud-status";status.setAttribute("role","status");status.setAttribute("aria-live","polite");
+      const actions=document.createElement("div");actions.className="dashboard-crud-actions dashboard-crud-field full";
+      const save=document.createElement("button");save.className="action-button primary";save.type="submit";save.textContent="Create";
+      const remove=document.createElement("button");remove.className="action-button";remove.type="button";remove.textContent="Delete";remove.disabled=true;
+      const clear=document.createElement("button");clear.className="action-button";clear.type="button";clear.textContent="New / Clear";
+      actions.append(save,remove,clear);form.append(actions,status);
+      const listCard=document.createElement("section");listCard.className="dashboard-crud-card";
+      const listHeading=document.createElement("h3");listHeading.textContent="Existing "+config.label;
+      const list=document.createElement("div");list.className="dashboard-crud-list";
+      listCard.append(listHeading,list);formCard.append(formHeading,hint,form);wrap.append(formCard,listCard);
+      content.append(wrap);
+      let selectedId=null, records=[], selectedRecordData=null;
+      const controls={};
+      function setStatus(message,type){status.textContent=message;status.style.color=type==="error"?"#a12622":type==="success"?"#176b43":"#555";}
+      function makeField(def){
+        const holder=document.createElement("div");holder.className="dashboard-crud-field"+(def.full?" full":"");
+        const label=document.createElement("label");label.textContent=def.label;label.htmlFor="dash-"+section.id+"-"+def.name;
+        let input;
+        if(def.type==="textarea"){input=document.createElement("textarea");input.rows=def.rows||4;}
+        else if(def.type==="select"||def.type==="multiselect"){input=document.createElement("select");if(def.type==="multiselect")input.multiple=true;(def.options||[]).forEach(([value,labelText])=>{const opt=document.createElement("option");opt.value=value;opt.textContent=labelText;input.append(opt);});if(def.type==="multiselect")input.size=4;}
+        else {input=document.createElement("input");input.type=def.type==="files"?"file":def.type;if(def.type==="files")input.multiple=true;if(def.accept)input.accept=def.accept;}
+        input.className="dashboard-crud-input";input.id=label.htmlFor;input.name=def.name;
+        if(def.required)input.required=true;if(def.readonly)input.readOnly=true;
+        holder.append(label,input);
+        if(def.help){const help=document.createElement("small");help.className="dashboard-crud-hint";help.textContent=def.help;holder.append(help);}
+        form.insertBefore(holder,actions);controls[def.name]=input;
+        if(def.name==="url" && controls.title) {
+          let urlEdited=false;input.addEventListener("input",()=>{urlEdited=true;});
+          const makeSlug=()=>generateUrlValue(controls.title.value);
+          controls.title.addEventListener("input",()=>{if(!urlEdited&&!selectedId)input.value=makeSlug();});
+          input.addEventListener("blur",()=>{if(!input.value.trim()&&controls.title.value.trim())input.value=makeSlug();});
+        }
+        return input;
+      }
+      function generateOpaqueToken(byteCount=24){
+        const bytes=new Uint8Array(byteCount);crypto.getRandomValues(bytes);
+        return Array.from(bytes,b=>b.toString(16).padStart(2,"0")).join("");
+      }
+      function generateUrlValue(value){return String(value||"").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");}
+      for(const def of config.fields)makeField(def);
+      if(controls.album_id) {
+        const {data:albums,error:albumsError}=await supabaseClient.from("albums").select("id,title").order("title").limit(500);
+        if(!isCurrent())return;
+        if(!albumsError)for(const album of albums||[]){const option=document.createElement("option");option.value=album.id;option.textContent=album.title;controls.album_id.append(option);}
+      }
+      if(controls.permissions) {
+        const {data:permissions,error:permissionsError}=await supabaseClient.from("permissions").select("id,name").order("name");
+        if(!isCurrent())return;
+        if(!permissionsError)for(const permission of permissions||[]){const option=document.createElement("option");option.value=permission.id;option.textContent=permission.name;controls.permissions.append(option);}
+      }
+      function resetForm(){
+        selectedId=null;selectedRecordData=null;form.reset();
+        if(config.table==="post"&&controls.visibility)controls.visibility.value=(dalimgariRuntimeConfig.ui_settings_content_defaults||{}).default_visibility||"public";
+        if(config.table==="pages"&&controls.visibility)controls.visibility.value=(dalimgariRuntimeConfig.ui_settings_content_defaults||{}).default_page_visibility||"public";
+        if(config.table==="albums"&&controls.visibility)controls.visibility.value=(dalimgariRuntimeConfig.ui_settings_privacy_visibility||{}).default_album_visibility||"public";
+        save.textContent=config.readOnlyCreate?"Save Profile":"Create";save.disabled=false;remove.disabled=true;setStatus("");
+        list.querySelectorAll(".dashboard-crud-row").forEach(row=>row.classList.remove("is-selected"));
+      }
+      clear.addEventListener("click",resetForm);
+      async function loadRecords(){
+        if(!isCurrent())return;
+        list.replaceChildren();const loading=document.createElement("p");loading.className="dashboard-crud-empty";loading.textContent="Loading records…";list.append(loading);
+        let query=supabaseClient.from(config.table).select("*").order("created_at",{ascending:false}).limit(200);
+        if(config.table==="profiles")query=query.neq("id","c5b6d47e-3e78-4d4e-bc15-6f137a8c1e75");
+        if(config.table==="site_customizations"||config.table==="site_settings")query=supabaseClient.from(config.table).select("*").order("key").limit(200);
+        const {data,error}=await query;
+        if(!isCurrent())return;
+        list.replaceChildren();
+        if(error){const p=document.createElement("p");p.className="dashboard-crud-empty";p.textContent="Could not load records: "+error.message;list.append(p);return;}
+        records=data||[];
+        if(!records.length){const p=document.createElement("p");p.className="dashboard-crud-empty";p.textContent="No records found yet.";list.append(p);return;}
+        const table=document.createElement("table");table.className="dashboard-crud-table";
+        const thead=document.createElement("thead"),trh=document.createElement("tr");
+        const headerLabels=["Select","Title / Name","Details","Visibility","Created"];
+        headerLabels.forEach(label=>{const th=document.createElement("th");th.textContent=label;trh.append(th);});
+        thead.append(trh);table.append(thead);
+        const tbody=document.createElement("tbody");
+        records.forEach(record=>{
+          const row=document.createElement("tr");row.className="dashboard-crud-row";row.tabIndex=0;
+          const title=record.caption||record.title||record.name||record.key||record.full_name||record.id||"Record";
+          const details=record.url||record.description||record.phone||(Array.isArray(record.media)?record.media.length+" file(s)":"");
+          const values=[String(record.id||"").slice(0,8)||"—",title,details];
+          values.push(record.visibility==="private"?"Only Me":record.visibility==="public"?"Public":"—",record.created_at?new Date(record.created_at).toLocaleString():"—");
+          values.forEach((value,index)=>{
+            const td=document.createElement("td");
+            if(section.id==="page"&&index===2&&record.url){
+              const link=document.createElement("a");
+              link.href=window.location.pathname+"?page="+encodeURIComponent(record.url);
+              link.textContent="?page="+record.url;
+              link.target="_blank";link.rel="noopener noreferrer";
+              link.style.cssText="overflow-wrap:anywhere";
+              td.append(link);
+            }else td.textContent=String(value);
+            row.append(td);
+          });
+          const first=row.firstElementChild;first.textContent="Select";
+          row.addEventListener("click",()=>selectRecord(record,row));
+          row.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();selectRecord(record,row);}});
+          tbody.append(row);
+        });
+        table.append(tbody);list.append(table);
+        if(section.id==="page") await renderPageOrderManager();
+      }
+      async function renderPageOrderManager(){
+        if(section.id!=="page" || !isCurrent()) return;
+        const panel=document.createElement("section");panel.className="dashboard-crud-card";panel.style.marginTop="16px";
+        const heading=document.createElement("h3");heading.textContent="Homepage Page Title Order";
+        const hint=document.createElement("p");hint.className="dashboard-crud-hint";hint.textContent="Use the arrows to choose the order of Public pages shown as pill buttons on Home. Only Public pages appear there.";
+        const status=document.createElement("p");status.className="dashboard-crud-status";status.setAttribute("role","status");
+        const orderList=document.createElement("div");orderList.style.cssText="display:grid;gap:8px";
+        const actions=document.createElement("div");actions.className="dashboard-crud-actions";
+        const saveOrder=document.createElement("button");saveOrder.type="button";saveOrder.className="action-button primary";saveOrder.textContent="Save Order";
+        panel.append(heading,hint,orderList,actions,status);actions.append(saveOrder);list.append(panel);
+        const {data:setting,error:settingError}=await supabaseClient.from("site_customizations").select("value").eq("key","home_page_order").maybeSingle();
+        if(!isCurrent())return;
+        let ids=setting?.value;if(typeof ids==="string"){try{ids=JSON.parse(ids);}catch(_){ids=[];}}
+        if(ids&&!Array.isArray(ids)&&Array.isArray(ids.ids))ids=ids.ids;if(!Array.isArray(ids))ids=[];
+        const publicRecords=records.filter(r=>r.visibility==="public").sort((a,b)=>new Date(a.created_at||0)-new Date(b.created_at||0));
+        const byId=new Map(publicRecords.map(r=>[String(r.id),r]));
+        const ordered=[...ids.map(id=>byId.get(String(id))).filter(Boolean)];
+        publicRecords.forEach(r=>{if(!ordered.some(x=>String(x.id)===String(r.id)))ordered.push(r);});
+        function drawOrder(){
+          orderList.replaceChildren();
+          if(!ordered.length){const empty=document.createElement("p");empty.className="dashboard-crud-empty";empty.textContent="No Public pages to reorder.";orderList.append(empty);saveOrder.disabled=true;return;}
+          saveOrder.disabled=false;
+          ordered.forEach((record,index)=>{
+            const row=document.createElement("div");row.style.cssText="display:flex;align-items:center;gap:10px;min-width:0;padding:10px;border:1px solid #e5e7eb;border-radius:9px;background:#fff";
+            const label=document.createElement("span");label.textContent=(index+1)+". "+(record.title||record.url||"Page");label.style.cssText="flex:1;min-width:0;overflow-wrap:anywhere;font-size:14px";
+            const up=document.createElement("button");up.type="button";up.className="action-button";up.textContent="↑";up.setAttribute("aria-label","Move "+(record.title||"page")+" up");up.disabled=index===0;
+            const down=document.createElement("button");down.type="button";down.className="action-button";down.textContent="↓";down.setAttribute("aria-label","Move "+(record.title||"page")+" down");down.disabled=index===ordered.length-1;
+            up.addEventListener("click",()=>{[ordered[index-1],ordered[index]]=[ordered[index],ordered[index-1]];drawOrder();});
+            down.addEventListener("click",()=>{[ordered[index+1],ordered[index]]=[ordered[index],ordered[index+1]];drawOrder();});
+            row.append(label,up,down);orderList.append(row);
+          });
+        }
+        if(settingError){status.textContent="Could not load saved order. You can still set and save a new order.";status.style.color="#a12622";}
+        drawOrder();
+        saveOrder.addEventListener("click",async()=>{
+          saveOrder.disabled=true;status.textContent="Saving order…";status.style.color="";
+          try{
+            const payload={key:"home_page_order",value:ordered.map(r=>String(r.id)),description:"Order of Public pages shown in the homepage Page Title section",updated_at:new Date().toISOString()};
+            const {error}=await supabaseClient.from("site_customizations").upsert(payload,{onConflict:"key"});if(error)throw error;
+            status.textContent="Homepage page order saved.";status.style.color="#176b43";
+          }catch(error){status.textContent="Could not save order: "+(error.message||"Please try again.");status.style.color="#a12622";}
+          finally{saveOrder.disabled=false;}
+        });
+      }
+      async function selectRecord(record,row){
+        selectedId=record.id||record.key||record.id;selectedRecordData=record;resetSelectionHighlight();row.classList.add("is-selected");
+        config.fields.forEach(def=>{
+          const input=controls[def.name];if(!input)return;
+          if(def.type==="files"||def.type==="multiselect")return;
+          let value=record[def.name];
+          if((section.id==="customization"||section.id==="settings")&&def.name==="value")value=JSON.stringify(value??null,null,2);
+          input.value=value==null?"":String(value);
+        });
+        if(controls.permissions) {
+          const {data:links}=await supabaseClient.from("role_permissions").select("permission_id").eq("role_id",record.id);
+          const selected=new Set((links||[]).map(link=>String(link.permission_id)));
+          Array.from(controls.permissions.options).forEach(option=>option.selected=selected.has(option.value));
+        }
+        save.textContent=config.readOnlyCreate?"Save Profile":"Update";save.disabled=false;remove.disabled=!!config.noDelete;setStatus("Selected record loaded into the form.");
+        
+      }
+      function resetSelectionHighlight(){list.querySelectorAll(".dashboard-crud-row").forEach(row=>row.classList.remove("is-selected"));}
+      form.addEventListener("submit",async event=>{
+        event.preventDefault();
+        save.disabled=true;remove.disabled=true;save.textContent="Saving…";setStatus("");
+        try{
+          const payload={};
+          config.fields.forEach(def=>{
+            const input=controls[def.name];
+            if(def.type==="files"||def.type==="multiselect")return;
+            let value=input.value;
+            if(def.name==="value"&&(section.id==="customization"||section.id==="settings")){try{value=JSON.parse(value);}catch{throw new Error("Value must be valid JSON.");}}
+            else if(value==="")value=null;
+            payload[def.name]=value;
+          });
+          if(["post","page","album"].includes(section.id)) {
+            payload.url=generateUrlValue(payload.url||payload.title);
+            if(!payload.url)throw new Error("URL is required. Use English letters, numbers and hyphens.");
+            const {data:duplicate,error:duplicateError}=await supabaseClient.from(config.table).select("id").eq("url",payload.url).limit(1).maybeSingle();
+            if(duplicateError)throw duplicateError;
+            if(duplicate&&duplicate.id!==selectedId)throw new Error("This URL is already in use. Choose another URL.");
+          }
+          if(section.id==="post")payload.caption=String(payload.title||"").trim();
+          if(controls.album_id)payload.album_id=controls.album_id.value||null;
+          const existingMedia=Array.isArray(selectedRecordData?.media)?selectedRecordData.media.map(item=>({...item})):[];
+          const chosenFiles=Array.from(controls.media?.files||[]);
+          const allowedTypes=new Set(["image/jpeg","image/png","image/webp","image/gif","image/avif","image/svg+xml","video/mp4","video/webm","video/quicktime","audio/mpeg","audio/mp4","audio/wav","audio/ogg","application/pdf"]);
+          const visibility=payload.visibility||"public";
+          for(const file of chosenFiles)if(!allowedTypes.has(file.type)||file.size>50*1024*1024)throw new Error("Choose supported image, video, audio or PDF files up to 50 MB each.");
+          for(const item of existingMedia) {
+            const currentFolder=String(item.path||"").split("/")[0], desiredFolder=visibility==="public"?"public":"private";
+            if(item.path&&currentFolder!==desiredFolder) {
+              const filename=String(item.path).split("/").pop(), nextPath=desiredFolder+"/"+user.id+"/"+filename;
+              const {error:moveError}=await supabaseClient.storage.from("content-files").move(item.path,nextPath);
+              if(moveError)throw moveError; item.path=nextPath;
+            }
+          }
+          for(const file of chosenFiles) {
+            const extension=(file.name.match(/\.([a-zA-Z0-9]{1,10})$/)||[])[1]||"bin";
+            const folder=visibility==="public"?"public":"private";
+            const path=folder+"/"+user.id+"/"+crypto.randomUUID()+"."+extension.toLowerCase();
+            const {error:uploadError}=await supabaseClient.storage.from("content-files").upload(path,file,{contentType:file.type,cacheControl:"0",upsert:false});
+            if(uploadError)throw uploadError;
+            existingMedia.push({path,name:file.name,mime_type:file.type,size_bytes:file.size});
+          }
+          if(config.fields.some(def=>def.name==="media"))payload.media=existingMedia;
+          const selectedPermissions=controls.permissions?Array.from(controls.permissions.selectedOptions).map(option=>option.value):null;
+          if(config.table==="site_customizations"||config.table==="site_settings")payload.updated_by=user.id;
+          if(config.table!=="profiles")payload.updated_at=new Date().toISOString();
+          let result;
+          if(selectedId){result=await supabaseClient.from(config.table).update(payload).eq(config.table==="site_settings"||config.table==="site_customizations"?"id":"id",selectedId).select().single();}
+          else{
+            if(config.readOnlyCreate)throw new Error("Profiles are created through the account registration flow.");
+            if(["post","pages","hero_items","albums"].includes(config.table))payload.created_by=user.id;
+            result=await supabaseClient.from(config.table).insert(payload).select().single();
+          }
+          if(result.error)throw result.error;
+          const savedId=result.data?.id||selectedId;
+          if(section.id==="role" && savedId) {
+            const {error:clearLinksError}=await supabaseClient.from("role_permissions").delete().eq("role_id",savedId);
+            if(clearLinksError)throw clearLinksError;
+            if(selectedPermissions?.length) {
+              const rows=selectedPermissions.map(permission_id=>({role_id:savedId,permission_id}));
+              const {error:linkError}=await supabaseClient.from("role_permissions").insert(rows);
+              if(linkError)throw linkError;
+            }
+          }
+          const wasUpdating=Boolean(selectedId);resetForm();setStatus(wasUpdating?"Record updated successfully.":"Record created successfully.","success");await loadRecords();
+        }catch(error){setStatus(error.message||"Could not save record.","error");}
+        finally{save.disabled=false;save.textContent=selectedId?"Update":(config.readOnlyCreate?"Save Profile":"Create");remove.disabled=!selectedId||!!config.noDelete;}
+      });
+      remove.addEventListener("click",async()=>{
+        if(!selectedId||config.noDelete)return;
+        const record=records.find(r=>(r.id||r.key)===selectedId);if(!record)return;
+        if(!confirm("Move this record to Recycle Bin? It can be restored within 30 days."))return;
+        remove.disabled=true;save.disabled=true;
+        let trashId=null;
+        try{
+          const related={};
+          const tableName=config.table;
+          if(tableName==="roles"){
+            const [users,permissions]=await Promise.all([
+              supabaseClient.from("user_roles").select("*").eq("role_id",selectedId),
+              supabaseClient.from("role_permissions").select("*").eq("role_id",selectedId)
+            ]);
+            if(users.error)throw users.error;if(permissions.error)throw permissions.error;
+            related.user_roles=users.data||[];related.role_permissions=permissions.data||[];
+          }else if(tableName==="permissions"){
+            const {data,error}=await supabaseClient.from("role_permissions").select("*").eq("permission_id",selectedId);if(error)throw error;
+            related.role_permissions=data||[];
+          }
+          const trashPayload={
+            original_table:tableName,original_id:String(selectedId),record_data:record,related_data:related,
+            deleted_by:user.id
+          };
+          const {data:trash,error:trashError}=await supabaseClient.from("recycle_bin").insert(trashPayload).select("id").single();
+          if(trashError)throw trashError;trashId=trash.id;
+          if(tableName==="roles"){
+            const {error:userError}=await supabaseClient.from("user_roles").delete().eq("role_id",selectedId);if(userError)throw userError;
+            const {error:permError}=await supabaseClient.from("role_permissions").delete().eq("role_id",selectedId);if(permError)throw permError;
+          }
+          if(tableName==="permissions"){const {error}=await supabaseClient.from("role_permissions").delete().eq("permission_id",selectedId);if(error)throw error;}
+          const {error}=await supabaseClient.from(tableName).delete().eq("id",selectedId);if(error)throw error;
+          resetForm();setStatus("Moved to Recycle Bin. Scheduled for permanent deletion in 30 days.","success");await loadRecords();
+        }catch(error){
+          if(trashId)console.warn("Recycle Bin entry retained for recovery after an incomplete move.",trashId);
+          setStatus((error.message||"Could not move record to Recycle Bin.")+(trashId?" The recycle entry was kept so the operation can be recovered.":""),"error");
+        }
+        finally{save.disabled=false;remove.disabled=true;}
+      });
+      async function renderRoleAssignments(){
+        if(section.id!=="role"||!isCurrent())return;
+        const panel=document.createElement("section");panel.className="dashboard-crud-card";panel.style.marginTop="18px";
+        const heading=document.createElement("h3");heading.textContent="Assign a role to each user";
+        const hint=document.createElement("p");hint.className="dashboard-crud-hint";hint.textContent="Each user can have one role. The role's permissions control access to dashboard sections and database operations.";
+        const statusLine=document.createElement("p");statusLine.className="dashboard-crud-status";statusLine.setAttribute("role","status");
+        const list=document.createElement("div");list.style.cssText="display:grid;gap:12px";
+        panel.append(heading,hint,list,statusLine);content.append(panel);
+        const [profilesResult,rolesResult,assignmentsResult]=await Promise.all([
+          supabaseClient.from("profiles").select("id,full_name").order("full_name").limit(500),
+          supabaseClient.from("roles").select("id,name").order("name").limit(200),
+          supabaseClient.from("user_roles").select("user_id,role_id").limit(1000)
+        ]);
+        if(!isCurrent())return;
+        const failed=[profilesResult.error,rolesResult.error,assignmentsResult.error].find(Boolean);
+        if(failed){statusLine.textContent="Could not load role assignments: "+failed.message;statusLine.style.color="#a12622";return;}
+        const assignments=new Map((assignmentsResult.data||[]).map(row=>[row.user_id,row.role_id]));
+        const roles=rolesResult.data||[];
+        if(!profilesResult.data?.length){list.textContent="No user profiles are available.";return;}
+        for(const profile of profilesResult.data){
+          const row=document.createElement("div");row.className="section-order-row";
+          const name=document.createElement("div");name.className="section-order-name";const isProtectedSuperAdmin=profile.id==="c5b6d47e-3e78-4d4e-bc15-6f137a8c1e75";name.textContent=isProtectedSuperAdmin?(profile.full_name||"Dalimgari")+" · SUPER ADMIN · PROTECTED":(profile.full_name||"User")+" · "+String(profile.id).slice(0,8);
+          const select=document.createElement("select");select.className="dashboard-crud-input";select.style.maxWidth="260px";select.setAttribute("aria-label","Role for "+(profile.full_name||profile.id));
+          const none=document.createElement("option");none.value="";none.textContent="No role";select.append(none);
+          for(const roleRow of roles){const option=document.createElement("option");option.value=roleRow.id;option.textContent=roleRow.name;select.append(option);}
+          select.value=assignments.get(profile.id)||"";
+          const saveAssignment=document.createElement("button");saveAssignment.type="button";saveAssignment.className="action-button primary";saveAssignment.textContent="Save role";
+          saveAssignment.addEventListener("click",async()=>{
+            saveAssignment.disabled=true;statusLine.textContent="Saving role assignment…";statusLine.style.color="";
+            try{
+              if(select.value){const {error}=await supabaseClient.from("user_roles").upsert({user_id:profile.id,role_id:select.value},{onConflict:"user_id"});if(error)throw error;}
+              else{const {error}=await supabaseClient.from("user_roles").delete().eq("user_id",profile.id);if(error)throw error;}
+              statusLine.textContent="Role assignment saved. The user may need to refresh or sign in again.";statusLine.style.color="#176b43";
+            }catch(error){statusLine.textContent="Could not save role assignment: "+(error.message||"Please try again.");statusLine.style.color="#a12622";}
+            finally{saveAssignment.disabled=false;}
+          });
+          row.append(name,select,saveAssignment);list.append(row);
+        }
+        if(!roles.length)statusLine.textContent="Create a role and assign permissions above before assigning users.";
+      }
+      if(!isCurrent())return;
+      resetForm();await loadRecords();
+      if(section.id==="role")await renderRoleAssignments();
+    }
+
+    async function renderEditProfile() {
+      const user=await getCurrentUser();
+      if(!user){renderPage("Login");history.replaceState(null,"","#login");return;}
+      const profile=await loadUserProfile(user);
+      const page=document.createElement("section");page.className="profile-page";
+      const heading=document.createElement("h1");heading.className="profile-heading";heading.textContent="Edit Profile";
+      const form=document.createElement("form");form.className="edit-profile-form";
+      function field(labelText,name,type,value){
+        const label=document.createElement("label");label.htmlFor="edit-"+name;label.textContent=labelText;
+        let input;if(type==="textarea"){input=document.createElement("textarea");input.rows=4;}else{input=document.createElement("input");input.type=type;}
+        input.className="profile-input";input.id="edit-"+name;input.name=name;input.value=value||"";form.append(label,input);return input;
+      }
+      const avatarSection=document.createElement("section");avatarSection.className="profile-picture-editor";
+      const avatarHeading=document.createElement("h2");avatarHeading.textContent="Profile Picture";
+      const avatarRow=document.createElement("div");avatarRow.className="profile-picture-row";
+      const avatarPreview=document.createElement("div");avatarPreview.className="profile-avatar profile-avatar-large";
+      const currentAvatarUrl=await resolveAvatarUrl(user);
+      if(currentAvatarUrl){const img=document.createElement("img");img.src=currentAvatarUrl;img.alt="Profile picture";img.onerror=()=>setDefaultAvatar(avatarPreview);avatarPreview.append(img);}
+      else{setDefaultAvatar(avatarPreview);}
+      const avatarControls=document.createElement("div");avatarControls.className="profile-picture-controls";
+      const avatarLabel=document.createElement("label");avatarLabel.htmlFor="edit-profile-picture";avatarLabel.textContent="Change profile picture";
+      const avatarInput=document.createElement("input");avatarInput.type="file";avatarInput.id="edit-profile-picture";avatarInput.accept="image/*";
+      const avatarStatus=document.createElement("p");avatarStatus.className="profile-picture-status";avatarStatus.setAttribute("role","status");
+      avatarControls.append(avatarLabel,avatarInput,avatarStatus);avatarRow.append(avatarPreview,avatarControls);avatarSection.append(avatarHeading,avatarRow);form.append(avatarSection);
+      avatarInput.addEventListener("change",async()=>{
+        const file=avatarInput.files&&avatarInput.files[0];if(!file)return;
+        if(!file.type.startsWith("image/")){avatarStatus.textContent="Please choose an image file.";avatarInput.value="";return;}
+        if(file.size>10*1024*1024){avatarStatus.textContent="Image must be 10 MB or smaller.";avatarInput.value="";return;}
+        avatarInput.disabled=true;avatarStatus.textContent="Saving profile picture…";let objectUrl="";
+        try{
+          const image=new Image();objectUrl=URL.createObjectURL(file);
+          await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;image.src=objectUrl;});
+          const side=Math.min(image.naturalWidth,image.naturalHeight);if(!side)throw new Error("Invalid image.");
+          const canvas=document.createElement("canvas");canvas.width=256;canvas.height=256;
+          const context=canvas.getContext("2d");if(!context)throw new Error("Image processing is unavailable.");
+          context.drawImage(image,(image.naturalWidth-side)/2,(image.naturalHeight-side)/2,side,side,0,0,256,256);
+          const compressedImage=await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",0.8));
+          if(!compressedImage)throw new Error("Could not process the image.");
+          const filePath=user.id+"/avatar.jpg";
+          const {error:uploadError}=await supabaseClient.storage.from("profile-pictures").upload(filePath,compressedImage,{contentType:"image/jpeg",upsert:true,cacheControl:"0"});
+          if(uploadError)throw uploadError;
+          const {data:publicUrlData}=supabaseClient.storage.from("profile-pictures").getPublicUrl(filePath);
+          const publicUrl=publicUrlData.publicUrl+"?v="+Date.now();
+          const result=await supabaseClient.auth.updateUser({data:{avatar_url:publicUrl}});if(result.error)throw result.error;
+          avatarPreview.replaceChildren();const img=document.createElement("img");img.src=publicUrl;img.alt="Profile picture";avatarPreview.append(img);
+          avatarStatus.textContent="Profile picture saved to Storage.";
+        }catch(error){avatarStatus.textContent="Could not update the profile picture. Please try another image.";}
+        finally{if(objectUrl)URL.revokeObjectURL(objectUrl);avatarInput.disabled=false;avatarInput.value="";}
+      });
+
+      const fullName=field("Full Name","full_name","text",profile.full_name||metadataValue(user,"full_name")||metadataValue(user,"name"));
+      field("Phone Number","phone","tel",profile.phone);
+      field("Date of Birth","date_of_birth","date",profile.date_of_birth);
+      field("Bio","bio","textarea",profile.bio);
+      const status=document.createElement("p");status.className="profile-status";status.setAttribute("role","status");
+      const actions=document.createElement("div");actions.className="profile-actions";
+      const save=document.createElement("button");save.className="action-button primary";save.type="submit";save.textContent="Save Changes";
+      const cancel=document.createElement("button");cancel.className="action-button";cancel.type="button";cancel.textContent="Cancel";
+      cancel.addEventListener("click",()=>{renderPage("Profile");history.replaceState(null,"","#profile");});
+      actions.append(save,cancel);form.append(status,actions);
+      form.addEventListener("submit",async(event)=>{
+        event.preventDefault();save.disabled=true;save.textContent="Saving...";
+        const profileData = {
+          id: user.id,
+          full_name: fullName.value.trim(),
+          phone: form.elements.phone.value.trim() || null,
+          date_of_birth: form.elements.date_of_birth.value || null,
+          bio: form.elements.bio.value.trim() || null,
+          updated_at: new Date().toISOString()
+        };
+        const { error } = await supabaseClient.from("profiles").upsert(profileData, { onConflict: "id" });
+        if(error){status.style.color="#a12622";status.textContent="Could not save your profile to the user table. Please try again.";save.disabled=false;save.textContent="Save Changes";return;}
+        renderPage("Profile");history.replaceState(null,"","#profile");
+      });
+      page.append(heading,form);mainContent.replaceChildren(page);
+    }
+
+    // Keep menu actions synchronized with the real Supabase session.
+    // Only route to Profile after sign-in when the user is on an auth page.
+    // Do not override standalone Profile or Dashboard routes during session events.
+    supabaseClient.auth.onAuthStateChange((event, session) => {
+      updateAuthMenu(session);
+      const recoveryHash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+      const recoveryQuery = new URLSearchParams(window.location.search);
+      const currentRoute = window.location.hash.toLowerCase();
+      if (session && event === "SIGNED_IN" &&
+          (currentRoute === "#login" || currentRoute === "#create-account") &&
+          !recoveryQuery.has("code") &&
+          !(recoveryHash.get("type") === "recovery" && recoveryHash.has("access_token"))) {
+        renderPage("Profile");
+        history.replaceState(null, "", "#profile");
+        setCurrentMenuPage("Profile");
+      }
+    });
+
+    (async () => {
+      const route = () => {
+        const params = new URLSearchParams(window.location.search);
+        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+        if (params.has("code") || params.has("error") ||
+            (hashParams.get("type") === "recovery" && (hashParams.has("access_token") || hashParams.has("error")))) {
+          return "#forgot-password";
+        }
+        if (params.has("page") && params.get("page") && !window.location.hash) return "#stored-page";
+        return window.location.hash.toLowerCase() || "#home";
+      };
+      const openRoute = (session) => {
+        updateAuthMenu(session);
+        const currentRoute = route();
+        if (currentRoute === "#stored-page") {
+          renderStoredPage(new URLSearchParams(window.location.search).get("page"), session);
+          setCurrentMenuPage("Home");
+        } else if (currentRoute === "#home") {
+          renderHome();
+          setCurrentMenuPage("Home");
+        } else if (currentRoute === "#profile") {
+          if (session) {
+            renderPage("Profile");
+            setCurrentMenuPage("Profile");
+          } else {
+            renderPage("Login");
+            history.replaceState(null, "", "#login");
+            setCurrentMenuPage("Login");
+          }
+        } else if (currentRoute === "#edit-profile") {
+          if (session) {
+            renderPage("EditProfile");
+            setCurrentMenuPage("Profile");
+          } else {
+            renderPage("Login");
+            history.replaceState(null, "", "#login");
+            setCurrentMenuPage("Login");
+          }
+        } else if (currentRoute === "#forgot-password") {
+          renderPage("ForgotPassword");
+          setCurrentMenuPage("ForgotPassword");
+        } else if (currentRoute === "#login") {
+          if (session) {
+            renderPage("Profile");
+            history.replaceState(null, "", "#profile");
+            setCurrentMenuPage("Profile");
+          } else {
+            renderPage("Login");
+            setCurrentMenuPage("Login");
+          }
+        } else if (currentRoute === "#dashboard" || currentRoute.startsWith("#dashboard-")) {
+          if (session) {
+            renderPage("Dashboard");
+            setCurrentMenuPage("Dashboard");
+          } else {
+            renderPage("Login");
+            history.replaceState(null, "", "#login");
+            setCurrentMenuPage("Login");
+          }
+        } else if (currentRoute === "#create-account" && !session) {
+          renderPage("CreateAccount");
+          setCurrentMenuPage("CreateAccount");
+        } else {
+          renderPage("Login");
+          history.replaceState(null, "", "#login");
+          setCurrentMenuPage("Login");
+        }
+      };
+
+      try {
+        const { data, error } = await supabaseClient.auth.getSession();
+        if (error) throw error;
+        openRoute(data.session);
+      } catch (error) {
+        console.error("Could not initialize the page session:", error);
+        updateAuthMenu(null);
+        const currentRoute = route();
+        if (currentRoute === "#login") {
+          renderPage("Login");
+          setCurrentMenuPage("Login");
+        } else if (currentRoute === "#forgot-password" || new URLSearchParams(window.location.search).has("code")) {
+          renderPage("ForgotPassword");
+          setCurrentMenuPage("ForgotPassword");
+        } else if (currentRoute === "#create-account") {
+          renderPage("CreateAccount");
+          setCurrentMenuPage("CreateAccount");
+        } else {
+          // Preserve the requested route where possible if session lookup fails.
+          mainContent.replaceChildren();
+          setCurrentMenuPage("Home");
+        }
+      }
+    })();
+
+    const refreshCurrentRoute = async () => {
+      try {
+        const { data, error } = await supabaseClient.auth.getSession();
+        if (error) throw error;
+        const params = new URLSearchParams(window.location.search);
+        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+        const currentRoute = params.has("code") ||
+          (hashParams.get("type") === "recovery" && hashParams.has("access_token"))
+          ? "#forgot-password"
+          : (params.has("page") && params.get("page") && !window.location.hash
+            ? "#stored-page" : (window.location.hash.toLowerCase() || "#home"));
+        if (currentRoute === "#media-upload") {
+          // Backward compatibility: the uploader now lives on Home.
+          history.replaceState(null, "", "#home");
+          updateAuthMenu(data.session);
+          await renderHome();
+          setCurrentMenuPage("Home");
+        } else if (currentRoute === "#stored-page") {
+          updateAuthMenu(data.session);
+          await renderStoredPage(params.get("page"), data.session);
+          setCurrentMenuPage("Home");
+        } else if (currentRoute === "#home") {
+          updateAuthMenu(data.session);
+          renderHome();
+          setCurrentMenuPage("Home");
+        } else if (currentRoute === "#forgot-password") {
+          updateAuthMenu(data.session);
+          renderPage("ForgotPassword");
+          setCurrentMenuPage("ForgotPassword");
+        } else {
+          const session = data.session;
+          updateAuthMenu(session);
+          if (currentRoute === "#profile" && !session) {
+            renderPage("Login"); history.replaceState(null, "", "#login"); setCurrentMenuPage("Login");
+          } else if (currentRoute === "#dashboard" || currentRoute.startsWith("#dashboard-")) {
+            if (session) { renderPage("Dashboard"); setCurrentMenuPage("Dashboard"); }
+            else { renderPage("Login"); history.replaceState(null, "", "#login"); setCurrentMenuPage("Login"); }
+          } else if (currentRoute === "#create-account" && !session) {
+            renderPage("CreateAccount"); setCurrentMenuPage("CreateAccount");
+          } else if (currentRoute === "#login" && session) {
+            renderPage("Profile"); history.replaceState(null, "", "#profile"); setCurrentMenuPage("Profile");
+          } else if (currentRoute === "#edit-profile" && session) {
+            renderPage("EditProfile"); setCurrentMenuPage("Profile");
+          } else if (currentRoute === "#login") {
+            renderPage("Login"); setCurrentMenuPage("Login");
+          } else if (currentRoute === "#create-account") {
+            renderPage("Login"); history.replaceState(null, "", "#login"); setCurrentMenuPage("Login");
+          } else if (currentRoute === "#profile") {
+            renderPage("Profile"); setCurrentMenuPage("Profile");
+          } else {
+            mainContent.replaceChildren(); history.replaceState(null, "", "#home"); setCurrentMenuPage("Home");
+          }
+        }
+      } catch (error) {
+        console.error("Could not restore the current route:", error);
+      }
+    };
+    window.addEventListener("hashchange", refreshCurrentRoute);
+    window.addEventListener("popstate", refreshCurrentRoute);
+
+    menuLinks.forEach((link) => {
+      link.addEventListener("click", async () => {
+        const pageName = link.dataset.page;
+        try {
+          // Home is always directly reachable, regardless of authentication state.
+          if (pageName === "Home") {
+            renderHome();
+            history.replaceState(null, "", "#home");
+            setCurrentMenuPage("Home");
+          } else if (pageName === "Logout") {
+            link.disabled = true;
+            link.textContent = "Logging out...";
+            const { error } = await supabaseClient.auth.signOut();
+            if (error) throw error;
+            updateAuthMenu(null);
+            renderPage("Login");
+            history.replaceState(null, "", "#login");
+            setCurrentMenuPage("Login");
+          } else {
+            let session = null;
+            try {
+              const { data, error } = await supabaseClient.auth.getSession();
+              if (error) throw error;
+              session = data.session;
+            } catch (sessionError) {
+              console.error("Could not check the session during navigation:", sessionError);
+            }
+            updateAuthMenu(session);
+            const role = String((session && session.user && session.user.app_metadata && session.user.app_metadata.role) || "").toLowerCase();
+            if (pageName === "Dashboard" && (!session || role !== "admin")) {
+              renderPage(session ? "Profile" : "Login");
+              const safePage = session ? "Profile" : "Login";
+              history.replaceState(null, "", "#" + safePage.toLowerCase());
+              setCurrentMenuPage(safePage);
+            } else if (session && (pageName === "Login" || pageName === "CreateAccount")) {
+              renderPage("Profile");
+              history.replaceState(null, "", "#profile");
+              setCurrentMenuPage("Profile");
+            } else {
+              renderPage(pageName);
+              history.replaceState(null, "", pageName === "Home" ? "#home" : "#" + pageName.toLowerCase());
+              setCurrentMenuPage(pageName);
+            }
+          }
+        } catch (error) {
+          console.error("Menu navigation failed:", error);
+          updateAuthMenu(null);
+          renderPage("Login");
+          history.replaceState(null, "", "#login");
+          setCurrentMenuPage("Login");
+        } finally {
+          link.disabled = false;
+          floatingMenu.hidden = true;
+          menuButton.setAttribute("aria-expanded", "false");
+          menuButton.setAttribute("aria-label", "Open menu");
+          if (pageName === "Logout") link.textContent = "Login";
+        }
+      });
+    });
+  </script>
+
+  <script>
+    // Keep menu toggling and navigation functional even if the main app script fails.
+    (() => {
+      const menuButton = document.querySelector(".menu-button");
+      const floatingMenu = document.querySelector("#floating-menu");
+      if (!menuButton || !floatingMenu) return;
+
+      const closeMenu = () => {
+        floatingMenu.hidden = true;
+        menuButton.setAttribute("aria-expanded", "false");
+        menuButton.setAttribute("aria-label", "Open menu");
+      };
+
+      menuButton.addEventListener("click", () => {
+        const isOpening = floatingMenu.hidden;
+        floatingMenu.hidden = !isOpening;
+        menuButton.setAttribute("aria-expanded", String(isOpening));
+        menuButton.setAttribute("aria-label", isOpening ? "Close menu" : "Open menu");
+      });
+
+      document.addEventListener("click", (event) => {
+        if (!menuButton.contains(event.target) && !floatingMenu.contains(event.target)) closeMenu();
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") closeMenu();
+      });
+
+    })();
+  </script>
+</body>
+</html>
