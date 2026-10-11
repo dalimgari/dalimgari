@@ -960,7 +960,9 @@
                 const monthLengths=[31,31,31,31,31,31,30,30,30,30,isLeap?30:29,30];
                 let remaining=elapsed,banglaMonth=0;
                 while(banglaMonth<monthLengths.length-1&&remaining>=monthLengths[banglaMonth]){remaining-=monthLengths[banglaMonth];banglaMonth++;}
-                banglaDate.textContent=(remaining+1)+" "+monthNames[banglaMonth]+" "+banglaYear;
+                const weekdayNames=["Robibar","Shombar","Mongolbar","Budhbar","Brihospotibar","Shukrobar","Shonibar"];
+                const weekday=new Date(Date.UTC(year,month-1,day)).getUTCDay();
+                banglaDate.textContent=weekdayNames[weekday]+", "+monthNames[banglaMonth]+" "+(remaining+1)+", "+banglaYear;
               };
               updateClock();
               card.append(date,banglaDate,time);
