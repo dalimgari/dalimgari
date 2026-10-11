@@ -943,8 +943,9 @@
               time.style.cssText="margin:0;font-size:clamp(24px,4vw,36px);line-height:1.2;font-variant-numeric:tabular-nums";
               const updateClock=()=>{
                 const now=new Date();
-                date.textContent=new Intl.DateTimeFormat("en-US",{dateStyle:"full"}).format(now);
-                time.textContent=new Intl.DateTimeFormat("en-US",{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(now);
+                const bangladeshTimeZone="Asia/Dhaka";
+                date.textContent=new Intl.DateTimeFormat("en-US",{dateStyle:"full",timeZone:bangladeshTimeZone}).format(now);
+                time.textContent=new Intl.DateTimeFormat("en-US",{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false,timeZone:bangladeshTimeZone}).format(now);
               };
               updateClock();
               card.append(date,time);
