@@ -2134,13 +2134,15 @@
 
     function setCurrentMenuPage(pageName) {
       const currentPageLabel = document.querySelector("#current-page-label");
-      const displayName = pageName === "Profile" && window.location.hash.toLowerCase() === "#edit-profile"
-        ? "Edit Profile"
-        : pageName === "CreateAccount"
-          ? "Create Account"
-          : pageName === "ForgotPassword"
-            ? "Forgot Password"
-            : pageName;
+      const displayName = pageName === "Home"
+        ? (String(document.title || "Dalimgari").trim() || "Dalimgari")
+        : pageName === "Profile" && window.location.hash.toLowerCase() === "#edit-profile"
+          ? "Edit Profile"
+          : pageName === "CreateAccount"
+            ? "Create Account"
+            : pageName === "ForgotPassword"
+              ? "Forgot Password"
+              : pageName;
       if (currentPageLabel) currentPageLabel.textContent = displayName;
       const role = String((activeSession && activeSession.user && activeSession.user.app_metadata && activeSession.user.app_metadata.role) || "").toLowerCase();
       menuLinks.forEach((item) => {
