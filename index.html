@@ -3313,6 +3313,65 @@
           ]}
         ];
         const inputMap = new Map();
+        let availablePresets = {};
+        const presetCard = document.createElement("section");
+        presetCard.className = "dashboard-crud-card";
+        const presetHeading = document.createElement("h3");
+        presetHeading.textContent = "Theme Presets";
+        const presetDescription = document.createElement("p");
+        presetDescription.textContent = "Apply a saved set of appearance, layout, media, effects, and Hero settings.";
+        presetDescription.className = "dashboard-section-description";
+        const presetControls = document.createElement("div");
+        presetControls.className = "dashboard-crud-actions";
+        const presetSelect = document.createElement("select");
+        presetSelect.className = "dashboard-crud-input";
+        presetSelect.setAttribute("aria-label", "Select theme preset");
+        const presetApply = document.createElement("button");
+        presetApply.type = "button";
+        presetApply.className = "action-button primary";
+        presetApply.textContent = "Apply Preset";
+        const presetStatus = document.createElement("p");
+        presetStatus.className = "dashboard-crud-status";
+        presetStatus.setAttribute("role", "status");
+        presetControls.append(presetSelect, presetApply);
+        presetCard.append(presetHeading, presetDescription, presetControls, presetStatus);
+        form.append(presetCard);
+        async function loadPresets() {
+          const {data,error}=await supabaseClient.from("site_customizations").select("value").eq("key","ui_customization_presets").maybeSingle();
+          if(error)throw error;
+          let stored=data?.value||{};
+          if(typeof stored==="string"){try{stored=JSON.parse(stored)}catch(_){stored={}}}
+          availablePresets=stored&&typeof stored==="object"&&!Array.isArray(stored)?stored:{};
+          presetSelect.replaceChildren();
+          const names=Object.keys(availablePresets).sort((a,b)=>a.localeCompare(b));
+          if(!names.length){
+            const option=document.createElement("option");option.value="";option.textContent="No saved presets";presetSelect.append(option);
+            presetApply.disabled=true;
+          }else{
+            names.forEach(name=>{const option=document.createElement("option");option.value=name;option.textContent=name;presetSelect.append(option)});
+            presetApply.disabled=false;
+          }
+        }
+        presetApply.addEventListener("click",async()=>{
+          const name=presetSelect.value;
+          const preset=availablePresets[name];
+          if(!preset||!preset.settings){presetStatus.textContent="Preset data is missing or invalid.";presetStatus.style.color="#a12622";return}
+          presetApply.disabled=true;save.disabled=true;reload.disabled=true;presetStatus.textContent="Applying "+name+"…";presetStatus.style.color="";
+          try{
+            const user=await getCurrentUser();if(!user)throw new Error("Your admin session has expired. Please sign in again.");
+            for(const group of groupDefs){
+              const value=preset.settings[group.key];
+              if(!value||typeof value!=="object"||Array.isArray(value))continue;
+              const row={key:group.key,value,description:group.title,updated_by:user.id,updated_at:new Date().toISOString()};
+              const {error}=await supabaseClient.from("site_customizations").upsert(row,{onConflict:"key"});
+              if(error)throw error;
+            }
+            await applyDalimgariSiteConfig(true);
+            await loadConfig();
+            presetStatus.textContent='Applied "'+name+'" preset to the website.';presetStatus.style.color="#176b43";
+          }catch(error){presetStatus.textContent="Could not apply preset: "+(error.message||"Unknown error");presetStatus.style.color="#a12622"}
+          finally{presetApply.disabled=false;save.disabled=false;reload.disabled=false}
+        });
         function makeField(field, group) {
           const wrap = document.createElement("div");
           wrap.className = "dashboard-crud-field" + (field.type === "textarea" ? " full" : "");
@@ -3382,6 +3441,7 @@
               else input.value=value==null?"":String(value);
             }
           }
+          await loadPresets();
           status.textContent="Saved configuration loaded.";status.style.color="#176b43";
         }
         function collectGroup(group) {
