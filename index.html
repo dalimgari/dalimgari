@@ -1302,6 +1302,18 @@
       if(albumSection){
         const {data:albums,error}=await supabaseClient.from("albums").select("id,title,description,url,cover_path,media,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(24);
         if(!error&&albums?.length){
+          try{
+            const {data:orderSetting}=await supabaseClient.from("site_customizations").select("value").eq("key","home_album_order").maybeSingle();
+            let albumIds=orderSetting?.value;
+            if(typeof albumIds==="string"){try{albumIds=JSON.parse(albumIds);}catch(_){albumIds=[];}}
+            if(albumIds&&!Array.isArray(albumIds)&&Array.isArray(albumIds.ids))albumIds=albumIds.ids;
+            if(Array.isArray(albumIds)){
+              const byId=new Map(albums.map(album=>[String(album.id),album]));
+              const orderedAlbums=albumIds.map(id=>byId.get(String(id))).filter(Boolean);
+              albums.forEach(album=>{if(!orderedAlbums.some(item=>String(item.id)===String(album.id)))orderedAlbums.push(album);});
+              albums.splice(0,albums.length,...orderedAlbums);
+            }
+          }catch(orderError){console.warn("Could not load homepage album order:",orderError);}
           const grid=makeGrid();
           grid.classList.add("home-album-carousel");
           grid.style.cssText="display:flex;flex-wrap:nowrap;gap:16px;width:100%;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;scroll-behavior:auto;overscroll-behavior-x:contain;padding:2px 1px 12px";
@@ -3296,6 +3308,7 @@
         });
         table.append(tbody);list.append(table);
         if(section.id==="page") await renderPageOrderManager();
+        if(section.id==="album") await renderAlbumOrderManager();
       }
       async function renderPageOrderManager(){
         if(section.id!=="page" || !isCurrent()) return;
@@ -3337,6 +3350,50 @@
             const payload={key:"home_page_order",value:ordered.map(r=>String(r.id)),description:"Order of Public pages shown in the homepage Page Title section",updated_at:new Date().toISOString()};
             const {error}=await supabaseClient.from("site_customizations").upsert(payload,{onConflict:"key"});if(error)throw error;
             status.textContent="Homepage page order saved.";status.style.color="#176b43";
+          }catch(error){status.textContent="Could not save order: "+(error.message||"Please try again.");status.style.color="#a12622";}
+          finally{saveOrder.disabled=false;}
+        });
+      }
+      async function renderAlbumOrderManager(){
+        if(section.id!=="album" || !isCurrent()) return;
+        const panel=document.createElement("section");panel.className="dashboard-crud-card";panel.style.marginTop="16px";
+        const heading=document.createElement("h3");heading.textContent="Homepage Album Order";
+        const hint=document.createElement("p");hint.className="dashboard-crud-hint";hint.textContent="Use the arrows to choose which Public album card appears first on Home. This changes the order only; it does not duplicate or edit albums.";
+        const status=document.createElement("p");status.className="dashboard-crud-status";status.setAttribute("role","status");
+        const orderList=document.createElement("div");orderList.style.cssText="display:grid;gap:8px";
+        const actions=document.createElement("div");actions.className="dashboard-crud-actions";
+        const saveOrder=document.createElement("button");saveOrder.type="button";saveOrder.className="action-button primary";saveOrder.textContent="Save Order";
+        panel.append(heading,hint,orderList,actions,status);actions.append(saveOrder);list.append(panel);
+        const {data:setting,error:settingError}=await supabaseClient.from("site_customizations").select("value").eq("key","home_album_order").maybeSingle();
+        if(!isCurrent())return;
+        let ids=setting?.value;if(typeof ids==="string"){try{ids=JSON.parse(ids);}catch(_){ids=[];}}
+        if(ids&&!Array.isArray(ids)&&Array.isArray(ids.ids))ids=ids.ids;if(!Array.isArray(ids))ids=[];
+        const publicRecords=records.filter(r=>r.visibility==="public").sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
+        const byId=new Map(publicRecords.map(r=>[String(r.id),r]));
+        const ordered=[...ids.map(id=>byId.get(String(id))).filter(Boolean)];
+        publicRecords.forEach(r=>{if(!ordered.some(x=>String(x.id)===String(r.id)))ordered.push(r);});
+        function drawOrder(){
+          orderList.replaceChildren();
+          if(!ordered.length){const empty=document.createElement("p");empty.className="dashboard-crud-empty";empty.textContent="No Public albums to reorder.";orderList.append(empty);saveOrder.disabled=true;return;}
+          saveOrder.disabled=false;
+          ordered.forEach((record,index)=>{
+            const row=document.createElement("div");row.style.cssText="display:flex;align-items:center;gap:10px;min-width:0;padding:10px;border:1px solid #e5e7eb;border-radius:9px;background:#fff";
+            const label=document.createElement("span");label.textContent=(index+1)+". "+(record.title||record.url||"Album");label.style.cssText="flex:1;min-width:0;overflow-wrap:anywhere;font-size:14px";
+            const up=document.createElement("button");up.type="button";up.className="action-button";up.textContent="↑";up.setAttribute("aria-label","Move "+(record.title||"album")+" up");up.disabled=index===0;
+            const down=document.createElement("button");down.type="button";down.className="action-button";down.textContent="↓";down.setAttribute("aria-label","Move "+(record.title||"album")+" down");down.disabled=index===ordered.length-1;
+            up.addEventListener("click",()=>{[ordered[index-1],ordered[index]]=[ordered[index],ordered[index-1]];drawOrder();});
+            down.addEventListener("click",()=>{[ordered[index+1],ordered[index]]=[ordered[index],ordered[index+1]];drawOrder();});
+            row.append(label,up,down);orderList.append(row);
+          });
+        }
+        if(settingError){status.textContent="Could not load saved order. You can still set and save a new order.";status.style.color="#a12622";}
+        drawOrder();
+        saveOrder.addEventListener("click",async()=>{
+          saveOrder.disabled=true;status.textContent="Saving order…";status.style.color="";
+          try{
+            const payload={key:"home_album_order",value:ordered.map(r=>String(r.id)),description:"Order of Public album cards shown on the homepage",updated_at:new Date().toISOString()};
+            const {error}=await supabaseClient.from("site_customizations").upsert(payload,{onConflict:"key"});if(error)throw error;
+            status.textContent="Homepage album order saved.";status.style.color="#176b43";
           }catch(error){status.textContent="Could not save order: "+(error.message||"Please try again.");status.style.color="#a12622";}
           finally{saveOrder.disabled=false;}
         });
