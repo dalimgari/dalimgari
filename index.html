@@ -939,7 +939,8 @@
       nav.addEventListener("click",event=>{
         const button=event.target.closest(".gallery-pill");
         if(!button)return;
-        showView(button.dataset.kind,button.dataset.value||"all",true);
+        const kind=button.dataset.kind==="view"?button.dataset.value:button.dataset.kind;
+        showView(kind,button.dataset.value||"all",true);
       });
       const selectedAlbum=albums.find(album=>album.id===selectedAlbumId);
       if(selectedAlbum)showView("album",selectedAlbum.id,false);
