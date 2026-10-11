@@ -2806,7 +2806,7 @@
             Array.from(input.files||[]).forEach((file,index)=>{
               const row=document.createElement("label");row.style.cssText="display:grid;gap:4px;padding:8px;border:1px solid #e5e7eb;border-radius:8px";
               const filename=document.createElement("span");filename.textContent=file.name;
-              const titleInput=document.createElement("input");titleInput.className="dashboard-crud-input";titleInput.required=true;titleInput.placeholder="Required title for this file";titleInput.value=file.name.replace(/\.[^.]+$/,"");titleInput.setAttribute("aria-label","Title for "+file.name);
+              const titleInput=document.createElement("input");titleInput.className="dashboard-crud-input";titleInput.required=true;titleInput.placeholder="Required title for this file";titleInput.value='';titleInput.setAttribute("aria-label","Title for "+file.name);
               controls.mediaTitleInputs[index]=titleInput;row.append(filename,titleInput);titleList.append(row);
             });
           });
@@ -2864,7 +2864,7 @@
         if(!permissionsError)for(const permission of permissions||[]){const option=document.createElement("option");option.value=permission.id;option.textContent=permission.name;controls.permissions.append(option);}
       }
       function resetForm(){
-        selectedId=null;selectedRecordData=null;controls.mediaSelectedAssets=[];form.reset();if(controls.mediaTitleList)controls.mediaTitleList.replaceChildren();if(controls.mediaPickerList)controls.mediaPickerList.replaceChildren();
+        selectedId=null;selectedRecordData=null;controls.mediaSelectedAssets=[];form.reset();if(controls.mediaTitleList)controls.mediaTitleList.replaceChildren();if(controls.mediaPickerList)controls.mediaPickerList.replaceChildren();if(controls.mediaExistingList)controls.mediaExistingList.replaceChildren();
         if(config.table==="post"&&controls.visibility)controls.visibility.value=(dalimgariRuntimeConfig.ui_settings_content_defaults||{}).default_visibility||"public";
         if(config.table==="pages"&&controls.visibility)controls.visibility.value=(dalimgariRuntimeConfig.ui_settings_content_defaults||{}).default_page_visibility||"public";
         if(config.table==="albums"&&controls.visibility)controls.visibility.value=(dalimgariRuntimeConfig.ui_settings_privacy_visibility||{}).default_album_visibility||"public";
