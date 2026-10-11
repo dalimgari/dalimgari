@@ -966,7 +966,7 @@
                 banglaDate.textContent=weekdayNames[weekday]+", "+monthNames[banglaMonth]+" "+(remaining+1)+", "+banglaYear;
               };
               updateClock();
-              card.append(time,date,banglaDate);
+              card.append(time,banglaDate,date);
               const clockTimer=setInterval(()=>{if(!card.isConnected){clearInterval(clockTimer);return;}updateClock();},1000);
             }else if(item.widget_type==="map"){
               const map=document.createElement("iframe");
