@@ -725,7 +725,7 @@
         for(const [key,selector] of Object.entries(sectionMap)){
           const el=home.querySelector(selector);if(!el)continue;
           const field="show_"+key;
-          if(Object.prototype.hasOwnProperty.call(layout,field))el.hidden=!layout[field];
+          if(key!=="page_title"&&Object.prototype.hasOwnProperty.call(layout,field))el.hidden=!layout[field];
           if(features.enable_homepage_media===false&&(key==="widget"||key==="album"))el.hidden=true;
         }
         if(Array.isArray(layout.section_order)){
@@ -738,7 +738,7 @@
           for(const [key,selector] of Object.entries(sectionMap)){
             const el=home.querySelector(selector);if(!el)continue;
             const field="show_"+key;
-            const disabledByLayout=Object.prototype.hasOwnProperty.call(layout,field)&&layout[field]===false;
+            const disabledByLayout=key!=="page_title"&&Object.prototype.hasOwnProperty.call(layout,field)&&layout[field]===false;
             const disabledByFeature=features.enable_homepage_media===false&&(key==="widget"||key==="album");
             const empty=!el.textContent.trim()&&!el.querySelector("img,video,iframe,canvas,button,a");
             el.hidden=disabledByLayout||disabledByFeature||(!homepageDefaults.show_empty_sections&&empty);
@@ -830,7 +830,7 @@
       const pageTitleSection = extraSections[0];
       const pillBar = document.createElement("nav");
       pillBar.setAttribute("aria-label", "Pages");
-      pillBar.style.cssText = "display:flex;flex-wrap:nowrap;align-items:center;gap:10px;width:100%;overflow-x:auto;overflow-y:hidden;padding:4px 2px 10px;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:#c7c7c7 #f5f5f5";
+      pillBar.style.cssText = "position:sticky;top:var(--dg-page-pill-sticky-top,104px);z-index:9;display:flex;flex-wrap:nowrap;align-items:center;gap:10px;width:100%;overflow-x:auto;overflow-y:hidden;padding:8px 2px 10px;background:#fff;border-radius:12px;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:#c7c7c7 #f5f5f5";
       const [{data: publicPages, error: pagesError}, {data: pageOrderSetting}, {data: pillMotionSetting}] = await Promise.all([
         supabaseClient.from("pages").select("id,title,url,visibility,created_at").eq("visibility","public").order("created_at",{ascending:true}).limit(200),
         supabaseClient.from("site_customizations").select("value").eq("key","home_page_order").maybeSingle(),
