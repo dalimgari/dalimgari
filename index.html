@@ -484,7 +484,8 @@
     .dashboard-crud-input { width:100%; min-height:42px; padding:10px 12px; border:1px solid #d1d5db; border-radius:8px; background:#fff; color:#222; font:inherit; font-size:14px; }
     .dashboard-crud-input:focus { outline:2px solid #dbeafe; border-color:#64748b; }
     .dashboard-crud-actions { display:flex; flex-wrap:wrap; gap:9px; margin-top:16px; }
-    .dashboard-crud-status { min-height:20px; margin:12px 0 0; font-size:13px; line-height:1.5; overflow-wrap:anywhere; }
+    .dashboard-crud-status { min-height:20px; margin:8px 0 0; font-size:13px; line-height:1.5; overflow-wrap:anywhere; }
+    .dashboard-crud-status:empty,.profile-status:empty,.profile-picture-status:empty { display:none; }
     .dashboard-crud-list { width:100%; overflow-x:auto; }
     .dashboard-crud-table { width:100%; border-collapse:collapse; font-size:13px; }
     .dashboard-crud-table th,.dashboard-crud-table td { padding:11px 10px; border-bottom:1px solid #eee; text-align:left; vertical-align:top; }
@@ -2085,7 +2086,7 @@
       const list=document.createElement("div");list.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:12px;margin-top:16px";
       card.append(heading,hint,search,status,list);wrap.append(card);content.append(wrap);
       let assets=[];
-      const say=(msg,bad=false)=>{status.textContent=msg;status.style.color=bad?"#a12622":"#176b43";};
+      const say=(msg,bad=false,target=status)=>{target.textContent=msg;target.style.color=bad?"#a12622":"#176b43";};
       async function load(){
         list.replaceChildren();say("Loading media…");
         const {data,error}=await supabaseClient.from("media_assets").select("*").order("created_at",{ascending:false}).limit(500);
@@ -2115,10 +2116,11 @@
           const linkInfo=document.createElement("p");linkInfo.className="dashboard-crud-hint";linkInfo.textContent="Media ID: "+asset.id;
           const attachmentArea=document.createElement("div");attachmentArea.style.cssText="display:grid;gap:8px;margin:8px 0";
           const actions=document.createElement("div");actions.className="dashboard-crud-actions";
+          const tileStatus=document.createElement("p");tileStatus.className="dashboard-crud-status";tileStatus.setAttribute("role","status");tileStatus.setAttribute("aria-live","polite");
           const save=document.createElement("button");save.type="button";save.className="action-button primary";save.textContent="Save Metadata";
           const del=document.createElement("button");del.type="button";del.className="action-button";del.textContent="Delete File";
           save.addEventListener("click",async()=>{
-            const cleanTitle=title.value.trim();if(!cleanTitle){say("Every media file must have a title.",true);title.focus();return;}
+            const cleanTitle=title.value.trim();if(!cleanTitle){say("Every media file must have a title.",true,tileStatus);title.focus();return;}
             save.disabled=true;
             try{
               const payload={title:cleanTitle,description:description.value.trim()||null,tags:tags.value.split(",").map(x=>x.trim()).filter(Boolean),alt_text:alt.value.trim()||null,updated_at:new Date().toISOString()};
@@ -2134,12 +2136,12 @@
                 const {error:updateSourceError}=await supabaseClient.from(link.source_table).update({media:updated,updated_at:new Date().toISOString()}).eq("id",link.source_id);
                 if(updateSourceError)throw updateSourceError;
               }
-              Object.assign(asset,payload);say("Media metadata saved.");
-            }catch(e){say("Save failed: "+(e.message||"Unknown error"),true);}
+              Object.assign(asset,payload);say("Media metadata saved.",false,tileStatus);
+            }catch(e){say("Save failed: "+(e.message||"Unknown error"),true,tileStatus);}
             finally{save.disabled=false;}
           });
           del.addEventListener("click",async()=>{
-            del.disabled=true;attachmentArea.replaceChildren();
+            del.disabled=true;attachmentArea.replaceChildren();tileStatus.textContent="";
             try{
               const {data:links,error:linkError}=await supabaseClient.from("media_links").select("id,source_table,source_id").eq("media_id",asset.id);
               if(linkError)throw linkError;
@@ -2168,11 +2170,11 @@
                       }
                       const {error:unlinkError}=await supabaseClient.from("media_links").delete().eq("id",link.id);
                       if(unlinkError)throw unlinkError;
-                      row.remove();say("Detached from "+labels[link.source_table]+": "+recordTitle+".");
+                      row.remove();say("Detached from "+labels[link.source_table]+": "+recordTitle+".",false,tileStatus);
                       if(!attachmentArea.querySelector("button")){
-                        attachmentArea.replaceChildren();say("All attachments removed. Click Delete File again to permanently delete this file.");
+                        attachmentArea.replaceChildren();say("All attachments removed. Click Delete File again to permanently delete this file.",false,tileStatus);
                       }
-                    }catch(e){say("Detach failed: "+(e.message||"Unknown error"),true);detach.disabled=false;}
+                    }catch(e){say("Detach failed: "+(e.message||"Unknown error"),true,tileStatus);detach.disabled=false;}
                   });
                   row.append(info,detach);attachmentArea.append(row);
                 }
@@ -2181,11 +2183,11 @@
               if(!confirm("Permanently delete this media file? This cannot be undone."))return;
               const {error:storageError}=await supabaseClient.storage.from(asset.storage_bucket||"content-files").remove([asset.storage_path]);if(storageError)throw storageError;
               const {error}=await supabaseClient.from("media_assets").delete().eq("id",asset.id);if(error)throw error;
-              assets=assets.filter(x=>x.id!==asset.id);draw();say("Media file permanently deleted.");
-            }catch(e){say("Delete failed: "+(e.message||"Unknown error"),true);}
+              assets=assets.filter(x=>x.id!==asset.id);say("Media file permanently deleted.");draw();
+            }catch(e){say("Delete failed: "+(e.message||"Unknown error"),true,tileStatus);}
             finally{del.disabled=false;}
           });
-          actions.append(save,del);tile.append(preview,title,description,tags,alt,filename,linkInfo,attachmentArea,actions);list.append(tile);
+          actions.append(save,del);tile.append(preview,title,description,tags,alt,filename,linkInfo,attachmentArea,actions,tileStatus);list.append(tile);
         }
       }
       search.addEventListener("input",draw);
@@ -2237,10 +2239,10 @@
         if (!isSuperAdminCaller) { adminCheck.disabled = true; adminText.textContent = "Only Super Admin can create administrators"; }
         const create = document.createElement("button");
         create.type = "submit"; create.className = "action-button primary"; create.textContent = "Create account";
-        form.append(email, password, adminLabel, create);
+        form.append(email, password, adminLabel, create, status);
         const list = document.createElement("div");
         list.className = "dashboard-crud-list";
-        card.append(title, hint, status, form, list); wrap.append(card); content.append(wrap);
+        card.append(title, hint, form, list); wrap.append(card); content.append(wrap);
 
         function setUserStatus(message, isError = false) {
           status.textContent = message;
@@ -2730,7 +2732,7 @@
         const status = document.createElement("p"); status.className = "dashboard-crud-status"; status.setAttribute("role","status");
         const list = document.createElement("div"); list.className = "dashboard-crud-list";
         card.append(h,note,status,list); wrap.append(card); content.append(wrap);
-        function recycleStatus(message,isError=false){status.textContent=message;status.style.color=isError?"#a12622":"#176b43";}
+        function recycleStatus(message,isError=false,target=status){target.textContent=message;target.style.color=isError?"#a12622":"#176b43";}
         async function loadTrash(){
           list.replaceChildren();
           const loading=document.createElement("p");loading.className="dashboard-crud-empty";loading.textContent="Loading deleted items…";list.append(loading);
@@ -2748,6 +2750,7 @@
             const name=item.record_data?.caption||item.record_data?.title||item.record_data?.name||item.record_data?.key||item.record_data?.full_name||item.original_id;
             [String(name),String(item.original_table),new Date(item.deleted_at).toLocaleString(),new Date(item.purge_after).toLocaleString()].forEach(value=>{const td=document.createElement("td");td.textContent=value;row.append(td);});
             const actionCell=document.createElement("td");
+            const rowStatus=document.createElement("p");rowStatus.className="dashboard-crud-status";rowStatus.setAttribute("role","status");rowStatus.setAttribute("aria-live","polite");
             const restore=document.createElement("button");restore.type="button";restore.className="action-button primary";restore.textContent="Restore";
             const purge=document.createElement("button");purge.type="button";purge.className="action-button";purge.textContent="Delete permanently";purge.style.marginLeft="6px";
             restore.addEventListener("click",async()=>{
@@ -2775,8 +2778,8 @@
                 if(item.original_table==="permissions") await restoreLinks("role_permissions",related.role_permissions);
                 const {error:trashError}=await supabaseClient.from("recycle_bin").delete().eq("id",item.id);
                 if(trashError)throw trashError;
-                recycleStatus("Item restored successfully.");await loadTrash();
-              }catch(error){recycleStatus(error.message||"Could not restore item.",true);restore.disabled=false;purge.disabled=false;}
+                recycleStatus("Item restored successfully.",false,rowStatus);await loadTrash();
+              }catch(error){recycleStatus(error.message||"Could not restore item.",true,rowStatus);restore.disabled=false;purge.disabled=false;}
             });
             purge.addEventListener("click",async()=>{
               if(!confirm("Permanently delete this item and its stored file, if any? This cannot be undone."))return;
@@ -2785,10 +2788,10 @@
                 await removeRecycleStorageFiles(item);
                 const {error}=await supabaseClient.from("recycle_bin").delete().eq("id",item.id);
                 if(error)throw error;
-                recycleStatus("Item permanently deleted.");await loadTrash();
-              }catch(error){recycleStatus(error.message||"Could not permanently delete item.",true);restore.disabled=false;purge.disabled=false;}
+                recycleStatus("Item permanently deleted.",false,rowStatus);await loadTrash();
+              }catch(error){recycleStatus(error.message||"Could not permanently delete item.",true,rowStatus);restore.disabled=false;purge.disabled=false;}
             });
-            actionCell.append(restore,purge);row.append(actionCell);tbody.append(row);
+            actionCell.append(restore,purge,rowStatus);row.append(actionCell);tbody.append(row);
           }
           table.append(tbody);list.append(table);
         }
@@ -2811,7 +2814,7 @@
         const autoStatus=document.createElement("p");autoStatus.className="dashboard-crud-status";autoStatus.setAttribute("role","status");
         const autoSave=document.createElement("button");autoSave.type="submit";autoSave.className="action-button primary";autoSave.textContent="Save Auto-scroll Settings";
         const autoReload=document.createElement("button");autoReload.type="button";autoReload.className="action-button";autoReload.textContent="Reload Saved Values";
-        autoForm.append(enabledLabel,intervalLabel,autoStatus,autoSave,autoReload);autoCard.append(autoTitle,autoHint,autoForm);content.append(autoCard);
+        autoForm.append(enabledLabel,intervalLabel,autoSave,autoReload,autoStatus);autoCard.append(autoTitle,autoHint,autoForm);content.append(autoCard);
         async function loadAutoSettings(){
           autoReload.disabled=true;autoStatus.textContent="Loading saved settings…";
           try{
@@ -3205,7 +3208,7 @@
         const hint=document.createElement("p");hint.className="dashboard-crud-hint";hint.textContent="Each user can have one role. The role's permissions control access to dashboard sections and database operations.";
         const statusLine=document.createElement("p");statusLine.className="dashboard-crud-status";statusLine.setAttribute("role","status");
         const list=document.createElement("div");list.style.cssText="display:grid;gap:12px";
-        panel.append(heading,hint,list,statusLine);content.append(panel);
+        panel.append(heading,hint,statusLine,list);content.append(panel);
         const [profilesResult,rolesResult,assignmentsResult]=await Promise.all([
           supabaseClient.from("profiles").select("id,full_name").order("full_name").limit(500),
           supabaseClient.from("roles").select("id,name").order("name").limit(200),
@@ -3225,16 +3228,17 @@
           for(const roleRow of roles){const option=document.createElement("option");option.value=roleRow.id;option.textContent=roleRow.name;select.append(option);}
           select.value=assignments.get(profile.id)||"";
           const saveAssignment=document.createElement("button");saveAssignment.type="button";saveAssignment.className="action-button primary";saveAssignment.textContent="Save role";
+          const assignmentStatus=document.createElement("p");assignmentStatus.className="dashboard-crud-status";assignmentStatus.setAttribute("role","status");assignmentStatus.setAttribute("aria-live","polite");
           saveAssignment.addEventListener("click",async()=>{
-            saveAssignment.disabled=true;statusLine.textContent="Saving role assignment…";statusLine.style.color="";
+            saveAssignment.disabled=true;assignmentStatus.textContent="Saving role assignment…";assignmentStatus.style.color="";
             try{
               if(select.value){const {error}=await supabaseClient.from("user_roles").upsert({user_id:profile.id,role_id:select.value},{onConflict:"user_id"});if(error)throw error;}
               else{const {error}=await supabaseClient.from("user_roles").delete().eq("user_id",profile.id);if(error)throw error;}
-              statusLine.textContent="Role assignment saved. The user may need to refresh or sign in again.";statusLine.style.color="#176b43";
-            }catch(error){statusLine.textContent="Could not save role assignment: "+(error.message||"Please try again.");statusLine.style.color="#a12622";}
+              assignmentStatus.textContent="Role assignment saved. The user may need to refresh or sign in again.";assignmentStatus.style.color="#176b43";
+            }catch(error){assignmentStatus.textContent="Could not save role assignment: "+(error.message||"Please try again.");assignmentStatus.style.color="#a12622";}
             finally{saveAssignment.disabled=false;}
           });
-          row.append(name,select,saveAssignment);list.append(row);
+          row.append(name,select,saveAssignment,assignmentStatus);list.append(row);
         }
         if(!roles.length)statusLine.textContent="Create a role and assign permissions above before assigning users.";
       }
@@ -3302,7 +3306,7 @@
       const save=document.createElement("button");save.className="action-button primary";save.type="submit";save.textContent="Save Changes";
       const cancel=document.createElement("button");cancel.className="action-button";cancel.type="button";cancel.textContent="Cancel";
       cancel.addEventListener("click",()=>{renderPage("Profile");history.replaceState(null,"","#profile");});
-      actions.append(save,cancel);form.append(status,actions);
+      actions.append(save,cancel);form.append(actions,status);
       form.addEventListener("submit",async(event)=>{
         event.preventDefault();save.disabled=true;save.textContent="Saving...";
         const profileData = {
