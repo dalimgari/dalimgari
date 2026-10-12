@@ -710,6 +710,7 @@
 
       // Start loading the hero record and image before unrelated homepage sections.
       // The hero image is the measured LCP element on production.
+      let heroImagePreloader = null;
       const heroContentPromise = (async () => {
         const { data: heroRecord } = await supabaseClient.from("hero_items")
           .select("title,description,media,visibility").eq("visibility","public").order("created_at",{ascending:false}).limit(1).maybeSingle();
@@ -734,10 +735,10 @@
         // Warm the image request as soon as its signed URL is available, without
         // changing its source, access policy, or displayed dimensions.
         if (heroImageUrl) {
-          const preloadImage = new Image();
-          preloadImage.fetchPriority = "high";
-          preloadImage.decoding = "async";
-          preloadImage.src = heroImageUrl;
+          heroImagePreloader = new Image();
+          heroImagePreloader.fetchPriority = "high";
+          heroImagePreloader.decoding = "async";
+          heroImagePreloader.src = heroImageUrl;
         }
         return { headline, welcomeMessage, heroImageUrl };
       })();
@@ -854,7 +855,10 @@
       // The uploader is a normal homepage section, not a separate page or route.
 
       const { headline, welcomeMessage, heroImageUrl } = await heroContentPromise;
-      if (!headline && !welcomeMessage && !heroImageUrl && !String((siteConfig.ui_customization_identity||{}).tagline||"").trim()) return;
+      if (!headline && !welcomeMessage && !heroImageUrl && !String((siteConfig.ui_customization_identity||{}).tagline||"").trim()) {
+        await homepageCardsPromise;
+        return;
+      }
 
       // Keep the image as the floating hero surface and layer its text over the center.
       const imageFrame = document.createElement("div");
