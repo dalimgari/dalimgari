@@ -827,20 +827,24 @@
         else if (pillMotion.addListener) pillMotion.addListener(startPillAutoScroll);
         startPillAutoScroll();
       }
-      // Start the hero query while independent homepage cards are loading.
-      const heroRecordPromise = supabaseClient.from("hero_items")
-        .select("title,description,media,visibility").eq("visibility","public").order("created_at",{ascending:false}).limit(1).maybeSingle();
+      // Fetch the hero record and its signed image URL while independent homepage cards load.
+      const heroRecordPromise = (async () => {
+        const { data: heroRecord } = await supabaseClient.from("hero_items")
+          .select("title,description,media,visibility").eq("visibility","public").order("created_at",{ascending:false}).limit(1).maybeSingle();
+        let heroImageUrl = "";
+        const heroMedia = Array.isArray(heroRecord?.media) ? heroRecord.media : [];
+        const firstImage = heroMedia.find(item => String(item.mime_type || "").startsWith("image/"));
+        if (firstImage?.path) heroImageUrl = await createContentMediaUrl(firstImage.path);
+        return { heroRecord, heroImageUrl };
+      })();
       await renderHomepageContentCards(siteConfig);
 
       // The uploader is a normal homepage section, not a separate page or route.
 
-      const { data: heroRecord } = await heroRecordPromise;
+      const { heroRecord, heroImageUrl: resolvedHeroImageUrl } = await heroRecordPromise;
       let headline = String(heroRecord?.title || "").trim();
       let welcomeMessage = String(heroRecord?.description || "").trim();
-      let heroImageUrl = "";
-      const heroMedia = Array.isArray(heroRecord?.media) ? heroRecord.media : [];
-      const firstImage = heroMedia.find(item => String(item.mime_type || "").startsWith("image/"));
-      if (firstImage?.path) heroImageUrl = await createContentMediaUrl(firstImage.path);
+      let heroImageUrl = resolvedHeroImageUrl;
       if (!heroRecord) {
         const { data, error } = await supabaseClient.from("site_customizations").select("value").eq("key", "home_hero").maybeSingle();
         if (!error && data && data.value) {
