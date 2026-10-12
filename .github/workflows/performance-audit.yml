@@ -1,0 +1,80 @@
+name: Production performance audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-performance-audit
+  cancel-in-progress: false
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Create report directory
+        run: mkdir -p artifacts/lighthouse
+
+      - name: Run three mobile Lighthouse measurements
+        shell: bash
+        run: |
+          set -euo pipefail
+          for run in 1 2 3; do
+            npx --yes lighthouse@12.8.2 https://dalimgari.github.io/dalimgari/ \
+              --preset=perf \
+              --form-factor=mobile \
+              --screenEmulation.mobile=true \
+              --throttling-method=simulate \
+              --chrome-flags="--headless --no-sandbox" \
+              --output=json --output=html \
+              --output-path="artifacts/lighthouse/run-${run}" \
+              --quiet
+            sleep 5
+          done
+
+      - name: Summarize key metrics
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const dir = 'artifacts/lighthouse';
+          const runs = [1, 2, 3].map(n => {
+            const file = path.join(dir, `run-${n}.report.json`);
+            const report = JSON.parse(fs.readFileSync(file, 'utf8'));
+            const audits = report.audits;
+            return {
+              run: n,
+              performanceScore: Math.round(report.categories.performance.score * 100),
+              FCP_ms: audits['first-contentful-paint'].numericValue,
+              LCP_ms: audits['largest-contentful-paint'].numericValue,
+              TBT_ms: audits['total-blocking-time'].numericValue,
+              CLS: audits['cumulative-layout-shift'].numericValue,
+              speedIndex_ms: audits['speed-index'].numericValue
+            };
+          });
+          console.log(JSON.stringify(runs, null, 2));
+          fs.writeFileSync(path.join(dir, 'summary.json'), JSON.stringify(runs, null, 2) + '\n');
+          NODE
+
+      - name: Upload Lighthouse reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dalimgari-lighthouse-mobile-${{ github.run_number }}
+          path: artifacts/lighthouse/
+          if-no-files-found: warn
+          retention-days: 14
