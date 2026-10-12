@@ -231,7 +231,8 @@
       flex: 1 0 auto;
       min-height: 0;
       width: 100%;
-      background-color: #ffffff;
+      /* Keep the page canvas continuous with the area beneath the floating header. */
+      background-color: var(--dg-bg, #ffffff);
     }
 
     .login-form {
