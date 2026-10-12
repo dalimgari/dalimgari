@@ -225,29 +225,55 @@
     }
 
     async function createContentMediaUrl(path) {
-      if (!path) return "";
+      if (typeof path !== "string" || !path.trim()) return "";
       const { data, error } = await supabaseClient.storage.from("content-files").createSignedUrl(path, 3600);
       if (error) { console.warn("Could not create a content media URL:", error.message); return ""; }
       return data?.signedUrl || "";
+    }
+
+    // Generate signed URLs in one Storage request where possible. The bucket stays private;
+    // signed URLs remain short-lived and are never persisted in local/session storage.
+    async function createContentMediaUrls(paths) {
+      const uniquePaths = [...new Set(paths.filter(path => typeof path === "string" && path.trim()))];
+      if (!uniquePaths.length) return new Map();
+      const { data, error } = await supabaseClient.storage.from("content-files").createSignedUrls(uniquePaths, 3600);
+      if (!error && Array.isArray(data)) {
+        const urls = new Map();
+        for (const entry of data) {
+          if (entry?.path && entry?.signedUrl) urls.set(entry.path, entry.signedUrl);
+        }
+        // Preserve graceful handling for files that failed individually in a batch.
+        const missing = uniquePaths.filter(path => !urls.has(path));
+        if (missing.length) {
+          const fallback = await Promise.all(missing.map(async path => [path, await createContentMediaUrl(path)]));
+          for (const [path, url] of fallback) if (url) urls.set(path, url);
+        }
+        return urls;
+      }
+      // Compatibility fallback: retain existing per-file behavior if the batch endpoint fails.
+      console.warn("Batch content media URL creation failed; using individual requests:", error?.message || "Unexpected response");
+      const entries = await Promise.all(uniquePaths.map(async path => [path, await createContentMediaUrl(path)]));
+      return new Map(entries.filter(([, url]) => Boolean(url)));
     }
 
     async function renderContentMedia(container, media) {
       if (!Array.isArray(media) || !media.length) return;
       const gallery = document.createElement("div");
       gallery.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:18px";
+      const urls = await createContentMediaUrls(media.map(item => item?.path));
       for (const item of media) {
-        const url = await createContentMediaUrl(item.path);
+        const url = urls.get(item?.path) || "";
         if (!url) continue;
         const tile = document.createElement("div");
         tile.style.cssText = "min-width:0;padding:10px;border:1px solid #e5e7eb;border-radius:10px;overflow-wrap:anywhere";
         if (String(item.mime_type || "").startsWith("image/")) {
-          const image = document.createElement("img"); image.src = url; image.alt = item.alt_text || item.title || item.name || ""; image.loading = "lazy";
+          const image = document.createElement("img"); image.src = url; image.alt = item.alt_text || item.title || item.name || ""; image.loading = "lazy"; image.decoding = "async";
           image.style.cssText = "display:block;width:100%;max-height:320px;object-fit:contain;border-radius:6px"; tile.append(image);
         } else if (String(item.mime_type || "").startsWith("video/")) {
-          const video = document.createElement("video"); video.src = url; video.controls = true;
+          const video = document.createElement("video"); video.src = url; video.controls = true; video.preload = "metadata";
           video.style.cssText = "display:block;width:100%;max-height:320px;border-radius:6px"; tile.append(video);
         } else if (String(item.mime_type || "").startsWith("audio/")) {
-          const audio = document.createElement("audio"); audio.src = url; audio.controls = true; audio.style.width = "100%"; tile.append(audio);
+          const audio = document.createElement("audio"); audio.src = url; audio.controls = true; audio.preload = "none"; audio.style.width = "100%"; tile.append(audio);
         } else {
           const link = document.createElement("a"); link.href = url; link.target = "_blank"; link.rel = "noopener noreferrer";
           link.textContent = item.name || "Open file"; tile.append(link);
@@ -261,13 +287,31 @@
 
     let dalimgariRuntimeConfig = {};
     let dalimgariHomeObserver = null;
-    // Loads public-safe configuration saved by the dashboard and applies supported settings.
+    let dalimgariSiteConfigRequest = null;
+    // Loads current public-safe configuration. Only simultaneous reads are deduplicated;
+    // settings are not kept in a time-based cache so maintenance/visibility changes stay fresh.
     async function applyDalimgariSiteConfig(force=false) {
       const keys=["ui_customization_identity","ui_customization_theme","ui_customization_header_footer","ui_customization_layout","ui_customization_typography","ui_customization_responsive","ui_customization_components","ui_customization_media","ui_customization_page_style","ui_customization_effects","ui_customization_hero","ui_settings_general","ui_settings_homepage_defaults","ui_settings_content_defaults","ui_settings_users_access","ui_settings_privacy_visibility","ui_settings_maintenance_features"];
-      const {data,error}=await supabaseClient.from("site_customizations").select("key,value").in("key",keys);
-      if(error){console.warn("Site configuration could not be loaded:",error.message);return {};}
-      const cfg={};
-      for(const row of data||[]){let value=row.value||{};if(typeof value==="string"){try{value=JSON.parse(value)}catch(_){value={}}}cfg[row.key]=value&&typeof value==="object"?value:{};}
+      let cfg = null;
+      if (!force && dalimgariSiteConfigRequest) {
+        cfg = await dalimgariSiteConfigRequest;
+      } else {
+        const request = (async () => {
+          const {data,error}=await supabaseClient.from("site_customizations").select("key,value").in("key",keys);
+          if(error){console.warn("Site configuration could not be loaded:",error.message);return null;}
+          const parsed={};
+          for(const row of data||[]){let value=row.value||{};if(typeof value==="string"){try{value=JSON.parse(value)}catch(_){value={}}}parsed[row.key]=value&&typeof value==="object"?value:{};}
+          return parsed;
+        })();
+        if (!force) {
+          dalimgariSiteConfigRequest = request;
+          try { cfg = await request; }
+          finally { if (dalimgariSiteConfigRequest === request) dalimgariSiteConfigRequest = null; }
+        } else {
+          cfg = await request;
+        }
+      }
+      if (!cfg) return {};
       dalimgariRuntimeConfig = cfg;
       const identity=cfg.ui_customization_identity||{}, general=cfg.ui_settings_general||{};
       const theme=cfg.ui_customization_theme||{}, header=cfg.ui_customization_header_footer||{};
@@ -611,9 +655,13 @@
     }
 
     async function renderHome() {
-      const siteConfig = await applyDalimgariSiteConfig();
+      // Start the static homepage template request while independent Supabase reads run.
+      const homeResponsePromise = fetch(new URL("home.html", window.location.href), { credentials: "same-origin" });
+      const [siteConfig, currentUser] = await Promise.all([
+        applyDalimgariSiteConfig(),
+        getCurrentUser()
+      ]);
       const maintenance = siteConfig.ui_settings_maintenance_features || {};
-      const currentUser = await getCurrentUser();
       const currentRole = String((currentUser && currentUser.app_metadata && currentUser.app_metadata.role) || "").toLowerCase();
       if (maintenance.maintenance_mode && currentRole !== "admin") {
         const notice = document.createElement("section");
@@ -638,7 +686,7 @@
       // Home section structure lives in home.html; shared rendering and data logic stay here.
       let page;
       try {
-        const homeResponse = await fetch(new URL("home.html", window.location.href), { credentials: "same-origin" });
+        const homeResponse = await homeResponsePromise;
         if (!homeResponse.ok) throw new Error("home.html returned HTTP " + homeResponse.status);
         const homeMarkup = await homeResponse.text();
         const homeDocument = new DOMParser().parseFromString(homeMarkup, "text/html");
@@ -667,7 +715,7 @@
         .map(selector => page.querySelector(selector));
       const pillBar = page.querySelector(".home-page-pillbar");
       pillBar.replaceChildren();
-      await applyDalimgariSiteConfig();
+      // Site configuration was already loaded at the start of renderHome(); reuse it here.
 
       // Optional homepage placement map, configured in Dashboard > Customizations
       // with key "home_page_includes" and JSON such as {"home-page-title":"about-us"}.
@@ -678,15 +726,99 @@
         try { homeIncludes = JSON.parse(homeIncludes); } catch (_) { homeIncludes = {}; }
       }
       if (homeIncludes && typeof homeIncludes === "object" && !Array.isArray(homeIncludes)) {
-        for (const [sectionClass, rawSlug] of Object.entries(homeIncludes)) {
-          const target = [heroSection, ...extraSections].find(section => section.classList.contains(sectionClass));
-          const slug = generatePageSlug(rawSlug);
-          if (!target || !slug) continue;
-          const { data: includedPage, error: includeError } = await supabaseClient.from("pages")
-            .select("content").eq("url", slug).maybeSingle();
-          if (!includeError && includedPage) await renderHtmlInto(target, includedPage.content || "", null);
+        const includeTargets = Object.entries(homeIncludes).map(([sectionClass, rawSlug]) => ({
+          target: [heroSection, ...extraSections].find(section => section.classList.contains(sectionClass)),
+          slug: generatePageSlug(rawSlug)
+        })).filter(item => item.target && item.slug);
+        const includeSlugs = [...new Set(includeTargets.map(item => item.slug))];
+        if (includeSlugs.length) {
+          // Fetch configured homepage page content in one query instead of one request per section.
+          const { data: includedPages, error: includeError } = await supabaseClient.from("pages")
+            .select("url,content").in("url", includeSlugs);
+          if (!includeError && Array.isArray(includedPages)) {
+            const pageBySlug = new Map(includedPages.map(item => [generatePageSlug(item.url), item]));
+            await Promise.all(includeTargets.map(async ({target, slug}) => {
+              const includedPage = pageBySlug.get(slug);
+              if (includedPage) await renderHtmlInto(target, includedPage.content || "", null);
+            }));
+          } else if (includeError) {
+            console.warn("Homepage included content could not be loaded:", includeError.message);
+          }
         }
       }
+
+      // Start independent content reads before building homepage page-navigation controls.
+      const homepageCardsPromise = renderHomepageContentCards(siteConfig).catch(error => {
+        console.error("Homepage sections could not be rendered:", error);
+      });
+      const heroRenderPromise = (async () => {
+      const heroRecordPromise = (async () => {
+        const { data: heroRecord } = await supabaseClient.from("hero_items")
+          .select("title,description,media,visibility").eq("visibility","public").order("created_at",{ascending:false}).limit(1).maybeSingle();
+        let heroImageUrl = "";
+        const heroMedia = Array.isArray(heroRecord?.media) ? heroRecord.media : [];
+        const firstImage = heroMedia.find(item => String(item.mime_type || "").startsWith("image/"));
+        if (firstImage?.path) heroImageUrl = await createContentMediaUrl(firstImage.path);
+        return { heroRecord, heroImageUrl };
+      })();
+      // The uploader is a normal homepage section, not a separate page or route.
+
+      const { heroRecord, heroImageUrl: resolvedHeroImageUrl } = await heroRecordPromise;
+      let headline = String(heroRecord?.title || "").trim();
+      let welcomeMessage = String(heroRecord?.description || "").trim();
+      let heroImageUrl = resolvedHeroImageUrl;
+      if (!heroRecord) {
+        const { data, error } = await supabaseClient.from("site_customizations").select("value").eq("key", "home_hero").maybeSingle();
+        if (!error && data && data.value) {
+          let heroData=data.value;
+          if(typeof heroData==="string"){try{heroData=JSON.parse(heroData)}catch(_){heroData={}}}
+          if(heroData&&typeof heroData==="object"){
+            headline=String(heroData.headline||"").trim();
+            welcomeMessage=String(heroData.welcomeMessage||"").trim();
+            heroImageUrl=String(heroData.heroImageUrl||"").trim();
+          }
+        }
+      }
+      if (!headline && !welcomeMessage && !heroImageUrl && !String((siteConfig.ui_customization_identity||{}).tagline||"").trim()) return;
+
+      // Keep the image as the floating hero surface and layer its text over the center.
+      const imageFrame = document.createElement("div");
+      imageFrame.className = "home-hero-image-frame";
+      imageFrame.style.cssText = "position:relative;isolation:isolate;display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:100%;aspect-ratio:16/9;margin:0;overflow:hidden;border:1px solid rgba(148,163,184,.35);border-radius:20px;background:linear-gradient(135deg,#e2e8f0,#f8fafc);box-shadow:0 14px 36px rgba(15,23,42,.16)";
+      if (heroImageUrl) {
+        const image = document.createElement("img");
+        image.src = heroImageUrl;
+        image.alt = "";
+        image.loading = "eager";
+        image.decoding = "async";
+        image.style.cssText = "position:absolute;inset:0;z-index:-2;display:block;width:100%;height:100%;max-width:100%;object-fit:cover;object-position:center";
+        imageFrame.append(image);
+        const shade = document.createElement("div");
+        shade.setAttribute("aria-hidden", "true");
+        shade.style.cssText = "position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(15,23,42,.48),rgba(15,23,42,.2),rgba(15,23,42,.48))";
+        imageFrame.append(shade);
+      }
+
+      const textOverlay = document.createElement("div");
+      textOverlay.className = "home-hero-text-overlay";
+      textOverlay.style.cssText = "position:relative;z-index:1;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-height:100%;overflow-y:auto;padding:clamp(16px,4vw,44px);text-align:center;color:" + (heroImageUrl ? "#fff" : "#334155") + ";text-shadow:" + (heroImageUrl ? "0 2px 12px rgba(0,0,0,.5)" : "none");
+      const tagline=String((siteConfig.ui_customization_identity||{}).tagline||"").trim();
+      if(tagline){const tag=document.createElement("p");tag.className="home-tagline";tag.textContent=tagline;textOverlay.append(tag);}
+      if (headline) {
+        const heading = document.createElement("h1");
+        heading.textContent = headline;
+        heading.style.cssText = "max-width:900px;margin:0 0 12px;font-size:clamp(24px,5.5vw,52px);line-height:1.12;font-weight:750;overflow-wrap:anywhere";
+        textOverlay.append(heading);
+      }
+      if (welcomeMessage) {
+        const welcome = document.createElement("p");
+        welcome.textContent = welcomeMessage;
+        welcome.style.cssText = "max-width:760px;margin:0;font-size:clamp(14px,2.5vw,20px);line-height:1.55;overflow-wrap:anywhere";
+        textOverlay.append(welcome);
+      }
+      imageFrame.append(textOverlay);
+      heroSection.append(imageFrame);
+      })();
 
       // Public Pages appear as pill buttons in the homepage Page Title section.
       const pageTitleSection = extraSections[0];
@@ -769,79 +901,33 @@
         else if (pillMotion.addListener) pillMotion.addListener(startPillAutoScroll);
         startPillAutoScroll();
       }
-      await renderHomepageContentCards(siteConfig);
 
-      // The uploader is a normal homepage section, not a separate page or route.
-
-      const { data: heroRecord } = await supabaseClient.from("hero_items")
-        .select("title,description,media,visibility").eq("visibility","public").order("created_at",{ascending:false}).limit(1).maybeSingle();
-      let headline = String(heroRecord?.title || "").trim();
-      let welcomeMessage = String(heroRecord?.description || "").trim();
-      let heroImageUrl = "";
-      const heroMedia = Array.isArray(heroRecord?.media) ? heroRecord.media : [];
-      const firstImage = heroMedia.find(item => String(item.mime_type || "").startsWith("image/"));
-      if (firstImage?.path) heroImageUrl = await createContentMediaUrl(firstImage.path);
-      if (!heroRecord) {
-        const { data, error } = await supabaseClient.from("site_customizations").select("value").eq("key", "home_hero").maybeSingle();
-        if (!error && data && data.value) {
-          let heroData=data.value;
-          if(typeof heroData==="string"){try{heroData=JSON.parse(heroData)}catch(_){heroData={}}}
-          if(heroData&&typeof heroData==="object"){
-            headline=String(heroData.headline||"").trim();
-            welcomeMessage=String(heroData.welcomeMessage||"").trim();
-            heroImageUrl=String(heroData.heroImageUrl||"").trim();
-          }
-        }
-      }
-      if (!headline && !welcomeMessage && !heroImageUrl && !String((siteConfig.ui_customization_identity||{}).tagline||"").trim()) return;
-
-      // Keep the image as the floating hero surface and layer its text over the center.
-      const imageFrame = document.createElement("div");
-      imageFrame.className = "home-hero-image-frame";
-      imageFrame.style.cssText = "position:relative;isolation:isolate;display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:100%;aspect-ratio:16/9;margin:0;overflow:hidden;border:1px solid rgba(148,163,184,.35);border-radius:20px;background:linear-gradient(135deg,#e2e8f0,#f8fafc);box-shadow:0 14px 36px rgba(15,23,42,.16)";
-      if (heroImageUrl) {
-        const image = document.createElement("img");
-        image.src = heroImageUrl;
-        image.alt = "";
-        image.loading = "eager";
-        image.decoding = "async";
-        image.style.cssText = "position:absolute;inset:0;z-index:-2;display:block;width:100%;height:100%;max-width:100%;object-fit:cover;object-position:center";
-        imageFrame.append(image);
-        const shade = document.createElement("div");
-        shade.setAttribute("aria-hidden", "true");
-        shade.style.cssText = "position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(15,23,42,.48),rgba(15,23,42,.2),rgba(15,23,42,.48))";
-        imageFrame.append(shade);
-      }
-
-      const textOverlay = document.createElement("div");
-      textOverlay.className = "home-hero-text-overlay";
-      textOverlay.style.cssText = "position:relative;z-index:1;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-height:100%;overflow-y:auto;padding:clamp(16px,4vw,44px);text-align:center;color:" + (heroImageUrl ? "#fff" : "#334155") + ";text-shadow:" + (heroImageUrl ? "0 2px 12px rgba(0,0,0,.5)" : "none");
-      const tagline=String((siteConfig.ui_customization_identity||{}).tagline||"").trim();
-      if(tagline){const tag=document.createElement("p");tag.className="home-tagline";tag.textContent=tagline;textOverlay.append(tag);}
-      if (headline) {
-        const heading = document.createElement("h1");
-        heading.textContent = headline;
-        heading.style.cssText = "max-width:900px;margin:0 0 12px;font-size:clamp(24px,5.5vw,52px);line-height:1.12;font-weight:750;overflow-wrap:anywhere";
-        textOverlay.append(heading);
-      }
-      if (welcomeMessage) {
-        const welcome = document.createElement("p");
-        welcome.textContent = welcomeMessage;
-        welcome.style.cssText = "max-width:760px;margin:0;font-size:clamp(14px,2.5vw,20px);line-height:1.55;overflow-wrap:anywhere";
-        textOverlay.append(welcome);
-      }
-      imageFrame.append(textOverlay);
-      heroSection.append(imageFrame);
+      await Promise.all([heroRenderPromise, homepageCardsPromise]);
     }
 
     async function renderHomepageContentCards(siteConfig){
       const widget=document.querySelector(".home-widget"), albumSection=document.querySelector(".home-album"), pageCards=document.querySelector(".home-page-card");
       const makeGrid=()=>{const grid=document.createElement("div");grid.className="home-content-grid";return grid;};
       const makeCard=(title,description)=>{const card=document.createElement("article");card.className="home-content-card";const h=document.createElement("h3");h.textContent=title||"Untitled";card.append(h);if(description){const p=document.createElement("p");p.textContent=description;card.append(p);}return card;};
-      // Only configured widgets belong in the homepage Widget section.
+      // Start independent homepage data reads together, then render each section in its existing order.
+      const widgetsPromise = widget
+        ? Promise.resolve(supabaseClient.from("widgets").select("id,widget_type,title,is_visible,settings").eq("is_visible",true).order("created_at",{ascending:true}))
+        : Promise.resolve({data:[],error:null});
+      const albumsPromise = albumSection
+        ? Promise.resolve(supabaseClient.from("albums").select("id,title,description,url,cover_path,media,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(24))
+        : Promise.resolve({data:[],error:null});
+      const albumOrderPromise = albumSection
+        ? Promise.resolve(supabaseClient.from("site_customizations").select("value").eq("key","home_album_order").maybeSingle())
+        : Promise.resolve({data:null,error:null});
+      const pagesPromise = pageCards
+        ? Promise.resolve(supabaseClient.from("pages").select("title,description,content,url,media,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(200))
+        : Promise.resolve({data:[],error:null});
+      // Each homepage section renders independently so a slow album/media item
+      // cannot delay the Widget and Page Card sections.
+      const widgetRenderPromise = (async () => {
       if(widget){
-        const {data:widgets,error}=await supabaseClient.from("widgets").select("id,widget_type,title,is_visible,settings").eq("is_visible",true).order("created_at",{ascending:true});
-        if(!error&&Array.isArray(widgets)&&widgets.length){
+        const {data:widgets,error:widgetsError}=await widgetsPromise;
+        if(!widgetsError&&Array.isArray(widgets)&&widgets.length){
           const grid=makeGrid();
           for(const item of widgets){
             const settings=item.settings&&typeof item.settings==="object"?item.settings:{};
@@ -963,16 +1049,18 @@
           widget.append(grid);
         }
       }
+      })();
+      const albumRenderPromise = (async () => {
       if(albumSection){
-        const {data:albumRows,error}=await supabaseClient.from("albums").select("id,title,description,url,cover_path,media,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(24);
+        const {data:albumRows,error:albumError}=await albumsPromise;
         // Home only shows albums with media items or a configured cover image.
         const albums=Array.isArray(albumRows)?albumRows.filter(album=>
           Boolean(String(album.cover_path||"").trim())||
           (Array.isArray(album.media)&&album.media.some(item=>item&&String(item.path||"").trim()))
         ):[];
-        if(!error&&albums.length){
+        if(!albumError&&albums.length){
           try{
-            const {data:orderSetting}=await supabaseClient.from("site_customizations").select("value").eq("key","home_album_order").maybeSingle();
+            const {data:orderSetting}=await albumOrderPromise;
             let albumIds=orderSetting?.value;
             if(typeof albumIds==="string"){try{albumIds=JSON.parse(albumIds);}catch(_){albumIds=[];}}
             if(albumIds&&!Array.isArray(albumIds)&&Array.isArray(albumIds.ids))albumIds=albumIds.ids;
@@ -983,6 +1071,16 @@
               albums.splice(0,albums.length,...orderedAlbums);
             }
           }catch(orderError){console.warn("Could not load homepage album order:",orderError);}
+          // Resolve all album cover images in one Storage batch instead of waiting on
+          // one signed-URL request per image while building each card.
+          const albumImagePaths = [...new Set(albums.flatMap(album => {
+            const media = Array.isArray(album.media) ? album.media : [];
+            const imagePaths = media
+              .filter(item => String(item?.mime_type || "").startsWith("image/") && typeof item?.path === "string" && item.path)
+              .map(item => item.path);
+            return imagePaths.length ? imagePaths : [album.cover_path].filter(path => typeof path === "string" && path);
+          }))];
+          const albumImageUrls = await createContentMediaUrls(albumImagePaths);
           const grid=makeGrid();
           grid.classList.add("home-album-carousel");
           grid.style.cssText="display:flex;flex-wrap:nowrap;gap:16px;width:100%;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;scroll-behavior:auto;overscroll-behavior-x:contain;padding:2px 1px 12px";
@@ -992,11 +1090,11 @@
             const coverImages=[];
             for(const item of media){
               if(!String(item.mime_type||"").startsWith("image/")||!item.path)continue;
-              const imageUrl=await createContentMediaUrl(item.path);
+              const imageUrl=albumImageUrls.get(item.path)||"";
               if(imageUrl)coverImages.push({url:imageUrl,alt:item.alt_text||item.title||item.name||album.title||""});
             }
             if(!coverImages.length&&album.cover_path){
-              const coverUrl=await createContentMediaUrl(album.cover_path);
+              const coverUrl=albumImageUrls.get(album.cover_path)||"";
               if(coverUrl)coverImages.push({url:coverUrl,alt:album.title||""});
             }
             if(coverImages.length){
@@ -1098,9 +1196,11 @@
           albumSection.append(grid);
         }
       }
+      })();
+      const pageCardsRenderPromise = (async () => {
       if(pageCards){
-        const {data:pages,error}=await supabaseClient.from("pages").select("title,description,content,url,media,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(200);
-        if(!error&&pages?.length){
+        const {data:pages,error:pagesError}=await pagesPromise;
+        if(!pagesError&&pages?.length){
           const grid=makeGrid();
           for(const page of pages){
             const card=makeCard(page.title,page.description||"");
@@ -1129,6 +1229,8 @@
           pageCards.append(grid);
         }
       }
+      })();
+      await Promise.all([widgetRenderPromise, albumRenderPromise, pageCardsRenderPromise]);
     }
 
     function sanitizePageHtml(html) {
