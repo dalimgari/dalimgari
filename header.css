@@ -137,6 +137,6 @@ header { background-color:var(--dg-surface,#fff); color:var(--dg-text,#222); }
 .current-page-label { color:var(--dg-text,#222); }
 .floating-menu { background-color:var(--dg-surface,#fff); border-color:var(--dg-border,#eee); }
 .menu-link { color:var(--dg-text,#333); }
-.menu-link:hover, .menu-link:focus-visible, .menu-link[aria-current="page"] { background-color:color-mix(in srgb,var(--dg-primary,#222) 7%,var(--dg-surface,#fff)); color:var(--dg-primary,#222); }
+.menu-link:hover, .menu-link:focus-visible, .menu-link[aria-current="page"] { background-color:#f3f4f6; color:var(--dg-primary,#222); outline:none; }
 .menu-link[aria-current="page"], .menu-link:hover { color:var(--dg-primary,#222); }
 header { box-shadow:0 8px 20px -8px rgba(0,0,0,var(--dg-shadow-opacity,.06)); }
