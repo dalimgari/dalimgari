@@ -898,10 +898,23 @@
       const widget=document.querySelector(".home-widget"), albumSection=document.querySelector(".home-album"), pageCards=document.querySelector(".home-page-card");
       const makeGrid=()=>{const grid=document.createElement("div");grid.className="home-content-grid";return grid;};
       const makeCard=(title,description)=>{const card=document.createElement("article");card.className="home-content-card";const h=document.createElement("h3");h.textContent=title||"Untitled";card.append(h);if(description){const p=document.createElement("p");p.textContent=description;card.append(p);}return card;};
+      // Start independent homepage data reads together, then render each section in its existing order.
+      const widgetsPromise = widget
+        ? Promise.resolve(supabaseClient.from("widgets").select("id,widget_type,title,is_visible,settings").eq("is_visible",true).order("created_at",{ascending:true}))
+        : Promise.resolve({data:[],error:null});
+      const albumsPromise = albumSection
+        ? Promise.resolve(supabaseClient.from("albums").select("id,title,description,url,cover_path,media,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(24))
+        : Promise.resolve({data:[],error:null});
+      const albumOrderPromise = albumSection
+        ? Promise.resolve(supabaseClient.from("site_customizations").select("value").eq("key","home_album_order").maybeSingle())
+        : Promise.resolve({data:null,error:null});
+      const pagesPromise = pageCards
+        ? Promise.resolve(supabaseClient.from("pages").select("title,description,content,url,media,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(200))
+        : Promise.resolve({data:[],error:null});
       // Only configured widgets belong in the homepage Widget section.
       if(widget){
-        const {data:widgets,error}=await supabaseClient.from("widgets").select("id,widget_type,title,is_visible,settings").eq("is_visible",true).order("created_at",{ascending:true});
-        if(!error&&Array.isArray(widgets)&&widgets.length){
+        const {data:widgets,error:widgetsError}=await widgetsPromise;
+        if(!widgetsError&&Array.isArray(widgets)&&widgets.length){
           const grid=makeGrid();
           for(const item of widgets){
             const settings=item.settings&&typeof item.settings==="object"?item.settings:{};
@@ -1024,15 +1037,15 @@
         }
       }
       if(albumSection){
-        const {data:albumRows,error}=await supabaseClient.from("albums").select("id,title,description,url,cover_path,media,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(24);
+        const {data:albumRows,error:albumError}=await albumsPromise;
         // Home only shows albums with media items or a configured cover image.
         const albums=Array.isArray(albumRows)?albumRows.filter(album=>
           Boolean(String(album.cover_path||"").trim())||
           (Array.isArray(album.media)&&album.media.some(item=>item&&String(item.path||"").trim()))
         ):[];
-        if(!error&&albums.length){
+        if(!albumError&&albums.length){
           try{
-            const {data:orderSetting}=await supabaseClient.from("site_customizations").select("value").eq("key","home_album_order").maybeSingle();
+            const {data:orderSetting}=await albumOrderPromise;
             let albumIds=orderSetting?.value;
             if(typeof albumIds==="string"){try{albumIds=JSON.parse(albumIds);}catch(_){albumIds=[];}}
             if(albumIds&&!Array.isArray(albumIds)&&Array.isArray(albumIds.ids))albumIds=albumIds.ids;
@@ -1169,8 +1182,8 @@
         }
       }
       if(pageCards){
-        const {data:pages,error}=await supabaseClient.from("pages").select("title,description,content,url,media,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(200);
-        if(!error&&pages?.length){
+        const {data:pages,error:pagesError}=await pagesPromise;
+        if(!pagesError&&pages?.length){
           const grid=makeGrid();
           for(const page of pages){
             const card=makeCard(page.title,page.description||"");
