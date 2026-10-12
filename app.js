@@ -655,7 +655,8 @@
     }
 
     async function renderHome() {
-      // These reads are independent; start them together instead of serially.
+      // Start the static homepage template request while independent Supabase reads run.
+      const homeResponsePromise = fetch(new URL("home.html", window.location.href), { credentials: "same-origin" });
       const [siteConfig, currentUser] = await Promise.all([
         applyDalimgariSiteConfig(),
         getCurrentUser()
@@ -685,7 +686,7 @@
       // Home section structure lives in home.html; shared rendering and data logic stay here.
       let page;
       try {
-        const homeResponse = await fetch(new URL("home.html", window.location.href), { credentials: "same-origin" });
+        const homeResponse = await homeResponsePromise;
         if (!homeResponse.ok) throw new Error("home.html returned HTTP " + homeResponse.status);
         const homeMarkup = await homeResponse.text();
         const homeDocument = new DOMParser().parseFromString(homeMarkup, "text/html");
@@ -920,7 +921,9 @@
       const pagesPromise = pageCards
         ? Promise.resolve(supabaseClient.from("pages").select("title,description,content,url,media,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(200))
         : Promise.resolve({data:[],error:null});
-      // Only configured widgets belong in the homepage Widget section.
+      // Each homepage section renders independently so a slow album/media item
+      // cannot delay the Widget and Page Card sections.
+      const widgetRenderPromise = (async () => {
       if(widget){
         const {data:widgets,error:widgetsError}=await widgetsPromise;
         if(!widgetsError&&Array.isArray(widgets)&&widgets.length){
@@ -1045,6 +1048,8 @@
           widget.append(grid);
         }
       }
+      })();
+      const albumRenderPromise = (async () => {
       if(albumSection){
         const {data:albumRows,error:albumError}=await albumsPromise;
         // Home only shows albums with media items or a configured cover image.
@@ -1190,6 +1195,8 @@
           albumSection.append(grid);
         }
       }
+      })();
+      const pageCardsRenderPromise = (async () => {
       if(pageCards){
         const {data:pages,error:pagesError}=await pagesPromise;
         if(!pagesError&&pages?.length){
@@ -1221,6 +1228,8 @@
           pageCards.append(grid);
         }
       }
+      })();
+      await Promise.all([widgetRenderPromise, albumRenderPromise, pageCardsRenderPromise]);
     }
 
     function sanitizePageHtml(html) {
