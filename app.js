@@ -660,9 +660,12 @@
     }
 
     async function renderHome() {
-      const siteConfig = await applyDalimgariSiteConfig();
+      // These reads are independent; start them together instead of serially.
+      const [siteConfig, currentUser] = await Promise.all([
+        applyDalimgariSiteConfig(),
+        getCurrentUser()
+      ]);
       const maintenance = siteConfig.ui_settings_maintenance_features || {};
-      const currentUser = await getCurrentUser();
       const currentRole = String((currentUser && currentUser.app_metadata && currentUser.app_metadata.role) || "").toLowerCase();
       if (maintenance.maintenance_mode && currentRole !== "admin") {
         const notice = document.createElement("section");
@@ -727,13 +730,24 @@
         try { homeIncludes = JSON.parse(homeIncludes); } catch (_) { homeIncludes = {}; }
       }
       if (homeIncludes && typeof homeIncludes === "object" && !Array.isArray(homeIncludes)) {
-        for (const [sectionClass, rawSlug] of Object.entries(homeIncludes)) {
-          const target = [heroSection, ...extraSections].find(section => section.classList.contains(sectionClass));
-          const slug = generatePageSlug(rawSlug);
-          if (!target || !slug) continue;
-          const { data: includedPage, error: includeError } = await supabaseClient.from("pages")
-            .select("content").eq("url", slug).maybeSingle();
-          if (!includeError && includedPage) await renderHtmlInto(target, includedPage.content || "", null);
+        const includeTargets = Object.entries(homeIncludes).map(([sectionClass, rawSlug]) => ({
+          target: [heroSection, ...extraSections].find(section => section.classList.contains(sectionClass)),
+          slug: generatePageSlug(rawSlug)
+        })).filter(item => item.target && item.slug);
+        const includeSlugs = [...new Set(includeTargets.map(item => item.slug))];
+        if (includeSlugs.length) {
+          // Fetch configured homepage page content in one query instead of one request per section.
+          const { data: includedPages, error: includeError } = await supabaseClient.from("pages")
+            .select("url,content").in("url", includeSlugs);
+          if (!includeError && Array.isArray(includedPages)) {
+            const pageBySlug = new Map(includedPages.map(item => [generatePageSlug(item.url), item]));
+            await Promise.all(includeTargets.map(async ({target, slug}) => {
+              const includedPage = pageBySlug.get(slug);
+              if (includedPage) await renderHtmlInto(target, includedPage.content || "", null);
+            }));
+          } else if (includeError) {
+            console.warn("Homepage included content could not be loaded:", includeError.message);
+          }
         }
       }
 
@@ -818,12 +832,14 @@
         else if (pillMotion.addListener) pillMotion.addListener(startPillAutoScroll);
         startPillAutoScroll();
       }
+      // Start the hero query while independent homepage cards are loading.
+      const heroRecordPromise = supabaseClient.from("hero_items")
+        .select("title,description,media,visibility").eq("visibility","public").order("created_at",{ascending:false}).limit(1).maybeSingle();
       await renderHomepageContentCards(siteConfig);
 
       // The uploader is a normal homepage section, not a separate page or route.
 
-      const { data: heroRecord } = await supabaseClient.from("hero_items")
-        .select("title,description,media,visibility").eq("visibility","public").order("created_at",{ascending:false}).limit(1).maybeSingle();
+      const { data: heroRecord } = await heroRecordPromise;
       let headline = String(heroRecord?.title || "").trim();
       let welcomeMessage = String(heroRecord?.description || "").trim();
       let heroImageUrl = "";
