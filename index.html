@@ -14,9 +14,8 @@
   <main id="main-content" aria-live="polite"></main>
   <footer id="site-footer" data-layout-section="footer">© 2026 Dalimgari. All rights reserved.</footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    // Mount independent layout components before starting the app that depends on them.
+    // Mount independent layout components while the Supabase SDK loads in parallel.
     (async () => {
       const headerHost = document.getElementById("site-header");
       const footerHost = document.getElementById("site-footer");
@@ -31,7 +30,8 @@
       });
 
       try {
-        const [headerResponse, footerResponse] = await Promise.all([
+        const [supabaseReady, headerResponse, footerResponse] = await Promise.all([
+          loadScript("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"),
           fetch(new URL("header.html", document.baseURI), { credentials: "same-origin" }),
           fetch(new URL("footer.html", document.baseURI), { credentials: "same-origin" })
         ]);
