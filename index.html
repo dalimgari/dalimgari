@@ -15,7 +15,7 @@
   <footer id="site-footer" data-layout-section="footer">© 2026 Dalimgari. All rights reserved.</footer>
 
   <script>
-    // Mount independent layout components while the Supabase SDK loads in parallel.
+    // Start the data SDK and layout fetches together, but do not make the layout wait for the SDK.
     (async () => {
       const headerHost = document.getElementById("site-header");
       const footerHost = document.getElementById("site-footer");
@@ -29,33 +29,60 @@
         document.body.appendChild(script);
       });
 
+      const showContentError = (message) => {
+        const errorMessage = document.createElement("p");
+        errorMessage.setAttribute("role", "alert");
+        errorMessage.style.cssText = "margin:24px;padding:16px";
+        errorMessage.textContent = message;
+        mainContent.replaceChildren(errorMessage);
+      };
+
+      let layoutMounted = false;
       try {
-        const [, headerResponse, footerResponse] = await Promise.all([
-          loadScript("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"),
+        // SDK download proceeds while the independent layout components are fetched.
+        const sdkResultPromise = loadScript("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2")
+          .then(() => ({ ok: true }), error => ({ ok: false, error }));
+
+        const [headerResponse, footerResponse] = await Promise.all([
           fetch(new URL("header.html", document.baseURI), { credentials: "same-origin" }),
           fetch(new URL("footer.html", document.baseURI), { credentials: "same-origin" })
         ]);
         if (!headerResponse.ok || !footerResponse.ok) {
           throw new Error("A layout component could not be loaded.");
         }
+
         const [headerMarkup, footerMarkup] = await Promise.all([
           headerResponse.text(),
           footerResponse.text()
         ]);
         headerHost.innerHTML = headerMarkup;
         footerHost.innerHTML = footerMarkup;
+        layoutMounted = true;
 
-        // The app expects header and footer elements to exist at body level.
-        // Load it only after the components have mounted to preserve initialization order.
-        await loadScript("app.js");
+        // Give the content area an immediate, accessible loading state while data initializes.
+        const loadingMessage = document.createElement("p");
+        loadingMessage.setAttribute("role", "status");
+        loadingMessage.textContent = "Loading content…";
+        loadingMessage.style.cssText = "width:min(100% - 32px,760px);margin:24px auto;padding:12px 0";
+        mainContent.replaceChildren(loadingMessage);
+
+        // The menu is independent of Supabase and can work while the SDK is still downloading.
         await loadScript("header.js");
+
+        const sdkResult = await sdkResultPromise;
+        if (!sdkResult.ok) throw sdkResult.error;
+        if (!window.supabase || typeof window.supabase.createClient !== "function") {
+          throw new Error("The Supabase SDK did not initialize correctly.");
+        }
+
+        // Start application/data code only after the shell and SDK are ready.
+        await loadScript("app.js");
       } catch (error) {
-        console.error("Site layout initialization failed:", error);
-        const errorMessage = document.createElement("p");
-        errorMessage.setAttribute("role", "alert");
-        errorMessage.style.cssText = "margin:24px;padding:16px";
-        errorMessage.textContent = "The page could not be initialized. Please refresh the page and try again.";
-        mainContent.replaceChildren(errorMessage);
+        console.error("Site initialization failed:", error);
+        // Keep any successfully mounted header/footer visible if Supabase or app.js fails.
+        showContentError(layoutMounted
+          ? "Content could not be loaded. Please check your connection and refresh the page."
+          : "The page layout could not be initialized. Please refresh the page and try again.");
       }
     })();
   </script>
