@@ -1466,10 +1466,10 @@
       password.className = "login-field";
       password.type = "password";
       password.name = "signup-password";
-      password.placeholder = "Password (at least 8 characters)";
+      password.placeholder = "Password (at least 12 characters)";
       password.setAttribute("aria-label", "Password");
       password.autocomplete = "new-password";
-      password.minLength = 8;
+      password.minLength = 12;
       password.required = true;
 
       const confirmPassword = document.createElement("input");
@@ -1479,7 +1479,7 @@
       confirmPassword.placeholder = "Confirm Password";
       confirmPassword.setAttribute("aria-label", "Confirm Password");
       confirmPassword.autocomplete = "new-password";
-      confirmPassword.minLength = 8;
+      confirmPassword.minLength = 12;
       confirmPassword.required = true;
 
       const submit = document.createElement("button");
@@ -1530,8 +1530,8 @@
         event.preventDefault();
         setStatus("", "error");
 
-        if (password.value.length < 8) {
-          setStatus("Use at least 8 characters for your password.", "error");
+        if (password.value.length < 12) {
+          setStatus("Use at least 12 characters for your password.", "error");
           password.focus();
           return;
         }
@@ -1680,8 +1680,8 @@
         password.id = "new-password";
         password.type = "password";
         password.autocomplete = "new-password";
-        password.placeholder = "New password (at least 8 characters)";
-        password.minLength = 8;
+        password.placeholder = "New password (at least 12 characters)";
+        password.minLength = 12;
         password.required = true;
 
         const confirmLabel = document.createElement("label");
@@ -1693,7 +1693,7 @@
         confirmPassword.type = "password";
         confirmPassword.autocomplete = "new-password";
         confirmPassword.placeholder = "Re-enter new password";
-        confirmPassword.minLength = 8;
+        confirmPassword.minLength = 12;
         confirmPassword.required = true;
 
         const save = document.createElement("button");
@@ -1708,8 +1708,8 @@
         history.replaceState(null, "", window.location.pathname + "#forgot-password");
         form.onsubmit = async (event) => {
           event.preventDefault();
-          if (password.value.length < 8) {
-            setStatus("Use at least 8 characters for your password.", "error");
+          if (password.value.length < 12) {
+            setStatus("Use at least 12 characters for your password.", "error");
             return;
           }
           if (password.value !== confirmPassword.value) {
@@ -2307,8 +2307,8 @@
         email.type = "email"; email.required = true; email.autocomplete = "email";
         email.placeholder = "Email address"; email.setAttribute("aria-label", "New account email");
         const password = document.createElement("input");
-        password.type = "password"; password.required = true; password.minLength = 8;
-        password.autocomplete = "new-password"; password.placeholder = "Password (8+ characters)";
+        password.type = "password"; password.required = true; password.minLength = 12;
+        password.autocomplete = "new-password"; password.placeholder = "Password (12+ characters)";
         password.setAttribute("aria-label", "New account password");
         const adminLabel = document.createElement("label");
         adminLabel.style.cssText = "display:flex;align-items:center;gap:8px;min-height:42px";
@@ -2424,7 +2424,7 @@
         }
         form.addEventListener("submit", async (event) => {
           event.preventDefault();
-          if (password.value.length < 8) { setUserStatus("Password must be at least 8 characters.", true); password.focus(); return; }
+          if (password.value.length < 12) { setUserStatus("Password must be at least 12 characters.", true); password.focus(); return; }
           create.disabled = true;
           try {
             await callUserAdmin("create_user", { email: email.value.trim(), password: password.value, admin: adminCheck.checked });
