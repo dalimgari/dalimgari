@@ -2796,7 +2796,103 @@
       const search=document.createElement("input");search.className="dashboard-crud-input";search.type="search";search.placeholder="Search by title, filename or tag";search.setAttribute("aria-label","Search media");
       const status=document.createElement("p");status.className="dashboard-crud-status";status.setAttribute("role","status");status.setAttribute("aria-live","polite");
       const list=document.createElement("div");list.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:12px;margin-top:16px";
-      card.append(heading,hint,search,status,list);wrap.append(card);content.append(wrap);
+      const uploadCard=document.createElement("section");uploadCard.className="dashboard-crud-card";
+      const uploadHeading=document.createElement("h3");uploadHeading.textContent="Upload to Media Library";
+      const uploadHint=document.createElement("p");uploadHint.className="dashboard-crud-hint";uploadHint.textContent="Upload files directly to the library without creating or editing a Post, Page, Hero item or Album. Supported images, video, audio and PDF files up to 50 MB each.";
+      const uploadForm=document.createElement("form");uploadForm.className="dashboard-crud-form";uploadForm.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px";
+      const fileField=document.createElement("div");fileField.className="dashboard-crud-field full";
+      const fileLabel=document.createElement("label");fileLabel.textContent="Choose files";fileLabel.htmlFor="media-library-upload-files";
+      const filesInput=document.createElement("input");filesInput.id="media-library-upload-files";filesInput.type="file";filesInput.multiple=true;filesInput.accept="image/jpeg,image/png,image/webp,image/gif,image/avif,image/svg+xml,video/mp4,video/webm,video/quicktime,audio/mpeg,audio/mp4,audio/wav,audio/ogg,application/pdf";filesInput.setAttribute("aria-label","Choose media files to upload");
+      const visibilityField=document.createElement("div");visibilityField.className="dashboard-crud-field";
+      const visibilityLabel=document.createElement("label");visibilityLabel.textContent="File visibility";
+      const visibilitySelect=document.createElement("select");visibilitySelect.className="dashboard-crud-input";visibilitySelect.setAttribute("aria-label","Uploaded file visibility");
+      [["private","Private — admin access only"],["public","Public — can be displayed on the website"]].forEach(function(option){const o=document.createElement("option");o.value=option[0];o.textContent=option[1];visibilitySelect.append(o);});
+      const fileRows=document.createElement("div");fileRows.className="dashboard-crud-field full";fileRows.style.cssText="display:grid;gap:12px";
+      const uploadStatus=document.createElement("p");uploadStatus.className="dashboard-crud-status";uploadStatus.setAttribute("role","status");uploadStatus.setAttribute("aria-live","polite");
+      const uploadActions=document.createElement("div");uploadActions.className="dashboard-crud-actions dashboard-crud-field full";
+      const uploadButton=document.createElement("button");uploadButton.type="submit";uploadButton.className="action-button primary";uploadButton.textContent="Upload to Library";
+      fileField.append(fileLabel,filesInput);visibilityField.append(visibilityLabel,visibilitySelect);uploadActions.append(uploadButton);
+      uploadForm.append(fileField,visibilityField,fileRows,uploadActions,uploadStatus);
+      uploadCard.append(uploadHeading,uploadHint,uploadForm);
+      card.append(heading,hint,search,status,list);wrap.append(uploadCard,card);content.append(wrap);
+      const allowedUploadTypes=new Set(["image/jpeg","image/png","image/webp","image/gif","image/avif","image/svg+xml","video/mp4","video/webm","video/quicktime","audio/mpeg","audio/mp4","audio/wav","audio/ogg","application/pdf"]);
+      let uploadItems=[];
+      function setUploadStatus(message,bad){uploadStatus.textContent=message;uploadStatus.style.color=bad?"#a12622":"#176b43";}
+      filesInput.addEventListener("change",function(){
+        fileRows.replaceChildren();uploadItems=[];
+        Array.from(filesInput.files||[]).forEach(function(file,index){
+          const row=document.createElement("fieldset");row.style.cssText="min-width:0;border:1px solid #e5e7eb;border-radius:10px;padding:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:10px";
+          const legend=document.createElement("legend");legend.textContent=file.name+" · "+Math.max(1,Math.round(file.size/1024))+" KB";
+          const titleWrap=document.createElement("div");titleWrap.className="dashboard-crud-field";
+          const titleLabel=document.createElement("label");titleLabel.textContent="Title (required)";
+          const titleInput=document.createElement("input");titleInput.className="dashboard-crud-input";titleInput.required=true;titleInput.maxLength=180;titleInput.value=file.name.replace(/\.[^.]+$/,"").trim();titleInput.setAttribute("aria-label","Title for "+file.name);
+          const descWrap=document.createElement("div");descWrap.className="dashboard-crud-field";
+          const descLabel=document.createElement("label");descLabel.textContent="Description (optional)";
+          const descInput=document.createElement("input");descInput.className="dashboard-crud-input";descInput.maxLength=1000;descInput.placeholder="Description";descInput.setAttribute("aria-label","Description for "+file.name);
+          const tagsWrap=document.createElement("div");tagsWrap.className="dashboard-crud-field";
+          const tagsLabel=document.createElement("label");tagsLabel.textContent="Tags (optional)";
+          const tagsInput=document.createElement("input");tagsInput.className="dashboard-crud-input";tagsInput.placeholder="Comma-separated tags";tagsInput.maxLength=500;tagsInput.setAttribute("aria-label","Tags for "+file.name);
+          const altWrap=document.createElement("div");altWrap.className="dashboard-crud-field";
+          const altLabel=document.createElement("label");altLabel.textContent="Alt text (optional)";
+          const altInput=document.createElement("input");altInput.className="dashboard-crud-input";altInput.maxLength=500;altInput.placeholder="Image description";altInput.setAttribute("aria-label","Alt text for "+file.name);
+          titleWrap.append(titleLabel,titleInput);descWrap.append(descLabel,descInput);tagsWrap.append(tagsLabel,tagsInput);altWrap.append(altLabel,altInput);
+          row.append(legend,titleWrap,descWrap,tagsWrap,altWrap);fileRows.append(row);
+          uploadItems.push({file:file,title:titleInput,description:descInput,tags:tagsInput,alt:altInput,row:row});
+        });
+        setUploadStatus(uploadItems.length?uploadItems.length+" file(s) selected. Add a title for each file, then upload.":"",false);
+      });
+      uploadForm.addEventListener("submit",async function(event){
+        event.preventDefault();
+        if(!uploadItems.length){setUploadStatus("Choose at least one file first.",true);filesInput.focus();return;}
+        const user=await getCurrentUser();
+        if(!user||String(user.app_metadata&&user.app_metadata.role||"").toLowerCase()!=="admin"){setUploadStatus("An active administrator session is required to upload media.",true);return;}
+        for(const item of uploadItems){
+          if(!allowedUploadTypes.has(item.file.type)||item.file.size>50*1024*1024){setUploadStatus("Unsupported file or file exceeds 50 MB: "+item.file.name+". Remove it and choose a supported file.",true);return;}
+          if(!item.title.value.trim()){setUploadStatus("Every file needs a title: "+item.file.name,true);item.title.focus();return;}
+        }
+        uploadButton.disabled=true;filesInput.disabled=true;visibilitySelect.disabled=true;
+        let uploaded=0;const failures=[];
+        try{
+          for(let i=0;i<uploadItems.length;i++){
+            const item=uploadItems[i];const file=item.file;let path="";
+            setUploadStatus("Uploading "+(i+1)+" of "+uploadItems.length+": "+file.name,false);
+            item.row.style.borderColor="#94a3b8";
+            try{
+              const extension=(file.name.match(/\.([a-zA-Z0-9]{1,10})$/)||[])[1]||"bin";
+              const folder=visibilitySelect.value==="public"?"public":"private";
+              path=folder+"/"+user.id+"/"+crypto.randomUUID()+"."+extension.toLowerCase();
+              const {error:uploadError}=await supabaseClient.storage.from("content-files").upload(path,file,{contentType:file.type,cacheControl:"3600",upsert:false});
+              if(uploadError)throw uploadError;
+              const metadata={
+                title:item.title.value.trim(),
+                description:item.description.value.trim()||null,
+                tags:item.tags.value.split(",").map(function(tag){return tag.trim();}).filter(Boolean),
+                alt_text:item.alt.value.trim()||null,
+                original_filename:file.name,
+                storage_bucket:"content-files",
+                storage_path:path,
+                mime_type:file.type,
+                size_bytes:file.size,
+                created_by:user.id
+              };
+              const {error:assetError}=await supabaseClient.from("media_assets").insert(metadata);
+              if(assetError)throw assetError;
+              uploaded++;item.row.style.borderColor="#86b99d";
+              const rowStatus=document.createElement("p");rowStatus.className="dashboard-crud-hint";rowStatus.textContent="Uploaded successfully.";item.row.append(rowStatus);
+            }catch(error){
+              if(path)await supabaseClient.storage.from("content-files").remove([path]).catch(function(){});
+              failures.push(file.name+": "+(error.message||"Upload failed"));
+              item.row.style.borderColor="#d88b85";
+              const rowStatus=document.createElement("p");rowStatus.className="dashboard-crud-hint";rowStatus.style.color="#a12622";rowStatus.textContent="Failed: "+(error.message||"Upload failed");item.row.append(rowStatus);
+            }
+          }
+          await load();
+          setUploadStatus(uploaded+" of "+uploadItems.length+" file(s) uploaded to Media Library. "+(failures.length?failures.length+" failed — review each file above.":"No content record was created."),failures.length>0);
+          if(!failures.length){uploadForm.reset();fileRows.replaceChildren();uploadItems=[];}
+        }finally{
+          uploadButton.disabled=false;filesInput.disabled=false;visibilitySelect.disabled=false;
+        }
+      });
       let assets=[];
       const say=(msg,bad=false,target=status)=>{target.textContent=msg;target.style.color=bad?"#a12622":"#176b43";};
       async function load(){
