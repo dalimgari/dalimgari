@@ -287,18 +287,13 @@
 
     let dalimgariRuntimeConfig = {};
     let dalimgariHomeObserver = null;
-    let dalimgariSiteConfigCache = null;
-    let dalimgariSiteConfigCacheAt = 0;
     let dalimgariSiteConfigRequest = null;
-    // Loads public-safe configuration saved by the dashboard and applies supported settings.
-    // Reuse the read result briefly to avoid duplicate queries during one navigation; forced
-    // refreshes after dashboard saves still bypass the cache.
+    // Loads current public-safe configuration. Only simultaneous reads are deduplicated;
+    // settings are not kept in a time-based cache so maintenance/visibility changes stay fresh.
     async function applyDalimgariSiteConfig(force=false) {
       const keys=["ui_customization_identity","ui_customization_theme","ui_customization_header_footer","ui_customization_layout","ui_customization_typography","ui_customization_responsive","ui_customization_components","ui_customization_media","ui_customization_page_style","ui_customization_effects","ui_customization_hero","ui_settings_general","ui_settings_homepage_defaults","ui_settings_content_defaults","ui_settings_users_access","ui_settings_privacy_visibility","ui_settings_maintenance_features"];
       let cfg = null;
-      if (!force && dalimgariSiteConfigCache && Date.now() - dalimgariSiteConfigCacheAt < 30000) {
-        cfg = dalimgariSiteConfigCache;
-      } else if (!force && dalimgariSiteConfigRequest) {
+      if (!force && dalimgariSiteConfigRequest) {
         cfg = await dalimgariSiteConfigRequest;
       } else {
         const request = (async () => {
@@ -308,13 +303,13 @@
           for(const row of data||[]){let value=row.value||{};if(typeof value==="string"){try{value=JSON.parse(value)}catch(_){value={}}}parsed[row.key]=value&&typeof value==="object"?value:{};}
           return parsed;
         })();
-        if (!force) dalimgariSiteConfigRequest = request;
-        cfg = await request;
-        if (cfg) {
-          dalimgariSiteConfigCache = cfg;
-          dalimgariSiteConfigCacheAt = Date.now();
+        if (!force) {
+          dalimgariSiteConfigRequest = request;
+          try { cfg = await request; }
+          finally { if (dalimgariSiteConfigRequest === request) dalimgariSiteConfigRequest = null; }
+        } else {
+          cfg = await request;
         }
-        if (!force) dalimgariSiteConfigRequest = null;
       }
       if (!cfg) return {};
       dalimgariRuntimeConfig = cfg;
