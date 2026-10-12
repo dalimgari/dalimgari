@@ -50,3 +50,17 @@ test("database migration files are present and non-empty", () => {
     assert.ok(fs.statSync(path.join(dir, name)).size > 0, `Empty migration: ${name}`);
   }
 });
+
+test("homepage template loading overlaps initial setup and site configuration is cached", () => {
+  const app = read("app.js");
+  assert.match(app, /let dalimgariSiteConfigCache = null;/);
+  assert.match(app, /if \(!dalimgariSiteConfigPromise\)/);
+  const renderHomeAt = app.indexOf("async function renderHome()");
+  const templateStart = app.indexOf("const homeTemplatePromise =", renderHomeAt);
+  const parallelSetupStart = app.indexOf("const [siteConfig, currentUser] = await Promise.all", renderHomeAt);
+  assert.ok(renderHomeAt >= 0, "Homepage renderer was not found");
+  assert.ok(templateStart > renderHomeAt && templateStart < parallelSetupStart,
+    "Homepage template should start loading before initial setup is awaited");
+  assert.ok(app.includes("const templateResult = await homeTemplatePromise;"));
+  assert.ok(app.includes("if (force) {"), "Dashboard-triggered forced configuration refresh must remain available");
+});

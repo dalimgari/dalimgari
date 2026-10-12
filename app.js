@@ -260,14 +260,41 @@
 
 
     let dalimgariRuntimeConfig = {};
+    let dalimgariSiteConfigCache = null;
+    let dalimgariSiteConfigPromise = null;
+    let dalimgariSiteConfigRequestId = 0;
     let dalimgariHomeObserver = null;
-    // Loads public-safe configuration saved by the dashboard and applies supported settings.
+    // Loads public-safe configuration once per page lifecycle; force=true refreshes after dashboard saves.
     async function applyDalimgariSiteConfig(force=false) {
       const keys=["ui_customization_identity","ui_customization_theme","ui_customization_header_footer","ui_customization_layout","ui_customization_typography","ui_customization_responsive","ui_customization_components","ui_customization_media","ui_customization_page_style","ui_customization_effects","ui_customization_hero","ui_settings_general","ui_settings_homepage_defaults","ui_settings_content_defaults","ui_settings_users_access","ui_settings_privacy_visibility","ui_settings_maintenance_features"];
-      const {data,error}=await supabaseClient.from("site_customizations").select("key,value").in("key",keys);
-      if(error){console.warn("Site configuration could not be loaded:",error.message);return {};}
-      const cfg={};
-      for(const row of data||[]){let value=row.value||{};if(typeof value==="string"){try{value=JSON.parse(value)}catch(_){value={}}}cfg[row.key]=value&&typeof value==="object"?value:{};}
+      if (force) {
+        dalimgariSiteConfigCache = null;
+        dalimgariSiteConfigPromise = null;
+        dalimgariSiteConfigRequestId += 1;
+      }
+      let cfg = dalimgariSiteConfigCache;
+      if (!cfg) {
+        if (!dalimgariSiteConfigPromise) {
+          const requestId = ++dalimgariSiteConfigRequestId;
+          dalimgariSiteConfigPromise = (async () => {
+            try {
+              const {data,error}=await supabaseClient.from("site_customizations").select("key,value").in("key",keys);
+              if(error){console.warn("Site configuration could not be loaded:",error.message);return null;}
+              const parsed={};
+              for(const row of data||[]){let value=row.value||{};if(typeof value==="string"){try{value=JSON.parse(value)}catch(_){value={}}}parsed[row.key]=value&&typeof value==="object"?value:{};}
+              if (requestId === dalimgariSiteConfigRequestId) dalimgariSiteConfigCache = parsed;
+              return parsed;
+            } catch (error) {
+              console.warn("Site configuration could not be loaded:", error);
+              return null;
+            }
+          })();
+        }
+        const pending = dalimgariSiteConfigPromise;
+        cfg = await pending;
+        if (dalimgariSiteConfigPromise === pending) dalimgariSiteConfigPromise = null;
+      }
+      if (!cfg) return {};
       dalimgariRuntimeConfig = cfg;
       const identity=cfg.ui_customization_identity||{}, general=cfg.ui_settings_general||{};
       const theme=cfg.ui_customization_theme||{}, header=cfg.ui_customization_header_footer||{};
@@ -611,9 +638,21 @@
     }
 
     async function renderHome() {
-      const siteConfig = await applyDalimgariSiteConfig();
+      // Fetch the small homepage template while Supabase configuration and session checks run.
+      const homeTemplatePromise = (async () => {
+        try {
+          const response = await fetch(new URL("home.html", window.location.href), { credentials: "same-origin" });
+          if (!response.ok) throw new Error("home.html returned HTTP " + response.status);
+          return { markup: await response.text(), error: null };
+        } catch (error) {
+          return { markup: null, error };
+        }
+      })();
+      const [siteConfig, currentUser] = await Promise.all([
+        applyDalimgariSiteConfig(),
+        getCurrentUser()
+      ]);
       const maintenance = siteConfig.ui_settings_maintenance_features || {};
-      const currentUser = await getCurrentUser();
       const currentRole = String((currentUser && currentUser.app_metadata && currentUser.app_metadata.role) || "").toLowerCase();
       if (maintenance.maintenance_mode && currentRole !== "admin") {
         const notice = document.createElement("section");
@@ -638,9 +677,9 @@
       // Home section structure lives in home.html; shared rendering and data logic stay here.
       let page;
       try {
-        const homeResponse = await fetch(new URL("home.html", window.location.href), { credentials: "same-origin" });
-        if (!homeResponse.ok) throw new Error("home.html returned HTTP " + homeResponse.status);
-        const homeMarkup = await homeResponse.text();
+        const templateResult = await homeTemplatePromise;
+        if (templateResult.error) throw templateResult.error;
+        const homeMarkup = templateResult.markup;
         const homeDocument = new DOMParser().parseFromString(homeMarkup, "text/html");
         const requiredSections = ["home-hero", "home-page-title", "home-widget", "home-album", "home-page-card"];
         if (homeDocument.querySelectorAll(".home-page").length !== 1) throw new Error("home.html must contain exactly one .home-page template");
