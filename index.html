@@ -2887,8 +2887,9 @@
             }
           }
           await load();
-          setUploadStatus(uploaded+" of "+uploadItems.length+" file(s) uploaded to Media Library. "+(failures.length?failures.length+" failed — review each file above.":"No content record was created."),failures.length>0);
+          setUploadStatus(uploaded+" of "+(uploaded+failures.length)+" file(s) uploaded to Media Library. "+(failures.length?failures.length+" failed — only failed files remain selected for retry.":"No content record was created."),failures.length>0);
           if(!failures.length){uploadForm.reset();fileRows.replaceChildren();uploadItems=[];}
+          else{uploadItems=uploadItems.filter(function(item){return failures.some(function(failure){return failure.startsWith(item.file.name+": ");});});}
         }finally{
           uploadButton.disabled=false;filesInput.disabled=false;visibilitySelect.disabled=false;
         }
