@@ -708,6 +708,40 @@
       pillBar.replaceChildren();
       await applyDalimgariSiteConfig();
 
+      // Start loading the hero record and image before unrelated homepage sections.
+      // The hero image is the measured LCP element on production.
+      const heroContentPromise = (async () => {
+        const { data: heroRecord } = await supabaseClient.from("hero_items")
+          .select("title,description,media,visibility").eq("visibility","public").order("created_at",{ascending:false}).limit(1).maybeSingle();
+        let headline = String(heroRecord?.title || "").trim();
+        let welcomeMessage = String(heroRecord?.description || "").trim();
+        let heroImageUrl = "";
+        const heroMedia = Array.isArray(heroRecord?.media) ? heroRecord.media : [];
+        const firstImage = heroMedia.find(item => String(item.mime_type || "").startsWith("image/"));
+        if (firstImage?.path) heroImageUrl = await createContentMediaUrl(firstImage.path);
+        if (!heroRecord) {
+          const { data, error } = await supabaseClient.from("site_customizations").select("value").eq("key", "home_hero").maybeSingle();
+          if (!error && data && data.value) {
+            let heroData = data.value;
+            if (typeof heroData === "string") { try { heroData = JSON.parse(heroData); } catch (_) { heroData = {}; } }
+            if (heroData && typeof heroData === "object") {
+              headline = String(heroData.headline || "").trim();
+              welcomeMessage = String(heroData.welcomeMessage || "").trim();
+              heroImageUrl = String(heroData.heroImageUrl || "").trim();
+            }
+          }
+        }
+        // Warm the image request as soon as its signed URL is available, without
+        // changing its source, access policy, or displayed dimensions.
+        if (heroImageUrl) {
+          const preloadImage = new Image();
+          preloadImage.fetchPriority = "high";
+          preloadImage.decoding = "async";
+          preloadImage.src = heroImageUrl;
+        }
+        return { headline, welcomeMessage, heroImageUrl };
+      })();
+
       // Optional homepage placement map, configured in Dashboard > Customizations
       // with key "home_page_includes" and JSON such as {"home-page-title":"about-us"}.
       const { data: includeConfigRow } = await supabaseClient.from("site_customizations")
@@ -814,32 +848,12 @@
         else if (pillMotion.addListener) pillMotion.addListener(startPillAutoScroll);
         startPillAutoScroll();
       }
-      // The hero record is independent of widget/card rendering, so overlap the network reads.
-      const heroRecordPromise = supabaseClient.from("hero_items")
-        .select("title,description,media,visibility").eq("visibility","public").order("created_at",{ascending:false}).limit(1).maybeSingle();
-      await renderHomepageContentCards(siteConfig);
+      // Render lower homepage sections concurrently; do not make the hero wait for them.
+      const homepageCardsPromise = renderHomepageContentCards(siteConfig);
 
       // The uploader is a normal homepage section, not a separate page or route.
 
-      const { data: heroRecord } = await heroRecordPromise;
-      let headline = String(heroRecord?.title || "").trim();
-      let welcomeMessage = String(heroRecord?.description || "").trim();
-      let heroImageUrl = "";
-      const heroMedia = Array.isArray(heroRecord?.media) ? heroRecord.media : [];
-      const firstImage = heroMedia.find(item => String(item.mime_type || "").startsWith("image/"));
-      if (firstImage?.path) heroImageUrl = await createContentMediaUrl(firstImage.path);
-      if (!heroRecord) {
-        const { data, error } = await supabaseClient.from("site_customizations").select("value").eq("key", "home_hero").maybeSingle();
-        if (!error && data && data.value) {
-          let heroData=data.value;
-          if(typeof heroData==="string"){try{heroData=JSON.parse(heroData)}catch(_){heroData={}}}
-          if(heroData&&typeof heroData==="object"){
-            headline=String(heroData.headline||"").trim();
-            welcomeMessage=String(heroData.welcomeMessage||"").trim();
-            heroImageUrl=String(heroData.heroImageUrl||"").trim();
-          }
-        }
-      }
+      const { headline, welcomeMessage, heroImageUrl } = await heroContentPromise;
       if (!headline && !welcomeMessage && !heroImageUrl && !String((siteConfig.ui_customization_identity||{}).tagline||"").trim()) return;
 
       // Keep the image as the floating hero surface and layer its text over the center.
@@ -852,6 +866,7 @@
         image.alt = "";
         image.loading = "eager";
         image.decoding = "async";
+        image.fetchPriority = "high";
         image.style.cssText = "position:absolute;inset:0;z-index:-2;display:block;width:100%;height:100%;max-width:100%;object-fit:cover;object-position:center";
         imageFrame.append(image);
         const shade = document.createElement("div");
@@ -879,6 +894,7 @@
       }
       imageFrame.append(textOverlay);
       heroSection.append(imageFrame);
+      await homepageCardsPromise;
     }
 
     async function renderHomepageContentCards(siteConfig){
