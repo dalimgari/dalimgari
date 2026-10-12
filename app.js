@@ -747,6 +747,79 @@
         }
       }
 
+      // Start independent content reads before building homepage page-navigation controls.
+      const homepageCardsPromise = renderHomepageContentCards(siteConfig).catch(error => {
+        console.error("Homepage sections could not be rendered:", error);
+      });
+      const heroRenderPromise = (async () => {
+      const heroRecordPromise = (async () => {
+        const { data: heroRecord } = await supabaseClient.from("hero_items")
+          .select("title,description,media,visibility").eq("visibility","public").order("created_at",{ascending:false}).limit(1).maybeSingle();
+        let heroImageUrl = "";
+        const heroMedia = Array.isArray(heroRecord?.media) ? heroRecord.media : [];
+        const firstImage = heroMedia.find(item => String(item.mime_type || "").startsWith("image/"));
+        if (firstImage?.path) heroImageUrl = await createContentMediaUrl(firstImage.path);
+        return { heroRecord, heroImageUrl };
+      })();
+      // The uploader is a normal homepage section, not a separate page or route.
+
+      const { heroRecord, heroImageUrl: resolvedHeroImageUrl } = await heroRecordPromise;
+      let headline = String(heroRecord?.title || "").trim();
+      let welcomeMessage = String(heroRecord?.description || "").trim();
+      let heroImageUrl = resolvedHeroImageUrl;
+      if (!heroRecord) {
+        const { data, error } = await supabaseClient.from("site_customizations").select("value").eq("key", "home_hero").maybeSingle();
+        if (!error && data && data.value) {
+          let heroData=data.value;
+          if(typeof heroData==="string"){try{heroData=JSON.parse(heroData)}catch(_){heroData={}}}
+          if(heroData&&typeof heroData==="object"){
+            headline=String(heroData.headline||"").trim();
+            welcomeMessage=String(heroData.welcomeMessage||"").trim();
+            heroImageUrl=String(heroData.heroImageUrl||"").trim();
+          }
+        }
+      }
+      if (!headline && !welcomeMessage && !heroImageUrl && !String((siteConfig.ui_customization_identity||{}).tagline||"").trim()) return;
+
+      // Keep the image as the floating hero surface and layer its text over the center.
+      const imageFrame = document.createElement("div");
+      imageFrame.className = "home-hero-image-frame";
+      imageFrame.style.cssText = "position:relative;isolation:isolate;display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:100%;aspect-ratio:16/9;margin:0;overflow:hidden;border:1px solid rgba(148,163,184,.35);border-radius:20px;background:linear-gradient(135deg,#e2e8f0,#f8fafc);box-shadow:0 14px 36px rgba(15,23,42,.16)";
+      if (heroImageUrl) {
+        const image = document.createElement("img");
+        image.src = heroImageUrl;
+        image.alt = "";
+        image.loading = "eager";
+        image.decoding = "async";
+        image.style.cssText = "position:absolute;inset:0;z-index:-2;display:block;width:100%;height:100%;max-width:100%;object-fit:cover;object-position:center";
+        imageFrame.append(image);
+        const shade = document.createElement("div");
+        shade.setAttribute("aria-hidden", "true");
+        shade.style.cssText = "position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(15,23,42,.48),rgba(15,23,42,.2),rgba(15,23,42,.48))";
+        imageFrame.append(shade);
+      }
+
+      const textOverlay = document.createElement("div");
+      textOverlay.className = "home-hero-text-overlay";
+      textOverlay.style.cssText = "position:relative;z-index:1;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-height:100%;overflow-y:auto;padding:clamp(16px,4vw,44px);text-align:center;color:" + (heroImageUrl ? "#fff" : "#334155") + ";text-shadow:" + (heroImageUrl ? "0 2px 12px rgba(0,0,0,.5)" : "none");
+      const tagline=String((siteConfig.ui_customization_identity||{}).tagline||"").trim();
+      if(tagline){const tag=document.createElement("p");tag.className="home-tagline";tag.textContent=tagline;textOverlay.append(tag);}
+      if (headline) {
+        const heading = document.createElement("h1");
+        heading.textContent = headline;
+        heading.style.cssText = "max-width:900px;margin:0 0 12px;font-size:clamp(24px,5.5vw,52px);line-height:1.12;font-weight:750;overflow-wrap:anywhere";
+        textOverlay.append(heading);
+      }
+      if (welcomeMessage) {
+        const welcome = document.createElement("p");
+        welcome.textContent = welcomeMessage;
+        welcome.style.cssText = "max-width:760px;margin:0;font-size:clamp(14px,2.5vw,20px);line-height:1.55;overflow-wrap:anywhere";
+        textOverlay.append(welcome);
+      }
+      imageFrame.append(textOverlay);
+      heroSection.append(imageFrame);
+      })();
+
       // Public Pages appear as pill buttons in the homepage Page Title section.
       const pageTitleSection = extraSections[0];
       pillBar.setAttribute("aria-label", "Pages");
@@ -828,80 +901,8 @@
         else if (pillMotion.addListener) pillMotion.addListener(startPillAutoScroll);
         startPillAutoScroll();
       }
-      // Fetch the hero record and its signed image URL while independent homepage cards load.
-      const heroRecordPromise = (async () => {
-        const { data: heroRecord } = await supabaseClient.from("hero_items")
-          .select("title,description,media,visibility").eq("visibility","public").order("created_at",{ascending:false}).limit(1).maybeSingle();
-        let heroImageUrl = "";
-        const heroMedia = Array.isArray(heroRecord?.media) ? heroRecord.media : [];
-        const firstImage = heroMedia.find(item => String(item.mime_type || "").startsWith("image/"));
-        if (firstImage?.path) heroImageUrl = await createContentMediaUrl(firstImage.path);
-        return { heroRecord, heroImageUrl };
-      })();
-      // Populate independent homepage sections while the hero is being prepared.
-      // This keeps the hero from waiting for widget/album/page preview rendering.
-      const homepageCardsPromise = renderHomepageContentCards(siteConfig).catch(error => {
-        console.error("Homepage sections could not be rendered:", error);
-      });
 
-      // The uploader is a normal homepage section, not a separate page or route.
-
-      const { heroRecord, heroImageUrl: resolvedHeroImageUrl } = await heroRecordPromise;
-      let headline = String(heroRecord?.title || "").trim();
-      let welcomeMessage = String(heroRecord?.description || "").trim();
-      let heroImageUrl = resolvedHeroImageUrl;
-      if (!heroRecord) {
-        const { data, error } = await supabaseClient.from("site_customizations").select("value").eq("key", "home_hero").maybeSingle();
-        if (!error && data && data.value) {
-          let heroData=data.value;
-          if(typeof heroData==="string"){try{heroData=JSON.parse(heroData)}catch(_){heroData={}}}
-          if(heroData&&typeof heroData==="object"){
-            headline=String(heroData.headline||"").trim();
-            welcomeMessage=String(heroData.welcomeMessage||"").trim();
-            heroImageUrl=String(heroData.heroImageUrl||"").trim();
-          }
-        }
-      }
-      if (!headline && !welcomeMessage && !heroImageUrl && !String((siteConfig.ui_customization_identity||{}).tagline||"").trim()) return;
-
-      // Keep the image as the floating hero surface and layer its text over the center.
-      const imageFrame = document.createElement("div");
-      imageFrame.className = "home-hero-image-frame";
-      imageFrame.style.cssText = "position:relative;isolation:isolate;display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:100%;aspect-ratio:16/9;margin:0;overflow:hidden;border:1px solid rgba(148,163,184,.35);border-radius:20px;background:linear-gradient(135deg,#e2e8f0,#f8fafc);box-shadow:0 14px 36px rgba(15,23,42,.16)";
-      if (heroImageUrl) {
-        const image = document.createElement("img");
-        image.src = heroImageUrl;
-        image.alt = "";
-        image.loading = "eager";
-        image.decoding = "async";
-        image.style.cssText = "position:absolute;inset:0;z-index:-2;display:block;width:100%;height:100%;max-width:100%;object-fit:cover;object-position:center";
-        imageFrame.append(image);
-        const shade = document.createElement("div");
-        shade.setAttribute("aria-hidden", "true");
-        shade.style.cssText = "position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(15,23,42,.48),rgba(15,23,42,.2),rgba(15,23,42,.48))";
-        imageFrame.append(shade);
-      }
-
-      const textOverlay = document.createElement("div");
-      textOverlay.className = "home-hero-text-overlay";
-      textOverlay.style.cssText = "position:relative;z-index:1;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-height:100%;overflow-y:auto;padding:clamp(16px,4vw,44px);text-align:center;color:" + (heroImageUrl ? "#fff" : "#334155") + ";text-shadow:" + (heroImageUrl ? "0 2px 12px rgba(0,0,0,.5)" : "none");
-      const tagline=String((siteConfig.ui_customization_identity||{}).tagline||"").trim();
-      if(tagline){const tag=document.createElement("p");tag.className="home-tagline";tag.textContent=tagline;textOverlay.append(tag);}
-      if (headline) {
-        const heading = document.createElement("h1");
-        heading.textContent = headline;
-        heading.style.cssText = "max-width:900px;margin:0 0 12px;font-size:clamp(24px,5.5vw,52px);line-height:1.12;font-weight:750;overflow-wrap:anywhere";
-        textOverlay.append(heading);
-      }
-      if (welcomeMessage) {
-        const welcome = document.createElement("p");
-        welcome.textContent = welcomeMessage;
-        welcome.style.cssText = "max-width:760px;margin:0;font-size:clamp(14px,2.5vw,20px);line-height:1.55;overflow-wrap:anywhere";
-        textOverlay.append(welcome);
-      }
-      imageFrame.append(textOverlay);
-      heroSection.append(imageFrame);
-      await homepageCardsPromise;
+      await Promise.all([heroRenderPromise, homepageCardsPromise]);
     }
 
     async function renderHomepageContentCards(siteConfig){
