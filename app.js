@@ -837,7 +837,11 @@
         if (firstImage?.path) heroImageUrl = await createContentMediaUrl(firstImage.path);
         return { heroRecord, heroImageUrl };
       })();
-      await renderHomepageContentCards(siteConfig);
+      // Populate independent homepage sections while the hero is being prepared.
+      // This keeps the hero from waiting for widget/album/page preview rendering.
+      const homepageCardsPromise = renderHomepageContentCards(siteConfig).catch(error => {
+        console.error("Homepage sections could not be rendered:", error);
+      });
 
       // The uploader is a normal homepage section, not a separate page or route.
 
@@ -896,6 +900,7 @@
       }
       imageFrame.append(textOverlay);
       heroSection.append(imageFrame);
+      await homepageCardsPromise;
     }
 
     async function renderHomepageContentCards(siteConfig){
