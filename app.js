@@ -1048,6 +1048,16 @@
               albums.splice(0,albums.length,...orderedAlbums);
             }
           }catch(orderError){console.warn("Could not load homepage album order:",orderError);}
+          // Resolve all album cover images in one Storage batch instead of waiting on
+          // one signed-URL request per image while building each card.
+          const albumImagePaths = [...new Set(albums.flatMap(album => {
+            const media = Array.isArray(album.media) ? album.media : [];
+            const imagePaths = media
+              .filter(item => String(item?.mime_type || "").startsWith("image/") && typeof item?.path === "string" && item.path)
+              .map(item => item.path);
+            return imagePaths.length ? imagePaths : [album.cover_path].filter(path => typeof path === "string" && path);
+          }))];
+          const albumImageUrls = await createContentMediaUrls(albumImagePaths);
           const grid=makeGrid();
           grid.classList.add("home-album-carousel");
           grid.style.cssText="display:flex;flex-wrap:nowrap;gap:16px;width:100%;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;scroll-behavior:auto;overscroll-behavior-x:contain;padding:2px 1px 12px";
@@ -1057,11 +1067,11 @@
             const coverImages=[];
             for(const item of media){
               if(!String(item.mime_type||"").startsWith("image/")||!item.path)continue;
-              const imageUrl=await createContentMediaUrl(item.path);
+              const imageUrl=albumImageUrls.get(item.path)||"";
               if(imageUrl)coverImages.push({url:imageUrl,alt:item.alt_text||item.title||item.name||album.title||""});
             }
             if(!coverImages.length&&album.cover_path){
-              const coverUrl=await createContentMediaUrl(album.cover_path);
+              const coverUrl=albumImageUrls.get(album.cover_path)||"";
               if(coverUrl)coverImages.push({url:coverUrl,alt:album.title||""});
             }
             if(coverImages.length){
