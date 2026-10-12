@@ -1373,33 +1373,38 @@
       mainContent.style.alignItems = "flex-start";
       mainContent.style.justifyContent = "flex-start";
 
-      const page = document.createElement("section");
-      page.className = "home-page";
-      page.setAttribute("aria-label", "Home page sections");
-      page.style.cssText = "width:100%;max-width:1200px;min-height:1px;margin:0 auto;padding:0 16px 32px";
-
-      const heroSection = document.createElement("section");
-      heroSection.className = "home-section home-hero";
-      heroSection.setAttribute("aria-label", "Hero");
-      heroSection.style.cssText = "width:100%;min-width:0;max-width:100%;padding:24px 0 32px";
-
-      const sectionNames = [
-        ["Page Title", "home-page-title"],
-        ["Widget", "home-widget"],
-        ["Album", "home-album"],
-        ["Page Card", "home-page-card"],
-      ];
-      const extraSections = sectionNames.map(([name, className]) => {
-        const section = document.createElement("section");
-        section.className = "home-section " + className;
-        section.setAttribute("aria-label", name);
-        section.style.cssText = "width:100%;min-width:0;max-width:100%;min-height:1px;padding:0 0 24px;box-sizing:border-box";
-        return section;
-      });
-
-      // Keep Media Upload immediately below the hero, before the other homepage sections.
-      page.append(heroSection, ...extraSections);
-      mainContent.replaceChildren(page);
+      // Home section structure lives in home.html; shared rendering and data logic stay here.
+      let page;
+      try {
+        const homeResponse = await fetch(new URL("home.html", window.location.href), { credentials: "same-origin" });
+        if (!homeResponse.ok) throw new Error("home.html returned HTTP " + homeResponse.status);
+        const homeMarkup = await homeResponse.text();
+        const homeDocument = new DOMParser().parseFromString(homeMarkup, "text/html");
+        const requiredSections = ["home-hero", "home-page-title", "home-widget", "home-album", "home-page-card"];
+        if (homeDocument.querySelectorAll(".home-page").length !== 1) throw new Error("home.html must contain exactly one .home-page template");
+        page = homeDocument.querySelector(".home-page");
+        if (requiredSections.some(className => page.querySelectorAll("." + className).length !== 1) ||
+            page.querySelectorAll(".home-page-pillbar").length !== 1) {
+          throw new Error("home.html is missing a required homepage section or contains duplicates");
+        }
+        mainContent.replaceChildren(page);
+      } catch (error) {
+        console.error("Could not load the homepage template:", error);
+        const notice = document.createElement("section");
+        notice.style.cssText = "width:min(100% - 32px,760px);margin:48px auto;padding:28px;border:1px solid #e5e7eb;border-radius:14px;background:#fff;text-align:center";
+        const heading = document.createElement("h1");
+        heading.textContent = "Home page could not be loaded";
+        const detail = document.createElement("p");
+        detail.textContent = "Please refresh the page. If the problem continues, contact the site administrator.";
+        notice.append(heading, detail);
+        mainContent.replaceChildren(notice);
+        return;
+      }
+      const heroSection = page.querySelector(".home-hero");
+      const extraSections = [".home-page-title", ".home-widget", ".home-album", ".home-page-card"]
+        .map(selector => page.querySelector(selector));
+      const pillBar = page.querySelector(".home-page-pillbar");
+      pillBar.replaceChildren();
       await applyDalimgariSiteConfig();
 
       // Optional homepage placement map, configured in Dashboard > Customizations
@@ -1423,9 +1428,7 @@
 
       // Public Pages appear as pill buttons in the homepage Page Title section.
       const pageTitleSection = extraSections[0];
-      const pillBar = document.createElement("nav");
       pillBar.setAttribute("aria-label", "Pages");
-      pillBar.style.cssText = "position:sticky;top:var(--dg-page-pill-sticky-top,104px);z-index:9;display:flex;flex-wrap:nowrap;align-items:center;gap:10px;width:100%;overflow-x:auto;overflow-y:hidden;padding:8px 2px 10px;background:#fff;border-radius:12px;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:#c7c7c7 #f5f5f5";
       const [{data: publicPages, error: pagesError}, {data: pageOrderSetting}, {data: pillMotionSetting}] = await Promise.all([
         supabaseClient.from("pages").select("id,title,url,visibility,created_at").eq("visibility","public").order("created_at",{ascending:true}).limit(200),
         supabaseClient.from("site_customizations").select("value").eq("key","home_page_order").maybeSingle(),
@@ -1471,6 +1474,7 @@
         }
       }
       if (pillBar.childElementCount) {
+        pillBar.hidden = false;
         page.insertBefore(pillBar,pageTitleSection);
         const pillMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
         let pillAutoTimer = null;
