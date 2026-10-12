@@ -1700,6 +1700,13 @@
       if(albumSection){
         const {data:albums,error}=await supabaseClient.from("albums").select("id,title,description,url,cover_path,media,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(24);
         if(!error&&albums?.length){
+          // Hide empty albums from Home; a cover image also counts as visible album media.
+          const nonEmptyAlbums=albums.filter(album=>
+            Boolean(String(album.cover_path||"").trim())||
+            (Array.isArray(album.media)&&album.media.some(item=>item&&String(item.path||"").trim()))
+          );
+          albums.splice(0,albums.length,...nonEmptyAlbums);
+          if(!albums.length)return;
           try{
             const {data:orderSetting}=await supabaseClient.from("site_customizations").select("value").eq("key","home_album_order").maybeSingle();
             let albumIds=orderSetting?.value;
