@@ -717,14 +717,20 @@
         try { homeIncludes = JSON.parse(homeIncludes); } catch (_) { homeIncludes = {}; }
       }
       if (homeIncludes && typeof homeIncludes === "object" && !Array.isArray(homeIncludes)) {
-        for (const [sectionClass, rawSlug] of Object.entries(homeIncludes)) {
+        const includeTargets = Object.entries(homeIncludes).map(([sectionClass, rawSlug]) => {
           const target = [heroSection, ...extraSections].find(section => section.classList.contains(sectionClass));
           const slug = generatePageSlug(rawSlug);
-          if (!target || !slug) continue;
-          const { data: includedPage, error: includeError } = await supabaseClient.from("pages")
+          return target && slug ? { target, slug } : null;
+        }).filter(Boolean);
+        // These page reads are independent; fetch them concurrently instead of serially.
+        const includedPages = await Promise.all(includeTargets.map(async ({ target, slug }) => {
+          const { data, error } = await supabaseClient.from("pages")
             .select("content").eq("url", slug).maybeSingle();
-          if (!includeError && includedPage) await renderHtmlInto(target, includedPage.content || "", null);
-        }
+          return !error && data ? { target, content: data.content || "" } : null;
+        }));
+        await Promise.all(includedPages.filter(Boolean).map(({ target, content }) =>
+          renderHtmlInto(target, content, null)
+        ));
       }
 
       // Public Pages appear as pill buttons in the homepage Page Title section.
@@ -808,12 +814,14 @@
         else if (pillMotion.addListener) pillMotion.addListener(startPillAutoScroll);
         startPillAutoScroll();
       }
+      // The hero record is independent of widget/card rendering, so overlap the network reads.
+      const heroRecordPromise = supabaseClient.from("hero_items")
+        .select("title,description,media,visibility").eq("visibility","public").order("created_at",{ascending:false}).limit(1).maybeSingle();
       await renderHomepageContentCards(siteConfig);
 
       // The uploader is a normal homepage section, not a separate page or route.
 
-      const { data: heroRecord } = await supabaseClient.from("hero_items")
-        .select("title,description,media,visibility").eq("visibility","public").order("created_at",{ascending:false}).limit(1).maybeSingle();
+      const { data: heroRecord } = await heroRecordPromise;
       let headline = String(heroRecord?.title || "").trim();
       let welcomeMessage = String(heroRecord?.description || "").trim();
       let heroImageUrl = "";
