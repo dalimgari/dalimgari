@@ -225,29 +225,55 @@
     }
 
     async function createContentMediaUrl(path) {
-      if (!path) return "";
+      if (typeof path !== "string" || !path.trim()) return "";
       const { data, error } = await supabaseClient.storage.from("content-files").createSignedUrl(path, 3600);
       if (error) { console.warn("Could not create a content media URL:", error.message); return ""; }
       return data?.signedUrl || "";
+    }
+
+    // Generate signed URLs in one Storage request where possible. The bucket stays private;
+    // signed URLs remain short-lived and are never persisted in local/session storage.
+    async function createContentMediaUrls(paths) {
+      const uniquePaths = [...new Set(paths.filter(path => typeof path === "string" && path.trim()))];
+      if (!uniquePaths.length) return new Map();
+      const { data, error } = await supabaseClient.storage.from("content-files").createSignedUrls(uniquePaths, 3600);
+      if (!error && Array.isArray(data)) {
+        const urls = new Map();
+        for (const entry of data) {
+          if (entry?.path && entry?.signedUrl) urls.set(entry.path, entry.signedUrl);
+        }
+        // Preserve graceful handling for files that failed individually in a batch.
+        const missing = uniquePaths.filter(path => !urls.has(path));
+        if (missing.length) {
+          const fallback = await Promise.all(missing.map(async path => [path, await createContentMediaUrl(path)]));
+          for (const [path, url] of fallback) if (url) urls.set(path, url);
+        }
+        return urls;
+      }
+      // Compatibility fallback: retain existing per-file behavior if the batch endpoint fails.
+      console.warn("Batch content media URL creation failed; using individual requests:", error?.message || "Unexpected response");
+      const entries = await Promise.all(uniquePaths.map(async path => [path, await createContentMediaUrl(path)]));
+      return new Map(entries.filter(([, url]) => Boolean(url)));
     }
 
     async function renderContentMedia(container, media) {
       if (!Array.isArray(media) || !media.length) return;
       const gallery = document.createElement("div");
       gallery.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:18px";
+      const urls = await createContentMediaUrls(media.map(item => item?.path));
       for (const item of media) {
-        const url = await createContentMediaUrl(item.path);
+        const url = urls.get(item?.path) || "";
         if (!url) continue;
         const tile = document.createElement("div");
         tile.style.cssText = "min-width:0;padding:10px;border:1px solid #e5e7eb;border-radius:10px;overflow-wrap:anywhere";
         if (String(item.mime_type || "").startsWith("image/")) {
-          const image = document.createElement("img"); image.src = url; image.alt = item.alt_text || item.title || item.name || ""; image.loading = "lazy";
+          const image = document.createElement("img"); image.src = url; image.alt = item.alt_text || item.title || item.name || ""; image.loading = "lazy"; image.decoding = "async";
           image.style.cssText = "display:block;width:100%;max-height:320px;object-fit:contain;border-radius:6px"; tile.append(image);
         } else if (String(item.mime_type || "").startsWith("video/")) {
-          const video = document.createElement("video"); video.src = url; video.controls = true;
+          const video = document.createElement("video"); video.src = url; video.controls = true; video.preload = "metadata";
           video.style.cssText = "display:block;width:100%;max-height:320px;border-radius:6px"; tile.append(video);
         } else if (String(item.mime_type || "").startsWith("audio/")) {
-          const audio = document.createElement("audio"); audio.src = url; audio.controls = true; audio.style.width = "100%"; tile.append(audio);
+          const audio = document.createElement("audio"); audio.src = url; audio.controls = true; audio.preload = "none"; audio.style.width = "100%"; tile.append(audio);
         } else {
           const link = document.createElement("a"); link.href = url; link.target = "_blank"; link.rel = "noopener noreferrer";
           link.textContent = item.name || "Open file"; tile.append(link);
@@ -261,13 +287,36 @@
 
     let dalimgariRuntimeConfig = {};
     let dalimgariHomeObserver = null;
+    let dalimgariSiteConfigCache = null;
+    let dalimgariSiteConfigCacheAt = 0;
+    let dalimgariSiteConfigRequest = null;
     // Loads public-safe configuration saved by the dashboard and applies supported settings.
+    // Reuse the read result briefly to avoid duplicate queries during one navigation; forced
+    // refreshes after dashboard saves still bypass the cache.
     async function applyDalimgariSiteConfig(force=false) {
       const keys=["ui_customization_identity","ui_customization_theme","ui_customization_header_footer","ui_customization_layout","ui_customization_typography","ui_customization_responsive","ui_customization_components","ui_customization_media","ui_customization_page_style","ui_customization_effects","ui_customization_hero","ui_settings_general","ui_settings_homepage_defaults","ui_settings_content_defaults","ui_settings_users_access","ui_settings_privacy_visibility","ui_settings_maintenance_features"];
-      const {data,error}=await supabaseClient.from("site_customizations").select("key,value").in("key",keys);
-      if(error){console.warn("Site configuration could not be loaded:",error.message);return {};}
-      const cfg={};
-      for(const row of data||[]){let value=row.value||{};if(typeof value==="string"){try{value=JSON.parse(value)}catch(_){value={}}}cfg[row.key]=value&&typeof value==="object"?value:{};}
+      let cfg = null;
+      if (!force && dalimgariSiteConfigCache && Date.now() - dalimgariSiteConfigCacheAt < 30000) {
+        cfg = dalimgariSiteConfigCache;
+      } else if (!force && dalimgariSiteConfigRequest) {
+        cfg = await dalimgariSiteConfigRequest;
+      } else {
+        const request = (async () => {
+          const {data,error}=await supabaseClient.from("site_customizations").select("key,value").in("key",keys);
+          if(error){console.warn("Site configuration could not be loaded:",error.message);return null;}
+          const parsed={};
+          for(const row of data||[]){let value=row.value||{};if(typeof value==="string"){try{value=JSON.parse(value)}catch(_){value={}}}parsed[row.key]=value&&typeof value==="object"?value:{};}
+          return parsed;
+        })();
+        if (!force) dalimgariSiteConfigRequest = request;
+        cfg = await request;
+        if (cfg) {
+          dalimgariSiteConfigCache = cfg;
+          dalimgariSiteConfigCacheAt = Date.now();
+        }
+        if (!force) dalimgariSiteConfigRequest = null;
+      }
+      if (!cfg) return {};
       dalimgariRuntimeConfig = cfg;
       const identity=cfg.ui_customization_identity||{}, general=cfg.ui_settings_general||{};
       const theme=cfg.ui_customization_theme||{}, header=cfg.ui_customization_header_footer||{};
@@ -667,7 +716,7 @@
         .map(selector => page.querySelector(selector));
       const pillBar = page.querySelector(".home-page-pillbar");
       pillBar.replaceChildren();
-      await applyDalimgariSiteConfig();
+      // Site configuration was already loaded at the start of renderHome(); reuse it here.
 
       // Optional homepage placement map, configured in Dashboard > Customizations
       // with key "home_page_includes" and JSON such as {"home-page-title":"about-us"}.
