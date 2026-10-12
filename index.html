@@ -2877,11 +2877,11 @@
               };
               const {error:assetError}=await supabaseClient.from("media_assets").insert(metadata);
               if(assetError)throw assetError;
-              uploaded++;item.row.style.borderColor="#86b99d";
+              uploaded++;item.failed=false;item.row.style.borderColor="#86b99d";
               const rowStatus=document.createElement("p");rowStatus.className="dashboard-crud-hint";rowStatus.textContent="Uploaded successfully.";item.row.append(rowStatus);
             }catch(error){
               if(path)await supabaseClient.storage.from("content-files").remove([path]).catch(function(){});
-              failures.push(file.name+": "+(error.message||"Upload failed"));
+              item.failed=true;failures.push(file.name+": "+(error.message||"Upload failed"));
               item.row.style.borderColor="#d88b85";
               const rowStatus=document.createElement("p");rowStatus.className="dashboard-crud-hint";rowStatus.style.color="#a12622";rowStatus.textContent="Failed: "+(error.message||"Upload failed");item.row.append(rowStatus);
             }
@@ -2889,7 +2889,7 @@
           await load();
           setUploadStatus(uploaded+" of "+(uploaded+failures.length)+" file(s) uploaded to Media Library. "+(failures.length?failures.length+" failed — only failed files remain selected for retry.":"No content record was created."),failures.length>0);
           if(!failures.length){uploadForm.reset();fileRows.replaceChildren();uploadItems=[];}
-          else{uploadItems=uploadItems.filter(function(item){return failures.some(function(failure){return failure.startsWith(item.file.name+": ");});});}
+          else{uploadItems=uploadItems.filter(function(item){return item.failed===true;});}
         }finally{
           uploadButton.disabled=false;filesInput.disabled=false;visibilitySelect.disabled=false;
         }
