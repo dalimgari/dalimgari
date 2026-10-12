@@ -1698,15 +1698,13 @@
         }
       }
       if(albumSection){
-        const {data:albums,error}=await supabaseClient.from("albums").select("id,title,description,url,cover_path,media,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(24);
-        if(!error&&albums?.length){
-          // Hide empty albums from Home; a cover image also counts as visible album media.
-          const nonEmptyAlbums=albums.filter(album=>
-            Boolean(String(album.cover_path||"").trim())||
-            (Array.isArray(album.media)&&album.media.some(item=>item&&String(item.path||"").trim()))
-          );
-          albums.splice(0,albums.length,...nonEmptyAlbums);
-          if(!albums.length)return;
+        const {data:albumRows,error}=await supabaseClient.from("albums").select("id,title,description,url,cover_path,media,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(24);
+        // Home only shows albums with media items or a configured cover image.
+        const albums=Array.isArray(albumRows)?albumRows.filter(album=>
+          Boolean(String(album.cover_path||"").trim())||
+          (Array.isArray(album.media)&&album.media.some(item=>item&&String(item.path||"").trim()))
+        ):[];
+        if(!error&&albums.length){
           try{
             const {data:orderSetting}=await supabaseClient.from("site_customizations").select("value").eq("key","home_album_order").maybeSingle();
             let albumIds=orderSetting?.value;
