@@ -30,7 +30,7 @@
       });
 
       try {
-        const [supabaseReady, headerResponse, footerResponse] = await Promise.all([
+        const [, headerResponse, footerResponse] = await Promise.all([
           loadScript("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"),
           fetch(new URL("header.html", document.baseURI), { credentials: "same-origin" }),
           fetch(new URL("footer.html", document.baseURI), { credentials: "same-origin" })
