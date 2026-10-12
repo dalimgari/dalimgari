@@ -22,14 +22,11 @@
       const footerHost = document.getElementById("site-footer");
       const mainContent = document.getElementById("main-content");
 
-      const loadScript = (src) => new Promise((resolve) => {
+      const loadScript = (src) => new Promise((resolve, reject) => {
         const script = document.createElement("script");
         script.src = new URL(src, document.baseURI).href;
-        script.onload = () => resolve(true);
-        script.onerror = () => {
-          console.error("Could not load script:", src);
-          resolve(false);
-        };
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error("Could not load required script: " + src));
         document.body.appendChild(script);
       });
 
@@ -54,7 +51,11 @@
         await loadScript("header.js");
       } catch (error) {
         console.error("Site layout initialization failed:", error);
-        mainContent.innerHTML = '<p role="alert" style="margin:24px;padding:16px">The page layout could not be loaded. Please refresh the page and try again.</p>';
+        const errorMessage = document.createElement("p");
+        errorMessage.setAttribute("role", "alert");
+        errorMessage.style.cssText = "margin:24px;padding:16px";
+        errorMessage.textContent = "The page could not be initialized. Please refresh the page and try again.";
+        mainContent.replaceChildren(errorMessage);
       }
     })();
   </script>
