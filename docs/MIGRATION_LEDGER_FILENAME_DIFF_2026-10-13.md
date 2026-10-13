@@ -4,7 +4,7 @@
 
 Comparison of the production Supabase migration ledger with SQL files in `main`. Three new forward migrations were applied: one removed a redundant profile-insert trigger, one granted minimal table privileges required by the recycle-bin cleanup function, and one granted read-only access to `media_links` for reference checks. Existing migration records were not edited or replayed. This report does not imply that historical discrepancies have been resolved.
 
-Repository baseline after the latest cleanup: `e9b7e373b5aa58d98d2aa549e734fce347ae75b5`.
+Repository baseline after the latest cleanup: `cd6d62159ad56082367cef7a923388770b696ce8`.
 
 ## Snapshot
 
