@@ -285,6 +285,42 @@ export async function getPublicAlbumById(id: string): Promise<PublicGalleryAlbum
   };
 }
 
+
+export interface PublicWidget {
+  id: string;
+  widget_type: string;
+  title: string | null;
+  settings: Record<string, unknown>;
+}
+
+export async function getPublicPosts(limit = 12): Promise<PublicContentItem[]> {
+  const safeLimit = Math.max(1, Math.min(Math.floor(limit), 100));
+  const { data, error } = await getClient()
+    .from("post")
+    .select("id,title,content,media,visibility,created_at")
+    .eq("visibility", "public")
+    .order("created_at", { ascending: false })
+    .limit(safeLimit);
+  if (error) throw error;
+  return (data ?? []) as unknown as PublicContentItem[];
+}
+
+export async function getVisibleWidgets(): Promise<PublicWidget[]> {
+  const { data, error } = await getClient()
+    .from("widgets")
+    .select("id,widget_type,title,is_visible,settings,created_at")
+    .eq("is_visible", true)
+    .order("created_at", { ascending: true })
+    .limit(50);
+  if (error) throw error;
+  return (data ?? []).map((widget) => ({
+    id: widget.id,
+    widget_type: widget.widget_type,
+    title: widget.title,
+    settings: parseJsonObject(widget.settings),
+  }));
+}
+
 /** Fetches public posts, pages, or hero items using their shared legacy columns. */
 export async function getPublicContentItems(
   table: "post" | "pages" | "hero_items",
