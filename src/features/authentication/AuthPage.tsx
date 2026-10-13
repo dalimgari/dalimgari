@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../../services/supabase";
 
@@ -9,11 +9,23 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [recoveryMode, setRecoveryMode] = useState(() => typeof window !== "undefined" && window.sessionStorage.getItem("dalimgari-password-recovery") === "true");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState<"error" | "success" | "info">("info");
 
-  const title = mode === "login" ? "লগইন" : mode === "create-account" ? "নতুন অ্যাকাউন্ট" : "পাসওয়ার্ড পুনরুদ্ধার";
+  const title = mode === "login" ? "লগইন" : mode === "create-account" ? "নতুন অ্যাকাউন্ট" : recoveryMode ? "নতুন পাসওয়ার্ড সেট করুন" : "পাসওয়ার্ড পুনরুদ্ধার";
+
+  useEffect(() => {
+    if (mode !== "forgot-password" || !supabase) return;
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        window.sessionStorage.setItem("dalimgari-password-recovery", "true");
+        setRecoveryMode(true);
+      }
+    });
+    return () => data.subscription.unsubscribe();
+  }, [mode]);
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -75,15 +87,19 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
     <section className="auth-card" aria-labelledby="auth-title">
       <h1 id="auth-title">{title}</h1>
       <form onSubmit={(event) => void submit(event)}>
-        <label htmlFor="auth-email">ইমেইল</label>
-        <input id="auth-email" name="email" type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} />
-        {mode !== "forgot-password" ? (
+        {mode !== "forgot-password" || !recoveryMode ? (
+          <>
+            <label htmlFor="auth-email">ইমেইল</label>
+            <input id="auth-email" name="email" type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} />
+          </>
+        ) : null}
+        {mode !== "forgot-password" || recoveryMode ? (
           <>
             <label htmlFor="auth-password">পাসওয়ার্ড</label>
             <input id="auth-password" name="password" type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} required minLength={mode === "login" ? 1 : 12} value={password} onChange={(event) => setPassword(event.target.value)} />
           </>
         ) : null}
-        {mode === "create-account" ? (
+        {mode === "create-account" || (mode === "forgot-password" && recoveryMode) ? (
           <>
             <label htmlFor="auth-confirm-password">পাসওয়ার্ড নিশ্চিত করুন</label>
             <input id="auth-confirm-password" name="confirm-password" type="password" autoComplete="new-password" required minLength={12} value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} />
