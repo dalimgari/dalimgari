@@ -24,6 +24,12 @@ jobs:
           node-version: 22
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+      - name: Preserve generated lockfile as a reviewable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: react-migration-package-lock
+          path: package-lock.json
+          if-no-files-found: error
       - name: Check legacy behavior and preview structure
         run: npm run check
       - name: ESLint
