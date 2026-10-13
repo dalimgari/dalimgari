@@ -4,7 +4,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const read = (file) => fs.readFileSync(path.join(__dirname, "..", file), "utf8");
-const mimeSet = (source) => [...source.matchAll(/"([^"]+\/[^"]+)"/g)].map((match) => match[1]).sort();
+const mimeSet = (source) => [...source.matchAll(/['"]([^'"]+\/[^'"]+)['"]/g)].map((match) => match[1]).sort();
 
 test("Media Library upload MIME types match the Storage bucket allowlist", () => {
   const app = read("app.js");
