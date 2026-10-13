@@ -1,25 +1,32 @@
 # React + TypeScript Migration Plan
 
-## Status: scaffold only — not production activated
+## Current status: isolated preview scaffold
 
-This branch introduces a React/Vite/TypeScript foundation alongside the existing static application. The current `index.html`, `home.html`, `app.js`, layout fragments, deployment workflow, Supabase migrations, and production behavior are intentionally not replaced in this step.
+The React/Vite/TypeScript application is available through `react-preview.html` on this feature branch. The Vite build targets this preview only. Production `index.html`, legacy JavaScript/CSS, Supabase migrations, and the GitHub Pages deployment workflow remain unchanged.
 
-## Required migration sequence
+## Implemented in this phase
 
-1. Capture and retain a known-good baseline (backup branch created before scaffold work).
-2. Install dependencies and generate a lockfile using the repository's supported Node/npm versions.
-3. Run existing Node tests and record baseline results.
-4. Inventory all legacy routes, page sections, DOM IDs/selectors, Supabase calls, authentication/roles, album ordering, media upload/delete, themes, and mobile interactions.
-5. Port one feature at a time into `src/features/*`; keep data access in typed service adapters.
-6. Generate database TypeScript types from the actual Supabase schema. Do not infer schema or alter live policies during frontend migration.
-7. Add unit/integration and Playwright coverage for each ported feature.
-8. Validate Vite's output paths and GitHub Pages deep-link behavior. Do not point production deployment at `dist/` until the built site passes checks.
-9. Run a staging/preview smoke test for login, homepage rendering, dashboard saves, media upload/access, album ordering, and mobile interactions.
-10. Switch the production entry point only after parity checks pass and rollback has been rehearsed.
+- React + TypeScript + Vite configuration and strict type checking.
+- Shared React header/footer, app shell, router, modal, album card, and image viewer components.
+- CSS design tokens and accessible baseline styles.
+- Optional Supabase browser client configured only from public `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` variables.
+- Unit smoke tests, a Playwright preview test, and a pull-request CI workflow.
+- Migration safety rules and a backup branch.
 
-## Safety constraints
+## Required before production cutover
 
-- No production HTML/JavaScript entry point is changed by the scaffold.
-- No Supabase database, Storage, RLS, Auth, or Edge Function settings are changed here.
-- Never put service-role credentials in browser code.
-- Keep the existing GitHub Pages deployment workflow unchanged until the Vite build and asset routing are verified.
+1. Generate and commit a lockfile from the supported Node/npm environment.
+2. Run CI and fix all failures; run the Playwright test with installed browser binaries.
+3. Inventory all existing routes, homepage sections, DOM IDs/selectors, auth and role flows, Supabase queries, album ordering, upload/delete, theme behavior, accessibility, and mobile interactions.
+4. Port each feature incrementally into `src/features/*`, with typed service adapters and regression tests.
+5. Generate `Database` types from the actual Supabase schema. Do not guess table definitions or change live policies to accommodate frontend code.
+6. Verify RLS and Storage access against test accounts. Never ship a service-role key in browser assets.
+7. Confirm the Vite base path and deep-link behavior for GitHub Pages. The production deployment workflow must not publish `dist/` until the build includes all required assets and passes parity tests.
+8. Run preview/browser smoke tests for homepage, login/logout, dashboard saves, gallery/media access, album ordering, and mobile navigation.
+9. Rehearse rollback to the known-good backup before changing the production entry point.
+
+## Non-negotiable safety constraints
+
+- Do not replace production `index.html` in one large rewrite.
+- Do not modify Supabase schema, Auth settings, RLS, Storage policies, or Edge Functions as part of this frontend scaffold.
+- Do not treat a successful static build as proof of production feature parity.
