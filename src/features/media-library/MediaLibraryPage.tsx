@@ -11,8 +11,8 @@ interface MediaAsset {
   original_filename: string;
   storage_bucket: string;
   storage_path: string;
-  mime_type: string;
-  size_bytes: number;
+  mime_type: string | null;
+  size_bytes: number | null;
   created_at: string | null;
   signedUrl: string | null;
 }
@@ -194,13 +194,13 @@ export function MediaLibraryPage() {
         <div className="media-library-grid">
           {filteredAssets.map((asset) => (
             <article className="media-library-card" key={asset.id}>
-              {asset.signedUrl && asset.mime_type.startsWith("image/") ? <img src={asset.signedUrl} alt={asset.alt_text || asset.title} loading="lazy" decoding="async" /> : null}
-              {asset.signedUrl && asset.mime_type.startsWith("video/") ? <video src={asset.signedUrl} controls preload="metadata" /> : null}
+              {asset.signedUrl && (asset.mime_type ?? "").startsWith("image/") ? <img src={asset.signedUrl} alt={asset.alt_text || asset.title} loading="lazy" decoding="async" /> : null}
+              {asset.signedUrl && (asset.mime_type ?? "").startsWith("video/") ? <video src={asset.signedUrl} controls preload="metadata" /> : null}
               <h3>{asset.title}</h3>
               <p>{asset.original_filename}</p>
               {asset.description ? <p>{asset.description}</p> : null}
               {asset.tags.length ? <p>{asset.tags.join(", ")}</p> : null}
-              <small>{Math.ceil(asset.size_bytes / 1024)} KB · {asset.mime_type}</small>
+              <small>{Math.ceil((asset.size_bytes ?? 0) / 1024)} KB · {asset.mime_type}</small>
               {!asset.signedUrl ? <p>Preview unavailable under current Storage policy.</p> : null}
             </article>
           ))}
