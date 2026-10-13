@@ -30,3 +30,7 @@ jobs:
         run: npm run typecheck
       - name: Build isolated React preview
         run: npm run build
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run browser smoke test
+        run: npm run test:e2e
