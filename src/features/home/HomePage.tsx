@@ -4,6 +4,7 @@ import { PublicWidgetCard } from "../../components/PublicWidgetCard";
 import {
   getPublicAlbums,
   getPublicHero,
+  getHomepageIncludes,
   getPublicPageByUrl,
   getPublicPages,
   getPublicPosts,
@@ -12,6 +13,7 @@ import {
   type PublicAlbum,
   type PublicContentItem,
   type PublicHero,
+  type HomepageInclude,
   type PublicWidget,
   type SiteSettings,
 } from "../../services/content";
@@ -21,6 +23,7 @@ interface HomeState {
   pages: PublicContentItem[];
   posts: PublicContentItem[];
   widgets: PublicWidget[];
+  includes: HomepageInclude[];
   hero: PublicHero | null;
   settings: SiteSettings | null;
   loading: boolean;
@@ -32,6 +35,7 @@ const initialState: HomeState = {
   pages: [],
   posts: [],
   widgets: [],
+  includes: [],
   hero: null,
   settings: null,
   loading: true,
@@ -51,8 +55,8 @@ export function HomePage() {
 
   useEffect(() => {
     let active = true;
-    Promise.allSettled([getPublicAlbums(), getPublicPages(), getPublicPosts(), getVisibleWidgets(), getPublicHero(), getSiteSettings()])
-      .then(([albumsResult, pagesResult, postsResult, widgetsResult, heroResult, settingsResult]) => {
+    Promise.allSettled([getPublicAlbums(), getPublicPages(), getPublicPosts(), getVisibleWidgets(), getHomepageIncludes(), getPublicHero(), getSiteSettings()])
+      .then(([albumsResult, pagesResult, postsResult, widgetsResult, includesResult, heroResult, settingsResult]) => {
         if (!active) return;
         const failed = [albumsResult, pagesResult, postsResult, widgetsResult, heroResult, settingsResult].some(
           (result) => result.status === "rejected",
@@ -62,6 +66,7 @@ export function HomePage() {
           pages: pagesResult.status === "fulfilled" ? pagesResult.value : [],
           posts: postsResult.status === "fulfilled" ? postsResult.value : [],
           widgets: widgetsResult.status === "fulfilled" ? widgetsResult.value : [],
+          includes: includesResult.status === "fulfilled" ? includesResult.value : [],
           hero: heroResult.status === "fulfilled" ? heroResult.value : null,
           settings: settingsResult.status === "fulfilled" ? settingsResult.value : null,
           loading: false,
@@ -206,6 +211,17 @@ export function HomePage() {
 
       {state.loading ? <p role="status">কনটেন্ট লোড হচ্ছে…</p> : null}
       {state.error ? <p role="alert">{state.error}</p> : null}
+
+      {state.includes.length > 0 ? (
+        <section className="home-included-content" aria-label="নির্বাচিত পরিচিতি">
+          {state.includes.map((item) => (
+            <article className="home-content-card" key={item.section}>
+              <h2>{item.title}</h2>
+              <p className="post-excerpt">{item.content.replace(/<script[\\s\\S]*?<\\/script>/gi, " ").replace(/<style[\\s\\S]*?<\\/style>/gi, " ").replace(/<[^>]*>/g, " ").replace(/&nbsp;/gi, " ").replace(/\\s+/g, " ").trim()}</p>
+            </article>
+          ))}
+        </section>
+      ) : null}
 
       {state.widgets.length > 0 ? (
         <section className="home-widgets" aria-labelledby="widgets-title">
