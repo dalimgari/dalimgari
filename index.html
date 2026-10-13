@@ -14,7 +14,6 @@
   <main id="main-content" aria-live="polite"></main>
   <footer id="site-footer" data-layout-section="footer">© 2026 Dalimgari. All rights reserved.</footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     // Mount independent layout components before starting the app that depends on them.
     (async () => {
@@ -31,6 +30,8 @@
       });
 
       try {
+        // Start independent network work together; do not block HTML parsing on the SDK CDN.
+        const supabaseSdkPromise = loadScript("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2");
         const [headerResponse, footerResponse] = await Promise.all([
           fetch(new URL("header.html", document.baseURI), { credentials: "same-origin" }),
           fetch(new URL("footer.html", document.baseURI), { credentials: "same-origin" })
@@ -45,8 +46,9 @@
         headerHost.innerHTML = headerMarkup;
         footerHost.innerHTML = footerMarkup;
 
-        // The app expects header and footer elements to exist at body level.
-        // Load it only after the components have mounted to preserve initialization order.
+        // The app expects the layout and Supabase SDK to exist before initialization.
+        // Mount the layout as soon as it is available, then wait for the SDK before the app.
+        await supabaseSdkPromise;
         await loadScript("app.js");
         await loadScript("header.js");
       } catch (error) {
