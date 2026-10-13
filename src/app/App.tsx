@@ -12,6 +12,7 @@ import { DashboardPage } from "../features/dashboard/DashboardPage";
 import { ContentManagerPage } from "../features/dashboard/ContentManagerPage";
 import { SettingsManagerPage } from "../features/dashboard/SettingsManagerPage";
 import { RoleManagerPage } from "../features/dashboard/RoleManagerPage";
+import { UserManagerPage } from "../features/dashboard/UserManagerPage";
 import { MediaLibraryPage } from "../features/media-library/MediaLibraryPage";
 
 function NotFoundPage() {
@@ -57,6 +58,9 @@ export function App() {
       break;
     case "/profile/edit":
       content = <EditProfilePage />;
+      break;
+    case "/dashboard/user":
+      content = <UserManagerPage />;
       break;
     case "/dashboard/role":
       content = <RoleManagerPage />;
