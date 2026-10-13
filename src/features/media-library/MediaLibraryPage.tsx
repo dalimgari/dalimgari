@@ -126,6 +126,7 @@ export function MediaLibraryPage() {
 
     setUploading(true);
     let uploadedPath = "";
+    let metadataSaved = false;
     try {
       const user = await getCurrentUser();
       if (!user) throw new Error("আপনার session শেষ হয়েছে। আবার লগইন করুন।");
@@ -156,6 +157,7 @@ export function MediaLibraryPage() {
         created_by: user.id,
       });
       if (metadataError) throw metadataError;
+      metadataSaved = true;
 
       setMessage("ফাইল আপলোড ও metadata সংরক্ষণ হয়েছে।");
       setTitle("");
@@ -166,7 +168,7 @@ export function MediaLibraryPage() {
       form.reset();
       await loadAssets();
     } catch (uploadError) {
-      if (uploadedPath) {
+      if (uploadedPath && !metadataSaved) {
         await supabase.storage.from("content-files").remove([uploadedPath]);
       }
       setError(uploadError instanceof Error ? uploadError.message : "ফাইল আপলোড করা যায়নি।");
