@@ -2,19 +2,19 @@
 
 ## Scope and safety
 
-Read-only comparison of the production Supabase migration ledger with SQL files in `main`. No SQL, database schema, data, Auth settings, Storage policy, or migration-ledger entry was changed.
+Comparison of the production Supabase migration ledger with SQL files in `main`. One new forward migration was applied to remove a redundant profile-insert trigger; existing migration records were not edited or replayed. This report does not imply that historical discrepancies have been resolved.
 
-Repository baseline: `17ec7e322de71c2c9bb6a34b4ef40272cecf5ad1`.
+Repository baseline after the latest cleanup: `e9b7e373b5aa58d98d2aa549e734fce347ae75b5`.
 
 ## Snapshot
 
-- Production migration ledger entries: **45**
-- SQL migration files in `supabase/migrations/`: **24**
-- Exact version matches: **12**
+- Production migration ledger entries: **46**
+- SQL migration files in `supabase/migrations/`: **25**
+- Exact version matches: **13**
 - Production ledger versions without an exact repository filename: **33**
 - Repository SQL file versions without an exact production ledger entry: **12**
 
-Version mismatch does not prove that the corresponding SQL change is missing. Names and SQL contents must be compared to distinguish renamed/equivalent migrations from omitted, superseded, obsolete, or unknown history.
+The newly applied migration `20261013184928 remove_duplicate_profile_insert_trigger` is now present in both the production ledger and repository. Other version mismatches remain unresolved. Version mismatch does not prove that the corresponding SQL change is missing. Names and SQL contents must be compared to distinguish renamed/equivalent migrations from omitted, superseded, obsolete, or unknown history.
 
 ## Production ledger entries without an exact repository filename
 
