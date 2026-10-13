@@ -65,8 +65,12 @@ export function HomePage() {
           ) : null}
         </div>
 
-        {loading ? <p role="status">অ্যালবাম লোড হচ্ছে…</p> : null}
-        {error ? <p role="alert">অ্যালবাম লোড করা যায়নি। {error}</p> : null}
+        {loading ? (
+          <p role="status">অ্যালবাম লোড হচ্ছে…</p>
+        ) : null}
+        {error ? (
+          <p role="alert">অ্যালবাম লোড করা যায়নি। {error}</p>
+        ) : null}
         {!loading && !error && albums.length === 0 ? (
           <p>এখনো কোনো পাবলিক অ্যালবাম নেই।</p>
         ) : null}
