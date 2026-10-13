@@ -12,15 +12,17 @@ test("cleanup only considers approved storage buckets and canonical paths", () =
   assert.match(source, /ALLOWED_STORAGE_BUCKETS/);
   assert.match(source, /content-files.*hero-images.*profile-pictures/);
   assert.match(source, /normalizeStoragePath/);
-  assert.match(source, /segment === "\.\."|segment === "\.\."/);
+  assert.match(source, /segment === "\.\."/);
 });
 
 test("purging a page or post never deletes referenced storage objects", () => {
   assert.match(source, /item\.original_table !== "media_assets"/);
   assert.match(source, /isStorageObjectReferenced/);
+  assert.match(source, /name: "media_links", columns: "id,media_id,source_table,source_id"/);
   assert.match(source, /Retaining media object because an active record references it/);
 });
 
-test("cleanup Edge Function remains JWT protected by deployment configuration", () => {
+test("cleanup has a second server-only authorization guard", () => {
   assert.match(source, /x-cleanup-secret/);
+  assert.match(source, /suppliedSecret\.length !== secretRecord\.secret_value\.length/);
 });

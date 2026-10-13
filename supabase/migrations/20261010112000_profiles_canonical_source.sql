@@ -8,8 +8,13 @@ SECURITY DEFINER
 SET search_path TO ''
 AS $function$
 BEGIN
-  INSERT INTO public.profiles (id, created_at, updated_at)
-  VALUES (NEW.id, now(), now())
+  INSERT INTO public.profiles (id, full_name, created_at, updated_at)
+  VALUES (
+    NEW.id,
+    COALESCE(NULLIF(NEW.raw_user_meta_data ->> 'full_name', ''), NULLIF(NEW.raw_user_meta_data ->> 'name', '')),
+    now(),
+    now()
+  )
   ON CONFLICT (id) DO NOTHING;
   RETURN NEW;
 END;

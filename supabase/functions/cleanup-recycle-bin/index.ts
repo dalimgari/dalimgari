@@ -44,6 +44,7 @@ type ActiveStorageReference = {
 async function loadActiveStorageReferences(): Promise<ActiveStorageReference[]> {
   const tables = [
     { name: "media_assets", columns: "id,storage_bucket,storage_path" },
+    { name: "media_links", columns: "id,media_id,source_table,source_id" },
     { name: "pages", columns: "id,content,media" },
     { name: "albums", columns: "id,cover_path,media" },
     { name: "hero_items", columns: "id,media" },
