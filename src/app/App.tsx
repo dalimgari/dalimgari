@@ -4,6 +4,7 @@ import { Header } from "../components/layout/Header";
 import { AuthPage } from "../features/authentication/AuthPage";
 import { HomePage } from "../features/home/HomePage";
 import { ProfilePage } from "../features/profiles/ProfilePage";
+import { GalleryPage } from "../features/gallery/GalleryPage";
 
 function NotFoundPage() {
   return (
@@ -49,6 +50,10 @@ export function App() {
       content = <DashboardGate />;
       break;
     default:
+      if (/^\\/albums\\/[^/]+$/.test(pathname)) {
+        content = <GalleryPage />;
+        break;
+      }
       content = <NotFoundPage />;
   }
 
