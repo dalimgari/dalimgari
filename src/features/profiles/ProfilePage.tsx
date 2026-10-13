@@ -9,6 +9,7 @@ interface ProfileData {
   phone: string | null;
   date_of_birth: string | null;
   bio: string | null;
+  avatar_url: string | null;
 }
 
 export function ProfilePage() {
@@ -32,12 +33,12 @@ export function ProfilePage() {
       }
       const { data: profileRow, error: profileError } = await supabase
         .from("profiles")
-        .select("full_name,phone,date_of_birth,bio")
+        .select("full_name,phone,date_of_birth,bio,avatar_url")
         .eq("id", data.user.id)
         .maybeSingle();
       if (!active) return;
       setUser(data.user);
-      setProfile(profileRow ?? { full_name: null, phone: null, date_of_birth: null, bio: null });
+      setProfile(profileRow ?? { full_name: null, phone: null, date_of_birth: null, bio: null, avatar_url: null });
       if (profileError) setError("প্রোফাইলের অতিরিক্ত তথ্য লোড করা যায়নি।");
       setLoading(false);
     };
@@ -60,6 +61,7 @@ export function ProfilePage() {
   return (
     <section className="profile-card" aria-labelledby="profile-title">
       <h1 id="profile-title">আমার প্রোফাইল</h1>
+      {profile?.avatar_url ? <img className="profile-avatar-image" src={profile.avatar_url} alt="প্রোফাইল ছবি" /> : null}
       <p>{profile?.full_name || user.user_metadata?.full_name || "নাম যোগ করা হয়নি"}</p>
       <p>{user.email}</p>
       <dl>
