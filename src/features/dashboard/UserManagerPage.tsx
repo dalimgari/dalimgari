@@ -28,7 +28,7 @@ export function UserManagerPage() {
     const [usersResult, rolesResult, assignmentsResult] = await Promise.all([
       supabase.rpc("admin_list_registered_users"),
       supabase.from("roles").select("id,name,description,created_at,updated_at").order("name"),
-      supabase.from("user_roles").select("user_id,role_id"),
+      supabase.from("user_roles").select("user_id,role_id,created_at"),
     ]);
     if (usersResult.error) throw new Error("Admin user list লোড করা যায়নি।");
     if (rolesResult.error) throw rolesResult.error;
