@@ -6,13 +6,45 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
+type TableShape<Row extends Record<string, unknown>> = {
+  Row: Row;
+  Insert: Partial<Row>;
+  Update: Partial<Row>;
+  Relationships: [];
+};
+
+type AlbumRow = {
+  id: string;
+  title: string;
+  description: string | null;
+  url: string | null;
+  cover_path: string | null;
+  media: Json | null;
+  visibility: string;
+  created_at: string | null;
+};
+
+type PublicContentRow = {
+  id: string;
+  title: string;
+  media: Json | null;
+  visibility: string;
+  created_at: string | null;
+};
+
 /**
- * Generate this type from the actual Supabase schema before using typed table
- * queries. Empty schema is intentional: guessed table definitions are unsafe.
+ * Minimal definitions for columns verified in the existing frontend queries.
+ * Regenerate with Supabase CLI from the live schema before expanding mutations
+ * or relying on additional columns/relationships.
  */
 export interface Database {
   public: {
-    Tables: Record<string, never>;
+    Tables: {
+      albums: TableShape<AlbumRow>;
+      post: TableShape<PublicContentRow>;
+      pages: TableShape<PublicContentRow>;
+      hero_items: TableShape<PublicContentRow>;
+    };
     Views: Record<string, never>;
     Functions: Record<string, never>;
     Enums: Record<string, never>;
