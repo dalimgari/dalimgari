@@ -226,6 +226,7 @@ export function HomePage() {
                 title={album.title}
                 description={album.description ?? undefined}
                 imageUrl={album.coverUrl ?? undefined}
+                href={"/albums/" + encodeURIComponent(album.id)}
               />
             ))}
           </div>
