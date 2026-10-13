@@ -138,6 +138,7 @@ export function DashboardPage() {
     );
 
   const allowed = sections.filter((section) => {
+    if (section.id === "user") return isAdmin && permissions.includes("roles.manage");
     if (section.id === "overview") return isAdmin || section.permissions.some((permission) => permissions.includes(permission));
     if (section.id === "page" || section.id === "media-library") return isAdmin || section.permissions.some((permission) => permissions.includes(permission));
     return section.permissions.some((permission) => permissions.includes(permission));
@@ -172,6 +173,9 @@ export function DashboardPage() {
           ) : null}
           {["hero", "post", "page", "album", "widget"].includes(current.id) ? (
             <Link to={"/dashboard/" + current.id}>এই বিভাগ পরিচালনা করুন</Link>
+          ) : null}
+          {current.id === "user" ? (
+            <Link to="/dashboard/user">User ও Role Assignment পরিচালনা করুন</Link>
           ) : null}
           {current.id === "role" ? (
             <Link to="/dashboard/role">Role ও Permission পরিচালনা করুন</Link>
