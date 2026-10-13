@@ -234,6 +234,18 @@
       return data?.signedUrl || "";
     }
 
+    // Signed URLs expire. If an image fails to load, refresh its URL once instead of
+    // leaving a broken image when a page has remained open beyond the URL lifetime.
+    function attachSignedImageRefresh(image, path, bucket = "content-files") {
+      let refreshed = false;
+      image.addEventListener("error", async () => {
+        if (refreshed || !image.isConnected) return;
+        refreshed = true;
+        const freshUrl = await createContentMediaUrl(path, bucket);
+        if (freshUrl && image.isConnected) image.src = freshUrl;
+      }, { once: true });
+    }
+
     async function renderContentMedia(container, media) {
       if (!Array.isArray(media) || !media.length) return;
       const gallery = document.createElement("div");
@@ -247,7 +259,7 @@
           const path = item.path || item.storage_path;
           const bucket = item.storage_bucket || item.bucket || "content-files";
           const url = await createContentMediaUrl(path, bucket);
-          return url ? { item, url } : null;
+          return url ? { item, url, path, bucket } : null;
         }));
         resolvedItems.push(...batch);
       }
@@ -257,7 +269,7 @@
         const tile = document.createElement("div");
         tile.style.cssText = "min-width:0;padding:10px;border:1px solid #e5e7eb;border-radius:10px;overflow-wrap:anywhere";
         if (String(item.mime_type || "").startsWith("image/")) {
-          const image = document.createElement("img"); image.src = url; image.alt = item.alt_text || item.title || item.name || ""; image.loading = "lazy";
+          const image = document.createElement("img"); image.alt = item.alt_text || item.title || item.name || ""; image.loading = "lazy"; attachSignedImageRefresh(image, resolved.path, resolved.bucket); image.src = url;
           image.style.cssText = "display:block;width:100%;max-height:320px;object-fit:contain;border-radius:6px"; tile.append(image);
         } else if (String(item.mime_type || "").startsWith("video/")) {
           const video = document.createElement("video"); video.src = url; video.controls = true;
@@ -511,10 +523,10 @@
         ...(Array.isArray(pageResult.data)?pageResult.data:[]),
         ...(Array.isArray(heroResult.data)?heroResult.data:[])
       ];
-      const mediaForAlbum=album=>Array.isArray(album.media)?album.media.filter(item=>item&&item.path):[];
+      const mediaForAlbum=album=>Array.isArray(album.media)?album.media.filter(item=>item&&(item.path||item.storage_path)):[];
       const inferMime=item=>{
         if(item.mime_type)return String(item.mime_type).toLowerCase();
-        const path=String(item.path||item.name||"").toLowerCase().split("?")[0];
+        const path=String(item.path||item.storage_path||item.name||"").toLowerCase().split("?")[0];
         if(/\.(jpe?g|png|gif|webp|avif|bmp|svg)$/.test(path))return "image/unknown";
         if(/\.(mp4|webm|mov|m4v|ogv)$/.test(path))return "video/unknown";
         if(/\.(mp3|wav|ogg|m4a|aac|flac)$/.test(path))return "audio/unknown";
@@ -523,9 +535,9 @@
       const uniqueMedia=[];
       const seen=new Set();
       const addMedia=(raw,sourceTitle="")=>{
-        if(!raw||!raw.path)return;
+        if(!raw||!(raw.path||raw.storage_path))return;
         const item={...raw,mime_type:inferMime(raw),source_title:sourceTitle||raw.source_title||""};
-        const pathKey="path:"+String(item.path);
+        const pathKey="path:"+String(item.path||item.storage_path);
         const idKey=item.media_id?"id:"+String(item.media_id):"";
         if(seen.has(pathKey)||(idKey&&seen.has(idKey)))return;
         seen.add(pathKey);
@@ -543,10 +555,10 @@
         const grid=document.createElement("div");
         grid.style.cssText="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr));gap:14px;width:100%;min-width:0";
         for(const item of items){
-          if(!item||!item.path)continue;
+          if(!item||!(item.path||item.storage_path))continue;
           const tile=document.createElement("figure");
           tile.style.cssText="min-width:0;margin:0;overflow:hidden;border-radius:10px;background:#f3f4f6";
-          const urlPromise=createContentMediaUrl(item.path);
+          const mediaPath=item.path||item.storage_path;\n          const mediaBucket=item.storage_bucket||item.bucket||"content-files";\n          const urlPromise=createContentMediaUrl(mediaPath,mediaBucket);
           const mime=inferMime(item);
           let mediaElement;
           if(mime.startsWith("image/")){
@@ -612,7 +624,7 @@
             const description=document.createElement("p");description.textContent=album.description;description.style.cssText="margin:0 0 18px;color:#5b6472;white-space:pre-wrap;line-height:1.6";view.append(description);
           }
           items=mediaForAlbum(album);
-          if(album.cover_path&&!items.some(item=>item.path===album.cover_path))items.push({path:album.cover_path,mime_type:"image/unknown",title:album.title,alt_text:album.title});
+          if(album.cover_path&&!items.some(item=>(item.path||item.storage_path)===album.cover_path))items.push({path:album.cover_path,mime_type:"image/unknown",title:album.title,alt_text:album.title});
           if(items.length)view.append(galleryGrid(items));
           else{const empty=document.createElement("p");empty.textContent="No media in this album.";view.append(empty);}
           updatePills("album",value);
@@ -630,7 +642,7 @@
               const sectionTitle=document.createElement("h2");sectionTitle.textContent=album.title||"Untitled";sectionTitle.style.cssText="margin:0 0 14px;font-size:clamp(19px,3vw,24px)";
               section.append(sectionTitle);
               const albumItems=mediaForAlbum(album);
-              if(album.cover_path&&!albumItems.some(item=>item.path===album.cover_path))albumItems.push({path:album.cover_path,mime_type:"image/unknown",title:album.title,alt_text:album.title});
+              if(album.cover_path&&!albumItems.some(item=>(item.path||item.storage_path)===album.cover_path))albumItems.push({path:album.cover_path,mime_type:"image/unknown",title:album.title,alt_text:album.title});
               if(albumItems.length)section.append(galleryGrid(albumItems));
               else{const empty=document.createElement("p");empty.textContent="No media in this album.";section.append(empty);}
               view.append(section);
