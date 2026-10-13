@@ -12,7 +12,7 @@ test("cleanup only considers approved storage buckets and canonical paths", () =
   assert.match(source, /ALLOWED_STORAGE_BUCKETS/);
   assert.match(source, /content-files.*hero-images.*profile-pictures/);
   assert.match(source, /normalizeStoragePath/);
-  assert.match(source, /segment === "\.\."|segment === "\.\."/);
+  assert.match(source, /segment === "\.\."/);
 });
 
 test("purging a page or post never deletes referenced storage objects", () => {
