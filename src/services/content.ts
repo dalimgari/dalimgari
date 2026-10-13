@@ -45,6 +45,8 @@ export interface SiteSettings {
   tagline: string;
   maintenanceMode: boolean;
   homepageDefaultRoute: string;
+  pagePillAutoScrollEnabled: boolean;
+  pagePillAutoScrollIntervalSeconds: number;
 }
 
 function getClient() {
@@ -115,7 +117,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
   const { data, error } = await client
     .from("site_customizations")
     .select("key,value")
-    .in("key", ["ui_settings_general", "ui_customization_identity", "ui_settings_maintenance_features", "ui_settings_homepage_defaults"]);
+    .in("key", ["ui_settings_general", "ui_customization_identity", "ui_settings_maintenance_features", "ui_settings_homepage_defaults", "home_page_pill_autoscroll"]);
   if (error) throw error;
 
   const values = new Map((data ?? []).map((row) => [row.key, parseJsonObject(row.value)]));
@@ -123,12 +125,16 @@ export async function getSiteSettings(): Promise<SiteSettings> {
   const identity = values.get("ui_customization_identity") ?? {};
   const maintenance = values.get("ui_settings_maintenance_features") ?? {};
   const homepage = values.get("ui_settings_homepage_defaults") ?? {};
+  const pillMotion = values.get("home_page_pill_autoscroll") ?? {};
+  const configuredInterval = Number(pillMotion.interval_seconds);
 
   return {
     siteTitle: typeof general.site_title === "string" ? general.site_title : "Dalimgari",
     tagline: typeof identity.tagline === "string" ? identity.tagline : "",
     maintenanceMode: maintenance.maintenance_mode === true,
     homepageDefaultRoute: typeof homepage.default_home_route === "string" ? homepage.default_home_route : "home",
+    pagePillAutoScrollEnabled: pillMotion.enabled !== false,
+    pagePillAutoScrollIntervalSeconds: Number.isFinite(configuredInterval) && configuredInterval >= 1 ? Math.min(60, configuredInterval) : 3,
   };
 }
 
