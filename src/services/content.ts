@@ -22,9 +22,25 @@ export interface PublicAlbum {
 export interface PublicContentItem {
   id: string;
   title: string;
+  description?: string | null;
+  url?: string | null;
+  content?: string | null;
   media: unknown;
   visibility: string;
   created_at: string | null;
+}
+
+export interface PublicHero {
+  title: string;
+  description: string | null;
+  imageUrl: string | null;
+}
+
+export interface SiteSettings {
+  siteTitle: string;
+  tagline: string;
+  maintenanceMode: boolean;
+  homepageDefaultRoute: string;
 }
 
 function getClient() {
@@ -45,6 +61,20 @@ function asMediaItems(value: unknown): AlbumMediaItem[] {
       typeof (item as { path?: unknown }).path === "string" &&
       Boolean((item as { path: string }).path.trim()),
   );
+}
+
+function parseJsonObject(value: unknown): Record<string, unknown> {
+  let parsed = value;
+  if (typeof parsed === "string") {
+    try {
+      parsed = JSON.parse(parsed) as unknown;
+    } catch {
+      return {};
+    }
+  }
+  return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+    ? (parsed as Record<string, unknown>)
+    : {};
 }
 
 function parseAlbumOrder(value: unknown): string[] | null {
@@ -74,6 +104,104 @@ async function createContentMediaUrl(path: string): Promise<string | null> {
     .createSignedUrl(path, 3600);
   if (error) return null;
   return data.signedUrl || null;
+}
+
+export async function getSiteSettings(): Promise<SiteSettings> {
+  const client = getClient();
+  const { data, error } = await client
+    .from("site_customizations")
+    .select("key,value")
+    .in("key", ["ui_settings_general", "ui_customization_identity", "ui_settings_maintenance_features", "ui_settings_homepage_defaults"]);
+  if (error) throw error;
+
+  const values = new Map((data ?? []).map((row) => [row.key, parseJsonObject(row.value)]));
+  const general = values.get("ui_settings_general") ?? {};
+  const identity = values.get("ui_customization_identity") ?? {};
+  const maintenance = values.get("ui_settings_maintenance_features") ?? {};
+  const homepage = values.get("ui_settings_homepage_defaults") ?? {};
+
+  return {
+    siteTitle: typeof general.site_title === "string" ? general.site_title : "Dalimgari",
+    tagline: typeof identity.tagline === "string" ? identity.tagline : "",
+    maintenanceMode: maintenance.maintenance_mode === true,
+    homepageDefaultRoute: typeof homepage.default_home_route === "string" ? homepage.default_home_route : "home",
+  };
+}
+
+export async function getPublicPages(limit = 200): Promise<PublicContentItem[]> {
+  const safeLimit = Math.max(1, Math.min(Math.floor(limit), 500));
+  const { data, error } = await getClient()
+    .from("pages")
+    .select("id,title,url,visibility,created_at")
+    .eq("visibility", "public")
+    .order("created_at", { ascending: true })
+    .limit(safeLimit);
+  if (error) throw error;
+
+  const pages = (data ?? []) as unknown as PublicContentItem[];
+  const { data: orderRow, error: orderError } = await getClient()
+    .from("site_customizations")
+    .select("value")
+    .eq("key", "home_page_order")
+    .maybeSingle();
+  if (orderError) return pages;
+
+  const ids = parseAlbumOrder(orderRow?.value);
+  if (!ids) return pages;
+  const rank = new Map(ids.map((id, index) => [id, index]));
+  return pages.sort((a, b) => {
+    const ar = rank.get(String(a.id)) ?? Number.MAX_SAFE_INTEGER;
+    const br = rank.get(String(b.id)) ?? Number.MAX_SAFE_INTEGER;
+    return ar - br || Date.parse(a.created_at ?? "") - Date.parse(b.created_at ?? "");
+  });
+}
+
+export async function getPublicPageByUrl(url: string): Promise<PublicContentItem | null> {
+  const safeUrl = url.trim().replace(/^\/+|\/+$/g, "");
+  if (!safeUrl || safeUrl.length > 200) return null;
+  const { data, error } = await getClient()
+    .from("pages")
+    .select("id,title,url,content,visibility,created_at")
+    .eq("url", safeUrl)
+    .eq("visibility", "public")
+    .maybeSingle();
+  if (error) throw error;
+  return (data as unknown as PublicContentItem | null) ?? null;
+}
+
+export async function getPublicHero(): Promise<PublicHero | null> {
+  const client = getClient();
+  const { data, error } = await client
+    .from("hero_items")
+    .select("title,description,media,visibility,created_at")
+    .eq("visibility", "public")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+
+  if (data) {
+    const media = asMediaItems(data.media);
+    const image = media.find((item) => (item.mime_type ?? "").startsWith("image/"));
+    return {
+      title: data.title ?? "",
+      description: data.description ?? "",
+      imageUrl: image?.path ? await createContentMediaUrl(image.path) : null,
+    };
+  }
+
+  const { data: setting, error: settingError } = await client
+    .from("site_customizations")
+    .select("value")
+    .eq("key", "home_hero")
+    .maybeSingle();
+  if (settingError) return null;
+  const value = parseJsonObject(setting?.value);
+  return {
+    title: typeof value.headline === "string" ? value.headline : "",
+    description: typeof value.welcomeMessage === "string" ? value.welcomeMessage : "",
+    imageUrl: typeof value.heroImageUrl === "string" ? value.heroImageUrl : null,
+  };
 }
 
 /** Fetches public albums, preserves configured homepage ordering, and signs cover images. */
