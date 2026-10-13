@@ -224,9 +224,12 @@
       if (dashboardAction) dashboardAction.hidden = role !== "admin" || dashboardAction.getAttribute("aria-current") === "page";
     }
 
-    async function createContentMediaUrl(path) {
-      if (!path) return "";
-      const { data, error } = await supabaseClient.storage.from("content-files").createSignedUrl(path, 3600);
+    async function createContentMediaUrl(path, bucket = "content-files") {
+      const normalizedPath = typeof path === "string" ? path.trim().replace(/^\\/+/, "") : "";
+      const allowedBuckets = new Set(["content-files", "hero-images", "profile-pictures"]);
+      const bucketId = allowedBuckets.has(String(bucket)) ? String(bucket) : "content-files";
+      if (!normalizedPath) return "";
+      const { data, error } = await supabaseClient.storage.from(bucketId).createSignedUrl(normalizedPath, 3600);
       if (error) { console.warn("Could not create a content media URL:", error.message); return ""; }
       return data?.signedUrl || "";
     }
@@ -235,9 +238,22 @@
       if (!Array.isArray(media) || !media.length) return;
       const gallery = document.createElement("div");
       gallery.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:18px";
-      for (const item of media) {
-        const url = await createContentMediaUrl(item.path);
-        if (!url) continue;
+      // Keep a small concurrency limit: sequential signed-URL requests made pages with several files slow,
+      // while unbounded Promise.all can overwhelm the Storage API on large galleries.
+      const resolvedItems = [];
+      for (let start = 0; start < media.length; start += 6) {
+        const batch = await Promise.all(media.slice(start, start + 6).map(async item => {
+          if (!item || typeof item !== "object") return null;
+          const path = item.path || item.storage_path;
+          const bucket = item.storage_bucket || item.bucket || "content-files";
+          const url = await createContentMediaUrl(path, bucket);
+          return url ? { item, url } : null;
+        }));
+        resolvedItems.push(...batch);
+      }
+      for (const resolved of resolvedItems) {
+        if (!resolved) continue;
+        const { item, url } = resolved;
         const tile = document.createElement("div");
         tile.style.cssText = "min-width:0;padding:10px;border:1px solid #e5e7eb;border-radius:10px;overflow-wrap:anywhere";
         if (String(item.mime_type || "").startsWith("image/")) {
@@ -250,7 +266,7 @@
           const audio = document.createElement("audio"); audio.src = url; audio.controls = true; audio.style.width = "100%"; tile.append(audio);
         } else {
           const link = document.createElement("a"); link.href = url; link.target = "_blank"; link.rel = "noopener noreferrer";
-          link.textContent = item.name || "Open file"; tile.append(link);
+          link.textContent = item.title || item.name || "Open file"; tile.append(link);
         }
         if (item.title || item.name) { const caption=document.createElement("p"); caption.textContent=item.title || item.name; caption.style.cssText="margin:8px 0 0;font-size:13px"; tile.append(caption); }
         gallery.append(tile);
