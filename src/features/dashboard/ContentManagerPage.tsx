@@ -22,7 +22,7 @@ function htmlToPlainText(value: string): string {
 
 function plainTextToSafeHtml(value: string): string {
   const escape = (text: string) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-  return value.split(/\\n{2,}/).map((paragraph) => "<p>" + escape(paragraph).replace(/\\n/g, "<br>") + "</p>").join("");
+  return value.split(/\n{2,}/).map((paragraph) => "<p>" + escape(paragraph).replace(/\n/g, "<br>") + "</p>").join("");
 }
 
 async function listRows(table: ManagedTable): Promise<Row[]> {
