@@ -1,4 +1,6 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { supabase } from "../services/supabase";
 import { Footer } from "../components/layout/Footer";
 import { Header } from "../components/layout/Header";
 import { AuthPage } from "../features/authentication/AuthPage";
@@ -21,6 +23,17 @@ function NotFoundPage() {
 
 export function App() {
   const location = useLocation();
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!supabase) return;
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        window.sessionStorage.setItem("dalimgari-password-recovery", "true");
+        navigate("/forgot-password", { replace: true });
+      }
+    });
+    return () => data.subscription.unsubscribe();
+  }, [navigate]);
   const pathname = location.pathname.replace(/\/+$/, "") || "/";
   let content;
   switch (pathname) {
