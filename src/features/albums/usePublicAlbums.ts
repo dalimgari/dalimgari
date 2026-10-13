@@ -8,7 +8,11 @@ interface AlbumState {
 }
 
 export function usePublicAlbums(): AlbumState {
-  const [state, setState] = useState<AlbumState>({ albums: [], loading: true, error: null });
+  const [state, setState] = useState<AlbumState>({
+    albums: [],
+    loading: true,
+    error: null,
+  });
 
   useEffect(() => {
     let active = true;
@@ -24,7 +28,9 @@ export function usePublicAlbums(): AlbumState {
           error: error instanceof Error ? error.message : "Could not load albums.",
         });
       });
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, []);
 
   return state;
