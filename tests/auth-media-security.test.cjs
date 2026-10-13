@@ -64,7 +64,7 @@ test("custom page HTML blocks control-character obfuscated executable URLs", () 
   const app = read("app.js");
 
   assert.ok(app.includes("function isUnsafePageUrl(value)"));
-  assert.ok(app.includes(String.raw`replace(/[\\u0000-\\u0020\\u007f]/g, "")`));
+  assert.ok(app.includes(String.raw`replace(/[\u0000-\u0020\u007f]/g, "")`));
   assert.ok(app.includes('value.startsWith("vbscript:")'));
   assert.ok(app.includes('value.startsWith("data:image/svg+xml")'));
   assert.ok(app.includes("isUnsafePageUrl(attribute.value)"));
