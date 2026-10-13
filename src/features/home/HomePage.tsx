@@ -35,6 +35,7 @@ export function HomePage() {
   const carouselRef = useRef<HTMLDivElement>(null);
   const pillRef = useRef<HTMLDivElement>(null);
   const [paused, setPaused] = useState(false);
+  const [pillPaused, setPillPaused] = useState(false);
   const [selectedPage, setSelectedPage] = useState<PublicContentItem | null>(null);
   const [pageContent, setPageContent] = useState("");
   const [pageLoading, setPageLoading] = useState(false);
@@ -80,7 +81,7 @@ export function HomePage() {
 
   useEffect(() => {
     const pills = pillRef.current;
-    if (!pills || state.settings === null || state.pages.length < 2) return;
+    if (!pills || pillPaused || state.settings === null || state.pages.length < 2) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     let timer = 0;
     const start = () => {
@@ -93,7 +94,7 @@ export function HomePage() {
     };
     start();
     return () => window.clearInterval(timer);
-  }, [state.pages.length, state.settings]);
+  }, [state.pages.length, state.settings, pillPaused]);
 
   const moveCarousel = (direction: -1 | 1) => {
     const carousel = carouselRef.current;
@@ -154,11 +155,11 @@ export function HomePage() {
             ref={pillRef}
             className="home-page-pillbar"
             aria-label="পাবলিক পেজ"
-            onMouseEnter={() => setPaused(true)}
-            onMouseLeave={() => setPaused(false)}
-            onFocus={() => setPaused(true)}
+            onMouseEnter={() => setPillPaused(true)}
+            onMouseLeave={() => setPillPaused(false)}
+            onFocus={() => setPillPaused(true)}
             onBlur={(event) => {
-              if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setPaused(false);
+              if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setPillPaused(false);
             }}
           >
             {state.pages.map((page) => (
