@@ -10,6 +10,7 @@ import { EditProfilePage } from "../features/profiles/EditProfilePage";
 import { GalleryPage } from "../features/gallery/GalleryPage";
 import { DashboardPage } from "../features/dashboard/DashboardPage";
 import { ContentManagerPage } from "../features/dashboard/ContentManagerPage";
+import { SettingsManagerPage } from "../features/dashboard/SettingsManagerPage";
 import { MediaLibraryPage } from "../features/media-library/MediaLibraryPage";
 
 function NotFoundPage() {
@@ -55,6 +56,10 @@ export function App() {
       break;
     case "/profile/edit":
       content = <EditProfilePage />;
+      break;
+    case "/dashboard/settings":
+    case "/dashboard/customization":
+      content = <SettingsManagerPage />;
       break;
     case "/dashboard/media-library":
       content = <MediaLibraryPage />;
