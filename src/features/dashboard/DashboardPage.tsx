@@ -16,7 +16,7 @@ const sections: DashboardSection[] = [
   { id: "page", title: "Page", description: "Public pages and homepage page links.", permissions: ["content.view", "content.create", "content.edit", "content.delete"] },
   { id: "album", title: "Album", description: "Albums and gallery media.", permissions: ["content.view", "content.create", "content.edit", "content.delete"] },
   { id: "media-library", title: "Media Library", description: "Reusable media assets and attachment metadata.", permissions: ["content.view", "content.create", "content.edit", "content.delete"] },
-  { id: "widget", title: "Widget", description: "Homepage widgets and visibility.", permissions: ["content.view", "content.create", "content.edit", "content.delete"] },
+  { id: "widget", title: "Widget", description: "Homepage widgets and visibility.", permissions: ["settings.manage"] },
   { id: "user", title: "User", description: "Account management.", permissions: ["users.manage"] },
   { id: "role", title: "Role", description: "Roles and permission assignments.", permissions: ["roles.manage"] },
   { id: "customization", title: "Customization", description: "Homepage ordering and appearance settings.", permissions: ["settings.manage"] },
