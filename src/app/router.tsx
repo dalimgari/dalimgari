@@ -9,6 +9,10 @@ import { App } from "./App";
  */
 export const router = createBrowserRouter([
   {
+    path: "/albums/:albumId",
+    element: <App />,
+  },
+  {
     path: "*",
     element: <App />,
   },
