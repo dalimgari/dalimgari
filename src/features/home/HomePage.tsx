@@ -3,6 +3,7 @@ import { AlbumCard } from "../../components/AlbumCard";
 import {
   getPublicAlbums,
   getPublicHero,
+  getPublicPageByUrl,
   getPublicPages,
   getSiteSettings,
   type PublicAlbum,
@@ -35,6 +36,9 @@ export function HomePage() {
   const pillRef = useRef<HTMLDivElement>(null);
   const [paused, setPaused] = useState(false);
   const [selectedPage, setSelectedPage] = useState<PublicContentItem | null>(null);
+  const [pageContent, setPageContent] = useState("");
+  const [pageLoading, setPageLoading] = useState(false);
+  const [pageError, setPageError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -76,8 +80,7 @@ export function HomePage() {
 
   useEffect(() => {
     const pills = pillRef.current;
-    const enabled = state.settings !== null;
-    if (!pills || !enabled || state.pages.length < 2) return;
+    if (!pills || state.settings === null || state.pages.length < 2) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     let timer = 0;
     const start = () => {
@@ -101,11 +104,21 @@ export function HomePage() {
     });
   };
 
-  const openPage = (url: string | undefined) => {
-    if (!url) return;
-    const page = state.pages.find((item) => item.url === url);
-    if (page) setSelectedPage(page);
-    else window.location.hash = "home-page-" + encodeURIComponent(url);
+  const openPage = async (page: PublicContentItem) => {
+    if (!page.url) return;
+    setSelectedPage(page);
+    setPageContent("");
+    setPageError(null);
+    setPageLoading(true);
+    try {
+      const result = await getPublicPageByUrl(page.url);
+      setPageContent(result?.content ?? "");
+      if (!result) setPageError("পেজটি পাওয়া যায়নি অথবা এটি আর পাবলিক নেই।");
+    } catch {
+      setPageError("পেজের কনটেন্ট লোড করা যায়নি।");
+    } finally {
+      setPageLoading(false);
+    }
   };
 
   return (
@@ -149,7 +162,7 @@ export function HomePage() {
             }}
           >
             {state.pages.map((page) => (
-              <button key={page.id} type="button" className="home-page-pill" onClick={() => openPage(page.url)}>
+              <button key={page.id} type="button" className="home-page-pill" onClick={() => void openPage(page)}>
                 {page.title}
               </button>
             ))}
@@ -161,9 +174,22 @@ export function HomePage() {
         <section className="public-page-panel" aria-labelledby="public-page-title">
           <div className="section-heading">
             <h2 id="public-page-title">{selectedPage.title}</h2>
-            <button type="button" onClick={() => setSelectedPage(null)} aria-label="পেজ বন্ধ করুন">বন্ধ</button>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedPage(null);
+                setPageContent("");
+                setPageError(null);
+              }}
+              aria-label="পেজ বন্ধ করুন"
+            >
+              বন্ধ
+            </button>
           </div>
-          <p>এই পেজের পূর্ণ কনটেন্ট লোড করার জন্য পরবর্তী route migration প্রয়োজন।</p>
+          {pageLoading ? <p role="status">পেজ লোড হচ্ছে…</p> : null}
+          {pageError ? <p role="alert">{pageError}</p> : null}
+          {pageContent ? <div className="public-page-content">{pageContent}</div> : null}
+          {!pageLoading && !pageError && !pageContent ? <p>এই পেজে প্রদর্শনের মতো লেখা নেই।</p> : null}
         </section>
       ) : null}
 
