@@ -1,20 +1,26 @@
 import { useEffect, useRef, useState } from "react";
 import { AlbumCard } from "../../components/AlbumCard";
+import { PublicWidgetCard } from "../../components/PublicWidgetCard";
 import {
   getPublicAlbums,
   getPublicHero,
   getPublicPageByUrl,
   getPublicPages,
+  getPublicPosts,
+  getVisibleWidgets,
   getSiteSettings,
   type PublicAlbum,
   type PublicContentItem,
   type PublicHero,
+  type PublicWidget,
   type SiteSettings,
 } from "../../services/content";
 
 interface HomeState {
   albums: PublicAlbum[];
   pages: PublicContentItem[];
+  posts: PublicContentItem[];
+  widgets: PublicWidget[];
   hero: PublicHero | null;
   settings: SiteSettings | null;
   loading: boolean;
@@ -24,6 +30,8 @@ interface HomeState {
 const initialState: HomeState = {
   albums: [],
   pages: [],
+  posts: [],
+  widgets: [],
   hero: null,
   settings: null,
   loading: true,
@@ -43,15 +51,17 @@ export function HomePage() {
 
   useEffect(() => {
     let active = true;
-    Promise.allSettled([getPublicAlbums(), getPublicPages(), getPublicHero(), getSiteSettings()])
-      .then(([albumsResult, pagesResult, heroResult, settingsResult]) => {
+    Promise.allSettled([getPublicAlbums(), getPublicPages(), getPublicPosts(), getVisibleWidgets(), getPublicHero(), getSiteSettings()])
+      .then(([albumsResult, pagesResult, postsResult, widgetsResult, heroResult, settingsResult]) => {
         if (!active) return;
-        const failed = [albumsResult, pagesResult, heroResult, settingsResult].some(
+        const failed = [albumsResult, pagesResult, postsResult, widgetsResult, heroResult, settingsResult].some(
           (result) => result.status === "rejected",
         );
         setState({
           albums: albumsResult.status === "fulfilled" ? albumsResult.value : [],
           pages: pagesResult.status === "fulfilled" ? pagesResult.value : [],
+          posts: postsResult.status === "fulfilled" ? postsResult.value : [],
+          widgets: widgetsResult.status === "fulfilled" ? widgetsResult.value : [],
           hero: heroResult.status === "fulfilled" ? heroResult.value : null,
           settings: settingsResult.status === "fulfilled" ? settingsResult.value : null,
           loading: false,
@@ -197,6 +207,15 @@ export function HomePage() {
       {state.loading ? <p role="status">কনটেন্ট লোড হচ্ছে…</p> : null}
       {state.error ? <p role="alert">{state.error}</p> : null}
 
+      {state.widgets.length > 0 ? (
+        <section className="home-widgets" aria-labelledby="widgets-title">
+          <h2 id="widgets-title">কমিউনিটি উইজেট</h2>
+          <div className="home-content-grid">
+            {state.widgets.map((widget) => <PublicWidgetCard key={widget.id} widget={widget} />)}
+          </div>
+        </section>
+      ) : null}
+
       <section className="home-albums" aria-labelledby="albums-title">
         <div className="section-heading">
           <h2 id="albums-title">অ্যালবাম</h2>
@@ -233,6 +252,20 @@ export function HomePage() {
           </div>
         ) : null}
       </section>
+
+      {state.posts.length > 0 ? (
+        <section className="home-posts" aria-labelledby="posts-title">
+          <h2 id="posts-title">সাম্প্রতিক পোস্ট</h2>
+          <div className="home-content-grid">
+            {state.posts.map((post) => (
+              <article className="home-content-card" key={post.id}>
+                <h3>{post.title}</h3>
+                {post.content ? <p className="post-excerpt">{post.content.replace(/<[^>]*>/g, " ").replace(/\\s+/g, " ").trim().slice(0, 320)}</p> : null}
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </section>
   );
 }
