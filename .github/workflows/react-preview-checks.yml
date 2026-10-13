@@ -24,14 +24,6 @@ jobs:
           node-version: 22
       - name: Install dependencies
         run: npm install --no-audit --no-fund
-      - name: Print canonical formatter output (diagnostic)
-        run: |
-          for file in src/features/home/HomePage.tsx src/services/content.ts src/styles/global.css src/types/database.types.ts; do
-            echo "----- BEGIN $file -----"
-            npx prettier "$file"
-            echo "----- END $file -----"
-          done
-          exit 1
       - name: Check legacy behavior and preview structure
         run: npm run check
       - name: ESLint
