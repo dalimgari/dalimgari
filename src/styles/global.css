@@ -16,9 +16,17 @@ button, input, select, textarea { font: inherit; }
 .site-brand { color: inherit; font-weight: 700; text-decoration: none; }
 .preview-label, .eyebrow { color: #666; font-size: .875rem; }
 #main-content { width: min(100% - 2rem, var(--content-width)); margin-inline: auto; padding-block: clamp(2rem, 7vw, 5rem); }
-#main-content > section { max-width: 48rem; margin-inline: auto; }
+.home-content { width: 100%; }
 h1 { line-height: 1.2; }
-.album-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: var(--space-4); }
+.section-heading { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.carousel-controls { display: flex; gap: var(--space-2); }
+.carousel-controls button { min-width: 2.5rem; min-height: 2.5rem; border: 1px solid var(--color-border); border-radius: 999px; background: var(--color-surface); cursor: pointer; }
+.album-carousel { display: flex; gap: var(--space-4); overflow-x: auto; overflow-y: hidden; scroll-behavior: smooth; overscroll-behavior-inline: contain; padding: var(--space-2) 1px var(--space-3); scrollbar-width: thin; }
+.album-carousel > .album-card { flex: 0 0 min(78vw, 19rem); }
 .album-card, .modal { min-width: 0; padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); overflow-wrap: anywhere; }
+.album-card img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: .5rem; }
 .album-card h3 { margin-block: .75rem .25rem; }
 .modal-backdrop { position: fixed; inset: 0; display: grid; place-items: center; padding: var(--space-4); background: rgb(0 0 0 / 55%); }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; }
+}
