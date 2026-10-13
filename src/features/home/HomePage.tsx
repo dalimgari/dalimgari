@@ -14,8 +14,14 @@ export function HomePage() {
 
     const timer = window.setInterval(() => {
       if (carousel.scrollWidth <= carousel.clientWidth + 2) return;
-      const atEnd = carousel.scrollLeft + carousel.clientWidth >= carousel.scrollWidth - 2;
-      carousel.scrollLeft = atEnd ? 0 : Math.min(carousel.scrollLeft + 1, carousel.scrollWidth - carousel.clientWidth);
+      const atEnd =
+        carousel.scrollLeft + carousel.clientWidth >= carousel.scrollWidth - 2;
+      carousel.scrollLeft = atEnd
+        ? 0
+        : Math.min(
+            carousel.scrollLeft + 1,
+            carousel.scrollWidth - carousel.clientWidth,
+          );
     }, 24);
 
     return () => window.clearInterval(timer);
@@ -24,7 +30,10 @@ export function HomePage() {
   const moveCarousel = (direction: -1 | 1) => {
     const carousel = carouselRef.current;
     if (!carousel) return;
-    carousel.scrollBy({ left: direction * Math.max(220, carousel.clientWidth * 0.75), behavior: "smooth" });
+    carousel.scrollBy({
+      left: direction * Math.max(220, carousel.clientWidth * 0.75),
+      behavior: "smooth",
+    });
   };
 
   return (
@@ -38,15 +47,29 @@ export function HomePage() {
           <h2 id="albums-title">অ্যালবাম</h2>
           {albums.length > 1 ? (
             <div className="carousel-controls" aria-label="অ্যালবাম স্ক্রল নিয়ন্ত্রণ">
-              <button type="button" onClick={() => moveCarousel(-1)} aria-label="আগের অ্যালবাম">‹</button>
-              <button type="button" onClick={() => moveCarousel(1)} aria-label="পরের অ্যালবাম">›</button>
+              <button
+                type="button"
+                onClick={() => moveCarousel(-1)}
+                aria-label="আগের অ্যালবাম"
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                onClick={() => moveCarousel(1)}
+                aria-label="পরের অ্যালবাম"
+              >
+                ›
+              </button>
             </div>
           ) : null}
         </div>
 
         {loading ? <p role="status">অ্যালবাম লোড হচ্ছে…</p> : null}
         {error ? <p role="alert">অ্যালবাম লোড করা যায়নি। {error}</p> : null}
-        {!loading && !error && albums.length === 0 ? <p>এখনো কোনো পাবলিক অ্যালবাম নেই।</p> : null}
+        {!loading && !error && albums.length === 0 ? (
+          <p>এখনো কোনো পাবলিক অ্যালবাম নেই।</p>
+        ) : null}
 
         {albums.length > 0 ? (
           <div
@@ -57,7 +80,9 @@ export function HomePage() {
             onMouseLeave={() => setPaused(false)}
             onFocus={() => setPaused(true)}
             onBlur={(event) => {
-              if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setPaused(false);
+              if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                setPaused(false);
+              }
             }}
             tabIndex={0}
           >
