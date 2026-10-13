@@ -63,7 +63,7 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
         const { data, error } = await supabase.auth.signUp({
           email: email.trim(),
           password,
-          options: { emailRedirectTo: new URL("#login", window.location.href).toString() },
+          options: { emailRedirectTo: "https://dalimgari.github.io/dalimgari/#login" },
         });
         if (error) throw error;
         setMessageType("success");
