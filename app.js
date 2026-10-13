@@ -1229,6 +1229,14 @@
       }
     }
 
+    function isUnsafePageUrl(value) {
+      const normalized = String(value || "").replace(/[\\u0000-\\u0020\\u007f]/g, "").toLowerCase();
+      return normalized.startsWith("javascript:") ||
+        normalized.startsWith("vbscript:") ||
+        normalized.startsWith("data:text/html:") ||
+        normalized.startsWith("data:image/svg+xml");
+    }
+
     function sanitizePageHtml(html) {
       const parsed = new DOMParser().parseFromString(String(html || ""), "text/html");
       parsed.querySelectorAll("script,iframe,object,embed,base,meta,link,title,foreignObject").forEach(node => node.remove());
@@ -1237,10 +1245,9 @@
       parsed.querySelectorAll("*").forEach(node => {
         Array.from(node.attributes).forEach(attribute => {
           const name = attribute.name.toLowerCase();
-          const value = String(attribute.value || "").trim().toLowerCase();
           if (name.startsWith("on") || name === "srcdoc" ||
               ((name === "href" || name === "src" || name === "xlink:href" || name === "action" || name === "formaction") &&
-               (value.startsWith("javascript:") || value.startsWith("data:text/html:")))) {
+               isUnsafePageUrl(attribute.value))) {
             node.removeAttribute(attribute.name);
           }
         });
