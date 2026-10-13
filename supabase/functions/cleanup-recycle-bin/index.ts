@@ -33,7 +33,15 @@ function normalizeStoragePath(value: unknown): string | null {
   return path;
 }
 
-async function isStorageObjectReferenced(bucket: string, path: string, assetId: string): Promise<boolean> {
+type ActiveStorageReference = {
+  tableName: string;
+  id: string;
+  storageBucket: string;
+  storagePath: string;
+  serialized: string;
+};
+
+async function loadActiveStorageReferences(): Promise<ActiveStorageReference[]> {
   const tables = [
     { name: "media_assets", columns: "id,storage_bucket,storage_path" },
     { name: "pages", columns: "id,content,media" },
@@ -41,27 +49,47 @@ async function isStorageObjectReferenced(bucket: string, path: string, assetId: 
     { name: "hero_items", columns: "id,media" },
     { name: "post", columns: "id,content,media,custom_url" },
   ];
-
+  const snapshot: ActiveStorageReference[] = [];
   for (const table of tables) {
     for (let offset = 0; ; offset += 500) {
       const { data, error } = await admin.from(table.name).select(table.columns).range(offset, offset + 499);
       if (error) throw new Error("Could not verify media references in " + table.name + ": " + error.message);
       const rows = data || [];
       for (const row of rows as Array<Record<string, unknown>>) {
-        if (table.name === "media_assets") {
-          if (row.id === assetId) return true;
-          if (row.storage_bucket === bucket && row.storage_path === path) return true;
-        }
-        const serialized = JSON.stringify(row);
-        if (serialized.includes(path) || (assetId && serialized.includes(assetId))) return true;
+        snapshot.push({
+          tableName: table.name,
+          id: String(row.id || ""),
+          storageBucket: String(row.storage_bucket || ""),
+          storagePath: String(row.storage_path || ""),
+          serialized: JSON.stringify(row),
+        });
       }
       if (rows.length < 500) break;
     }
   }
+  return snapshot;
+}
+
+function isStorageObjectReferenced(
+  bucket: string,
+  path: string,
+  assetId: string,
+  snapshot: ActiveStorageReference[],
+): boolean {
+  for (const reference of snapshot) {
+    if (reference.tableName === "media_assets") {
+      if (reference.id === assetId) return true;
+      if (reference.storageBucket === bucket && reference.storagePath === path) return true;
+    }
+    if (reference.serialized.includes(path) || (assetId && reference.serialized.includes(assetId))) return true;
+  }
   return false;
 }
 
-async function removeStoredObjects(item: Record<string, unknown>) {
+async function removeStoredObjects(
+  item: Record<string, unknown>,
+  snapshot: ActiveStorageReference[],
+) {
   // Storage objects belong to Media Library records, not every page/post that references them.
   if (item.original_table !== "media_assets") return 0;
   const record = item.record_data && typeof item.record_data === "object"
@@ -75,7 +103,7 @@ async function removeStoredObjects(item: Record<string, unknown>) {
     throw new Error("Refusing to purge a media asset with an invalid bucket, path, or record ID.");
   }
 
-  if (await isStorageObjectReferenced(bucket, path, assetId)) {
+  if (isStorageObjectReferenced(bucket, path, assetId, snapshot)) {
     console.info("Retaining media object because an active record references it", bucket, path);
     return 0;
   }
@@ -144,9 +172,16 @@ Deno.serve(async (req: Request) => {
   let purgedItems = 0;
   let purgedFiles = 0;
   let failedItems = 0;
+  let referenceSnapshotPromise: Promise<ActiveStorageReference[]> | null = null;
   for (const item of expired || []) {
     try {
-      purgedFiles += await removeStoredObjects(item as Record<string, unknown>);
+      const recycleItem = item as Record<string, unknown>;
+      let referenceSnapshot: ActiveStorageReference[] = [];
+      if (recycleItem.original_table === "media_assets") {
+        referenceSnapshotPromise ??= loadActiveStorageReferences();
+        referenceSnapshot = await referenceSnapshotPromise;
+      }
+      purgedFiles += await removeStoredObjects(recycleItem, referenceSnapshot);
       const { error: deleteError } = await admin.from("recycle_bin").delete().eq("id", item.id);
       if (deleteError) throw deleteError;
       purgedItems += 1;
