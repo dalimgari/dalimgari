@@ -5,6 +5,7 @@ import { AuthPage } from "../features/authentication/AuthPage";
 import { HomePage } from "../features/home/HomePage";
 import { ProfilePage } from "../features/profiles/ProfilePage";
 import { GalleryPage } from "../features/gallery/GalleryPage";
+import { DashboardPage } from "../features/dashboard/DashboardPage";
 
 function NotFoundPage() {
   return (
@@ -47,7 +48,7 @@ export function App() {
       content = <ProfilePage />;
       break;
     case "/dashboard":
-      content = <DashboardGate />;
+      content = <DashboardPage />;
       break;
     default:
       if (pathname.startsWith("/albums/") && pathname.split("/").filter(Boolean).length === 2) {
