@@ -9,6 +9,8 @@ export function EditProfilePage() {
   const [phone, setPhone] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [bio, setBio] = useState("");
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -25,7 +27,7 @@ export function EditProfilePage() {
       if (authError || !data.user) { navigate("/login", { replace: true }); return; }
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("full_name,phone,date_of_birth,bio")
+        .select("full_name,phone,date_of_birth,bio,avatar_url")
         .eq("id", data.user.id)
         .maybeSingle();
       if (!active) return;
@@ -34,6 +36,7 @@ export function EditProfilePage() {
       setPhone(profile?.phone ?? "");
       setDateOfBirth(profile?.date_of_birth ?? "");
       setBio(profile?.bio ?? "");
+      setAvatarUrl(profile?.avatar_url ?? null);
       if (profileError) setError("প্রোফাইল তথ্য পড়া যায়নি। সংরক্ষণ করলে database policy অনুমতি দিতে হবে।");
       setLoading(false);
     };
@@ -48,11 +51,26 @@ export function EditProfilePage() {
     setError("");
     setMessage("");
     try {
+      if (avatarFile && (!avatarFile.type.match(/^image\\/(jpeg|png|webp)$/i) || avatarFile.size > 5 * 1024 * 1024)) {
+        throw new Error("Avatar অবশ্যই JPEG, PNG বা WebP হতে হবে এবং ৫ MB-এর মধ্যে হতে হবে।");
+      }
+      if (avatarFile) {
+        const extension = avatarFile.type === "image/png" ? "png" : avatarFile.type === "image/webp" ? "webp" : "jpg";
+        uploadedPath = userId + "/avatar-" + crypto.randomUUID() + "." + extension;
+        const { error: uploadError } = await supabase.storage.from("profile-pictures").upload(uploadedPath, avatarFile, {
+          contentType: avatarFile.type,
+          cacheControl: "3600",
+          upsert: false,
+        });
+        if (uploadError) throw uploadError;
+        setAvatarUrl(supabase.storage.from("profile-pictures").getPublicUrl(uploadedPath).data.publicUrl);
+      }
       const payload = {
         full_name: fullName.trim() || null,
         phone: phone.trim() || null,
         date_of_birth: dateOfBirth || null,
         bio: bio.trim() || null,
+        ...(uploadedPath ? { avatar_url: supabase.storage.from("profile-pictures").getPublicUrl(uploadedPath).data.publicUrl } : {}),
       };
       const { data: existing, error: readError } = await supabase
         .from("profiles")
@@ -68,8 +86,10 @@ export function EditProfilePage() {
         data: { full_name: fullName.trim() },
       });
       if (metadataError) throw metadataError;
+      setAvatarFile(null);
       setMessage("প্রোফাইল সংরক্ষণ হয়েছে।");
     } catch {
+      if (uploadedPath && supabase) await supabase.storage.from("profile-pictures").remove([uploadedPath]);
       setError("প্রোফাইল সংরক্ষণ করা যায়নি। RLS policy এবং profiles table schema যাচাই করুন।");
     } finally {
       setSaving(false);
@@ -81,7 +101,10 @@ export function EditProfilePage() {
   return (
     <section className="auth-card" aria-labelledby="edit-profile-title">
       <h1 id="edit-profile-title">প্রোফাইল সম্পাদনা</h1>
+      {avatarUrl ? <img className="profile-avatar-image" src={avatarUrl} alt="প্রোফাইল ছবি" /> : null}
       <form onSubmit={(event) => void save(event)}>
+        <label htmlFor="profile-avatar">প্রোফাইল ছবি (JPEG/PNG/WebP, সর্বোচ্চ ৫ MB)</label>
+        <input id="profile-avatar" type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => setAvatarFile(event.target.files?.[0] ?? null)} />
         <label htmlFor="profile-full-name">পূর্ণ নাম</label>
         <input id="profile-full-name" autoComplete="name" maxLength={120} value={fullName} onChange={(event) => setFullName(event.target.value)} />
         <label htmlFor="profile-phone">ফোন</label>
