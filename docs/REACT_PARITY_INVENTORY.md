@@ -2,6 +2,10 @@
 
 This inventory is based on the existing `app.js` and `index.html` in this branch. It is a migration checklist, not proof that the React implementation already contains these features.
 
+## CI validation
+
+The isolated React preview workflow runs legacy smoke checks, ESLint, Prettier, TypeScript type checking, a Vite production build, and Playwright browser smoke tests. The production deployment workflow remains separate and unchanged.
+
 ## Current React preview coverage
 
 | Area | Status | Notes |
