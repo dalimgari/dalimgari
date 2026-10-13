@@ -50,7 +50,7 @@ export function App() {
       content = <DashboardGate />;
       break;
     default:
-      if (/^\\/albums\\/[^/]+$/.test(pathname)) {
+      if (pathname.startsWith("/albums/") && pathname.split("/").filter(Boolean).length === 2) {
         content = <GalleryPage />;
         break;
       }
