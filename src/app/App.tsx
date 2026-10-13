@@ -7,6 +7,7 @@ import { ProfilePage } from "../features/profiles/ProfilePage";
 import { EditProfilePage } from "../features/profiles/EditProfilePage";
 import { GalleryPage } from "../features/gallery/GalleryPage";
 import { DashboardPage } from "../features/dashboard/DashboardPage";
+import { MediaLibraryPage } from "../features/media-library/MediaLibraryPage";
 
 function NotFoundPage() {
   return (
@@ -40,6 +41,9 @@ export function App() {
       break;
     case "/profile/edit":
       content = <EditProfilePage />;
+      break;
+    case "/dashboard/media-library":
+      content = <MediaLibraryPage />;
       break;
     case "/dashboard":
       content = <DashboardPage />;
