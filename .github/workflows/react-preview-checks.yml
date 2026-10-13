@@ -1,0 +1,42 @@
+name: React migration preview checks
+
+on:
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: react-preview-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Check legacy behavior and preview structure
+        run: npm run check
+      - name: ESLint
+        run: npm run lint
+      - name: Prettier formatting
+        run: npm run format:check
+      - name: TypeScript check
+        run: npm run typecheck
+      - name: Build isolated React preview
+        run: npm run build
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run browser smoke test
+        run: npm run test:e2e
