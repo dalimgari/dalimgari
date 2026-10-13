@@ -9,6 +9,7 @@ import { ProfilePage } from "../features/profiles/ProfilePage";
 import { EditProfilePage } from "../features/profiles/EditProfilePage";
 import { GalleryPage } from "../features/gallery/GalleryPage";
 import { DashboardPage } from "../features/dashboard/DashboardPage";
+import { ContentManagerPage } from "../features/dashboard/ContentManagerPage";
 import { MediaLibraryPage } from "../features/media-library/MediaLibraryPage";
 
 function NotFoundPage() {
@@ -64,6 +65,10 @@ export function App() {
     default:
       if (pathname.startsWith("/albums/") && pathname.split("/").filter(Boolean).length === 2) {
         content = <GalleryPage />;
+        break;
+      }
+      if (pathname.startsWith("/dashboard/")) {
+        content = <ContentManagerPage />;
         break;
       }
       content = <NotFoundPage />;
