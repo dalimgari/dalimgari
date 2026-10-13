@@ -7,16 +7,17 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host 127.0.0.1",
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "check:syntax": "node --check app.js && node --check header.js",
     "test": "node --test tests/*.test.cjs",
-    "check": "npm run check:syntax && npm test",
-    "lint": "eslint .",
-    "format:check": "prettier --check .",
-    "test:e2e": "playwright test"
+    "check": "npm run check:syntax && npm run test:unit && npm test",
+    "lint": "eslint src tests",
+    "format:check": "prettier --check src tests *.ts *.js *.json *.html",
+    "test:e2e": "playwright test",
+    "test:unit": "node --test tests/unit/*.test.cjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",
