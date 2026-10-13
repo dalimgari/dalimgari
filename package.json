@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "description": "Dalimgari community website",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -11,7 +13,10 @@
     "typecheck": "tsc --noEmit",
     "check:syntax": "node --check app.js && node --check header.js",
     "test": "node --test tests/*.test.cjs",
-    "check": "npm run check:syntax && npm test"
+    "check": "npm run check:syntax && npm test",
+    "lint": "eslint .",
+    "format:check": "prettier --check .",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",
@@ -28,6 +33,7 @@
     "prettier": "^3.6.2",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.44.0",
-    "vite": "^7.1.5"
+    "vite": "^7.1.5",
+    "@eslint/js": "^9.35.0"
   }
 }
