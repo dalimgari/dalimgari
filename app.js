@@ -225,7 +225,7 @@
     }
 
     async function createContentMediaUrl(path, bucket = "content-files") {
-      const normalizedPath = typeof path === "string" ? path.trim().replace(/^\\/+/, "") : "";
+      const normalizedPath = typeof path === "string" ? path.trim().replace(/^\/+/, "") : "";
       const allowedBuckets = new Set(["content-files", "hero-images", "profile-pictures"]);
       const bucketId = allowedBuckets.has(String(bucket)) ? String(bucket) : "content-files";
       if (!normalizedPath) return "";
