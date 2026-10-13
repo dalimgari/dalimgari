@@ -63,7 +63,10 @@ function parseAlbumOrder(value: unknown): string[] | null {
 
   return Array.isArray(parsed)
     ? parsed
-        .filter((id): id is string | number => typeof id === "string" || typeof id === "number")
+        .filter(
+          (id): id is string | number =>
+            typeof id === "string" || typeof id === "number",
+        )
         .map(String)
     : null;
 }
