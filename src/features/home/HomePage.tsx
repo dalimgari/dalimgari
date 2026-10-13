@@ -30,6 +30,11 @@ interface HomeState {
   error: string | null;
 }
 
+function htmlToPlainText(value: string): string {
+  const safeMarkup = value.replace(/<script[\\s\\S]*?<\\/script>/gi, " ").replace(/<style[\\s\\S]*?<\\/style>/gi, " ");
+  return new DOMParser().parseFromString(safeMarkup, "text/html").body.textContent ?? "";
+}
+
 const initialState: HomeState = {
   albums: [],
   pages: [],
@@ -204,7 +209,7 @@ export function HomePage() {
           </div>
           {pageLoading ? <p role="status">পেজ লোড হচ্ছে…</p> : null}
           {pageError ? <p role="alert">{pageError}</p> : null}
-          {pageContent ? <div className="public-page-content">{pageContent}</div> : null}
+          {pageContent ? <div className="public-page-content">{htmlToPlainText(pageContent)}</div> : null}
           {!pageLoading && !pageError && !pageContent ? <p>এই পেজে প্রদর্শনের মতো লেখা নেই।</p> : null}
         </section>
       ) : null}
@@ -217,7 +222,7 @@ export function HomePage() {
           {state.includes.map((item) => (
             <article className="home-content-card" key={item.section}>
               <h2>{item.title}</h2>
-              <p className="post-excerpt">{item.content.replace(/<script[\\s\\S]*?<\\/script>/gi, " ").replace(/<style[\\s\\S]*?<\\/style>/gi, " ").replace(/<[^>]*>/g, " ").replace(/&nbsp;/gi, " ").replace(/\\s+/g, " ").trim()}</p>
+              <p className="post-excerpt">{htmlToPlainText(item.content).replace(/\\s+/g, " ").trim()}</p>
             </article>
           ))}
         </section>
@@ -276,7 +281,7 @@ export function HomePage() {
             {state.posts.map((post) => (
               <article className="home-content-card" key={post.id}>
                 <h3>{post.title}</h3>
-                {post.content ? <p className="post-excerpt">{post.content.replace(/<[^>]*>/g, " ").replace(/\\s+/g, " ").trim().slice(0, 320)}</p> : null}
+                {post.content ? <p className="post-excerpt">{htmlToPlainText(post.content).replace(/\\s+/g, " ").trim().slice(0, 320)}</p> : null}
               </article>
             ))}
           </div>
