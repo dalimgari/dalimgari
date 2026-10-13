@@ -4,6 +4,7 @@ import { Header } from "../components/layout/Header";
 import { AuthPage } from "../features/authentication/AuthPage";
 import { HomePage } from "../features/home/HomePage";
 import { ProfilePage } from "../features/profiles/ProfilePage";
+import { EditProfilePage } from "../features/profiles/EditProfilePage";
 import { GalleryPage } from "../features/gallery/GalleryPage";
 import { DashboardPage } from "../features/dashboard/DashboardPage";
 
@@ -13,16 +14,6 @@ function NotFoundPage() {
       <h1>পেজ পাওয়া যায়নি</h1>
       <p>আপনি যে ঠিকানাটি খুলেছেন সেটি পাওয়া যায়নি।</p>
       <Link to="/">হোমপেজে ফিরুন</Link>
-    </section>
-  );
-}
-
-function DashboardGate() {
-  return (
-    <section className="notice-card">
-      <h1>ড্যাশবোর্ড</h1>
-      <p>নিরাপদ dashboard CRUD ও permission-ভিত্তিক বিভাগ এখনো মাইগ্রেশনের অধীনে।</p>
-      <p>এই preview এখনো legacy dashboard-এর বিকল্প নয়।</p>
     </section>
   );
 }
@@ -46,6 +37,9 @@ export function App() {
       break;
     case "/profile":
       content = <ProfilePage />;
+      break;
+    case "/profile/edit":
+      content = <EditProfilePage />;
       break;
     case "/dashboard":
       content = <DashboardPage />;
