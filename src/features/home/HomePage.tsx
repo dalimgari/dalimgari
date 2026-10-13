@@ -91,7 +91,7 @@ export function HomePage() {
 
   useEffect(() => {
     const pills = pillRef.current;
-    if (!pills || pillPaused || state.settings === null || state.pages.length < 2) return;
+    if (!pills || pillPaused || state.settings === null || !state.settings.pagePillAutoScrollEnabled || state.pages.length < 2) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     let timer = 0;
     const start = () => {
@@ -100,7 +100,7 @@ export function HomePage() {
         if (pills.scrollWidth <= pills.clientWidth + 2) return;
         const next = pills.scrollLeft + pills.clientWidth >= pills.scrollWidth - 3 ? 0 : pills.scrollLeft + 150;
         pills.scrollTo({ left: next, behavior: "smooth" });
-      }, 3000);
+      }, state.settings?.pagePillAutoScrollIntervalSeconds ? state.settings.pagePillAutoScrollIntervalSeconds * 1000 : 3000);
     };
     start();
     return () => window.clearInterval(timer);
