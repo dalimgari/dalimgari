@@ -2,18 +2,12 @@ import { createHashRouter } from "react-router-dom";
 import { App } from "./App";
 
 /**
- * Preview-only route shell. The wildcard is intentional because Vite serves
- * this app from /react-preview.html during isolated migration testing.
- * Do not wire this into production until legacy URLs, GitHub Pages fallback
- * behavior, and feature parity have been tested.
+ * Preview-only routes. Hash routing keeps navigation on GitHub Pages and
+ * avoids requiring server-side rewrite rules for deep links.
  */
 export const router = createHashRouter([
-  {
-    path: "/albums/:albumId",
-    element: <App />,
-  },
-  {
-    path: "*",
-    element: <App />,
-  },
+  { path: "/albums/:albumId", element: <App /> },
+  { path: "/dashboard/media-library", element: <App /> },
+  { path: "/dashboard/:section", element: <App /> },
+  { path: "*", element: <App /> },
 ]);
