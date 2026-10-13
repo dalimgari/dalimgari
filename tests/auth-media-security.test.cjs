@@ -71,7 +71,7 @@ test("custom page HTML blocks control-character obfuscated executable URLs", () 
   const isUnsafePageUrl = vm.runInNewContext(helper + "; isUnsafePageUrl");
 
   assert.equal(isUnsafePageUrl("java\nscript:alert(1)"), true);
-  assert.equal(isUnsafePageUrl("java\nscript:alert(1)"), true);
+  assert.equal(isUnsafePageUrl("java\tscript:alert(1)"), true);
   assert.equal(isUnsafePageUrl("vbscript:alert(1)"), true);
   assert.equal(isUnsafePageUrl("data:text/html,<script>alert(1)</script>"), true);
   assert.equal(isUnsafePageUrl("data:image/svg+xml,<svg onload=alert(1)>"), true);
