@@ -95,6 +95,7 @@ export function MediaLibraryPage() {
 
   const uploadFile = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const form = event.currentTarget;
     if (!supabase || !file || !canUpload) return;
     setError("");
     setMessage("");
@@ -136,7 +137,7 @@ export function MediaLibraryPage() {
       setTags("");
       setAltText("");
       setFile(null);
-      event.currentTarget.reset();
+      form.reset();
       await loadAssets();
     } catch (uploadError) {
       if (uploadedPath) {
