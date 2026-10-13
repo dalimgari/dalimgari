@@ -21,6 +21,7 @@ test("purging a page or post never deletes referenced storage objects", () => {
   assert.match(source, /Retaining media object because an active record references it/);
 });
 
-test("cleanup Edge Function remains JWT protected by deployment configuration", () => {
+test("cleanup has a second server-only authorization guard", () => {
   assert.match(source, /x-cleanup-secret/);
+  assert.match(source, /suppliedSecret\.length !== secretRecord\.secret_value\.length/);
 });
