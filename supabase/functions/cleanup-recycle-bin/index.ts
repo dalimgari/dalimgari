@@ -16,47 +16,101 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-function collectStorageObjects(item: Record<string, unknown>) {
-  const objects = new Map<string, Set<string>>();
-  const add = (bucket: string, path: string) => {
-    const normalized = path.trim().replace(/^\/+/, "");
-    if (!normalized || /^https?:\/\//i.test(normalized)) return;
-    if (!objects.has(bucket)) objects.set(bucket, new Set<string>());
-    objects.get(bucket)!.add(normalized);
-  };
-  const scan = (value: unknown, defaultBucket = "content-files"): void => {
-    if (!value || typeof value !== "object") return;
-    if (Array.isArray(value)) {
-      for (const child of value) scan(child, defaultBucket);
-      return;
-    }
-    const record = value as Record<string, unknown>;
-    const bucket = String(record.bucket_id || record.bucket || record.storage_bucket || defaultBucket);
-    for (const key of ["path", "file_path", "storage_path", "object_path", "cover_path"]) {
-      if (typeof record[key] === "string") add(bucket, record[key] as string);
-    }
-    for (const child of Object.values(record)) {
-      if (child && typeof child === "object") scan(child, bucket);
-    }
-  };
-  scan(item.record_data);
-  scan(item.related_data);
-  return objects;
+const ALLOWED_STORAGE_BUCKETS = new Set(["content-files", "hero-images", "profile-pictures"]);
+
+function normalizeStoragePath(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  let path = value.trim();
+  while (path.startsWith("/")) path = path.slice(1);
+  if (!path || path.length > 1024 || path.toLowerCase().startsWith("http://") || path.toLowerCase().startsWith("https://")) return null;
+  if (path.includes(String.fromCharCode(92))) return null;
+  if (Array.from(path).some((character) => {
+    const code = character.charCodeAt(0);
+    return code < 32 || code === 127;
+  })) return null;
+  const segments = path.split("/");
+  if (segments.some((segment) => !segment || segment === "." || segment === "..")) return null;
+  return path;
 }
 
-async function removeStoredObjects(item: Record<string, unknown>) {
-  const objects = collectStorageObjects(item);
-  let removed = 0;
-  for (const [bucket, paths] of objects) {
-    const items = Array.from(paths);
-    for (let i = 0; i < items.length; i += 1000) {
-      const chunk = items.slice(i, i + 1000);
-      const { error } = await admin.storage.from(bucket).remove(chunk);
-      if (error) throw new Error("Storage removal failed for " + bucket + ": " + error.message);
-      removed += chunk.length;
+type ActiveStorageReference = {
+  tableName: string;
+  id: string;
+  storageBucket: string;
+  storagePath: string;
+  serialized: string;
+};
+
+async function loadActiveStorageReferences(): Promise<ActiveStorageReference[]> {
+  const tables = [
+    { name: "media_assets", columns: "id,storage_bucket,storage_path" },
+    { name: "pages", columns: "id,content,media" },
+    { name: "albums", columns: "id,cover_path,media" },
+    { name: "hero_items", columns: "id,media" },
+    { name: "post", columns: "id,content,media,custom_url" },
+  ];
+  const snapshot: ActiveStorageReference[] = [];
+  for (const table of tables) {
+    for (let offset = 0; ; offset += 500) {
+      const { data, error } = await admin.from(table.name).select(table.columns).range(offset, offset + 499);
+      if (error) throw new Error("Could not verify media references in " + table.name + ": " + error.message);
+      const rows = data || [];
+      for (const row of rows as Array<Record<string, unknown>>) {
+        snapshot.push({
+          tableName: table.name,
+          id: String(row.id || ""),
+          storageBucket: String(row.storage_bucket || ""),
+          storagePath: String(row.storage_path || ""),
+          serialized: JSON.stringify(row),
+        });
+      }
+      if (rows.length < 500) break;
     }
   }
-  return removed;
+  return snapshot;
+}
+
+function isStorageObjectReferenced(
+  bucket: string,
+  path: string,
+  assetId: string,
+  snapshot: ActiveStorageReference[],
+): boolean {
+  for (const reference of snapshot) {
+    if (reference.tableName === "media_assets") {
+      if (reference.id === assetId) return true;
+      if (reference.storageBucket === bucket && reference.storagePath === path) return true;
+    }
+    if (reference.serialized.includes(path) || (assetId && reference.serialized.includes(assetId))) return true;
+  }
+  return false;
+}
+
+async function removeStoredObjects(
+  item: Record<string, unknown>,
+  snapshot: ActiveStorageReference[],
+) {
+  // Storage objects belong to Media Library records, not every page/post that references them.
+  if (item.original_table !== "media_assets") return 0;
+  const record = item.record_data && typeof item.record_data === "object"
+    ? item.record_data as Record<string, unknown>
+    : {};
+  const bucket = String(record.storage_bucket || "");
+  const path = normalizeStoragePath(record.storage_path);
+  const assetId = String(record.id || item.original_id || "");
+
+  if (!ALLOWED_STORAGE_BUCKETS.has(bucket) || !path || !assetId) {
+    throw new Error("Refusing to purge a media asset with an invalid bucket, path, or record ID.");
+  }
+
+  if (isStorageObjectReferenced(bucket, path, assetId, snapshot)) {
+    console.info("Retaining media object because an active record references it", bucket, path);
+    return 0;
+  }
+
+  const { error } = await admin.storage.from(bucket).remove([path]);
+  if (error) throw new Error("Storage removal failed for " + bucket + ": " + error.message);
+  return 1;
 }
 
 Deno.serve(async (req: Request) => {
@@ -118,9 +172,16 @@ Deno.serve(async (req: Request) => {
   let purgedItems = 0;
   let purgedFiles = 0;
   let failedItems = 0;
+  let referenceSnapshotPromise: Promise<ActiveStorageReference[]> | null = null;
   for (const item of expired || []) {
     try {
-      purgedFiles += await removeStoredObjects(item as Record<string, unknown>);
+      const recycleItem = item as Record<string, unknown>;
+      let referenceSnapshot: ActiveStorageReference[] = [];
+      if (recycleItem.original_table === "media_assets") {
+        referenceSnapshotPromise ??= loadActiveStorageReferences();
+        referenceSnapshot = await referenceSnapshotPromise;
+      }
+      purgedFiles += await removeStoredObjects(recycleItem, referenceSnapshot);
       const { error: deleteError } = await admin.from("recycle_bin").delete().eq("id", item.id);
       if (deleteError) throw deleteError;
       purgedItems += 1;
