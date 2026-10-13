@@ -50,3 +50,12 @@ test("content media resolves both legacy paths and Media Library storage fields 
   assert.match(app, /for \(let start = 0; start < media\.length; start \+= 6\)/);
   assert.match(app, /Promise\.all\(media\.slice\(start, start \+ 6\)/);
 });
+
+test("signed image URLs refresh once after a load error", () => {
+  const app = read("app.js");
+
+  assert.match(app, /function attachSignedImageRefresh\(image, path, bucket = "content-files"\)/);
+  assert.match(app, /if \(refreshed \|\| !image\.isConnected\) return/);
+  assert.match(app, /const freshUrl = await createContentMediaUrl\(path, bucket\)/);
+  assert.match(app, /attachSignedImageRefresh\(mediaElement, mediaPath, mediaBucket\)/);
+});
