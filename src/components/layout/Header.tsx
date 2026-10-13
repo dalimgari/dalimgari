@@ -8,6 +8,7 @@ export function Header() {
         <Link to="/">হোম</Link>
         <Link to="/login">লগইন</Link>
         <Link to="/profile">প্রোফাইল</Link>
+        <Link to="/dashboard">ড্যাশবোর্ড</Link>
       </nav>
       <span className="preview-label">React preview</span>
     </header>
