@@ -30,6 +30,10 @@ export interface PublicContentItem {
   created_at: string | null;
 }
 
+export interface PublicGalleryAlbum extends PublicAlbum {
+  media: Array<AlbumMediaItem & { signedUrl: string | null }>;
+}
+
 export interface PublicHero {
   title: string;
   description: string | null;
@@ -253,6 +257,32 @@ export async function getPublicAlbums(limit = 24): Promise<PublicAlbum[]> {
       return { ...album, coverUrl };
     }),
   );
+}
+
+
+/** Fetches one public album and signs its media URLs through the configured Storage policy. */
+export async function getPublicAlbumById(id: string): Promise<PublicGalleryAlbum | null> {
+  const safeId = id.trim();
+  if (!safeId || safeId.length > 100) return null;
+  const { data, error } = await getClient()
+    .from("albums")
+    .select("id,title,description,url,cover_path,media,created_at,visibility")
+    .eq("id", safeId)
+    .eq("visibility", "public")
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+
+  const media = await Promise.all(asMediaItems(data.media).map(async (item) => ({
+    ...item,
+    signedUrl: await createContentMediaUrl(item.path),
+  })));
+  const coverUrl = data.cover_path ? await createContentMediaUrl(data.cover_path) : null;
+  return {
+    ...(data as unknown as Omit<PublicAlbum, "coverUrl">),
+    media,
+    coverUrl,
+  };
 }
 
 /** Fetches public posts, pages, or hero items using their shared legacy columns. */
