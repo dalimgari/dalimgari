@@ -58,6 +58,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TARGET_BRANCH: ${{ github.head_ref || github.ref_name }}
         run: |
+          git diff --binary "$GITHUB_SHA" HEAD > /tmp/react-migration-generated.patch
+          git fetch origin "$TARGET_BRANCH"
+          git checkout -B "$TARGET_BRANCH" "origin/$TARGET_BRANCH"
+          git apply /tmp/react-migration-generated.patch
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add package-lock.json src/ tests/e2e/
