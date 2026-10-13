@@ -102,13 +102,13 @@ export function DashboardPage() {
         if (userError || !data.user) throw new Error("ড্যাশবোর্ড দেখতে লগইন করতে হবে।");
         const admin = String(data.user.app_metadata?.role ?? "").toLowerCase() === "admin";
         let granted: string[] = [];
-        if (!admin) {
+        {
           const { data: permissionData, error: permissionError } =
             await supabase.rpc("get_my_permissions");
-          if (permissionError) throw new Error("আপনার permission যাচাই করা যায়নি।");
+          if (permissionError && !admin) throw new Error("আপনার permission যাচাই করা যায়নি।");
           if (Array.isArray(permissionData))
             granted = permissionData.filter((value): value is string => typeof value === "string");
-          if (granted.length === 0)
+          if (!admin && granted.length === 0)
             throw new Error("এই অ্যাকাউন্টের ড্যাশবোর্ড ব্যবহারের অনুমতি নেই।");
         }
         if (!active) return;
@@ -137,10 +137,11 @@ export function DashboardPage() {
       </section>
     );
 
-  const allowed = sections.filter(
-    (section) =>
-      isAdmin || section.permissions.some((permission) => permissions.includes(permission)),
-  );
+  const allowed = sections.filter((section) => {
+    if (section.id === "overview") return isAdmin || section.permissions.some((permission) => permissions.includes(permission));
+    if (section.id === "page" || section.id === "media-library") return isAdmin || section.permissions.some((permission) => permissions.includes(permission));
+    return section.permissions.some((permission) => permissions.includes(permission));
+  });
   const current = allowed.find((section) => section.id === activeSection) ?? allowed[0];
 
   return (
