@@ -59,3 +59,13 @@ test("signed image URLs refresh once after a load error", () => {
   assert.match(app, /const freshUrl = await createContentMediaUrl\(path, bucket\)/);
   assert.match(app, /attachSignedImageRefresh\(mediaElement,\s*mediaPath,\s*mediaBucket\)/);
 });
+
+test("custom page HTML blocks control-character obfuscated executable URLs", () => {
+  const app = read("app.js");
+
+  assert.ok(app.includes("function isUnsafePageUrl(value)"));
+  assert.ok(app.includes(String.raw`replace(/[\\u0000-\\u0020\\u007f]/g, "")`));
+  assert.ok(app.includes('value.startsWith("vbscript:")'));
+  assert.ok(app.includes('value.startsWith("data:image/svg+xml")'));
+  assert.ok(app.includes("isUnsafePageUrl(attribute.value)"));
+});
