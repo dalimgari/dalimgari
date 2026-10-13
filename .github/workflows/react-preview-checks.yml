@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: react-preview-checks-${{ github.ref }}
@@ -26,8 +26,6 @@ jobs:
           node-version: 22
       - name: Install locked dependencies
         run: npm ci --no-audit --no-fund
-      - name: Normalize source formatting for verified commit
-        run: npx prettier --write "src/**/*.{ts,tsx,css}" "tests/e2e/**/*.ts"
       - name: Check legacy behavior and preview structure
         run: npm run check
       - name: ESLint
@@ -42,24 +40,3 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Run browser smoke test
         run: npm run test:e2e
-      - name: Commit verified formatting onto PR branch
-        if: success()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TARGET_BRANCH: ${{ github.head_ref || github.ref_name }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package-lock.json src/ tests/e2e/
-          if git diff --cached --quiet; then
-            echo "No formatting changes to commit."
-            exit 0
-          fi
-          git commit -m "chore: format remaining React migration files"
-          git diff --binary "$GITHUB_SHA" HEAD > /tmp/react-migration-generated.patch
-          git fetch origin "$TARGET_BRANCH"
-          git checkout -B "$TARGET_BRANCH" "origin/$TARGET_BRANCH"
-          git apply /tmp/react-migration-generated.patch
-          git add package-lock.json src/ tests/e2e/
-          git commit -m "chore: apply verified React migration formatting"
-          git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)" push origin "HEAD:refs/heads/$TARGET_BRANCH"
