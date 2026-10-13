@@ -57,5 +57,5 @@ test("signed image URLs refresh once after a load error", () => {
   assert.match(app, /function attachSignedImageRefresh\(image, path, bucket = "content-files"\)/);
   assert.match(app, /if \(refreshed \|\| !image\.isConnected\) return/);
   assert.match(app, /const freshUrl = await createContentMediaUrl\(path, bucket\)/);
-  assert.match(app, /attachSignedImageRefresh\(mediaElement, mediaPath, mediaBucket\)/);
+  assert.match(app, /attachSignedImageRefresh\(mediaElement,\s*mediaPath,\s*mediaBucket\)/);
 });
