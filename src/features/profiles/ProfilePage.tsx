@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import type { User } from "@supabase/supabase-js";
 import { signOut } from "../../services/auth";
 import { supabase } from "../../services/supabase";
@@ -69,7 +69,10 @@ export function ProfilePage() {
         <dt>ভূমিকা</dt><dd>{String(user.app_metadata?.role || "member").toUpperCase()}</dd>
       </dl>
       {error ? <p role="alert">{error}</p> : null}
-      <button type="button" onClick={() => void handleSignOut()}>লগআউট</button>
+      <div className="profile-actions">
+        <Link to="/profile/edit">প্রোফাইল সম্পাদনা</Link>
+        <button type="button" onClick={() => void handleSignOut()}>লগআউট</button>
+      </div>
     </section>
   );
 }
