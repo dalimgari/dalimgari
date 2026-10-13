@@ -21,6 +21,9 @@ type AlbumRow = {
 type PublicContentRow = {
   id: string;
   title: string;
+  description: string | null;
+  url: string | null;
+  content: string | null;
   media: Json | null;
   visibility: string;
   created_at: string | null;
@@ -34,9 +37,9 @@ type SiteCustomizationRow = {
 };
 
 /**
- * Minimal definitions for columns verified in the existing frontend queries.
- * Regenerate with Supabase CLI from the live schema before expanding mutations
- * or relying on additional columns/relationships.
+ * Minimal definitions for columns referenced by the migration preview.
+ * This is not a generated representation of the entire live schema.
+ * Regenerate using the Supabase CLI before production cutover.
  */
 export interface Database {
   public: {
