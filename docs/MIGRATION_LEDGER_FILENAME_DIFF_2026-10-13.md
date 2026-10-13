@@ -9,12 +9,12 @@ Repository baseline after the latest cleanup: `e9b7e373b5aa58d98d2aa549e734fce34
 ## Snapshot
 
 - Production migration ledger entries: **47**
-- SQL migration files in `supabase/migrations/`: **26**
+- SQL migration files in `supabase/migrations/`: **23**
 - Exact version matches: **14**
 - Production ledger versions without an exact repository filename: **33**
 - Repository SQL file versions without an exact production ledger entry: **12**
 
-The newly applied migrations `20261013184928 remove_duplicate_profile_insert_trigger` and `20261013185319 grant_cleanup_function_minimal_table_access` are now present in both the production ledger and repository. Other version mismatches remain unresolved. Version mismatch does not prove that the corresponding SQL change is missing. Names and SQL contents must be compared to distinguish renamed/equivalent migrations from omitted, superseded, obsolete, or unknown history.
+The newly applied migrations `20261013184928 remove_duplicate_profile_insert_trigger` and `20261013185319 grant_cleanup_function_minimal_table_access` are now present in both the production ledger and repository. Three repository-only migrations that were never recorded in production and would diverge from the live feature set were removed from the canonical migration directory: the abandoned public-upload feature, and the temporary remove/restore Pages sequence. Other version mismatches remain unresolved. Version mismatch does not prove that the corresponding SQL change is missing. Names and SQL contents must be compared to distinguish renamed/equivalent migrations from omitted, superseded, obsolete, or unknown history.
 
 ## Production ledger entries without an exact repository filename
 
@@ -59,14 +59,11 @@ The newly applied migrations `20261013184928 remove_duplicate_profile_insert_tri
 ```text
 20261010112000_profiles_canonical_source.sql
 20261010195600_create_media_library.sql
-20261010210000_create_public_media_uploads.sql
 20261010230000_grant_admin_full_access_to_app_data_and_storage.sql
 20261010235000_admin_only_home_media_uploads.sql
 20261010235900_protect_super_admin_account.sql
 20261011005800_add_media_column_to_albums.sql
 20261011010000_add_custom_url_to_posts.sql
-20261011020000_remove_pages_feature.sql
-20261011030000_restore_page_feature.sql
 20261011050000_english_widget_titles.sql
 20261011143000_secure_cleanup_recycle_bin_authorization.sql
 ```
@@ -95,3 +92,14 @@ These pairs have similar migration names but different versions (and in some cas
 ## Known caution
 
 The repository migration `20261010210000_create_public_media_uploads.sql` does not have an exact production ledger entry, and a prior read-only catalog check found no `public.public_media_uploads` table. Do not replay it merely to align the ledger.
+
+
+## Repository-only migration cleanup
+
+The following three SQL files were removed from the canonical migration directory because their versions are absent from the production ledger and their effects conflict with the live production state:
+
+- `20261010210000_create_public_media_uploads.sql` created `public.public_media_uploads`, a public `public-media-inbox` bucket, and anonymous-session upload policies. The live production project has neither the table nor the bucket, and the public upload feature has been retired.
+- `20261011020000_remove_pages_feature.sql` deleted all Pages recycle-bin entries and dropped `public.pages`.
+- `20261011030000_restore_page_feature.sql` recreated the Pages table after the previous migration had dropped it, but did not restore the deleted page records. Replaying this pair would therefore erase the seed pages in a clean database reset.
+
+These removals change repository history only; no production table, bucket, policy, or data was dropped by this documentation PR. If a separate development database had applied any of these untracked versions, reconcile that environment separately before resetting it.
