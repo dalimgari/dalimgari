@@ -2,6 +2,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
+const vm = require("node:vm");
 
 const read = (file) => fs.readFileSync(path.join(__dirname, "..", file), "utf8");
 
@@ -62,10 +63,17 @@ test("signed image URLs refresh once after a load error", () => {
 
 test("custom page HTML blocks control-character obfuscated executable URLs", () => {
   const app = read("app.js");
+  const start = app.indexOf("function isUnsafePageUrl(value) {");
+  const end = app.indexOf("\\n    function sanitizePageHtml", start);
+  assert.ok(start >= 0 && end > start, "URL sanitizer helper should exist before the HTML renderer");
 
-  assert.ok(app.includes("function isUnsafePageUrl(value)"));
-  assert.ok(app.includes(String.raw`replace(/[\u0000-\u0020\u007f]/g, "")`));
-  assert.ok(app.includes('value.startsWith("vbscript:")'));
-  assert.ok(app.includes('value.startsWith("data:image/svg+xml")'));
-  assert.ok(app.includes("isUnsafePageUrl(attribute.value)"));
+  const helper = app.slice(start, end);
+  const isUnsafePageUrl = vm.runInNewContext(helper + "; isUnsafePageUrl");
+
+  assert.equal(isUnsafePageUrl("java\\nscript:alert(1)"), true);
+  assert.equal(isUnsafePageUrl("java\\tscript:alert(1)"), true);
+  assert.equal(isUnsafePageUrl("vbscript:alert(1)"), true);
+  assert.equal(isUnsafePageUrl("data:text/html,<script>alert(1)</script>"), true);
+  assert.equal(isUnsafePageUrl("data:image/svg+xml,<svg onload=alert(1)>"), true);
+  assert.equal(isUnsafePageUrl("https://example.com/page"), false);
 });
