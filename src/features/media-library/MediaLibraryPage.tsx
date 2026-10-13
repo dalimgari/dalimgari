@@ -41,8 +41,9 @@ export function MediaLibraryPage() {
   const [error, setError] = useState("");
 
   const loadAssets = useCallback(async () => {
-    if (!supabase) throw new Error("Supabase configuration পাওয়া যায়নি।");
-    const { data, error: queryError } = await supabase
+    const client = supabase;
+    if (!client) throw new Error("Supabase configuration পাওয়া যায়নি।");
+    const { data, error: queryError } = await client
       .from("media_assets")
       .select("id,title,description,tags,alt_text,original_filename,storage_bucket,storage_path,mime_type,size_bytes,created_at")
       .order("created_at", { ascending: false })
@@ -50,7 +51,7 @@ export function MediaLibraryPage() {
     if (queryError) throw queryError;
 
     const resolved = await Promise.all((data ?? []).map(async (asset) => {
-      const { data: signed, error: signError } = await supabase.storage
+      const { data: signed, error: signError } = await client.storage
         .from(asset.storage_bucket)
         .createSignedUrl(asset.storage_path, 3600);
       return {
@@ -76,7 +77,7 @@ export function MediaLibraryPage() {
           if (permissionError) throw new Error("আপনার permission যাচাই করা যায়নি।");
           if (Array.isArray(data)) permissions = data.filter((value): value is string => typeof value === "string");
         }
-        const view = isAdmin || permissions.includes("content.view") || permissions.includes("content.create") || permissions.includes("content.edit");
+        const view = isAdmin || permissions.includes("content.view");
         const upload = isAdmin || permissions.includes("content.create");
         if (!view) throw new Error("Media Library ব্যবহারের অনুমতি নেই।");
         if (!active) return;
