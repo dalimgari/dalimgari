@@ -20,9 +20,9 @@ export function Modal({ title, open, onClose, children }: ModalProps) {
 
   useEffect(() => {
     if (!open) return;
-    const previouslyFocused = document.activeElement instanceof HTMLElement
-      ? document.activeElement
-      : null;
+
+    const previouslyFocused =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const dialog = dialogRef.current;
     const focusable = dialog?.querySelectorAll<HTMLElement>(FOCUSABLE);
     (focusable?.[0] ?? dialog)?.focus();
@@ -41,9 +41,13 @@ export function Modal({ title, open, onClose, children }: ModalProps) {
         dialog.focus();
         return;
       }
+
       const first = items[0];
       const last = items[items.length - 1];
-      if (event.shiftKey && (document.activeElement === first || document.activeElement === dialog)) {
+      if (
+        event.shiftKey &&
+        (document.activeElement === first || document.activeElement === dialog)
+      ) {
         event.preventDefault();
         last.focus();
       } else if (!event.shiftKey && document.activeElement === last) {
@@ -79,7 +83,9 @@ export function Modal({ title, open, onClose, children }: ModalProps) {
       >
         <h2 id="modal-title">{title}</h2>
         {children}
-        <button type="button" onClick={onClose}>Close</button>
+        <button type="button" onClick={onClose}>
+          Close
+        </button>
       </section>
     </div>
   );
