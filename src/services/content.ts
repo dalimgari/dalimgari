@@ -56,11 +56,15 @@ function parseAlbumOrder(value: unknown): string[] | null {
       return null;
     }
   }
+
   if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
     parsed = (parsed as { ids?: unknown }).ids;
   }
+
   return Array.isArray(parsed)
-    ? parsed.filter((id): id is string | number => typeof id === "string" || typeof id === "number").map(String)
+    ? parsed
+        .filter((id): id is string | number => typeof id === "string" || typeof id === "number")
+        .map(String)
     : null;
 }
 
@@ -83,13 +87,21 @@ export async function getPublicAlbums(limit = 24): Promise<PublicAlbum[]> {
       .eq("visibility", "public")
       .order("created_at", { ascending: false })
       .limit(safeLimit),
-    client.from("site_customizations").select("value").eq("key", "home_album_order").maybeSingle(),
+    client
+      .from("site_customizations")
+      .select("value")
+      .eq("key", "home_album_order")
+      .maybeSingle(),
   ]);
   if (albumResult.error) throw albumResult.error;
 
   const rows = (albumResult.data ?? []) as unknown as Omit<PublicAlbum, "coverUrl">[];
   const albums = rows
-    .map((album) => ({ ...album, media: asMediaItems(album.media), coverUrl: null as string | null }))
+    .map((album) => ({
+      ...album,
+      media: asMediaItems(album.media),
+      coverUrl: null as string | null,
+    }))
     .filter((album) => Boolean(album.cover_path?.trim()) || album.media.length > 0);
 
   if (!orderResult.error) {
@@ -98,7 +110,12 @@ export async function getPublicAlbums(limit = 24): Promise<PublicAlbum[]> {
       const byId = new Map(albums.map((album) => [String(album.id), album]));
       const ordered = ids.map((id) => byId.get(id)).filter((album) => album !== undefined);
       const orderedIds = new Set(ordered.map((album) => String(album.id)));
-      albums.splice(0, albums.length, ...ordered, ...albums.filter((album) => !orderedIds.has(String(album.id))));
+      albums.splice(
+        0,
+        albums.length,
+        ...ordered,
+        ...albums.filter((album) => !orderedIds.has(String(album.id))),
+      );
     }
   }
 
