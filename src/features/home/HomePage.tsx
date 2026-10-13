@@ -31,8 +31,9 @@ interface HomeState {
 }
 
 function htmlToPlainText(value: string): string {
-  const safeMarkup = value.replace(/<script[\\s\\S]*?<\\/script>/gi, " ").replace(/<style[\\s\\S]*?<\\/style>/gi, " ");
-  return new DOMParser().parseFromString(safeMarkup, "text/html").body.textContent ?? "";
+  const document = new DOMParser().parseFromString(value, "text/html");
+  document.querySelectorAll("script, style").forEach((element) => element.remove());
+  return document.body.textContent ?? "";
 }
 
 const initialState: HomeState = {
