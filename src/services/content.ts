@@ -63,10 +63,7 @@ function parseAlbumOrder(value: unknown): string[] | null {
 
   return Array.isArray(parsed)
     ? parsed
-        .filter(
-          (id): id is string | number =>
-            typeof id === "string" || typeof id === "number",
-        )
+        .filter((id): id is string | number => typeof id === "string" || typeof id === "number")
         .map(String)
     : null;
 }
@@ -90,11 +87,7 @@ export async function getPublicAlbums(limit = 24): Promise<PublicAlbum[]> {
       .eq("visibility", "public")
       .order("created_at", { ascending: false })
       .limit(safeLimit),
-    client
-      .from("site_customizations")
-      .select("value")
-      .eq("key", "home_album_order")
-      .maybeSingle(),
+    client.from("site_customizations").select("value").eq("key", "home_album_order").maybeSingle(),
   ]);
   if (albumResult.error) throw albumResult.error;
 
