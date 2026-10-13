@@ -24,11 +24,17 @@ jobs:
           node-version: 22
       - name: Install dependencies
         run: npm install --no-audit --no-fund
-      - name: Preserve generated lockfile as a reviewable artifact
+      - name: Normalize migration source and generate lockfile artifact
+        run: |
+          npx prettier --write "src/**/*.{ts,tsx,css}" "tests/e2e/**/*.ts"
+      - name: Upload formatted source and dependency lockfile
         uses: actions/upload-artifact@v4
         with:
-          name: react-migration-package-lock
-          path: package-lock.json
+          name: react-migration-normalized-source
+          path: |
+            src/
+            tests/e2e/
+            package-lock.json
           if-no-files-found: error
       - name: Check legacy behavior and preview structure
         run: npm run check
