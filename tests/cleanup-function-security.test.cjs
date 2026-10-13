@@ -18,6 +18,7 @@ test("cleanup only considers approved storage buckets and canonical paths", () =
 test("purging a page or post never deletes referenced storage objects", () => {
   assert.match(source, /item\.original_table !== "media_assets"/);
   assert.match(source, /isStorageObjectReferenced/);
+  assert.match(source, /name: "media_links", columns: "id,media_id,source_table,source_id"/);
   assert.match(source, /Retaining media object because an active record references it/);
 });
 
