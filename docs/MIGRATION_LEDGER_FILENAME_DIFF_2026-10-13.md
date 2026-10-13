@@ -2,19 +2,19 @@
 
 ## Scope and safety
 
-Comparison of the production Supabase migration ledger with SQL files in `main`. Two new forward migrations were applied: one removed a redundant profile-insert trigger, and one granted minimal table privileges required by the recycle-bin cleanup function. Existing migration records were not edited or replayed. This report does not imply that historical discrepancies have been resolved.
+Comparison of the production Supabase migration ledger with SQL files in `main`. Three new forward migrations were applied: one removed a redundant profile-insert trigger, one granted minimal table privileges required by the recycle-bin cleanup function, and one granted read-only access to `media_links` for reference checks. Existing migration records were not edited or replayed. This report does not imply that historical discrepancies have been resolved.
 
 Repository baseline after the latest cleanup: `e9b7e373b5aa58d98d2aa549e734fce347ae75b5`.
 
 ## Snapshot
 
-- Production migration ledger entries: **47**
-- SQL migration files in `supabase/migrations/`: **23**
-- Exact version matches: **14**
+- Production migration ledger entries: **48**
+- SQL migration files in `supabase/migrations/`: **24**
+- Exact version matches: **15**
 - Production ledger versions without an exact repository filename: **33**
 - Repository SQL file versions without an exact production ledger entry: **12**
 
-The newly applied migrations `20261013184928 remove_duplicate_profile_insert_trigger` and `20261013185319 grant_cleanup_function_minimal_table_access` are now present in both the production ledger and repository. Three repository-only migrations that were never recorded in production and would diverge from the live feature set were removed from the canonical migration directory: the abandoned public-upload feature, and the temporary remove/restore Pages sequence. Other version mismatches remain unresolved. Version mismatch does not prove that the corresponding SQL change is missing. Names and SQL contents must be compared to distinguish renamed/equivalent migrations from omitted, superseded, obsolete, or unknown history.
+The newly applied migrations `20261013184928 remove_duplicate_profile_insert_trigger`, `20261013185319 grant_cleanup_function_minimal_table_access`, and `20261013185707 grant_cleanup_media_link_read` are now present in both the production ledger and repository. Three repository-only migrations that were never recorded in production and would diverge from the live feature set were removed from the canonical migration directory: the abandoned public-upload feature, and the temporary remove/restore Pages sequence. Other version mismatches remain unresolved. Version mismatch does not prove that the corresponding SQL change is missing. Names and SQL contents must be compared to distinguish renamed/equivalent migrations from omitted, superseded, obsolete, or unknown history.
 
 ## Production ledger entries without an exact repository filename
 
