@@ -173,6 +173,12 @@ export function DashboardPage() {
           {["hero", "post", "page", "album", "widget"].includes(current.id) ? (
             <Link to={"/dashboard/" + current.id}>এই বিভাগ পরিচালনা করুন</Link>
           ) : null}
+          {current.id === "role" ? (
+            <Link to="/dashboard/role">Role ও Permission পরিচালনা করুন</Link>
+          ) : null}
+          {["settings", "customization"].includes(current.id) ? (
+            <Link to={"/dashboard/" + current.id}>Settings পরিচালনা করুন</Link>
+          ) : null}
           <p>
             এই বিভাগের সম্পূর্ণ CRUD UI এখনো মাইগ্রেশনাধীন; legacy dashboard production-এ চালু আছে।
           </p>
