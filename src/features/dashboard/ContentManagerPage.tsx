@@ -14,6 +14,16 @@ const config: Record<string, { table: ManagedTable; title: string; hasDescriptio
   widget: { table: "widgets", title: "Widget", hasDescription: false, hasContent: false, hasUrl: false, hasWidgetType: true },
 };
 
+function htmlToPlainText(value: string): string {
+  const safeMarkup = value.replace(/<script[\\s\\S]*?<\\/script>/gi, " ").replace(/<style[\\s\\S]*?<\\/style>/gi, " ");
+  return new DOMParser().parseFromString(safeMarkup, "text/html").body.textContent ?? "";
+}
+
+function plainTextToSafeHtml(value: string): string {
+  const escape = (text: string) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\\"/g, "&quot;").replace(/'/g, "&#39;");
+  return value.split(/\\n{2,}/).map((paragraph) => "<p>" + escape(paragraph).replace(/\\n/g, "<br>") + "</p>").join("");
+}
+
 async function listRows(table: ManagedTable): Promise<Row[]> {
   if (!supabase) throw new Error("Supabase configuration পাওয়া যায়নি।");
   switch (table) {
@@ -152,7 +162,7 @@ export function ContentManagerPage() {
     setEditingId(String(row.id));
     setTitle(String(row.title ?? ""));
     setDescription(String(row.description ?? ""));
-    setBody(String(row.content ?? ""));
+    setBody(htmlToPlainText(String(row.content ?? "")));
     setUrl(String(row.url ?? ""));
     setVisibility(String(row.visibility ?? "private"));
     setWidgetType(String(row.widget_type ?? "datetime"));
@@ -183,7 +193,7 @@ export function ContentManagerPage() {
     if (!editingId && !canCreate) { setError("আপনার create permission নেই।"); return; }
     const payload: Row = { title: title.trim() };
     if (settings.hasDescription) payload.description = description.trim() || null;
-    if (settings.hasContent) payload.content = body;
+    if (settings.hasContent) payload.content = plainTextToSafeHtml(body);
     if (settings.hasUrl) {
       const normalizedUrl = url.trim().replace(/^\/+|\/+$/g, "");
       if (!normalizedUrl) { setError("URL/slug লিখুন।"); return; }
