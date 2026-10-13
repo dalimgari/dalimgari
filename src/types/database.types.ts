@@ -70,7 +70,9 @@ export interface Database {
       widgets: TableShape<WidgetRow>;
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      get_my_permissions: { Args: Record<string, never>; Returns: string[] };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };
