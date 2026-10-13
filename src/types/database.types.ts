@@ -29,6 +29,14 @@ type PublicContentRow = {
   created_at: string | null;
 };
 
+type ProfileRow = {
+  id: string;
+  full_name: string | null;
+  phone: string | null;
+  date_of_birth: string | null;
+  bio: string | null;
+};
+
 type SiteCustomizationRow = {
   key: string;
   value: Json | null;
@@ -49,6 +57,7 @@ export interface Database {
       pages: TableShape<PublicContentRow>;
       hero_items: TableShape<PublicContentRow>;
       site_customizations: TableShape<SiteCustomizationRow>;
+      profiles: TableShape<ProfileRow>;
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
