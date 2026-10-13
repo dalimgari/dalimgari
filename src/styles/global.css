@@ -506,3 +506,117 @@ button {
   background: var(--color-primary);
   color: #fff;
 }
+
+.content-manager-form,
+.media-upload-form {
+  display: grid;
+  gap: var(--space-2);
+  margin-block: var(--space-4);
+  padding: clamp(1rem, 3vw, 1.5rem);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.content-manager-form label,
+.media-upload-form label {
+  margin-top: var(--space-2);
+  font-weight: 600;
+}
+
+.content-manager-form input:not([type="checkbox"]),
+.content-manager-form select,
+.content-manager-form textarea,
+.media-upload-form input:not([type="checkbox"]),
+.media-upload-form select,
+.media-upload-form textarea,
+.media-library-page input[type="search"] {
+  width: 100%;
+  min-height: 2.7rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.content-manager-form textarea,
+.media-upload-form textarea {
+  resize: vertical;
+}
+
+.content-manager-form button,
+.media-upload-form button,
+.managed-record button {
+  min-height: 2.5rem;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid var(--color-primary);
+  border-radius: 0.5rem;
+  background: var(--color-primary);
+  color: #fff;
+  cursor: pointer;
+}
+
+.managed-record-list {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.managed-record {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.managed-record h3 {
+  margin: 0 0 0.4rem;
+  overflow-wrap: anywhere;
+}
+
+.managed-record p {
+  margin-block: 0.3rem;
+  overflow-wrap: anywhere;
+}
+
+.media-library-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+  gap: var(--space-4);
+  margin-block: var(--space-4);
+}
+
+.media-library-card {
+  min-width: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  overflow-wrap: anywhere;
+}
+
+.media-library-card img,
+.media-library-card video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+  background: #f3f4f6;
+  border-radius: 0.5rem;
+}
+
+@media (max-width: 520px) {
+  .managed-record {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .managed-record button {
+    width: 100%;
+  }
+}
