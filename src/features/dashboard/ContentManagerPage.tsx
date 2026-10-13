@@ -126,7 +126,9 @@ export function ContentManagerPage() {
           if (permissionError) throw new Error("Permission যাচাই করা যায়নি।");
           if (Array.isArray(values)) granted = values.filter((value): value is string => typeof value === "string");
         }
-        if (!admin && !["content.view", "content.create", "content.edit"].some((value) => granted.includes(value))) {
+        if (!admin && !(settings.table === "widgets"
+          ? granted.includes("settings.manage")
+          : ["content.view", "content.create", "content.edit"].some((value) => granted.includes(value)))) {
           throw new Error("এই বিভাগের অনুমতি নেই।");
         }
         if (!active) return;
@@ -143,8 +145,8 @@ export function ContentManagerPage() {
     return () => { active = false; };
   }, [load]);
 
-  const canCreate = isAdmin || permissions.includes("content.create");
-  const canEdit = isAdmin || permissions.includes("content.edit");
+  const canCreate = isAdmin || permissions.includes(settings?.table === "widgets" ? "settings.manage" : "content.create");
+  const canEdit = isAdmin || permissions.includes(settings?.table === "widgets" ? "settings.manage" : "content.edit");
 
   const startEdit = (row: Row) => {
     setEditingId(String(row.id));
