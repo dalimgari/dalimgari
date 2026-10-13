@@ -120,9 +120,14 @@ export function EditProfilePage() {
       setAvatarFile(null);
       setMessage("প্রোফাইল সংরক্ষণ হয়েছে।");
     } catch {
-      if (uploadedPath && !profileSaved && supabase)
+      if (uploadedPath && !profileSaved && supabase) {
         await supabase.storage.from("profile-pictures").remove([uploadedPath]);
-      setAvatarUrl(previousAvatarUrl);
+        setAvatarUrl(previousAvatarUrl);
+      } else if (uploadedPath && profileSaved && supabase) {
+        setAvatarUrl(supabase.storage.from("profile-pictures").getPublicUrl(uploadedPath).data.publicUrl);
+      } else {
+        setAvatarUrl(previousAvatarUrl);
+      }
       setError("প্রোফাইল সংরক্ষণ করা যায়নি। RLS policy এবং profiles table schema যাচাই করুন।");
     } finally {
       setSaving(false);
