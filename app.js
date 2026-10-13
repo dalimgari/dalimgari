@@ -1233,7 +1233,7 @@
       const normalized = String(value || "").replace(/[\u0000-\u0020\u007f]/g, "").toLowerCase();
       return normalized.startsWith("javascript:") ||
         normalized.startsWith("vbscript:") ||
-        normalized.startsWith("data:text/html:") ||
+        normalized.startsWith("data:text/html") ||
         normalized.startsWith("data:image/svg+xml");
     }
 
