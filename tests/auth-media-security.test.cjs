@@ -16,8 +16,8 @@ test("dashboard visibility is based on trusted app metadata, not editable user m
 test("private content media is resolved through expiring signed URLs", () => {
   const app = read("app.js");
 
-  assert.match(app, /async function createContentMediaUrl\(path\)/);
-  assert.match(app, /storage\.from\("content-files"\)\.createSignedUrl\(path, 3600\)/);
+  assert.match(app, /async function createContentMediaUrl\(path, bucket = "content-files"\)/);
+  assert.match(app, /storage\.from\(bucketId\)\.createSignedUrl\(normalizedPath, 3600\)/);
   assert.match(app, /return data\?\.signedUrl \|\| ""/);
   assert.doesNotMatch(app, /createContentMediaUrl\(path\)[\s\S]{0,500}?return path;/);
 });
@@ -38,4 +38,24 @@ test("homepage loading checks HTTP status and validates required sections before
   assert.match(app, /if \(!response\.ok\) throw new Error\("home\.html returned HTTP "/);
   assert.match(app, /page\.querySelectorAll\("\.home-page-pillbar"\)\.length !== 1/);
   assert.match(app, /Could not load the homepage template:/);
+});
+
+test("content media resolves both legacy paths and Media Library storage fields with bounded parallelism", () => {
+  const app = read("app.js");
+
+  assert.match(app, /async function createContentMediaUrl\(path, bucket = "content-files"\)/);
+  assert.match(app, /const path = item\.path \|\| item\.storage_path/);
+  assert.match(app, /const bucket = item\.storage_bucket \|\| item\.bucket \|\| "content-files"/);
+  assert.match(app, /new Set\(\["content-files", "hero-images", "profile-pictures"\]\)/);
+  assert.match(app, /for \(let start = 0; start < media\.length; start \+= 6\)/);
+  assert.match(app, /Promise\.all\(media\.slice\(start, start \+ 6\)/);
+});
+
+test("signed image URLs refresh once after a load error", () => {
+  const app = read("app.js");
+
+  assert.match(app, /function attachSignedImageRefresh\(image, path, bucket = "content-files"\)/);
+  assert.match(app, /if \(refreshed \|\| !image\.isConnected\) return/);
+  assert.match(app, /const freshUrl = await createContentMediaUrl\(path, bucket\)/);
+  assert.match(app, /attachSignedImageRefresh\(mediaElement,\s*mediaPath,\s*mediaBucket\)/);
 });
