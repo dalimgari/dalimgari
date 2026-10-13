@@ -292,6 +292,35 @@ export async function getPublicAlbumById(id: string): Promise<PublicGalleryAlbum
 }
 
 
+
+export interface HomepageInclude {
+  section: string;
+  title: string;
+  content: string;
+}
+
+export async function getHomepageIncludes(): Promise<HomepageInclude[]> {
+  const { data, error } = await getClient()
+    .from("site_customizations")
+    .select("value")
+    .eq("key", "home_page_includes")
+    .maybeSingle();
+  if (error || !data) return [];
+
+  const config = parseJsonObject(data.value);
+  const allowedSections = new Set(["home-hero", "home-page-title", "home-widget", "home-album", "home-page-card"]);
+  const entries = Object.entries(config).filter(
+    ([section, slug]) => allowedSections.has(section) && typeof slug === "string" && slug.trim().length > 0,
+  );
+  const results = await Promise.all(entries.map(async ([section, slug]) => {
+    const page = await getPublicPageByUrl(String(slug));
+    return page?.content
+      ? { section, title: page.title, content: page.content }
+      : null;
+  }));
+  return results.filter((item): item is HomepageInclude => item !== null);
+}
+
 export interface PublicWidget {
   id: string;
   widget_type: string;
