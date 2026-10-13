@@ -25,7 +25,10 @@ export function RoleManagerPage() {
     if (!supabase) throw new Error("Supabase configuration পাওয়া যায়নি।");
     const [rolesResult, permissionsResult, assignmentResult] = await Promise.all([
       supabase.from("roles").select("id,name,description,created_at,updated_at").order("name"),
-      supabase.from("permissions").select("id,name,description,created_at,updated_at").order("name"),
+      supabase
+        .from("permissions")
+        .select("id,name,description,created_at,updated_at")
+        .order("name"),
       supabase.from("role_permissions").select("role_id,permission_id"),
     ]);
     if (rolesResult.error) throw rolesResult.error;
@@ -37,7 +40,9 @@ export function RoleManagerPage() {
     setRoles(roleRows);
     setPermissions(permissionRows);
     setAssignments(assignmentRows);
-    setSelectedRoleId((current) => roleRows.some((role) => role.id === current) ? current : roleRows[0]?.id ?? "");
+    setSelectedRoleId((current) =>
+      roleRows.some((role) => role.id === current) ? current : (roleRows[0]?.id ?? ""),
+    );
   }, []);
 
   useEffect(() => {
@@ -59,13 +64,16 @@ export function RoleManagerPage() {
         if (active) setOwnRoleIds((ownAssignments ?? []).map((row) => row.role_id));
         await load();
       } catch (loadError) {
-        if (active) setError(loadError instanceof Error ? loadError.message : "Role data লোড করা যায়নি।");
+        if (active)
+          setError(loadError instanceof Error ? loadError.message : "Role data লোড করা যায়নি।");
       } finally {
         if (active) setLoading(false);
       }
     };
     void init();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [load]);
 
   const selectedRole = roles.find((role) => role.id === selectedRoleId) ?? null;
@@ -80,7 +88,9 @@ export function RoleManagerPage() {
     setName(selectedRole.name);
     setDescription(selectedRole.description ?? "");
     setSelectedPermissionIds(
-      assignments.filter((assignment) => assignment.role_id === selectedRole.id).map((assignment) => assignment.permission_id),
+      assignments
+        .filter((assignment) => assignment.role_id === selectedRole.id)
+        .map((assignment) => assignment.permission_id),
     );
   }, [selectedRole, assignments]);
 
@@ -89,7 +99,9 @@ export function RoleManagerPage() {
     if (!supabase) return;
     const normalizedName = name.trim().toLowerCase();
     if (!/^[a-z0-9_-]{2,80}$/.test(normalizedName)) {
-      setError("Role name ২–৮০ অক্ষরের ইংরেজি ছোট হাতের অক্ষর, সংখ্যা, hyphen বা underscore হতে হবে।");
+      setError(
+        "Role name ২–৮০ অক্ষরের ইংরেজি ছোট হাতের অক্ষর, সংখ্যা, hyphen বা underscore হতে হবে।",
+      );
       return;
     }
     setSaving(true);
@@ -97,12 +109,25 @@ export function RoleManagerPage() {
     setMessage("");
     try {
       if (selectedRoleId) {
-        const payload: TablesUpdate<"roles"> = { name: normalizedName, description: description.trim() || null };
-        const { error: updateError } = await supabase.from("roles").update(payload).eq("id", selectedRoleId);
+        const payload: TablesUpdate<"roles"> = {
+          name: normalizedName,
+          description: description.trim() || null,
+        };
+        const { error: updateError } = await supabase
+          .from("roles")
+          .update(payload)
+          .eq("id", selectedRoleId);
         if (updateError) throw updateError;
       } else {
-        const payload: TablesInsert<"roles"> = { name: normalizedName, description: description.trim() || null };
-        const { data, error: insertError } = await supabase.from("roles").insert(payload).select("id").single();
+        const payload: TablesInsert<"roles"> = {
+          name: normalizedName,
+          description: description.trim() || null,
+        };
+        const { data, error: insertError } = await supabase
+          .from("roles")
+          .insert(payload)
+          .select("id")
+          .single();
         if (insertError) throw insertError;
         setSelectedRoleId(data.id);
       }
@@ -117,15 +142,24 @@ export function RoleManagerPage() {
 
   const savePermissions = async () => {
     if (!supabase || !selectedRoleId) return;
-    if (ownRoleIds.includes(selectedRoleId) && !selectedPermissionIds.includes(permissions.find((permission) => permission.name === "roles.manage")?.id ?? "")) {
-      setError("নিজের সক্রিয় role থেকে roles.manage সরানো যাবে না; এতে আপনি নিজেকে lock out করতে পারেন।");
+    if (
+      ownRoleIds.includes(selectedRoleId) &&
+      !selectedPermissionIds.includes(
+        permissions.find((permission) => permission.name === "roles.manage")?.id ?? "",
+      )
+    ) {
+      setError(
+        "নিজের সক্রিয় role থেকে roles.manage সরানো যাবে না; এতে আপনি নিজেকে lock out করতে পারেন।",
+      );
       return;
     }
     setSaving(true);
     setError("");
     setMessage("");
     try {
-      const currentIds = assignments.filter((assignment) => assignment.role_id === selectedRoleId).map((assignment) => assignment.permission_id);
+      const currentIds = assignments
+        .filter((assignment) => assignment.role_id === selectedRoleId)
+        .map((assignment) => assignment.permission_id);
       const toRemove = currentIds.filter((id) => !selectedPermissionIds.includes(id));
       const toAdd = selectedPermissionIds.filter((id) => !currentIds.includes(id));
 
@@ -140,36 +174,59 @@ export function RoleManagerPage() {
         if (deleteError) throw deleteError;
       }
       if (toAdd.length) {
-        const { error: insertError } = await supabase.from("role_permissions").insert(
-          toAdd.map((permission_id) => ({ role_id: selectedRoleId, permission_id })),
-        );
+        const { error: insertError } = await supabase
+          .from("role_permissions")
+          .insert(toAdd.map((permission_id) => ({ role_id: selectedRoleId, permission_id })));
         if (insertError) throw insertError;
       }
       await load();
       setMessage("Role permissions সংরক্ষণ হয়েছে।");
     } catch {
       setError("Permission assignment সম্পূর্ণ হয়নি। বর্তমান অবস্থা reload করে আবার যাচাই করুন।");
-      try { await load(); } catch { /* Keep the original error visible. */ }
+      try {
+        await load();
+      } catch {
+        /* Keep the original error visible. */
+      }
     } finally {
       setSaving(false);
     }
   };
 
   if (loading) return <p role="status">roles.manage permission যাচাই হচ্ছে…</p>;
-  if (error && roles.length === 0) return <section className="notice-card"><h1>Role Management</h1><p role="alert">{error}</p><Link to="/dashboard">ড্যাশবোর্ডে ফিরুন</Link></section>;
+  if (error && roles.length === 0)
+    return (
+      <section className="notice-card">
+        <h1>Role Management</h1>
+        <p role="alert">{error}</p>
+        <Link to="/dashboard">ড্যাশবোর্ডে ফিরুন</Link>
+      </section>
+    );
 
   return (
     <section className="role-manager" aria-labelledby="role-manager-title">
-      <p><Link to="/dashboard">← ড্যাশবোর্ড</Link></p>
+      <p>
+        <Link to="/dashboard">← ড্যাশবোর্ড</Link>
+      </p>
       <h1 id="role-manager-title">Role ও Permission Management</h1>
-      <p>এই বিভাগ roles.manage permission-এ সীমাবদ্ধ। Role deletion এই preview-তে ইচ্ছাকৃতভাবে নিষ্ক্রিয়, যাতে user assignment ভেঙে না যায়।</p>
+      <p>
+        এই বিভাগ roles.manage permission-এ সীমাবদ্ধ। Role deletion এই preview-তে ইচ্ছাকৃতভাবে
+        নিষ্ক্রিয়, যাতে user assignment ভেঙে না যায়।
+      </p>
       {error ? <p role="alert">{error}</p> : null}
       {message ? <p role="status">{message}</p> : null}
       <div className="role-manager-layout">
         <nav className="role-list" aria-label="Role list">
-          <button type="button" onClick={() => setSelectedRoleId("")}>+ নতুন role</button>
+          <button type="button" onClick={() => setSelectedRoleId("")}>
+            + নতুন role
+          </button>
           {roles.map((role) => (
-            <button key={role.id} type="button" aria-current={role.id === selectedRoleId ? "true" : undefined} onClick={() => setSelectedRoleId(role.id)}>
+            <button
+              key={role.id}
+              type="button"
+              aria-current={role.id === selectedRoleId ? "true" : undefined}
+              onClick={() => setSelectedRoleId(role.id)}
+            >
               <strong>{role.name}</strong>
               {role.description ? <small>{role.description}</small> : null}
             </button>
@@ -179,10 +236,25 @@ export function RoleManagerPage() {
           <form className="role-form" onSubmit={(event) => void saveRole(event)}>
             <h2>{selectedRole ? "Role সম্পাদনা" : "নতুন role"}</h2>
             <label htmlFor="role-name">Role name</label>
-            <input id="role-name" required maxLength={80} pattern="[a-z0-9_-]{2,80}" value={name} onChange={(event) => setName(event.target.value)} />
+            <input
+              id="role-name"
+              required
+              maxLength={80}
+              pattern="[a-z0-9_-]{2,80}"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+            />
             <label htmlFor="role-description">বিবরণ</label>
-            <textarea id="role-description" rows={3} maxLength={1000} value={description} onChange={(event) => setDescription(event.target.value)} />
-            <button type="submit" disabled={saving}>{saving ? "সংরক্ষণ হচ্ছে…" : "Role সংরক্ষণ"}</button>
+            <textarea
+              id="role-description"
+              rows={3}
+              maxLength={1000}
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+            />
+            <button type="submit" disabled={saving}>
+              {saving ? "সংরক্ষণ হচ্ছে…" : "Role সংরক্ষণ"}
+            </button>
           </form>
           {selectedRole ? (
             <section className="role-permissions" aria-labelledby="role-permissions-title">
@@ -192,14 +264,27 @@ export function RoleManagerPage() {
                   <input
                     type="checkbox"
                     checked={selectedPermissionIds.includes(permission.id)}
-                    onChange={(event) => setSelectedPermissionIds((current) => event.target.checked ? [...current, permission.id] : current.filter((id) => id !== permission.id))}
+                    onChange={(event) =>
+                      setSelectedPermissionIds((current) =>
+                        event.target.checked
+                          ? [...current, permission.id]
+                          : current.filter((id) => id !== permission.id),
+                      )
+                    }
                   />
-                  <span><strong>{permission.name}</strong>{permission.description ? <small>{permission.description}</small> : null}</span>
+                  <span>
+                    <strong>{permission.name}</strong>
+                    {permission.description ? <small>{permission.description}</small> : null}
+                  </span>
                 </label>
               ))}
-              <button type="button" disabled={saving} onClick={() => void savePermissions()}>{saving ? "সংরক্ষণ হচ্ছে…" : "Permissions সংরক্ষণ"}</button>
+              <button type="button" disabled={saving} onClick={() => void savePermissions()}>
+                {saving ? "সংরক্ষণ হচ্ছে…" : "Permissions সংরক্ষণ"}
+              </button>
             </section>
-          ) : <p>নতুন role তৈরি করার পর permission বরাদ্দ করতে পারবেন।</p>}
+          ) : (
+            <p>নতুন role তৈরি করার পর permission বরাদ্দ করতে পারবেন।</p>
+          )}
         </div>
       </div>
     </section>

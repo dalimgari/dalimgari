@@ -101,7 +101,9 @@ export function HomePage() {
           includes: includesResult.status === "fulfilled" ? includesResult.value : [],
           hero: heroResult.status === "fulfilled" ? heroResult.value : null,
           settings: settingsResult.status === "fulfilled" ? settingsResult.value : null,
-          isAdmin: userResult.status === "fulfilled" && String(userResult.value?.app_metadata?.role ?? "").toLowerCase() === "admin",
+          isAdmin:
+            userResult.status === "fulfilled" &&
+            String(userResult.value?.app_metadata?.role ?? "").toLowerCase() === "admin",
           loading: false,
           error: failed
             ? "কিছু কনটেন্ট লোড করা যায়নি। Supabase configuration ও access policy যাচাই করুন।"

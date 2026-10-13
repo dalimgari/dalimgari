@@ -124,7 +124,9 @@ export function EditProfilePage() {
         await supabase.storage.from("profile-pictures").remove([uploadedPath]);
         setAvatarUrl(previousAvatarUrl);
       } else if (uploadedPath && profileSaved && supabase) {
-        setAvatarUrl(supabase.storage.from("profile-pictures").getPublicUrl(uploadedPath).data.publicUrl);
+        setAvatarUrl(
+          supabase.storage.from("profile-pictures").getPublicUrl(uploadedPath).data.publicUrl,
+        );
       } else {
         setAvatarUrl(previousAvatarUrl);
       }

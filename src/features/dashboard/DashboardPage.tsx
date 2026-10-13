@@ -139,8 +139,10 @@ export function DashboardPage() {
 
   const allowed = sections.filter((section) => {
     if (section.id === "user") return isAdmin && permissions.includes("roles.manage");
-    if (section.id === "overview") return isAdmin || section.permissions.some((permission) => permissions.includes(permission));
-    if (section.id === "page" || section.id === "media-library") return isAdmin || section.permissions.some((permission) => permissions.includes(permission));
+    if (section.id === "overview")
+      return isAdmin || section.permissions.some((permission) => permissions.includes(permission));
+    if (section.id === "page" || section.id === "media-library")
+      return isAdmin || section.permissions.some((permission) => permissions.includes(permission));
     return section.permissions.some((permission) => permissions.includes(permission));
   });
   const current = allowed.find((section) => section.id === activeSection) ?? allowed[0];

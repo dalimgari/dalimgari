@@ -227,11 +227,17 @@ export function ContentManagerPage() {
           if (Array.isArray(values))
             granted = values.filter((value): value is string => typeof value === "string");
         }
-        const canAccessSection = settings.table === "widgets"
-          ? granted.includes("settings.manage")
-          : settings.table === "pages"
-            ? admin || ["content.view", "content.create", "content.edit"].some((value) => granted.includes(value))
-            : ["content.view", "content.create", "content.edit"].some((value) => granted.includes(value));
+        const canAccessSection =
+          settings.table === "widgets"
+            ? granted.includes("settings.manage")
+            : settings.table === "pages"
+              ? admin ||
+                ["content.view", "content.create", "content.edit"].some((value) =>
+                  granted.includes(value),
+                )
+              : ["content.view", "content.create", "content.edit"].some((value) =>
+                  granted.includes(value),
+                );
         if (!canAccessSection) {
           throw new Error("এই বিভাগের অনুমতি নেই।");
         }
@@ -252,16 +258,18 @@ export function ContentManagerPage() {
     };
   }, [load]);
 
-  const canCreate = settings?.table === "widgets"
-    ? permissions.includes("settings.manage")
-    : settings?.table === "pages"
-      ? isAdmin || permissions.includes("content.create")
-      : permissions.includes("content.create");
-  const canEdit = settings?.table === "widgets"
-    ? permissions.includes("settings.manage")
-    : settings?.table === "pages"
-      ? isAdmin || permissions.includes("content.edit")
-      : permissions.includes("content.edit");
+  const canCreate =
+    settings?.table === "widgets"
+      ? permissions.includes("settings.manage")
+      : settings?.table === "pages"
+        ? isAdmin || permissions.includes("content.create")
+        : permissions.includes("content.create");
+  const canEdit =
+    settings?.table === "widgets"
+      ? permissions.includes("settings.manage")
+      : settings?.table === "pages"
+        ? isAdmin || permissions.includes("content.edit")
+        : permissions.includes("content.edit");
 
   const startEdit = (row: Row) => {
     setEditingId(String(row.id));
