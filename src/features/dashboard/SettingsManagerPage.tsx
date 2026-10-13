@@ -25,9 +25,7 @@ export function SettingsManagerPage() {
     const settings = data ?? [];
     setRows(settings);
     setSelectedId((current) => settings.some((row) => row.id === current) ? current : settings[0]?.id ?? "");
-    const selected = settings.find((row) => row.id === selectedId) ?? settings[0];
-    if (selected) setValueText(JSON.stringify(selected.value, null, 2));
-  }, [selectedId]);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -52,6 +50,10 @@ export function SettingsManagerPage() {
   }, [load]);
 
   const selected = rows.find((row) => row.id === selectedId) ?? null;
+
+  useEffect(() => {
+    if (selected) setValueText(JSON.stringify(selected.value, null, 2));
+  }, [selectedId, selected]);
 
   const selectSetting = (row: SettingRow) => {
     setSelectedId(row.id);
