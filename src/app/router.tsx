@@ -7,7 +7,7 @@ import { App } from "./App";
  * Do not wire this into production until legacy URLs, GitHub Pages fallback
  * behavior, and feature parity have been tested.
  */
-export const router = createBrowserRouter([
+export const router = createHashRouter([
   {
     path: "/albums/:albumId",
     element: <App />,
