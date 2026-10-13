@@ -39,3 +39,14 @@ test("homepage loading checks HTTP status and validates required sections before
   assert.match(app, /page\.querySelectorAll\("\.home-page-pillbar"\)\.length !== 1/);
   assert.match(app, /Could not load the homepage template:/);
 });
+
+test("content media resolves both legacy paths and Media Library storage fields with bounded parallelism", () => {
+  const app = read("app.js");
+
+  assert.match(app, /async function createContentMediaUrl\(path, bucket = "content-files"\)/);
+  assert.match(app, /const path = item\.path \|\| item\.storage_path/);
+  assert.match(app, /const bucket = item\.storage_bucket \|\| item\.bucket \|\| "content-files"/);
+  assert.match(app, /new Set\(\["content-files", "hero-images", "profile-pictures"\]\)/);
+  assert.match(app, /for \(let start = 0; start < media\.length; start \+= 6\)/);
+  assert.match(app, /Promise\.all\(media\.slice\(start, start \+ 6\)/);
+});
