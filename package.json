@@ -2,6 +2,7 @@
   "name": "dalimgari",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "Dalimgari community website",
   "engines": {
     "node": ">=20"
@@ -37,4 +38,3 @@
     "vite": "7.1.5",
     "@eslint/js": "9.35.0"
   }
-}
