@@ -51,7 +51,7 @@ export function EditProfilePage() {
     setError("");
     setMessage("");
     try {
-      if (avatarFile && (!avatarFile.type.match(/^image\\/(jpeg|png|webp)$/i) || avatarFile.size > 5 * 1024 * 1024)) {
+      if (avatarFile && (!["image/jpeg", "image/png", "image/webp"].includes(avatarFile.type) || avatarFile.size > 5 * 1024 * 1024)) {
         throw new Error("Avatar অবশ্যই JPEG, PNG বা WebP হতে হবে এবং ৫ MB-এর মধ্যে হতে হবে।");
       }
       if (avatarFile) {
