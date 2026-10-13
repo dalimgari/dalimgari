@@ -54,7 +54,7 @@ test("home template keeps each dynamic section exactly once and allows narrow la
   assert.match(html, /overscroll-behavior-x:contain/);
 });
 
-test("homepage starts independent content reads concurrently", () => {
+test("homepage starts hero loading early and gives the LCP image high priority", () => {
   const js = read("app.js");
   const includesStart = js.indexOf("const includeTargets = Object.entries(homeIncludes).map");
   const includesEnd = js.indexOf("// Public Pages appear as pill buttons", includesStart);
@@ -62,9 +62,13 @@ test("homepage starts independent content reads concurrently", () => {
   assert.match(js.slice(includesStart, includesEnd), /Promise\.all\(includeTargets\.map\(async/);
   assert.match(js.slice(includesStart, includesEnd), /Promise\.all\(includedPages\.filter\(Boolean\)\.map/);
 
-  const cardsStart = js.indexOf("const heroRecordPromise = supabaseClient.from(\"hero_items\")");
-  const cardsAwait = js.indexOf("await renderHomepageContentCards(siteConfig)", cardsStart);
-  const heroAwait = js.indexOf("const { data: heroRecord } = await heroRecordPromise", cardsAwait);
-  assert.ok(cardsStart >= 0 && cardsAwait > cardsStart && heroAwait > cardsAwait,
-    "hero data should be requested before card rendering finishes, then consumed afterward");
+  const renderHomeStart = js.indexOf("async function renderHome()");
+  const heroStart = js.indexOf("const heroContentPromise = (async () =>", renderHomeStart);
+  const cardsStart = js.indexOf("const homepageCardsPromise = renderHomepageContentCards(siteConfig)", heroStart);
+  const heroAwait = js.indexOf("const { headline, welcomeMessage, heroImageUrl } = await heroContentPromise", cardsStart);
+  assert.ok(renderHomeStart >= 0 && heroStart > renderHomeStart && cardsStart > heroStart && heroAwait > cardsStart,
+    "hero lookup should start early and card rendering should not be awaited before hero rendering");
+  assert.match(js, /heroImagePreloader\.fetchPriority = "high"/);
+  assert.match(js, /image\.fetchPriority = "high"/);
+  assert.match(js, /await homepageCardsPromise/);
 });
