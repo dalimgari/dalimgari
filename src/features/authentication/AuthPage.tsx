@@ -70,7 +70,20 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
         setMessage(data.session ? "অ্যাকাউন্ট তৈরি হয়েছে।" : "ইমেইল যাচাই করার জন্য আপনার ইনবক্স দেখুন।");
         return;
       }
-      const redirectTo = new URL("#forgot-password", window.location.href).toString();
+      if (recoveryMode) {
+        if (password.length < 12) throw new Error("পাসওয়ার্ড কমপক্ষে ১২ অক্ষরের হতে হবে।");
+        if (password !== confirmPassword) throw new Error("দুটি পাসওয়ার্ড মেলেনি।");
+        const { error } = await supabase.auth.updateUser({ password });
+        if (error) throw error;
+        window.sessionStorage.removeItem("dalimgari-password-recovery");
+        setRecoveryMode(false);
+        setPassword("");
+        setConfirmPassword("");
+        setMessageType("success");
+        setMessage("পাসওয়ার্ড পরিবর্তন হয়েছে। এখন লগইন করতে পারেন।");
+        return;
+      }
+      const redirectTo = new URL("forgot-password.html", window.location.href).toString();
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo });
       if (error) throw error;
       setMessageType("success");
