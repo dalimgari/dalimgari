@@ -1,6 +1,13 @@
+import { createBrowserRouter } from "react-router-dom";
+import { App } from "./App";
+
 /**
- * Route definitions will be added when each legacy route has a tested React
- * equivalent. Keeping routing unconfigured avoids changing production URLs
- * during the initial scaffold phase.
+ * Preview-only route shell. Do not wire this into production until legacy
+ * URLs, GitHub Pages fallback behavior, and feature parity have been tested.
  */
-export const routeMigrationStatus = "not-configured" as const;
+export const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <App />,
+  },
+]);
