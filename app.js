@@ -568,6 +568,7 @@
             mediaElement.alt=item.alt_text||item.title||item.name||"";
             mediaElement.loading="lazy";
             mediaElement.decoding="async";
+            attachSignedImageRefresh(mediaElement,mediaPath,mediaBucket);
             mediaElement.style.cssText="display:block;width:100%;aspect-ratio:4/3;object-fit:cover";
           }else if(mime.startsWith("video/")){
             mediaElement=document.createElement("video");
