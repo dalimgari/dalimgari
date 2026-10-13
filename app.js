@@ -558,7 +558,9 @@
           if(!item||!(item.path||item.storage_path))continue;
           const tile=document.createElement("figure");
           tile.style.cssText="min-width:0;margin:0;overflow:hidden;border-radius:10px;background:#f3f4f6";
-          const mediaPath=item.path||item.storage_path;\n          const mediaBucket=item.storage_bucket||item.bucket||"content-files";\n          const urlPromise=createContentMediaUrl(mediaPath,mediaBucket);
+          const mediaPath=item.path||item.storage_path;
+          const mediaBucket=item.storage_bucket||item.bucket||"content-files";
+          const urlPromise=createContentMediaUrl(mediaPath,mediaBucket);
           const mime=inferMime(item);
           let mediaElement;
           if(mime.startsWith("image/")){
