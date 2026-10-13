@@ -50,6 +50,9 @@ export function EditProfilePage() {
     setSaving(true);
     setError("");
     setMessage("");
+    let uploadedPath = "";
+    let profileSaved = false;
+    const previousAvatarUrl = avatarUrl;
     try {
       if (avatarFile && (!["image/jpeg", "image/png", "image/webp"].includes(avatarFile.type) || avatarFile.size > 5 * 1024 * 1024)) {
         throw new Error("Avatar অবশ্যই JPEG, PNG বা WebP হতে হবে এবং ৫ MB-এর মধ্যে হতে হবে।");
@@ -82,6 +85,7 @@ export function EditProfilePage() {
         ? await supabase.from("profiles").update(payload).eq("id", userId)
         : await supabase.from("profiles").insert({ id: userId, ...payload });
       if (profileResult.error) throw profileResult.error;
+      profileSaved = true;
       const { error: metadataError } = await supabase.auth.updateUser({
         data: { full_name: fullName.trim() },
       });
@@ -89,7 +93,8 @@ export function EditProfilePage() {
       setAvatarFile(null);
       setMessage("প্রোফাইল সংরক্ষণ হয়েছে।");
     } catch {
-      if (uploadedPath && supabase) await supabase.storage.from("profile-pictures").remove([uploadedPath]);
+      if (uploadedPath && !profileSaved && supabase) await supabase.storage.from("profile-pictures").remove([uploadedPath]);
+      setAvatarUrl(previousAvatarUrl);
       setError("প্রোফাইল সংরক্ষণ করা যায়নি। RLS policy এবং profiles table schema যাচাই করুন।");
     } finally {
       setSaving(false);
