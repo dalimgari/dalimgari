@@ -21,11 +21,15 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
       - name: Install dependencies
         run: npm install --no-audit --no-fund
       - name: Check legacy behavior and preview structure
         run: npm run check
+      - name: ESLint
+        run: npm run lint
+      - name: Prettier formatting
+        run: npm run format:check
       - name: TypeScript check
         run: npm run typecheck
       - name: Build isolated React preview
