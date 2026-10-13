@@ -29,6 +29,22 @@ type PublicContentRow = {
   created_at: string | null;
 };
 
+type MediaAssetRow = {
+  id: string;
+  title: string;
+  description: string | null;
+  tags: Json | null;
+  alt_text: string | null;
+  original_filename: string;
+  storage_bucket: string;
+  storage_path: string;
+  mime_type: string;
+  size_bytes: number;
+  created_by: string;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
 type WidgetRow = {
   id: string;
   widget_type: string;
@@ -68,6 +84,7 @@ export interface Database {
       site_customizations: TableShape<SiteCustomizationRow>;
       profiles: TableShape<ProfileRow>;
       widgets: TableShape<WidgetRow>;
+      media_assets: TableShape<MediaAssetRow>;
     };
     Views: Record<string, never>;
     Functions: {
