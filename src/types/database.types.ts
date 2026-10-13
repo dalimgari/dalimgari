@@ -32,6 +32,13 @@ type PublicContentRow = {
   created_at: string | null;
 };
 
+type SiteCustomizationRow = {
+  key: string;
+  value: Json | null;
+  description: string | null;
+  updated_at: string | null;
+};
+
 /**
  * Minimal definitions for columns verified in the existing frontend queries.
  * Regenerate with Supabase CLI from the live schema before expanding mutations
@@ -44,6 +51,7 @@ export interface Database {
       post: TableShape<PublicContentRow>;
       pages: TableShape<PublicContentRow>;
       hero_items: TableShape<PublicContentRow>;
+      site_customizations: TableShape<SiteCustomizationRow>;
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
