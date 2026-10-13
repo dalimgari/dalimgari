@@ -29,6 +29,15 @@ type PublicContentRow = {
   created_at: string | null;
 };
 
+type WidgetRow = {
+  id: string;
+  widget_type: string;
+  title: string | null;
+  is_visible: boolean;
+  settings: Json | null;
+  created_at: string | null;
+};
+
 type ProfileRow = {
   id: string;
   full_name: string | null;
@@ -58,6 +67,7 @@ export interface Database {
       hero_items: TableShape<PublicContentRow>;
       site_customizations: TableShape<SiteCustomizationRow>;
       profiles: TableShape<ProfileRow>;
+      widgets: TableShape<WidgetRow>;
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
