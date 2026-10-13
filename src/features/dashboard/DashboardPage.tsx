@@ -87,6 +87,7 @@ export function DashboardPage() {
           <h2 id="dashboard-section-title">{current.title}</h2>
           <p>{current.description}</p>
           {current.id === "media-library" ? <Link to="/dashboard/media-library">Media Library খুলুন</Link> : null}
+          {["hero", "post", "page", "album", "widget"].includes(current.id) ? <Link to={"/dashboard/" + current.id}>এই বিভাগ পরিচালনা করুন</Link> : null}
           <p>এই বিভাগের সম্পূর্ণ CRUD UI এখনো মাইগ্রেশনাধীন; legacy dashboard production-এ চালু আছে।</p>
         </section>
       ) : <p>এই অ্যাকাউন্টের জন্য কোনো dashboard section অনুমোদিত নয়।</p>}
