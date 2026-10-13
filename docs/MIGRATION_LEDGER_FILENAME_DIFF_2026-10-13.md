@@ -12,7 +12,7 @@ Repository baseline after the latest cleanup: `e9b7e373b5aa58d98d2aa549e734fce34
 - SQL migration files in `supabase/migrations/`: **24**
 - Exact version matches: **15**
 - Production ledger versions without an exact repository filename: **33**
-- Repository SQL file versions without an exact production ledger entry: **12**
+- Repository SQL file versions without an exact production ledger entry: **9**
 
 The newly applied migrations `20261013184928 remove_duplicate_profile_insert_trigger`, `20261013185319 grant_cleanup_function_minimal_table_access`, and `20261013185707 grant_cleanup_media_link_read` are now present in both the production ledger and repository. Three repository-only migrations that were never recorded in production and would diverge from the live feature set were removed from the canonical migration directory: the abandoned public-upload feature, and the temporary remove/restore Pages sequence. Other version mismatches remain unresolved. Version mismatch does not prove that the corresponding SQL change is missing. Names and SQL contents must be compared to distinguish renamed/equivalent migrations from omitted, superseded, obsolete, or unknown history.
 
