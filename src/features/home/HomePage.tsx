@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AlbumCard } from "../../components/AlbumCard";
 import { PublicWidgetCard } from "../../components/PublicWidgetCard";
+import { getCurrentUser } from "../../services/auth";
 import {
   getPublicAlbums,
   getPublicHero,
@@ -28,6 +29,7 @@ interface HomeState {
   settings: SiteSettings | null;
   loading: boolean;
   error: string | null;
+  isAdmin: boolean;
 }
 
 function htmlToPlainText(value: string): string {
@@ -46,6 +48,7 @@ const initialState: HomeState = {
   settings: null,
   loading: true,
   error: null,
+  isAdmin: false,
 };
 
 export function HomePage() {
@@ -69,6 +72,7 @@ export function HomePage() {
       getHomepageIncludes(),
       getPublicHero(),
       getSiteSettings(),
+      getCurrentUser(),
     ]).then(
       ([
         albumsResult,
@@ -78,6 +82,7 @@ export function HomePage() {
         includesResult,
         heroResult,
         settingsResult,
+        userResult,
       ]) => {
         if (!active) return;
         const failed = [
@@ -96,6 +101,7 @@ export function HomePage() {
           includes: includesResult.status === "fulfilled" ? includesResult.value : [],
           hero: heroResult.status === "fulfilled" ? heroResult.value : null,
           settings: settingsResult.status === "fulfilled" ? settingsResult.value : null,
+          isAdmin: userResult.status === "fulfilled" && String(userResult.value?.app_metadata?.role ?? "").toLowerCase() === "admin",
           loading: false,
           error: failed
             ? "কিছু কনটেন্ট লোড করা যায়নি। Supabase configuration ও access policy যাচাই করুন।"
@@ -181,6 +187,15 @@ export function HomePage() {
       setPageLoading(false);
     }
   };
+
+  if (state.settings?.maintenanceMode && !state.isAdmin) {
+    return (
+      <section className="notice-card" aria-labelledby="maintenance-title">
+        <h1 id="maintenance-title">ওয়েবসাইট সাময়িক রক্ষণাবেক্ষণে</h1>
+        <p>কিছু সময় পরে আবার চেষ্টা করুন।</p>
+      </section>
+    );
+  }
 
   return (
     <section className="home-content" aria-labelledby="home-title">
