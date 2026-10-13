@@ -16,8 +16,8 @@ test("dashboard visibility is based on trusted app metadata, not editable user m
 test("private content media is resolved through expiring signed URLs", () => {
   const app = read("app.js");
 
-  assert.match(app, /async function createContentMediaUrl\(path\)/);
-  assert.match(app, /storage\.from\("content-files"\)\.createSignedUrl\(path, 3600\)/);
+  assert.match(app, /async function createContentMediaUrl\(path, bucket = "content-files"\)/);
+  assert.match(app, /storage\.from\(bucketId\)\.createSignedUrl\(normalizedPath, 3600\)/);
   assert.match(app, /return data\?\.signedUrl \|\| ""/);
   assert.doesNotMatch(app, /createContentMediaUrl\(path\)[\s\S]{0,500}?return path;/);
 });
