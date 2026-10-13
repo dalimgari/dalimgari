@@ -61,12 +61,33 @@ export function HomePage() {
 
   useEffect(() => {
     let active = true;
-    Promise.allSettled([getPublicAlbums(), getPublicPages(), getPublicPosts(), getVisibleWidgets(), getHomepageIncludes(), getPublicHero(), getSiteSettings()])
-      .then(([albumsResult, pagesResult, postsResult, widgetsResult, includesResult, heroResult, settingsResult]) => {
+    Promise.allSettled([
+      getPublicAlbums(),
+      getPublicPages(),
+      getPublicPosts(),
+      getVisibleWidgets(),
+      getHomepageIncludes(),
+      getPublicHero(),
+      getSiteSettings(),
+    ]).then(
+      ([
+        albumsResult,
+        pagesResult,
+        postsResult,
+        widgetsResult,
+        includesResult,
+        heroResult,
+        settingsResult,
+      ]) => {
         if (!active) return;
-        const failed = [albumsResult, pagesResult, postsResult, widgetsResult, heroResult, settingsResult].some(
-          (result) => result.status === "rejected",
-        );
+        const failed = [
+          albumsResult,
+          pagesResult,
+          postsResult,
+          widgetsResult,
+          heroResult,
+          settingsResult,
+        ].some((result) => result.status === "rejected");
         setState({
           albums: albumsResult.status === "fulfilled" ? albumsResult.value : [],
           pages: pagesResult.status === "fulfilled" ? pagesResult.value : [],
@@ -76,9 +97,12 @@ export function HomePage() {
           hero: heroResult.status === "fulfilled" ? heroResult.value : null,
           settings: settingsResult.status === "fulfilled" ? settingsResult.value : null,
           loading: false,
-          error: failed ? "কিছু কনটেন্ট লোড করা যায়নি। Supabase configuration ও access policy যাচাই করুন।" : null,
+          error: failed
+            ? "কিছু কনটেন্ট লোড করা যায়নি। Supabase configuration ও access policy যাচাই করুন।"
+            : null,
         });
-      });
+      },
+    );
     return () => {
       active = false;
     };
@@ -102,16 +126,31 @@ export function HomePage() {
 
   useEffect(() => {
     const pills = pillRef.current;
-    if (!pills || pillPaused || state.settings === null || !state.settings.pagePillAutoScrollEnabled || state.pages.length < 2) return;
+    if (
+      !pills ||
+      pillPaused ||
+      state.settings === null ||
+      !state.settings.pagePillAutoScrollEnabled ||
+      state.pages.length < 2
+    )
+      return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     let timer = 0;
     const start = () => {
       window.clearInterval(timer);
-      timer = window.setInterval(() => {
-        if (pills.scrollWidth <= pills.clientWidth + 2) return;
-        const next = pills.scrollLeft + pills.clientWidth >= pills.scrollWidth - 3 ? 0 : pills.scrollLeft + 150;
-        pills.scrollTo({ left: next, behavior: "smooth" });
-      }, state.settings?.pagePillAutoScrollIntervalSeconds ? state.settings.pagePillAutoScrollIntervalSeconds * 1000 : 3000);
+      timer = window.setInterval(
+        () => {
+          if (pills.scrollWidth <= pills.clientWidth + 2) return;
+          const next =
+            pills.scrollLeft + pills.clientWidth >= pills.scrollWidth - 3
+              ? 0
+              : pills.scrollLeft + 150;
+          pills.scrollTo({ left: next, behavior: "smooth" });
+        },
+        state.settings?.pagePillAutoScrollIntervalSeconds
+          ? state.settings.pagePillAutoScrollIntervalSeconds * 1000
+          : 3000,
+      );
     };
     start();
     return () => window.clearInterval(timer);
@@ -152,12 +191,20 @@ export function HomePage() {
         </section>
       ) : null}
 
-      {state.hero && (state.hero.title || state.hero.description || state.hero.imageUrl || state.settings?.tagline) ? (
+      {state.hero &&
+      (state.hero.title ||
+        state.hero.description ||
+        state.hero.imageUrl ||
+        state.settings?.tagline) ? (
         <section className="home-hero" aria-label="প্রধান পরিচিতি">
-          {state.hero.imageUrl ? <img src={state.hero.imageUrl} alt="" fetchPriority="high" /> : null}
+          {state.hero.imageUrl ? (
+            <img src={state.hero.imageUrl} alt="" fetchPriority="high" />
+          ) : null}
           <div className="home-hero-copy">
             {state.settings?.tagline ? <p className="eyebrow">{state.settings.tagline}</p> : null}
-            <h1 id="home-title">{state.hero.title || state.settings?.siteTitle || "ডালিমগাড়ী কমিউনিটি"}</h1>
+            <h1 id="home-title">
+              {state.hero.title || state.settings?.siteTitle || "ডালিমগাড়ী কমিউনিটি"}
+            </h1>
             {state.hero.description ? <p>{state.hero.description}</p> : null}
           </div>
         </section>
@@ -180,11 +227,17 @@ export function HomePage() {
             onMouseLeave={() => setPillPaused(false)}
             onFocus={() => setPillPaused(true)}
             onBlur={(event) => {
-              if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setPillPaused(false);
+              if (!event.currentTarget.contains(event.relatedTarget as Node | null))
+                setPillPaused(false);
             }}
           >
             {state.pages.map((page) => (
-              <button key={page.id} type="button" className="home-page-pill" onClick={() => void openPage(page)}>
+              <button
+                key={page.id}
+                type="button"
+                className="home-page-pill"
+                onClick={() => void openPage(page)}
+              >
                 {page.title}
               </button>
             ))}
@@ -210,8 +263,12 @@ export function HomePage() {
           </div>
           {pageLoading ? <p role="status">পেজ লোড হচ্ছে…</p> : null}
           {pageError ? <p role="alert">{pageError}</p> : null}
-          {pageContent ? <div className="public-page-content">{htmlToPlainText(pageContent)}</div> : null}
-          {!pageLoading && !pageError && !pageContent ? <p>এই পেজে প্রদর্শনের মতো লেখা নেই।</p> : null}
+          {pageContent ? (
+            <div className="public-page-content">{htmlToPlainText(pageContent)}</div>
+          ) : null}
+          {!pageLoading && !pageError && !pageContent ? (
+            <p>এই পেজে প্রদর্শনের মতো লেখা নেই।</p>
+          ) : null}
         </section>
       ) : null}
 
@@ -223,7 +280,9 @@ export function HomePage() {
           {state.includes.map((item) => (
             <article className="home-content-card" key={item.section}>
               <h2>{item.title}</h2>
-              <p className="post-excerpt">{htmlToPlainText(item.content).replace(/\\s+/g, " ").trim()}</p>
+              <p className="post-excerpt">
+                {htmlToPlainText(item.content).replace(/\\s+/g, " ").trim()}
+              </p>
             </article>
           ))}
         </section>
@@ -233,7 +292,9 @@ export function HomePage() {
         <section className="home-widgets" aria-labelledby="widgets-title">
           <h2 id="widgets-title">কমিউনিটি উইজেট</h2>
           <div className="home-content-grid">
-            {state.widgets.map((widget) => <PublicWidgetCard key={widget.id} widget={widget} />)}
+            {state.widgets.map((widget) => (
+              <PublicWidgetCard key={widget.id} widget={widget} />
+            ))}
           </div>
         </section>
       ) : null}
@@ -243,12 +304,18 @@ export function HomePage() {
           <h2 id="albums-title">অ্যালবাম</h2>
           {state.albums.length > 1 ? (
             <div className="carousel-controls" aria-label="অ্যালবাম স্ক্রল নিয়ন্ত্রণ">
-              <button type="button" onClick={() => moveCarousel(-1)} aria-label="আগের অ্যালবাম">‹</button>
-              <button type="button" onClick={() => moveCarousel(1)} aria-label="পরের অ্যালবাম">›</button>
+              <button type="button" onClick={() => moveCarousel(-1)} aria-label="আগের অ্যালবাম">
+                ‹
+              </button>
+              <button type="button" onClick={() => moveCarousel(1)} aria-label="পরের অ্যালবাম">
+                ›
+              </button>
             </div>
           ) : null}
         </div>
-        {!state.loading && !state.error && state.albums.length === 0 ? <p>এখনো কোনো পাবলিক অ্যালবাম নেই।</p> : null}
+        {!state.loading && !state.error && state.albums.length === 0 ? (
+          <p>এখনো কোনো পাবলিক অ্যালবাম নেই।</p>
+        ) : null}
         {state.albums.length > 0 ? (
           <div
             ref={carouselRef}
@@ -258,7 +325,8 @@ export function HomePage() {
             onMouseLeave={() => setPaused(false)}
             onFocus={() => setPaused(true)}
             onBlur={(event) => {
-              if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setPaused(false);
+              if (!event.currentTarget.contains(event.relatedTarget as Node | null))
+                setPaused(false);
             }}
             tabIndex={0}
           >
@@ -282,7 +350,11 @@ export function HomePage() {
             {state.posts.map((post) => (
               <article className="home-content-card" key={post.id}>
                 <h3>{post.title}</h3>
-                {post.content ? <p className="post-excerpt">{htmlToPlainText(post.content).replace(/\\s+/g, " ").trim().slice(0, 320)}</p> : null}
+                {post.content ? (
+                  <p className="post-excerpt">
+                    {htmlToPlainText(post.content).replace(/\\s+/g, " ").trim().slice(0, 320)}
+                  </p>
+                ) : null}
               </article>
             ))}
           </div>

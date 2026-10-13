@@ -117,7 +117,13 @@ export async function getSiteSettings(): Promise<SiteSettings> {
   const { data, error } = await client
     .from("site_customizations")
     .select("key,value")
-    .in("key", ["ui_settings_general", "ui_customization_identity", "ui_settings_maintenance_features", "ui_settings_homepage_defaults", "home_page_pill_autoscroll"]);
+    .in("key", [
+      "ui_settings_general",
+      "ui_customization_identity",
+      "ui_settings_maintenance_features",
+      "ui_settings_homepage_defaults",
+      "home_page_pill_autoscroll",
+    ]);
   if (error) throw error;
 
   const values = new Map((data ?? []).map((row) => [row.key, parseJsonObject(row.value)]));
@@ -132,9 +138,13 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     siteTitle: typeof general.site_title === "string" ? general.site_title : "Dalimgari",
     tagline: typeof identity.tagline === "string" ? identity.tagline : "",
     maintenanceMode: maintenance.maintenance_mode === true,
-    homepageDefaultRoute: typeof homepage.default_home_route === "string" ? homepage.default_home_route : "home",
+    homepageDefaultRoute:
+      typeof homepage.default_home_route === "string" ? homepage.default_home_route : "home",
     pagePillAutoScrollEnabled: pillMotion.enabled !== false,
-    pagePillAutoScrollIntervalSeconds: Number.isFinite(configuredInterval) && configuredInterval >= 1 ? Math.min(60, configuredInterval) : 3,
+    pagePillAutoScrollIntervalSeconds:
+      Number.isFinite(configuredInterval) && configuredInterval >= 1
+        ? Math.min(60, configuredInterval)
+        : 3,
   };
 }
 
@@ -265,7 +275,6 @@ export async function getPublicAlbums(limit = 24): Promise<PublicAlbum[]> {
   );
 }
 
-
 /** Fetches one public album and signs its media URLs through the configured Storage policy. */
 export async function getPublicAlbumById(id: string): Promise<PublicGalleryAlbum | null> {
   const safeId = id.trim();
@@ -279,10 +288,12 @@ export async function getPublicAlbumById(id: string): Promise<PublicGalleryAlbum
   if (error) throw error;
   if (!data) return null;
 
-  const media = await Promise.all(asMediaItems(data.media).map(async (item) => ({
-    ...item,
-    signedUrl: await createContentMediaUrl(item.path),
-  })));
+  const media = await Promise.all(
+    asMediaItems(data.media).map(async (item) => ({
+      ...item,
+      signedUrl: await createContentMediaUrl(item.path),
+    })),
+  );
   const coverUrl = data.cover_path ? await createContentMediaUrl(data.cover_path) : null;
   return {
     ...(data as unknown as Omit<PublicAlbum, "coverUrl">),
@@ -290,8 +301,6 @@ export async function getPublicAlbumById(id: string): Promise<PublicGalleryAlbum
     coverUrl,
   };
 }
-
-
 
 export interface HomepageInclude {
   section: string;
@@ -308,16 +317,23 @@ export async function getHomepageIncludes(): Promise<HomepageInclude[]> {
   if (error || !data) return [];
 
   const config = parseJsonObject(data.value);
-  const allowedSections = new Set(["home-hero", "home-page-title", "home-widget", "home-album", "home-page-card"]);
+  const allowedSections = new Set([
+    "home-hero",
+    "home-page-title",
+    "home-widget",
+    "home-album",
+    "home-page-card",
+  ]);
   const entries = Object.entries(config).filter(
-    ([section, slug]) => allowedSections.has(section) && typeof slug === "string" && slug.trim().length > 0,
+    ([section, slug]) =>
+      allowedSections.has(section) && typeof slug === "string" && slug.trim().length > 0,
   );
-  const results = await Promise.all(entries.map(async ([section, slug]) => {
-    const page = await getPublicPageByUrl(String(slug));
-    return page?.content
-      ? { section, title: page.title, content: page.content }
-      : null;
-  }));
+  const results = await Promise.all(
+    entries.map(async ([section, slug]) => {
+      const page = await getPublicPageByUrl(String(slug));
+      return page?.content ? { section, title: page.title, content: page.content } : null;
+    }),
+  );
   return results.filter((item): item is HomepageInclude => item !== null);
 }
 

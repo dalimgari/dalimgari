@@ -23,7 +23,10 @@ export function ProfilePage() {
     let active = true;
     const load = async () => {
       if (!supabase) {
-        if (active) { setError("Supabase configuration পাওয়া যায়নি।"); setLoading(false); }
+        if (active) {
+          setError("Supabase configuration পাওয়া যায়নি।");
+          setLoading(false);
+        }
         return;
       }
       const { data, error: userError } = await supabase.auth.getUser();
@@ -38,12 +41,22 @@ export function ProfilePage() {
         .maybeSingle();
       if (!active) return;
       setUser(data.user);
-      setProfile(profileRow ?? { full_name: null, phone: null, date_of_birth: null, bio: null, avatar_url: null });
+      setProfile(
+        profileRow ?? {
+          full_name: null,
+          phone: null,
+          date_of_birth: null,
+          bio: null,
+          avatar_url: null,
+        },
+      );
       if (profileError) setError("প্রোফাইলের অতিরিক্ত তথ্য লোড করা যায়নি।");
       setLoading(false);
     };
     void load();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [navigate]);
 
   const handleSignOut = async () => {
@@ -61,19 +74,27 @@ export function ProfilePage() {
   return (
     <section className="profile-card" aria-labelledby="profile-title">
       <h1 id="profile-title">আমার প্রোফাইল</h1>
-      {profile?.avatar_url ? <img className="profile-avatar-image" src={profile.avatar_url} alt="প্রোফাইল ছবি" /> : null}
+      {profile?.avatar_url ? (
+        <img className="profile-avatar-image" src={profile.avatar_url} alt="প্রোফাইল ছবি" />
+      ) : null}
       <p>{profile?.full_name || user.user_metadata?.full_name || "নাম যোগ করা হয়নি"}</p>
       <p>{user.email}</p>
       <dl>
-        <dt>ফোন</dt><dd>{profile?.phone || "যোগ করা হয়নি"}</dd>
-        <dt>জন্মতারিখ</dt><dd>{profile?.date_of_birth || "যোগ করা হয়নি"}</dd>
-        <dt>পরিচিতি</dt><dd>{profile?.bio || "যোগ করা হয়নি"}</dd>
-        <dt>ভূমিকা</dt><dd>{String(user.app_metadata?.role || "member").toUpperCase()}</dd>
+        <dt>ফোন</dt>
+        <dd>{profile?.phone || "যোগ করা হয়নি"}</dd>
+        <dt>জন্মতারিখ</dt>
+        <dd>{profile?.date_of_birth || "যোগ করা হয়নি"}</dd>
+        <dt>পরিচিতি</dt>
+        <dd>{profile?.bio || "যোগ করা হয়নি"}</dd>
+        <dt>ভূমিকা</dt>
+        <dd>{String(user.app_metadata?.role || "member").toUpperCase()}</dd>
       </dl>
       {error ? <p role="alert">{error}</p> : null}
       <div className="profile-actions">
         <Link to="/profile/edit">প্রোফাইল সম্পাদনা</Link>
-        <button type="button" onClick={() => void handleSignOut()}>লগআউট</button>
+        <button type="button" onClick={() => void handleSignOut()}>
+          লগআউট
+        </button>
       </div>
     </section>
   );

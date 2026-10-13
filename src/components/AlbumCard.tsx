@@ -16,5 +16,11 @@ export function AlbumCard({ title, description, imageUrl, href }: AlbumCardProps
     </article>
   );
 
-  return href ? <Link className="album-card-link" to={href}>{card}</Link> : card;
+  return href ? (
+    <Link className="album-card-link" to={href}>
+      {card}
+    </Link>
+  ) : (
+    card
+  );
 }

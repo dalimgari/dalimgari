@@ -77,7 +77,9 @@ export function App() {
   return (
     <div className="app-shell">
       <Header />
-      <main id="main-content" aria-live="polite">{content}</main>
+      <main id="main-content" aria-live="polite">
+        {content}
+      </main>
       <Footer />
     </div>
   );

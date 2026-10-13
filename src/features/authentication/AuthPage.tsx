@@ -9,12 +9,23 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [recoveryMode, setRecoveryMode] = useState(() => typeof window !== "undefined" && window.sessionStorage.getItem("dalimgari-password-recovery") === "true");
+  const [recoveryMode, setRecoveryMode] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.sessionStorage.getItem("dalimgari-password-recovery") === "true",
+  );
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState<"error" | "success" | "info">("info");
 
-  const title = mode === "login" ? "লগইন" : mode === "create-account" ? "নতুন অ্যাকাউন্ট" : recoveryMode ? "নতুন পাসওয়ার্ড সেট করুন" : "পাসওয়ার্ড পুনরুদ্ধার";
+  const title =
+    mode === "login"
+      ? "লগইন"
+      : mode === "create-account"
+        ? "নতুন অ্যাকাউন্ট"
+        : recoveryMode
+          ? "নতুন পাসওয়ার্ড সেট করুন"
+          : "পাসওয়ার্ড পুনরুদ্ধার";
 
   useEffect(() => {
     if (mode !== "forgot-password" || !supabase) return;
@@ -52,12 +63,23 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
           .select("value")
           .eq("key", "ui_settings_users_access")
           .maybeSingle();
-        if (accessError) throw new Error("অ্যাকাউন্ট তৈরির নীতি যাচাই করা যায়নি। পরে আবার চেষ্টা করুন।");
+        if (accessError)
+          throw new Error("অ্যাকাউন্ট তৈরির নীতি যাচাই করা যায়নি। পরে আবার চেষ্টা করুন।");
         let config = accessRow?.value;
         if (typeof config === "string") {
-          try { config = JSON.parse(config) as typeof config; } catch { config = {}; }
+          try {
+            config = JSON.parse(config) as typeof config;
+          } catch {
+            config = {};
+          }
         }
-        if (config && typeof config === "object" && !Array.isArray(config) && "allow_account_creation" in config && config.allow_account_creation === false) {
+        if (
+          config &&
+          typeof config === "object" &&
+          !Array.isArray(config) &&
+          "allow_account_creation" in config &&
+          config.allow_account_creation === false
+        ) {
           throw new Error("বর্তমানে নতুন অ্যাকাউন্ট তৈরি বন্ধ আছে।");
         }
         const { data, error } = await supabase.auth.signUp({
@@ -67,7 +89,9 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
         });
         if (error) throw error;
         setMessageType("success");
-        setMessage(data.session ? "অ্যাকাউন্ট তৈরি হয়েছে।" : "ইমেইল যাচাই করার জন্য আপনার ইনবক্স দেখুন।");
+        setMessage(
+          data.session ? "অ্যাকাউন্ট তৈরি হয়েছে।" : "ইমেইল যাচাই করার জন্য আপনার ইনবক্স দেখুন।",
+        );
         return;
       }
       if (recoveryMode) {
@@ -90,7 +114,9 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
       setMessage("যদি এই ইমেইলটি নিবন্ধিত থাকে, পাসওয়ার্ড রিসেটের নির্দেশনা পাঠানো হবে।");
     } catch (error) {
       setMessageType("error");
-      setMessage(error instanceof Error ? error.message : "অনুরোধ সম্পন্ন করা যায়নি। আবার চেষ্টা করুন।");
+      setMessage(
+        error instanceof Error ? error.message : "অনুরোধ সম্পন্ন করা যায়নি। আবার চেষ্টা করুন।",
+      );
     } finally {
       setBusy(false);
     }
@@ -103,28 +129,62 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
         {mode !== "forgot-password" || !recoveryMode ? (
           <>
             <label htmlFor="auth-email">ইমেইল</label>
-            <input id="auth-email" name="email" type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} />
+            <input
+              id="auth-email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+            />
           </>
         ) : null}
         {mode !== "forgot-password" || recoveryMode ? (
           <>
             <label htmlFor="auth-password">পাসওয়ার্ড</label>
-            <input id="auth-password" name="password" type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} required minLength={mode === "login" ? 1 : 12} value={password} onChange={(event) => setPassword(event.target.value)} />
+            <input
+              id="auth-password"
+              name="password"
+              type="password"
+              autoComplete={mode === "login" ? "current-password" : "new-password"}
+              required
+              minLength={mode === "login" ? 1 : 12}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
           </>
         ) : null}
         {mode === "create-account" || (mode === "forgot-password" && recoveryMode) ? (
           <>
             <label htmlFor="auth-confirm-password">পাসওয়ার্ড নিশ্চিত করুন</label>
-            <input id="auth-confirm-password" name="confirm-password" type="password" autoComplete="new-password" required minLength={12} value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} />
+            <input
+              id="auth-confirm-password"
+              name="confirm-password"
+              type="password"
+              autoComplete="new-password"
+              required
+              minLength={12}
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+            />
           </>
         ) : null}
-        <button type="submit" disabled={busy}>{busy ? "অপেক্ষা করুন…" : title}</button>
+        <button type="submit" disabled={busy}>
+          {busy ? "অপেক্ষা করুন…" : title}
+        </button>
       </form>
-      {message ? <p role={messageType === "error" ? "alert" : "status"} data-type={messageType}>{message}</p> : null}
+      {message ? (
+        <p role={messageType === "error" ? "alert" : "status"} data-type={messageType}>
+          {message}
+        </p>
+      ) : null}
       <nav className="auth-links" aria-label="অ্যাকাউন্টের লিংক">
         {mode !== "login" ? <Link to="/login">লগইন</Link> : null}
         {mode !== "create-account" ? <Link to="/create-account">অ্যাকাউন্ট তৈরি</Link> : null}
-        {mode !== "forgot-password" ? <Link to="/forgot-password">পাসওয়ার্ড ভুলে গেছেন?</Link> : null}
+        {mode !== "forgot-password" ? (
+          <Link to="/forgot-password">পাসওয়ার্ড ভুলে গেছেন?</Link>
+        ) : null}
       </nav>
     </section>
   );

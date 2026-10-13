@@ -28,15 +28,33 @@ export function PublicWidgetCard({ widget }: { widget: PublicWidget }) {
   }
 
   if (widget.widget_type === "map") {
-    const location = typeof widget.settings.location === "string" ? widget.settings.location.trim() : "Saudi Arabia";
+    const location =
+      typeof widget.settings.location === "string"
+        ? widget.settings.location.trim()
+        : "Saudi Arabia";
     const configuredZoom = Number(widget.settings.zoom);
-    const zoom = Number.isFinite(configuredZoom) ? Math.max(1, Math.min(21, Math.round(configuredZoom))) : 13;
-    const fallbackUrl = "https://maps.google.com/maps?q=" + encodeURIComponent(location) + "&z=" + zoom + "&output=embed";
+    const zoom = Number.isFinite(configuredZoom)
+      ? Math.max(1, Math.min(21, Math.round(configuredZoom)))
+      : 13;
+    const fallbackUrl =
+      "https://maps.google.com/maps?q=" +
+      encodeURIComponent(location) +
+      "&z=" +
+      zoom +
+      "&output=embed";
     let mapUrl = fallbackUrl;
     if (typeof widget.settings.embed_url === "string") {
       try {
         const candidate = new URL(widget.settings.embed_url);
-        if (candidate.protocol === "https:" && ["maps.google.com", "www.google.com", "openstreetmap.org", "www.openstreetmap.org"].includes(candidate.hostname)) {
+        if (
+          candidate.protocol === "https:" &&
+          [
+            "maps.google.com",
+            "www.google.com",
+            "openstreetmap.org",
+            "www.openstreetmap.org",
+          ].includes(candidate.hostname)
+        ) {
           mapUrl = candidate.toString();
         }
       } catch {
@@ -46,7 +64,13 @@ export function PublicWidgetCard({ widget }: { widget: PublicWidget }) {
     return (
       <article className="home-content-card">
         <h3>{widget.title || "মানচিত্র"}</h3>
-        <iframe title={widget.title || "মানচিত্র"} src={mapUrl} loading="lazy" referrerPolicy="no-referrer-when-downgrade" allowFullScreen />
+        <iframe
+          title={widget.title || "মানচিত্র"}
+          src={mapUrl}
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+          allowFullScreen
+        />
       </article>
     );
   }

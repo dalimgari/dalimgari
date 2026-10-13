@@ -8,7 +8,11 @@ export function GalleryPage() {
   const [album, setAlbum] = useState<PublicGalleryAlbum | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [selectedMedia, setSelectedMedia] = useState<{ url: string; title: string; mimeType: string } | null>(null);
+  const [selectedMedia, setSelectedMedia] = useState<{
+    url: string;
+    title: string;
+    mimeType: string;
+  } | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -29,7 +33,9 @@ export function GalleryPage() {
       .finally(() => {
         if (active) setLoading(false);
       });
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [albumId]);
 
   const visibleMedia = (album?.media ?? []).filter((item) => {
@@ -48,7 +54,8 @@ export function GalleryPage() {
           {visibleMedia.length === 0 ? <p>এই অ্যালবামে প্রদর্শনযোগ্য ছবি বা ভিডিও নেই।</p> : null}
           <div className="gallery-grid">
             {visibleMedia.map((item, index) => {
-              const title = item.title || item.alt_text || item.name || album.title + " — " + (index + 1);
+              const title =
+                item.title || item.alt_text || item.name || album.title + " — " + (index + 1);
               if ((item.mime_type ?? "").startsWith("video/")) {
                 return (
                   <article className="gallery-item" key={item.path}>
@@ -64,10 +71,21 @@ export function GalleryPage() {
                   className="gallery-item gallery-image-button"
                   key={item.path}
                   type="button"
-                  onClick={() => setSelectedMedia({ url: item.signedUrl!, title, mimeType: item.mime_type ?? "image/*" })}
+                  onClick={() =>
+                    setSelectedMedia({
+                      url: item.signedUrl!,
+                      title,
+                      mimeType: item.mime_type ?? "image/*",
+                    })
+                  }
                   aria-label={"ছবি দেখুন: " + title}
                 >
-                  <img src={item.signedUrl ?? undefined} alt={item.alt_text || title} loading="lazy" decoding="async" />
+                  <img
+                    src={item.signedUrl ?? undefined}
+                    alt={item.alt_text || title}
+                    loading="lazy"
+                    decoding="async"
+                  />
                   <span>{title}</span>
                 </button>
               );
@@ -75,8 +93,14 @@ export function GalleryPage() {
           </div>
         </>
       ) : null}
-      <Modal title={selectedMedia?.title ?? "ছবি"} open={selectedMedia !== null} onClose={() => setSelectedMedia(null)}>
-        {selectedMedia ? <img className="gallery-modal-image" src={selectedMedia.url} alt={selectedMedia.title} /> : null}
+      <Modal
+        title={selectedMedia?.title ?? "ছবি"}
+        open={selectedMedia !== null}
+        onClose={() => setSelectedMedia(null)}
+      >
+        {selectedMedia ? (
+          <img className="gallery-modal-image" src={selectedMedia.url} alt={selectedMedia.title} />
+        ) : null}
       </Modal>
     </section>
   );
