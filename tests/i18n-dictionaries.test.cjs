@@ -117,7 +117,7 @@ test("day/night mode toggles immediately and persists the visitor preference", (
   assert.ok(headerStyles.includes("body.dg-night-mode"));
 });
 
-test("site identity and clocks follow the selected UI language", () => {
+test("site identity and clock time follow the selected UI language while calendar dates stay bilingual", () => {
   const app = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
   assert.ok(app.includes('name:"site_title_bn"'));
   assert.ok(app.includes('general.site_title_bn'));
@@ -130,8 +130,12 @@ test("site identity and clocks follow the selected UI language", () => {
   for (const period of ["সকাল","দুপুর","বিকেল","সন্ধ্যা","রাত"]) {
     assert.ok(app.includes('"' + period + '"'), "Missing Bengali clock period: " + period);
   }
-  assert.ok(app.includes('new Intl.DateTimeFormat(locale,{dateStyle:"full"'));
+  assert.ok(app.includes('new Intl.DateTimeFormat("en-GB",{timeZone:bangladeshTimeZone,weekday:"long",day:"numeric",month:"long",year:"numeric"})'), "Gregorian date should always use English weekday and month names");
   assert.ok(app.includes('["বৈশাখ","জ্যৈষ্ঠ","আষাঢ়"'));
+  assert.ok(app.includes('const weekdayNames=["রবিবার","সোমবার","মঙ্গলবার","বুধবার","বৃহস্পতিবার","শুক্রবার","শনিবার"]'), "Bengali calendar date should always use Bengali weekday names");
+  assert.ok(app.includes('new Intl.NumberFormat("bn-BD",{useGrouping:false})'), "Bengali calendar date should always use Bengali digits");
+  assert.ok(app.includes('date.textContent=gregorianPart("weekday")+", "+gregorianPart("day")+" "+gregorianPart("month")+", "+gregorianPart("year")'), "Gregorian date should use the fixed weekday, day month, year format");
+  assert.ok(app.includes('banglaDate.textContent=weekdayNames[weekday]+", "+monthNames[banglaMonth]+" "+banglaDigitFormatter.format(remaining+1)+", "+banglaDigitFormatter.format(banglaYear)'), "Bengali date should use the fixed weekday, day month, year format");
   assert.ok(app.includes('new Intl.NumberFormat(getUiLanguage()==="bn"?"bn-BD":"en-GB"'));
   assert.ok(app.includes('document.addEventListener("dalimgari:languagechange",updateClock)'));
 });
