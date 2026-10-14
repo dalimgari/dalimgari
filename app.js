@@ -2672,8 +2672,8 @@
 
       const configs = {
         hero:{table:"hero_items",label:"Hero",fields:[
-          {name:"title_bn",label:"Title (Bengali)",type:"text"},
-          {name:"title_en",label:"Title (English)",type:"text"},
+          {name:"title_bn",label:"Title (Bengali)",type:"text",required:true},
+          {name:"title_en",label:"Title (English)",type:"text",required:true},
           {name:"description_bn",label:"Description (Bengali)",type:"textarea",full:true},
           {name:"description_en",label:"Description (English)",type:"textarea",full:true},
           {name:"url",label:"URL",type:"text"},
@@ -2681,8 +2681,8 @@
           {name:"visibility",label:"Visibility",type:"select",required:true,options:[["public","Public"],["private","Private"]]}
         ]},
         post:{table:"post",label:"Posts",fields:[
-          {name:"title_bn",label:"Title (Bengali)",type:"text"},
-          {name:"title_en",label:"Title (English)",type:"text"},
+          {name:"title_bn",label:"Title (Bengali)",type:"text",required:true},
+          {name:"title_en",label:"Title (English)",type:"text",required:true},
           {name:"description_bn",label:"Description (Bengali)",type:"textarea",full:true},
           {name:"description_en",label:"Description (English)",type:"textarea",full:true},
           {name:"content_bn",label:"Content (HTML — Bengali)",type:"textarea",rows:10,full:true},
@@ -2694,8 +2694,8 @@
           {name:"visibility",label:"Visibility",type:"select",required:true,options:[["public","Public"],["private","Private"]]}
         ]},
         page:{table:"pages",label:"Custom Page",fields:[
-          {name:"title_bn",label:"Page Title (Bengali)",type:"text"},
-          {name:"title_en",label:"Page Title (English)",type:"text"},
+          {name:"title_bn",label:"Page Title (Bengali)",type:"text",required:true},
+          {name:"title_en",label:"Page Title (English)",type:"text",required:true},
           {name:"description_bn",label:"Description (Bengali)",type:"textarea",full:true},
           {name:"description_en",label:"Description (English)",type:"textarea",full:true},
           {name:"url",label:"URL",type:"text",required:true,help:"A unique URL slug. Use English letters, numbers, and hyphens; you can edit it."},
@@ -2705,8 +2705,8 @@
           {name:"visibility",label:"Visibility",type:"select",required:true,options:[["public","Public"],["private","Private"]]}
         ]},
         album:{table:"albums",label:"Albums",fields:[
-          {name:"title_bn",label:"Album Title (Bengali)",type:"text"},
-          {name:"title_en",label:"Album Title (English)",type:"text"},
+          {name:"title_bn",label:"Album Title (Bengali)",type:"text",required:true},
+          {name:"title_en",label:"Album Title (English)",type:"text",required:true},
           {name:"description_bn",label:"Description (Bengali)",type:"textarea",full:true},
           {name:"description_en",label:"Description (English)",type:"textarea",full:true},
           {name:"url",label:"URL",type:"text",required:true,help:"A unique URL slug. Generated from either title; you can edit it."},
@@ -3490,7 +3490,12 @@
             const lang = getUiLanguage();
             const localizedTitle = String((lang === "en" ? payload.title_en : payload.title_bn) || payload.title_bn || payload.title_en || "").trim();
             const localizedDescription = String((lang === "en" ? payload.description_en : payload.description_bn) || payload.description_bn || payload.description_en || "").trim();
-            if (!String(payload.title_bn || "").trim() && !String(payload.title_en || "").trim()) throw new Error("Enter at least one title in Bengali or English.");
+            if (!String(payload.title_bn || "").trim() || !String(payload.title_en || "").trim()) throw new Error("Enter the title in both Bengali and English.");
+            for (const [bnKey,enKey,label] of [["description_bn","description_en","description"],["content_bn","content_en","content"]]) {
+              const bnValue=String(payload[bnKey]||"").trim(),enValue=String(payload[enKey]||"").trim();
+              if ((bnValue&&!enValue)||(!bnValue&&enValue)) throw new Error("Enter "+label+" in both Bengali and English, or leave both empty.");
+            }
+            if (section.id==="page" && (!String(payload.content_bn||"").trim() || !String(payload.content_en||"").trim())) throw new Error("Custom page HTML content is required in both Bengali and English.");
             payload.title = localizedTitle;
             if (Object.prototype.hasOwnProperty.call(payload, "description_bn") || Object.prototype.hasOwnProperty.call(payload, "description_en")) payload.description = localizedDescription || null;
             if (section.id === "page" || section.id === "post") payload.content = (lang === "en" ? payload.content_en : payload.content_bn) || payload.content_bn || payload.content_en || "";
