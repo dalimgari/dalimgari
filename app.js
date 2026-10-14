@@ -341,6 +341,19 @@
       if (!cfg) return {};
       dalimgariRuntimeConfig = cfg;
       const identity=cfg.ui_customization_identity||{}, general=cfg.ui_settings_general||{};
+      // Apply the saved favicon without changing the existing page shell or route behavior.
+      const faviconHref = typeof general.favicon_data_url === "string" && /^data:image\/(?:png|gif|x-icon|vnd\.microsoft\.icon);base64,/i.test(general.favicon_data_url)
+        ? general.favicon_data_url : new URL("favicon.svg", document.baseURI).href;
+      let faviconLink = document.querySelector('link[rel~="icon"]');
+      if (!faviconLink) {
+        faviconLink = document.createElement("link");
+        faviconLink.rel = "icon";
+        document.head.append(faviconLink);
+      }
+      faviconLink.href = faviconHref;
+      faviconLink.type = faviconHref.startsWith("data:image/png") ? "image/png" :
+        (faviconHref.startsWith("data:image/gif") ? "image/gif" :
+        (faviconHref.startsWith("data:image/") ? "image/x-icon" : "image/svg+xml"));
       const theme=cfg.ui_customization_theme||{}, header=cfg.ui_customization_header_footer||{};
       const layout=cfg.ui_customization_layout||{}, typography=cfg.ui_customization_typography||{};
       const responsive=cfg.ui_customization_responsive||{}, components=cfg.ui_customization_components||{}, media=cfg.ui_customization_media||{}, pageStyle=cfg.ui_customization_page_style||{}, effects=cfg.ui_customization_effects||{}, heroVisual=cfg.ui_customization_hero||{}, features=cfg.ui_settings_maintenance_features||{};
@@ -2886,7 +2899,8 @@
           {id:"general",title:"General",key:"ui_settings_general",fields:[
             {name:"site_title",label:"Site title (English)",type:"text",value:"Dalimgari"},
             {name:"site_title_bn",label:"Site title (Bengali)",type:"text",value:"ডালিমগাড়ী"},
-            {name:"site_description",label:"Site description",type:"textarea",value:""}
+            {name:"site_description",label:"Site description",type:"textarea",value:""},
+            {name:"favicon_data_url",label:"Favicon data",type:"hidden",value:""}
           ]},
           {id:"homepage_defaults",title:"Homepage Defaults",key:"ui_settings_homepage_defaults",fields:[
             {name:"default_home_route",label:"Default route",type:"select",value:"home",options:[["home","Home"],["login","Login"]]},
@@ -3001,6 +3015,14 @@
             const draw=()=>{control.replaceChildren();const order=normalizeOrder(hidden.value);hidden.value=JSON.stringify(order);order.forEach((key,index)=>{const row=document.createElement("div");row.className="section-order-row";const number=document.createElement("span");number.className="section-order-index";number.textContent=String(index+1);const name=document.createElement("span");name.className="section-order-name";name.textContent=names[key];const moves=document.createElement("div");moves.className="section-order-moves";const up=document.createElement("button");up.type="button";up.className="action-button";up.textContent="↑";up.setAttribute("aria-label","Move "+names[key]+" up");up.disabled=index===0;const down=document.createElement("button");down.type="button";down.className="action-button";down.textContent="↓";down.setAttribute("aria-label","Move "+names[key]+" down");down.disabled=index===order.length-1;up.addEventListener("click",()=>{[order[index-1],order[index]]=[order[index],order[index-1]];hidden.value=JSON.stringify(order);draw();});down.addEventListener("click",()=>{[order[index+1],order[index]]=[order[index],order[index+1]];hidden.value=JSON.stringify(order);draw();});moves.append(up,down);row.append(number,name,moves);control.append(row);});};
             hidden.addEventListener("change",draw);draw();wrap.append(label,hidden,control);return wrap;
           }
+          if (field.type === "hidden") {
+            const hidden = document.createElement("input");
+            hidden.type = "hidden";
+            hidden.name = field.name;
+            hidden.value = field.value || "";
+            inputMap.set(group.id+"."+field.name, hidden);
+            return hidden;
+          }
           const input = field.type === "textarea" ? document.createElement("textarea") : document.createElement("input");
           if (field.type !== "textarea") input.type = field.type === "select" ? "text" : field.type;
           if (field.type === "select") {
@@ -3034,6 +3056,60 @@
           const grid = document.createElement("div");grid.className="dashboard-crud-form";
           for (const field of group.fields) grid.append(makeField(field,group));
           card.append(grid);form.append(card);
+        }
+        if (!isCustomization) {
+          const faviconCard = document.createElement("section");
+          faviconCard.className = "dashboard-crud-card";
+          const faviconHeading = document.createElement("h3");
+          faviconHeading.textContent = "Website Favicon";
+          const faviconHelp = document.createElement("p");
+          faviconHelp.className = "dashboard-section-description";
+          faviconHelp.textContent = "Upload a small PNG, GIF, or ICO icon (maximum 128 KB). Select the file, then use Save and Apply to publish it.";
+          const faviconInput = document.createElement("input");
+          faviconInput.type = "file";
+          faviconInput.accept = ".png,.gif,.ico,image/png,image/gif,image/x-icon,image/vnd.microsoft.icon";
+          faviconInput.className = "dashboard-crud-input";
+          faviconInput.setAttribute("aria-label", "Choose website favicon");
+          const faviconPreview = document.createElement("img");
+          faviconPreview.alt = "Favicon preview";
+          faviconPreview.width = 48;
+          faviconPreview.height = 48;
+          faviconPreview.style.cssText = "display:none;object-fit:contain;margin-top:10px;border:1px solid #e5e7eb;border-radius:8px;padding:6px";
+          const faviconStatus = document.createElement("p");
+          faviconStatus.className = "dashboard-crud-status";
+          faviconStatus.setAttribute("role", "status");
+          faviconInput.addEventListener("change", () => {
+            const file = faviconInput.files?.[0];
+            if (!file) return;
+            const allowedTypes = new Set(["image/png", "image/gif", "image/x-icon", "image/vnd.microsoft.icon"]);
+            const extensionOkay = /\.(png|gif|ico)$/i.test(file.name);
+            if ((!allowedTypes.has(file.type) && !extensionOkay) || file.size > 128 * 1024 || file.size === 0) {
+              faviconInput.value = "";
+              faviconStatus.textContent = "Choose a valid PNG, GIF, or ICO file no larger than 128 KB.";
+              faviconStatus.style.color = "#a12622";
+              return;
+            }
+            const reader = new FileReader();
+            reader.onload = () => {
+              if (typeof reader.result !== "string" || !/^data:image\/(?:png|gif|x-icon|vnd\.microsoft\.icon);base64,/i.test(reader.result)) {
+                faviconStatus.textContent = "This image format is not supported as a favicon.";
+                faviconStatus.style.color = "#a12622";
+                return;
+              }
+              inputMap.get("general.favicon_data_url").value = reader.result;
+              faviconPreview.src = reader.result;
+              faviconPreview.style.display = "block";
+              faviconStatus.textContent = "Favicon selected. Click Save and Apply below to save it.";
+              faviconStatus.style.color = "#176b43";
+            };
+            reader.onerror = () => {
+              faviconStatus.textContent = "Could not read this file. Please choose it again.";
+              faviconStatus.style.color = "#a12622";
+            };
+            reader.readAsDataURL(file);
+          });
+          faviconCard.append(faviconHeading, faviconHelp, faviconInput, faviconPreview, faviconStatus);
+          form.append(faviconCard);
         }
         const actions = document.createElement("div");actions.className="dashboard-crud-actions";
         actions.append(save,reload);form.append(actions,status);
