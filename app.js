@@ -3112,7 +3112,7 @@
             let history = [];
             try { history = JSON.parse(inputMap.get("general.favicon_history").value || "[]"); } catch (_) { history = []; }
             if (!Array.isArray(history)) history = [];
-            history.filter(item => item && typeof item.data_url === "string" && /^data:image\/(?:png|gif|x-icon|vnd\.microsoft\\.icon);base64,/i.test(item.data_url)).forEach((item, index) => {
+            history.filter(item => item && typeof item.data_url === "string" && /^data:image\/(?:png|gif|x-icon|vnd[.]microsoft[.]icon);base64,/i.test(item.data_url)).forEach((item, index) => {
               const entry = document.createElement("div");
               entry.style.cssText = "display:flex;align-items:center;gap:8px;border:1px solid #e5e7eb;border-radius:8px;padding:8px";
               const image = document.createElement("img");
@@ -3193,7 +3193,7 @@
           }
           savedFaviconDataUrl = inputMap.get("general.favicon_data_url")?.value || "";
           selectedFaviconPreview.removeAttribute("src"); selectedFaviconPreview.style.display = "none"; selectedFaviconLabel.hidden = true;
-          if (savedFaviconDataUrl && /^data:image\/(?:png|gif|x-icon|vnd\.microsoft\\.icon);base64,/i.test(savedFaviconDataUrl)) {
+          if (savedFaviconDataUrl && /^data:image\/(?:png|gif|x-icon|vnd[.]microsoft[.]icon);base64,/i.test(savedFaviconDataUrl)) {
             faviconPreview.src = savedFaviconDataUrl;
             faviconPreview.style.display = "block";
             currentFaviconLabel.textContent = "Currently used favicon";
@@ -3215,7 +3215,7 @@
             else if(field.type==="number")value[field.name]=Number(input.value);
             else if(field.name==="favicon_history"){
               let parsed;try{parsed=JSON.parse(input.value||"[]")}catch(_){throw new Error("Favicon history is invalid. Reload saved values and try again.");}
-              if(!Array.isArray(parsed)||parsed.some(item=>!item||typeof item.data_url!=="string"||!/^data:image\/(?:png|gif|x-icon|vnd\.microsoft\\.icon);base64,/i.test(item.data_url)))throw new Error("Favicon history contains an invalid image.");
+              if(!Array.isArray(parsed)||parsed.some(item=>!item||typeof item.data_url!=="string"||!/^data:image\/(?:png|gif|x-icon|vnd[.]microsoft[.]icon);base64,/i.test(item.data_url)))throw new Error("Favicon history contains an invalid image.");
               value[field.name]=parsed;
             } else if(field.name==="section_order"){
               let parsed;try{parsed=JSON.parse(input.value||"[]")}catch(_){throw new Error("Section order must be valid JSON.");}
