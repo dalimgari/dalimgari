@@ -91,7 +91,7 @@
       background-size: cover;
       background-repeat: no-repeat;
       filter: blur(18px);
-      opacity: .22;
+      opacity: 0; /* Keep the index canvas a single, uninterrupted background color. */
       transform: scale(1.03);
     }
 
