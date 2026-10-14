@@ -3957,9 +3957,10 @@
       else if(!hash||hash==="#home") await renderHome();
       else if(hash.startsWith("#gallery")){const params=new URLSearchParams(hash.includes("?")?hash.split("?").slice(1).join("?"):"");await renderGalleryPage(params.get("album"),activeSession);}
       else if(hash==="#stored-page") await renderStoredPage(new URLSearchParams(window.location.search).get("page"),activeSession);
-      if(!hash||hash==="#home"||hash==="#gallery"||hash.startsWith("#gallery")) document.title=siteTitle;
+      const isStoredPage=(!hash&&query.has("page"))||hash==="#stored-page";
+      if(!isStoredPage && (!hash||hash==="#home"||hash==="#gallery"||hash.startsWith("#gallery"))) document.title=siteTitle;
       const label=document.querySelector("#current-page-label");
-      if(label && (hash===""||hash==="#home")) label.textContent=siteTitle;
+      if(label && !isStoredPage && (hash===""||hash==="#home")) label.textContent=siteTitle;
       if(label && (hash==="#profile"||hash==="#login"||hash==="#dashboard")) {
         const page=hash.slice(1);
         label.textContent=window.DalimgariI18n?.t?.(page.charAt(0).toUpperCase()+page.slice(1)) || page;
