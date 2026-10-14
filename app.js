@@ -2291,8 +2291,8 @@
                 description_en:item.descriptionEn.value.trim()||null,
                 description_bn:item.descriptionBn.value.trim()||null,
                 tags:englishTags,
-                tags_en:englishTags.join(", "),
-                tags_bn:bengaliTags.join(", "),
+                tags_en:englishTags,
+                tags_bn:bengaliTags,
                 alt_text:item.altEn.value.trim()||null,
                 alt_text_en:item.altEn.value.trim()||null,
                 alt_text_bn:item.altBn.value.trim()||null,
@@ -2350,8 +2350,8 @@
           const titleBn=makeMetaField("Title (বাংলা, required)",asset.title_bn,"",180,true);
           const descEn=makeMetaField("Description (English, optional)",asset.description_en||asset.description,"",1000);
           const descBn=makeMetaField("Description (বাংলা, optional)",asset.description_bn,"",1000);
-          const tagsEn=makeMetaField("Tags (English, optional)",asset.tags_en||(Array.isArray(asset.tags)?asset.tags.join(", "):asset.tags),"Comma-separated tags",500);
-          const tagsBn=makeMetaField("Tags (বাংলা, optional)",asset.tags_bn,"কমা দিয়ে আলাদা করা ট্যাগ",500);
+          const tagsEn=makeMetaField("Tags (English, optional)",Array.isArray(asset.tags_en)?asset.tags_en.join(", "):(asset.tags_en||(Array.isArray(asset.tags)?asset.tags.join(", "):asset.tags)),"Comma-separated tags",500);
+          const tagsBn=makeMetaField("Tags (বাংলা, optional)",Array.isArray(asset.tags_bn)?asset.tags_bn.join(", "):(asset.tags_bn||""),"কমা দিয়ে আলাদা করা ট্যাগ",500);
           const altEn=makeMetaField("Alt text (English, optional)",asset.alt_text_en||asset.alt_text,"",500);
           const altBn=makeMetaField("Alt text (বাংলা, optional)",asset.alt_text_bn,"",500);
           const filename=document.createElement("p");filename.className="dashboard-crud-hint";filename.textContent=(asset.original_filename||"File")+" · "+(asset.size_bytes?Math.round(asset.size_bytes/1024)+" KB":"size unknown");
@@ -2368,7 +2368,7 @@
             try{
               const englishTags=tagsEn.input.value.split(",").map(x=>x.trim()).filter(Boolean);
               const bengaliTags=tagsBn.input.value.split(",").map(x=>x.trim()).filter(Boolean);
-              const payload={title:cleanTitleEn,title_en:cleanTitleEn,title_bn:cleanTitleBn,description:descEn.input.value.trim()||null,description_en:descEn.input.value.trim()||null,description_bn:descBn.input.value.trim()||null,tags:englishTags,tags_en:englishTags.join(", "),tags_bn:bengaliTags.join(", "),alt_text:altEn.input.value.trim()||null,alt_text_en:altEn.input.value.trim()||null,alt_text_bn:altBn.input.value.trim()||null,updated_at:new Date().toISOString()};
+              const payload={title:cleanTitleEn,title_en:cleanTitleEn,title_bn:cleanTitleBn,description:descEn.input.value.trim()||null,description_en:descEn.input.value.trim()||null,description_bn:descBn.input.value.trim()||null,tags:englishTags,tags_en:englishTags,tags_bn:bengaliTags,alt_text:altEn.input.value.trim()||null,alt_text_en:altEn.input.value.trim()||null,alt_text_bn:altBn.input.value.trim()||null,updated_at:new Date().toISOString()};
               const {error}=await supabaseClient.from("media_assets").update(payload).eq("id",asset.id);if(error)throw error;
               const {data:links,error:linksError}=await supabaseClient.from("media_links").select("source_table,source_id").eq("media_id",asset.id);
               if(linksError)throw linksError;
