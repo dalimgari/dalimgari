@@ -3923,7 +3923,7 @@
         console.error("Could not restore the current route:", error);
       }
     };
-    document.addEventListener("dalimgari:languagechange", () => { if (!window.location.hash || window.location.hash === "#home") renderHome(); });
+    document.addEventListener("dalimgari:languagechange", () => { const hash=window.location.hash; if(!hash||hash==="#home")renderHome(); else if(hash.startsWith("#gallery")){const params=new URLSearchParams(hash.includes("?")?hash.split("?").slice(1).join("?"):"");renderGalleryPage(params.get("album"),activeSession);} else if(hash==="#stored-page")renderStoredPage(new URLSearchParams(window.location.search).get("page"),activeSession); });
     window.addEventListener("hashchange", refreshCurrentRoute);
     window.addEventListener("popstate", refreshCurrentRoute);
 
