@@ -58,3 +58,12 @@ test("media library renders metadata cards in batches and requests only required
   assert.match(app, /select\("id,title,title_en,title_bn,description,description_en,description_bn,tags,tags_en,tags_bn,alt_text,alt_text_en,alt_text_bn,original_filename,storage_bucket,storage_path,mime_type,size_bytes,created_at,updated_at"\)/);
   assert.match(app, /createContentMediaUrl\(asset\.storage_path,asset\.storage_bucket\|\|"content-files"\)/);
 });
+
+test("homepage hero requests a responsive transformed image with an original-image fallback", () => {
+  const app = read("app.js");
+  assert.match(app, /async function createContentMediaUrl\(path, bucket = "content-files", transform = null\)/);
+  assert.match(app, /createSignedUrl\(normalizedPath, 3600, \{ transform: normalizedTransform \}\)/);
+  assert.match(app, /if \(result\.error && normalizedTransform[\s\S]*?createSignedUrl\(normalizedPath, 3600\)/);
+  assert.match(app, /createContentMediaUrl\(firstImage\.path, "content-files", \{ width: 1200, quality: 75 \}\)/);
+  assert.match(app, /avoid an extra await before the LCP request/);
+});
