@@ -9,11 +9,11 @@
     // developer tools, or copying a URL that a visitor is authorized to view.
     (() => {
       const mediaSelector = "img, video, audio, .dg-image-lightbox";
+      const hardenedMediaNodes = new WeakSet();
       const hardenMedia = (root) => {
-        const nodes = [];
-        if (root instanceof Element && root.matches("img, video, audio")) nodes.push(root);
-        if (root && typeof root.querySelectorAll === "function") nodes.push(...root.querySelectorAll("img, video, audio"));
-        for (const media of nodes) {
+        const process = media => {
+          if (!(media instanceof Element) || hardenedMediaNodes.has(media)) return;
+          hardenedMediaNodes.add(media);
           media.draggable = false;
           media.setAttribute("draggable", "false");
           if (media instanceof HTMLMediaElement) {
@@ -21,6 +21,10 @@
             media.disablePictureInPicture = true;
             media.disableRemotePlayback = true;
           }
+        };
+        if (root instanceof Element && root.matches("img, video, audio")) process(root);
+        if (root && typeof root.querySelectorAll === "function") {
+          root.querySelectorAll("img, video, audio").forEach(process);
         }
       };
       hardenMedia(document);
@@ -297,14 +301,47 @@
       if (dashboardAction) dashboardAction.hidden = role !== "admin" || dashboardAction.getAttribute("aria-current") === "page";
     }
 
+    const allowedContentMediaBuckets = new Set(["content-files", "hero-images", "profile-pictures"]);
+    const contentMediaUrlCache = new Map();
+    const contentMediaUrlPending = new Map();
+    const CONTENT_MEDIA_URL_CACHE_TTL_MS = 50 * 60 * 1000;
+
     async function createContentMediaUrl(path, bucket = "content-files") {
       const normalizedPath = typeof path === "string" ? path.trim().replace(/^\/+/, "") : "";
-      const allowedBuckets = new Set(["content-files", "hero-images", "profile-pictures"]);
-      const bucketId = allowedBuckets.has(String(bucket)) ? String(bucket) : "content-files";
+      const bucketId = allowedContentMediaBuckets.has(String(bucket)) ? String(bucket) : "content-files";
       if (!normalizedPath) return "";
-      const { data, error } = await supabaseClient.storage.from(bucketId).createSignedUrl(normalizedPath, 3600);
-      if (error) { console.warn("Could not create a content media URL:", error.message); return ""; }
-      return data?.signedUrl || "";
+      const cacheKey = bucketId + ":" + normalizedPath;
+      const cached = contentMediaUrlCache.get(cacheKey);
+      if (cached && cached.expiresAt > Date.now()) return cached.url;
+      if (cached) contentMediaUrlCache.delete(cacheKey);
+      const pending = contentMediaUrlPending.get(cacheKey);
+      if (pending) return pending;
+
+      const request = (async () => {
+        const { data, error } = await supabaseClient.storage.from(bucketId).createSignedUrl(normalizedPath, 3600);
+        if (error) {
+          console.warn("Could not create a content media URL:", error.message);
+          return "";
+        }
+        const url = data?.signedUrl || "";
+        if (url) contentMediaUrlCache.set(cacheKey, { url, expiresAt: Date.now() + CONTENT_MEDIA_URL_CACHE_TTL_MS });
+        return data?.signedUrl || "";
+      })().finally(() => contentMediaUrlPending.delete(cacheKey));
+      contentMediaUrlPending.set(cacheKey, request);
+      return request;
+    }
+
+    async function mapWithConcurrency(items, concurrency, mapper) {
+      const results = new Array(items.length);
+      let nextIndex = 0;
+      const workerCount = Math.min(items.length, Math.max(1, Math.floor(concurrency) || 1));
+      await Promise.all(Array.from({ length: workerCount }, async () => {
+        while (nextIndex < items.length) {
+          const index = nextIndex++;
+          results[index] = await mapper(items[index], index);
+        }
+      }));
+      return results;
     }
 
     // Signed URLs expire. If an image fails to load, refresh its URL once instead of
@@ -1012,6 +1049,10 @@
           stopPillAutoScroll();
           if (!pillAutoEnabled || pillMotion.matches || pillBar.children.length < 2) return;
           pillAutoTimer = window.setInterval(() => {
+            if (!pillBar.isConnected) {
+              stopPillAutoScroll();
+              return;
+            }
             const pills = Array.from(pillBar.querySelectorAll(".home-page-pill"));
             if (pills.length < 2 || pillBar.scrollWidth <= pillBar.clientWidth + 2) return;
             const currentLeft = pillBar.scrollLeft;
@@ -1045,9 +1086,23 @@
       const widget=document.querySelector(".home-widget"), albumSection=document.querySelector(".home-album"), pageCards=document.querySelector(".home-page-card");
       const makeGrid=()=>{const grid=document.createElement("div");grid.className="home-content-grid";return grid;};
       const makeCard=(title,description)=>{const card=document.createElement("article");card.className="home-content-card";const h=document.createElement("h3");h.textContent=title||"Untitled";card.append(h);if(description){const p=document.createElement("p");p.textContent=description;card.append(p);}return card;};
+      // Start independent section reads together; render work can then proceed as each resolves.
+      const widgetRowsPromise = widget
+        ? supabaseClient.from("widgets").select("id,widget_type,title,title_bn,title_en,is_visible,settings").eq("is_visible",true).order("created_at",{ascending:true})
+        : Promise.resolve({ data: [], error: null });
+      const albumRowsPromise = albumSection
+        ? supabaseClient.from("albums").select("id,title,title_bn,title_en,description,description_bn,description_en,url,cover_path,media,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(24)
+        : Promise.resolve({ data: [], error: null });
+      const albumOrderPromise = albumSection
+        ? supabaseClient.from("site_customizations").select("value").eq("key","home_album_order").maybeSingle()
+        : Promise.resolve({ data: null, error: null });
+      const pageRowsPromise = pageCards
+        ? supabaseClient.from("pages").select("title,title_bn,title_en,description,description_bn,description_en,content,content_bn,content_en,url,media,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(200)
+        : Promise.resolve({ data: [], error: null });
+
       // Only configured widgets belong in the homepage Widget section.
       if(widget){
-        const {data:widgets,error}=await supabaseClient.from("widgets").select("id,widget_type,title,title_bn,title_en,is_visible,settings").eq("is_visible",true).order("created_at",{ascending:true});
+        const {data:widgets,error}=await widgetRowsPromise;
         if(!error&&Array.isArray(widgets)&&widgets.length){
           const grid=makeGrid();
           for(const item of widgets){
@@ -1184,15 +1239,43 @@
         }
       }
       if(albumSection){
-        const {data:albumRows,error}=await supabaseClient.from("albums").select("id,title,title_bn,title_en,description,description_bn,description_en,url,cover_path,media,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(24);
+        const {data:albumRows,error}=await albumRowsPromise;
         // Home only shows albums with media items or a configured cover image.
         const albums=Array.isArray(albumRows)?albumRows.filter(album=>
           Boolean(String(album.cover_path||"").trim())||
           (Array.isArray(album.media)&&album.media.some(item=>item&&String(item.path||"").trim()))
         ):[];
         if(!error&&albums.length){
+          const coverCandidates = albums.map(album => ({
+            album,
+            items: (Array.isArray(album.media) ? album.media : [])
+              .filter(item => item && String(item.mime_type || "").startsWith("image/") && item.path)
+              .sort(() => Math.random() - 0.5)
+              .slice(0, 4)
+          }));
+          const coverRequests = coverCandidates.flatMap(({ album, items }) =>
+            items.map(item => ({ album, item }))
+          );
+          const resolvedCoverRequests = await mapWithConcurrency(coverRequests, 6, async ({ album, item }) => {
+            const url = await createContentMediaUrl(item.path);
+            return url ? { albumId: String(album.id), url, alt: localizedMediaValue(item,"alt_text") || localizedMediaValue(item,"title") || localizedRecordValue(album,"title") || "" } : null;
+          });
+          const coverImagesByAlbum = new Map();
+          for (const resolved of resolvedCoverRequests) {
+            if (!resolved) continue;
+            if (!coverImagesByAlbum.has(resolved.albumId)) coverImagesByAlbum.set(resolved.albumId, []);
+            coverImagesByAlbum.get(resolved.albumId).push({ url: resolved.url, alt: resolved.alt });
+          }
+          const albumsNeedingFallback = albums.filter(album => !(coverImagesByAlbum.get(String(album.id)) || []).length && album.cover_path);
+          const fallbackCovers = await mapWithConcurrency(albumsNeedingFallback, 6, async album => {
+            const url = await createContentMediaUrl(album.cover_path);
+            return url ? { albumId: String(album.id), url, alt: localizedRecordValue(album,"title") || "" } : null;
+          });
+          for (const fallback of fallbackCovers) {
+            if (fallback) coverImagesByAlbum.set(fallback.albumId, [{ url: fallback.url, alt: fallback.alt }]);
+          }
           try{
-            const {data:orderSetting}=await supabaseClient.from("site_customizations").select("value").eq("key","home_album_order").maybeSingle();
+            const {data:orderSetting}=await albumOrderPromise;
             let albumIds=orderSetting?.value;
             if(typeof albumIds==="string"){try{albumIds=JSON.parse(albumIds);}catch(_){albumIds=[];}}
             if(albumIds&&!Array.isArray(albumIds)&&Array.isArray(albumIds.ids))albumIds=albumIds.ids;
@@ -1210,17 +1293,7 @@
             const albumTitle=localizedRecordValue(album,"title");
             const albumDescription=localizedRecordValue(album,"description");
             const card=makeCard(albumTitle,albumDescription||"");
-            const media=Array.isArray(album.media)?album.media:[];
-            const coverImages=[];
-            for(const item of media){
-              if(!String(item.mime_type||"").startsWith("image/")||!item.path)continue;
-              const imageUrl=await createContentMediaUrl(item.path);
-              if(imageUrl)coverImages.push({url:imageUrl,alt:localizedMediaValue(item,"alt_text")||localizedMediaValue(item,"title")||albumTitle||""});
-            }
-            if(!coverImages.length&&album.cover_path){
-              const coverUrl=await createContentMediaUrl(album.cover_path);
-              if(coverUrl)coverImages.push({url:coverUrl,alt:albumTitle||""});
-            }
+            const coverImages=coverImagesByAlbum.get(String(album.id)) || [];
             if(coverImages.length){
               const cover=document.createElement("div");
               cover.className="home-album-cover-slideshow";
@@ -1233,7 +1306,8 @@
               front.src=coverImages[currentIndex].url;front.alt=coverImages[currentIndex].alt;front.style.opacity="1";back.style.opacity="0";
               cover.append(front,back);
               if(coverImages.length>1){
-                setInterval(()=>{
+                const slideshowTimer=setInterval(()=>{
+                  if(!cover.isConnected){clearInterval(slideshowTimer);return;}
                   let nextIndex=currentIndex;
                   while(nextIndex===currentIndex)nextIndex=Math.floor(Math.random()*coverImages.length);
                   back.onload=()=>{
@@ -1321,7 +1395,7 @@
         }
       }
       if(pageCards){
-        const {data:pages,error}=await supabaseClient.from("pages").select("title,title_bn,title_en,description,description_bn,description_en,content,content_bn,content_en,url,media,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(200);
+        const {data:pages,error}=await pageRowsPromise;
         if(!error&&pages?.length){
           const grid=makeGrid();
           for(const page of pages){
