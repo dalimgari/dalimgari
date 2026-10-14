@@ -1044,7 +1044,7 @@
                 const year=part("year"),month=part("month"),day=part("day");
                 const hour=part("hour"),minute=part("minute"),second=part("second");
                 if(language==="en"){
-                  time.textContent=new Intl.DateTimeFormat(locale,{hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h12",timeZone:bangladeshTimeZone}).format(now).replace(/\\b(am|pm)\\b/i,period=>period.toUpperCase());
+                  time.textContent=new Intl.DateTimeFormat(locale,{hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h12",timeZone:bangladeshTimeZone}).format(now).replace(/\b(am|pm)\b/i,period=>period.toUpperCase());
                 }else{
                   const bengaliPeriod=hour>=5&&hour<12?"সকাল":hour>=12&&hour<15?"দুপুর":hour>=15&&hour<18?"বিকেল":hour>=18&&hour<20?"সন্ধ্যা":"রাত";
                   const bengaliTime=new Intl.DateTimeFormat(locale,{hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h23",timeZone:bangladeshTimeZone}).format(now);
