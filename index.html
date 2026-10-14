@@ -49,10 +49,14 @@
         // The app expects the layout and Supabase SDK to exist before initialization.
         // Mount the layout as soon as it is available, then wait for the SDK before the app.
         await supabaseSdkPromise;
-        await loadScript("i18n/bn.js");
-        await loadScript("i18n/en.js");
+        // These three resources are independent: load them together, then initialize
+        // the translation registry and app only after their prerequisites are ready.
+        await Promise.all([
+          loadScript("i18n/bn.js"),
+          loadScript("i18n/en.js"),
+          loadScript("config.js")
+        ]);
         await loadScript("i18n/index.js");
-        await loadScript("config.js");
         await loadScript("app.js");
         await loadScript("header.js");
       } catch (error) {
