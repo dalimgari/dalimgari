@@ -1,25 +1,23 @@
-# Bilingual auto-translation setup
+# Bilingual auto-translation
 
-The `translate-bilingual` Supabase Edge Function uses Google Cloud Translation's Translation LLM model (`general/translation-llm`) for Bengali-English field translation.
+The `translate-bilingual` Supabase Edge Function supports two translation paths:
 
-## Required Supabase Edge Function secrets
+1. **Google Cloud Translation LLM** (`general/translation-llm`) when both Google secrets are configured. This is the preferred higher-quality option.
+2. **MyMemory free translation API** when Google credentials are not configured. This fallback needs no API key, so Bengali-English text translation can work without creating a Google Cloud account.
 
-Set these secrets for the production Supabase project before using the feature:
+## Optional Google Cloud upgrade
+
+These secrets are optional; the no-key fallback is used if either is absent:
 
 - `GOOGLE_CLOUD_TRANSLATE_API_KEY`: a Google Cloud API key restricted to the Cloud Translation API.
 - `GOOGLE_CLOUD_PROJECT_ID`: the Google Cloud project ID used by the Translation LLM model.
 
-Do not put either value in `app.js`, GitHub Pages files, or any client-side configuration.
+Do not put secrets in `app.js`, GitHub Pages files, or other client-side configuration.
 
-## Google Cloud setup
+## Security and limitations
 
-1. Select or create a Google Cloud project.
-2. Enable the Cloud Translation API and billing as required by Google Cloud.
-3. Create an API key and restrict it to the Cloud Translation API. Keep it private.
-4. Set the two values above as Supabase Edge Function secrets.
-5. Deploy the `translate-bilingual` Edge Function.
-6. Merge/deploy the website branch that calls this function.
+The Edge Function verifies the Supabase session and requires trusted `app_metadata.role = admin`. It only accepts Bengali-to-English or English-to-Bengali requests and caps each input at 30,000 characters. Provider credentials are never returned to the browser.
 
-The Edge Function validates the caller's Supabase session and requires trusted `app_metadata.role = admin`. It only accepts Bengali-to-English or English-to-Bengali requests, caps each input at 30,000 characters, and never returns the provider API key to the browser.
+When Google credentials are unavailable, text is sent to MyMemory's third-party translation service. The free service has usage limits and can be less accurate or temporarily unavailable; long HTML content may require multiple requests. HTML tags and attributes are preserved by translating text nodes only, and code/style/preformatted blocks are not translated. No machine translation is guaranteed to be perfect; review names, village-specific terms, and historical content.
 
-Translation is a draft. Admins can edit both fields before saving. Existing manually entered counterpart text is not overwritten automatically. Google Cloud Translation LLM is a high-quality model, but no machine translation is guaranteed to be perfect; review personal names, village-specific terms, and historical details.
+Translation remains an editable draft. Existing manually entered counterpart text is not automatically overwritten, and the administrator can edit either language before saving.
