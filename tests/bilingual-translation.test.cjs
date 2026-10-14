@@ -22,7 +22,7 @@ test("auto-translation preserves administrator edits and avoids overwriting exis
   assert.match(app, /targetInput\.value!==targetBefore\)return/);
 });
 
-test("translation edge function enforces administrator authorization and bounded bilingual requests", () => {
+test("translation edge function enforces admin authorization and bounded bilingual requests", () => {
   const edge = read("supabase/functions/translate-bilingual/index.ts");
   assert.match(edge, /authClient\.auth\.getUser\(token\)/);
   assert.match(edge, /app_metadata\?\.role/);
@@ -30,4 +30,11 @@ test("translation edge function enforces administrator authorization and bounded
   assert.match(edge, /source === "bn" && target === "en"/);
   assert.match(edge, /general\/translation-llm/);
   assert.match(edge, /GOOGLE_CLOUD_TRANSLATE_API_KEY/);
+});
+
+test("translation function has a no-key fallback and preserves HTML tags", () => {
+  const edge = read("supabase/functions/translate-bilingual/index.ts");
+  assert.match(edge, /api\.mymemory\.translated\.net\/get/);
+  assert.match(edge, /mymemory-free-fallback/);
+  assert.match(edge, /Translate text nodes only; preserve HTML tags/);
 });
