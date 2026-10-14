@@ -67,3 +67,13 @@ test("homepage hero requests a responsive transformed image with an original-ima
   assert.match(app, /createContentMediaUrl\(firstImage\.path, "content-files", \{ width: 1200, quality: 75 \}\)/);
   assert.match(app, /avoid an extra await before the LCP request/);
 });
+
+test("dashboard code is split from the initial application bundle", () => {
+  const app = read("app.js");
+  const dashboard = read("dashboard.js");
+  assert.ok(app.length < 200000, "initial app bundle should exclude the dashboard CRUD implementation");
+  assert.match(app, /dashboardScriptPromise/);
+  assert.match(app, /new URL\("dashboard\.js", window\.location\.href\)/);
+  assert.match(dashboard, /async function renderDashboard\(\)/);
+  assert.match(dashboard, /get_my_permissions/);
+});
