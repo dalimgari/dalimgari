@@ -61,7 +61,7 @@ test("Dictionaries cover dashboard settings, account flows, and recovery actions
 });
 
 test("content editor and database migration support Bengali and English fields", () => {
-  const app = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
+  const app = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8") + "\n" + fs.readFileSync(path.join(__dirname, "..", "dashboard.js"), "utf8");
   const migration = fs.readFileSync(path.join(__dirname, "..", "supabase", "migrations", "20261014090000_add_bilingual_content_fields.sql"), "utf8");
   for (const field of ["title_bn", "title_en", "description_bn", "description_en"]) {
     assert.ok(migration.includes("ADD COLUMN IF NOT EXISTS " + field), "Missing migration column: " + field);
@@ -141,7 +141,7 @@ test("site identity and clock time follow the selected UI language while calenda
 });
 
 test("media titles and metadata follow the selected UI language across the site", () => {
-  const app = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
+  const app = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8") + "\n" + fs.readFileSync(path.join(__dirname, "..", "dashboard.js"), "utf8");
   assert.ok(app.includes("const localizedMediaValue ="), "Media labels should share the centralized localization helper");
   assert.ok(app.includes('const captionText=localizedMediaValue(item,"title")'), "Gallery captions should use the selected language");
   assert.ok(app.includes('mediaElement.textContent=localizedMediaValue(item,"title")'), "Non-previewable gallery files should use localized titles");
