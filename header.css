@@ -396,3 +396,137 @@ body.dg-night-mode .menu-button:hover,
 body.dg-night-mode .menu-button:focus-visible {
   background-color: #2b3543;
 }
+
+
+/* Dark-mode contrast audit: cover legacy components that still use light-theme colors. */
+body.dg-night-mode .login-form,
+body.dg-night-mode .profile-page,
+body.dg-night-mode .dashboard-section-content,
+body.dg-night-mode .dashboard-crud-card,
+body.dg-night-mode .home-content-card {
+  border-color: var(--dg-border, #364152);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .22);
+}
+
+body.dg-night-mode .login-title,
+body.dg-night-mode .dashboard-heading,
+body.dg-night-mode .dashboard-section-title,
+body.dg-night-mode .dashboard-crud-card h3,
+body.dg-night-mode .dashboard-crud-field label,
+body.dg-night-mode .edit-profile-form label,
+body.dg-night-mode .remember-row,
+body.dg-night-mode .forgot-password,
+body.dg-night-mode .create-account,
+body.dg-night-mode .detail-value,
+body.dg-night-mode .profile-name {
+  color: var(--dg-text, #e7edf5);
+}
+
+body.dg-night-mode .profile-summary,
+body.dg-night-mode .profile-picture-editor,
+body.dg-night-mode .section-order-row {
+  background-color: #222b37;
+  border-color: var(--dg-border, #364152);
+  color: var(--dg-text, #e7edf5);
+}
+
+body.dg-night-mode .profile-avatar {
+  background-color: #303b4a;
+  color: var(--dg-text, #e7edf5);
+}
+
+body.dg-night-mode .role-badge {
+  background-color: #263c60;
+  color: #c6d8ff;
+}
+
+body.dg-night-mode .profile-email,
+body.dg-night-mode .detail-label,
+body.dg-night-mode .dashboard-section-description,
+body.dg-night-mode .dashboard-crud-hint,
+body.dg-night-mode .dashboard-crud-empty,
+body.dg-night-mode .dashboard-crud-status,
+body.dg-night-mode .profile-status,
+body.dg-night-mode .profile-picture-status {
+  color: var(--dg-muted, #aab5c4);
+}
+
+body.dg-night-mode .action-button:not(.primary),
+body.dg-night-mode .dashboard-crud-actions button:not(.primary),
+body.dg-night-mode .dashboard-page button:not(.menu-button):not(.primary):not(.dashboard-nav-button),
+body.dg-night-mode .section-order-moves button {
+  background-color: var(--dg-surface, #1b222c);
+  color: var(--dg-text, #e7edf5);
+  border-color: var(--dg-border, #364152);
+}
+
+body.dg-night-mode .action-button:not(.primary):hover,
+body.dg-night-mode .dashboard-crud-actions button:not(.primary):hover,
+body.dg-night-mode .dashboard-page button:not(.menu-button):not(.primary):not(.dashboard-nav-button):hover,
+body.dg-night-mode .section-order-moves button:hover {
+  background-color: #2b3543;
+  border-color: #56657a;
+}
+
+body.dg-night-mode .dashboard-crud-table th {
+  background-color: #222b37 !important;
+  color: var(--dg-text, #e7edf5) !important;
+  border-color: var(--dg-border, #364152);
+}
+
+body.dg-night-mode .dashboard-crud-table td,
+body.dg-night-mode .dashboard-crud-table th {
+  border-color: var(--dg-border, #364152);
+}
+
+body.dg-night-mode .section-order-index {
+  background-color: #303b4a;
+  color: var(--dg-text, #e7edf5);
+}
+
+body.dg-night-mode .login-message[data-type="error"] {
+  color: #ffb4ab;
+  background-color: #3b2023;
+  border-color: #7f3438;
+}
+
+body.dg-night-mode .login-message[data-type="success"] {
+  color: #a6e3bf;
+  background-color: #17372a;
+  border-color: #2e6245;
+}
+
+body.dg-night-mode .login-message[data-type="info"] {
+  color: #b8d8ff;
+  background-color: #172d45;
+  border-color: #345b84;
+}
+
+body.dg-night-mode .login-field:focus,
+body.dg-night-mode .profile-input:focus,
+body.dg-night-mode .dashboard-crud-input:focus,
+body.dg-night-mode :is(input, select, textarea):focus-visible {
+  border-color: var(--dg-link, #9dbbff);
+  outline: 2px solid var(--dg-link, #9dbbff);
+  outline-offset: 2px;
+}
+
+body.dg-night-mode :is(a, button, [tabindex], input, select, textarea):focus-visible {
+  outline-color: var(--dg-link, #9dbbff);
+}
+
+body.dg-night-mode .dashboard-nav-button:hover,
+body.dg-night-mode .dashboard-nav-button:focus-visible {
+  border-color: #73839a;
+}
+
+body.dg-night-mode .dashboard-crud-row:focus {
+  outline-color: var(--dg-link, #9dbbff);
+}
+
+body.dg-night-mode .forgot-password:hover,
+body.dg-night-mode .create-account:hover,
+body.dg-night-mode a:not(.menu-link):hover {
+  color: #c6d8ff;
+}
+
