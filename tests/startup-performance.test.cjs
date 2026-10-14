@@ -5,7 +5,7 @@ const path = require("node:path");
 
 test("shell loads independent startup resources in parallel before dependent initialization", () => {
   const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
-  const parallelStart = html.indexOf("await Promise.all([");
+  const parallelStart = html.indexOf("await Promise.all([\\n          loadScript(\\"i18n/bn.js\\")");
   const parallelEnd = html.indexOf("]);", parallelStart);
   assert.ok(parallelStart >= 0 && parallelEnd > parallelStart, "independent startup resources should use Promise.all");
 
