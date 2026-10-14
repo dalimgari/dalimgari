@@ -583,7 +583,7 @@
           let mediaElement;
           if(mime.startsWith("image/")){
             mediaElement=document.createElement("img");
-            mediaElement.alt=item.alt_text||item.title||item.name||"";
+            mediaElement.alt=localizedRecordValue(item,"alt_text")||localizedRecordValue(item,"title")||item.name||"";
             mediaElement.loading="lazy";
             mediaElement.decoding="async";
             attachSignedImageRefresh(mediaElement,mediaPath,mediaBucket);
@@ -610,7 +610,7 @@
             else mediaElement.src=url;
           });
           if(mediaElement.tagName!=="A")tile.append(mediaElement);
-          const captionText=item.title||item.name||"";
+          const captionText=localizedRecordValue(item,"title")||item.name||"";
           if(captionText){
             const caption=document.createElement("figcaption");
             caption.textContent=captionText;
