@@ -158,3 +158,125 @@ header { box-shadow:0 8px 20px -8px rgba(0,0,0,var(--dg-shadow-opacity,.06)); }
 .menu-language-section .language-control-label{display:inline;position:static;width:auto;height:auto;padding:0;margin:0;overflow:visible;clip:auto;white-space:normal;border:0}
 .menu-language-section .language-control select{width:100%;max-width:none;min-height:40px;padding:8px 10px;border:1px solid var(--dg-border,#ddd);border-radius:8px;background:var(--dg-surface,#fff);color:var(--dg-text,#222);font:inherit;font-size:14px}
 @media(max-width:420px){.menu-language-section .language-control-label{position:static;width:auto;height:auto;padding:0;margin:0;overflow:visible;clip:auto;white-space:normal;border:0}.menu-language-section .language-control select{max-width:none}}
+
+
+/* Language and appearance controls sit side-by-side in the menu. */
+.menu-language-section {
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  justify-content:flex-start;
+  gap:8px;
+  padding:12px 8px 6px;
+}
+.menu-language-section #language-switcher,
+.menu-language-section #theme-switcher {
+  display:inline-flex;
+  flex:0 0 42px;
+  align-items:center;
+  justify-content:center;
+  width:42px;
+  min-width:42px;
+  max-width:42px;
+  height:42px;
+  min-height:42px;
+  padding:0;
+  border:1px solid var(--dg-border,#ddd);
+  border-radius:10px;
+  background:var(--dg-surface,#fff);
+  color:var(--dg-text,#222);
+  font:inherit;
+  font-size:20px;
+  line-height:1;
+  cursor:pointer;
+}
+.menu-language-section #language-switcher:hover,
+.menu-language-section #theme-switcher:hover {
+  background:color-mix(in srgb,var(--dg-primary,#222) 8%,var(--dg-surface,#fff));
+}
+.menu-language-section #language-switcher:focus-visible,
+.menu-language-section #theme-switcher:focus-visible {
+  outline:2px solid var(--dg-primary,#333);
+  outline-offset:2px;
+}
+
+/* User-selected night mode; customizations continue to work in day mode. */
+body.dg-night-mode {
+  --dg-bg:#11151b;
+  --dg-surface:#1b222c;
+  --dg-text:#e7edf5;
+  --dg-muted:#aab5c4;
+  --dg-border:#364152;
+  --dg-link:#9dbbff;
+  color:var(--dg-text);
+  background-color:var(--dg-bg);
+  color-scheme:dark;
+}
+body.dg-night-mode header,
+body.dg-night-mode .floating-menu,
+body.dg-night-mode .login-form,
+body.dg-night-mode .profile-page,
+body.dg-night-mode .profile-section,
+body.dg-night-mode .profile-picture-editor,
+body.dg-night-mode .dashboard-section-content,
+body.dg-night-mode .dashboard-crud-card,
+body.dg-night-mode .home-content-card,
+body.dg-night-mode .gallery-page,
+body.dg-night-mode .stored-html-page,
+body.dg-night-mode .home-page nav,
+body.dg-night-mode .gallery-page nav {
+  background-color:var(--dg-surface)!important;
+  color:var(--dg-text)!important;
+  border-color:var(--dg-border)!important;
+}
+body.dg-night-mode .menu-link,
+body.dg-night-mode .current-page-label,
+body.dg-night-mode :is(h1,h2,h3,h4,h5,h6,p,label,span,li,dt,dd,td,th),
+body.dg-night-mode .detail-value,
+body.dg-night-mode .profile-name {
+  color:var(--dg-text);
+}
+body.dg-night-mode .menu-link:hover,
+body.dg-night-mode .menu-link:focus-visible,
+body.dg-night-mode .menu-link[aria-current="page"] {
+  background-color:#2b3543!important;
+  color:var(--dg-text)!important;
+}
+body.dg-night-mode :is(input,select,textarea),
+body.dg-night-mode .login-field,
+body.dg-night-mode .profile-input,
+body.dg-night-mode .dashboard-crud-input,
+body.dg-night-mode .dashboard-page input,
+body.dg-night-mode .dashboard-page select,
+body.dg-night-mode .dashboard-page textarea {
+  background-color:#151b23!important;
+  color:var(--dg-text)!important;
+  border-color:var(--dg-border)!important;
+  color-scheme:dark;
+}
+body.dg-night-mode .dashboard-crud-table th,
+body.dg-night-mode .dashboard-crud-row:hover,
+body.dg-night-mode .dashboard-crud-row.is-selected {
+  background-color:#222b37!important;
+  color:var(--dg-text)!important;
+}
+body.dg-night-mode .home-page .home-page-pill,
+body.dg-night-mode .gallery-page .gallery-pill,
+body.dg-night-mode .gallery-page figure {
+  background-color:var(--dg-surface)!important;
+  color:var(--dg-text)!important;
+  border-color:var(--dg-border)!important;
+}
+body.dg-night-mode .home-page .home-page-pill:hover,
+body.dg-night-mode .gallery-page .gallery-pill:hover {
+  background-color:#2b3543!important;
+}
+body.dg-night-mode .dashboard-navigation-area,
+body.dg-night-mode .dashboard-navigation {
+  background-color:var(--dg-surface)!important;
+  border-color:var(--dg-border)!important;
+}
+body.dg-night-mode footer {
+  background-color:var(--dg-surface);
+  color:var(--dg-muted);
+}
