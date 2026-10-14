@@ -195,7 +195,7 @@
         const target = event.target;
         if (!(target instanceof Element)) return;
         const image = target.closest("img");
-        if (!image || lightbox.contains(image) || image.closest(".home-album-open, .home-album-cover-slideshow")) return;
+        if (!image || lightbox.contains(image) || image.closest(".header-home-link, .home-album-open, .home-album-cover-slideshow")) return;
         if (image.closest("[data-no-image-preview], .dg-no-image-preview")) return;
         if (image.closest("button, [role='button']") && image.closest(".home-album-open")) return;
         event.preventDefault();
@@ -4276,6 +4276,15 @@
     });
     window.addEventListener("hashchange", refreshCurrentRoute);
     window.addEventListener("popstate", refreshCurrentRoute);
+
+    const headerHomeLink = document.querySelector(".header-home-link");
+    const homeMenuLink = document.querySelector('.menu-link[data-page="Home"]');
+    if (headerHomeLink && homeMenuLink) {
+      headerHomeLink.addEventListener("click", (event) => {
+        event.preventDefault();
+        homeMenuLink.click();
+      });
+    }
 
     menuLinks.forEach((link) => {
       link.addEventListener("click", async () => {
