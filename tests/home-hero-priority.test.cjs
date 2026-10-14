@@ -8,7 +8,7 @@ test("homepage hero rendering starts before optional homepage reads", () => {
   const heroData = app.indexOf("const heroContentPromise = (async () => {");
   const heroRender = app.indexOf("const heroRenderPromise = (async () => {", heroData);
   const includeRead = app.indexOf('.select("value").eq("key", "home_page_includes")', heroRender);
-  const pagePillsRead = app.indexOf('select("id,title_bn,title_en,url,visibility,created_at")', heroRender);
+  const pagePillsRead = app.indexOf('select("id,title,title_bn,title_en,url,visibility,created_at")', heroRender);
   const appendHero = app.indexOf("heroSection.append(imageFrame);", heroRender);
   const awaitHeroRender = app.indexOf("const heroRendered = await heroRenderPromise;", pagePillsRead);
 
