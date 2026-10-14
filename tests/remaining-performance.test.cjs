@@ -52,7 +52,7 @@ test("gallery defers signed URL creation until tiles approach the viewport and p
 });
 
 test("media library renders metadata cards in batches and requests only required columns", () => {
-  const app = read("app.js");
+  const app = read("dashboard.js");
   assert.match(app, /const assetPageSize=24/);
   assert.match(app, /slice\(visibleAssetCount,visibleAssetCount\+assetPageSize\)/);
   assert.match(app, /select\("id,title,title_en,title_bn,description,description_en,description_bn,tags,tags_en,tags_bn,alt_text,alt_text_en,alt_text_bn,original_filename,storage_bucket,storage_path,mime_type,size_bytes,created_at,updated_at"\)/);
@@ -66,4 +66,14 @@ test("homepage hero requests a responsive transformed image with an original-ima
   assert.match(app, /if \(result\.error && normalizedTransform[\s\S]*?createSignedUrl\(normalizedPath, 3600\)/);
   assert.match(app, /createContentMediaUrl\(firstImage\.path, "content-files", \{ width: 1200, quality: 75 \}\)/);
   assert.match(app, /avoid an extra await before the LCP request/);
+});
+
+test("dashboard code is split from the initial application bundle", () => {
+  const app = read("app.js");
+  const dashboard = read("dashboard.js");
+  assert.ok(app.length < 200000, "initial app bundle should exclude the dashboard CRUD implementation");
+  assert.match(app, /dashboardScriptPromise/);
+  assert.match(app, /new URL\("dashboard\.js", window\.location\.href\)/);
+  assert.match(dashboard, /async function renderDashboard\(\)/);
+  assert.match(dashboard, /get_my_permissions/);
 });
