@@ -634,8 +634,8 @@
           const albumDescription=localizedRecordValue(album,"description");
           const title=document.createElement("h2");title.textContent=albumTitle||"Untitled";title.style.cssText="margin:0 0 8px;font-size:clamp(21px,3vw,28px)";
           view.append(title);
-          if(album.description){
-            const description=document.createElement("p");description.textContent=album.description;description.style.cssText="margin:0 0 18px;color:#5b6472;white-space:pre-wrap;line-height:1.6";view.append(description);
+          if(albumDescription){
+            const description=document.createElement("p");description.textContent=albumDescription;description.style.cssText="margin:0 0 18px;color:#5b6472;white-space:pre-wrap;line-height:1.6";view.append(description);
           }
           items=mediaForAlbum(album);
           if(album.cover_path&&!items.some(item=>(item.path||item.storage_path)===album.cover_path))items.push({path:album.cover_path,mime_type:"image/unknown",title:album.title,alt_text:album.title});
