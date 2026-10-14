@@ -1,7 +1,5 @@
-    const supabaseClient = window.supabase.createClient(
-      "https://yopfogoyjxwxplnabqii.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvcGZvZ295anh3eHBsbmFicWlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyOTMyNjQsImV4cCI6MjEwNDg2OTI2NH0.dIVH8sp3qyD_AGmt1bNFVOpQKdrgcX734HkrEuOacB4"
-    );
+    const { supabaseUrl, supabaseAnonKey } = window.DG_CONFIG;
+    const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
     const menuButton = document.querySelector(".menu-button");
     const floatingMenu = document.querySelector("#floating-menu");
