@@ -37,6 +37,9 @@ test("production Lighthouse audit can run after a successful deployment", () => 
   assert.match(workflow, /workflows: \["Deploy village website to GitHub Pages"\]/);
   assert.match(workflow, /github\.event\.workflow_run\.conclusion == 'success'/);
   assert.match(workflow, /Run three mobile Lighthouse measurements/);
+  assert.match(workflow, /chrome-version: stable/);
+  assert.match(workflow, /install-dependencies: true/);
+  assert.match(workflow, /--headless=new --no-sandbox --disable-dev-shm-usage --disable-gpu/);
 });
 
 test("gallery defers signed URL creation until tiles approach the viewport and paginates large sets", () => {
