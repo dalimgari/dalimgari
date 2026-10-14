@@ -2013,20 +2013,20 @@
 
     async function loadUserProfile(user) {
       const { data, error } = await supabaseClient.from("profiles")
-        .select("id,full_name,phone,date_of_birth,bio")
+        .select("id,full_name,full_name_bn,phone,date_of_birth,bio,bio_bn")
         .eq("id", user.id).maybeSingle();
       if (error) {
         console.error("Could not load the user record from the profiles table:", error);
-        return { id: user.id, full_name: "", phone: "", date_of_birth: null, bio: "" };
+        return { id: user.id, full_name: "", full_name_bn: "", phone: "", date_of_birth: null, bio: "", bio_bn: "" };
       }
-      return data || { id: user.id, full_name: "", phone: "", date_of_birth: null, bio: "" };
+      return data || { id: user.id, full_name: "", full_name_bn: "", phone: "", date_of_birth: null, bio: "", bio_bn: "" };
     }
 
     async function renderProfile() {
       const user = await getCurrentUser();
       if (!user) { renderPage("Login"); history.replaceState(null, "", "#login"); setCurrentMenuPage("Login"); return; }
       const profile = await loadUserProfile(user);
-      const name = profile.full_name || "";
+      const name = localizedRecordValue(profile, "full_name") || "";
       const role = user.app_metadata && String(user.app_metadata.role || "").toLowerCase() === "admin" ? "ADMIN" : "MEMBER";
       const page = document.createElement("section"); page.className = "profile-page";
       const heading = document.createElement("h1"); heading.className = "profile-heading"; heading.textContent = "My Profile";
@@ -2051,7 +2051,7 @@
       const info = document.createElement("section"); info.className = "profile-section";
       const infoHeading = document.createElement("h2"); infoHeading.textContent = "Profile Information";
       const details = document.createElement("div"); details.className = "profile-details";
-      [["Full Name",name],["Phone Number",profile.phone||"Not added"],["Date of Birth",profile.date_of_birth||"Not added"],["Bio",profile.bio||"No bio yet"]].forEach(([label,value])=>{
+      [["Full Name",name],["Phone Number",profile.phone||"Not added"],["Date of Birth",profile.date_of_birth||"Not added"],["Bio",localizedRecordValue(profile,"bio")||"No bio yet"]].forEach(([label,value])=>{
         const item=document.createElement("div"), l=document.createElement("p"), v=document.createElement("p");
         l.className="detail-label";l.textContent=label;v.className="detail-value";v.textContent=value;item.append(l,v);details.append(item);
       });
@@ -2723,6 +2723,8 @@
         post:{table:"post",label:"Posts",fields:[
           {name:"title_bn",label:"Title (Bengali)",type:"text",required:true},
           {name:"title_en",label:"Title (English)",type:"text",required:true},
+          {name:"caption_bn",label:"Caption (Bengali)",type:"text",full:true},
+          {name:"caption_en",label:"Caption (English)",type:"text",full:true},
           {name:"description_bn",label:"Description (Bengali)",type:"textarea",full:true},
           {name:"description_en",label:"Description (English)",type:"textarea",full:true},
           {name:"content_bn",label:"Content (HTML — Bengali)",type:"textarea",rows:10,full:true},
@@ -2766,10 +2768,12 @@
         ]},
         user:{table:"profiles",label:"User profiles",readOnlyCreate:true,noDelete:true,fields:[
           {name:"id",label:"Auth user ID",type:"text",readonly:true,required:true,full:true},
-          {name:"full_name",label:"Full name",type:"text"},
+          {name:"full_name",label:"Full name (English)",type:"text"},
+          {name:"full_name_bn",label:"Full name (Bengali)",type:"text"},
           {name:"phone",label:"Phone",type:"tel"},
           {name:"date_of_birth",label:"Date of birth",type:"date"},
-          {name:"bio",label:"Bio",type:"textarea",full:true}
+          {name:"bio",label:"Bio (English)",type:"textarea",full:true},
+          {name:"bio_bn",label:"Bio (Bengali)",type:"textarea",full:true}
         ]}
       };
       if (section.id === "customization" || section.id === "settings") {
@@ -3541,9 +3545,9 @@
             if (Object.prototype.hasOwnProperty.call(payload, "description_bn") || Object.prototype.hasOwnProperty.call(payload, "description_en")) payload.description = localizedDescription || null;
             if (section.id === "page" || section.id === "post") payload.content = (lang === "en" ? payload.content_en : payload.content_bn) || payload.content_bn || payload.content_en || "";
             if (section.id === "post") {
-              payload.caption = localizedTitle;
-              payload.caption_bn = payload.title_bn || null;
-              payload.caption_en = payload.title_en || null;
+              payload.caption = String(payload.caption_en || payload.title_en || localizedTitle || "").trim();
+              payload.caption_bn = String(payload.caption_bn || "").trim() || null;
+              payload.caption_en = String(payload.caption_en || payload.title_en || "").trim() || null;
             }
             if (section.id !== "hero") {
               payload.url=generateUrlValue(payload.url||localizedTitle);
@@ -3554,9 +3558,9 @@
             }
           }
           if(section.id==="post") {
-            payload.caption=String(payload.title||"").trim();
-            payload.caption_bn=payload.title_bn||null;
-            payload.caption_en=payload.title_en||null;
+            payload.caption=String(payload.caption_en||payload.title_en||payload.title||"").trim();
+            payload.caption_bn=String(payload.caption_bn||"").trim()||null;
+            payload.caption_en=String(payload.caption_en||payload.title_en||"").trim()||null;
           }
           if(controls.album_id)payload.album_id=controls.album_id.value||null;
           const existingMedia=Array.isArray(selectedRecordData?.media)?selectedRecordData.media.map(item=>({...item})):[];
@@ -3764,10 +3768,12 @@
         finally{if(objectUrl)URL.revokeObjectURL(objectUrl);avatarInput.disabled=false;avatarInput.value="";}
       });
 
-      const fullName=field("Full Name","full_name","text",profile.full_name||metadataValue(user,"full_name")||metadataValue(user,"name"));
+      const fullName=field("Full Name (English)","full_name","text",profile.full_name||metadataValue(user,"full_name")||metadataValue(user,"name"));
+      const fullNameBn=field("Full Name (Bengali)","full_name_bn","text",profile.full_name_bn);
       field("Phone Number","phone","tel",profile.phone);
       field("Date of Birth","date_of_birth","date",profile.date_of_birth);
-      field("Bio","bio","textarea",profile.bio);
+      field("Bio (English)","bio","textarea",profile.bio);
+      field("Bio (Bengali)","bio_bn","textarea",profile.bio_bn);
       const status=document.createElement("p");status.className="profile-status";status.setAttribute("role","status");
       const actions=document.createElement("div");actions.className="profile-actions";
       const save=document.createElement("button");save.className="action-button primary";save.type="submit";save.textContent="Save Changes";
@@ -3779,9 +3785,11 @@
         const profileData = {
           id: user.id,
           full_name: fullName.value.trim(),
+          full_name_bn: fullNameBn.value.trim() || null,
           phone: form.elements.phone.value.trim() || null,
           date_of_birth: form.elements.date_of_birth.value || null,
           bio: form.elements.bio.value.trim() || null,
+          bio_bn: form.elements.bio_bn.value.trim() || null,
           updated_at: new Date().toISOString()
         };
         const { error } = await supabaseClient.from("profiles").upsert(profileData, { onConflict: "id" });
