@@ -95,3 +95,23 @@ test("existing custom pages have English title, description, and HTML seed trans
     assert.ok(migration.includes("WHERE url='" + slug + "'"), "Missing English seed for " + slug);
   }
 });
+
+test("header language control contains no adjacent language labels", () => {
+  const header = fs.readFileSync(path.join(__dirname, "..", "header.html"), "utf8");
+  assert.ok(header.includes('id="language-switcher"'));
+  assert.ok(header.includes('aria-label="Select language"'));
+  assert.ok(!header.includes("Language / ভাষা"));
+  assert.ok(!header.includes("language-control-label"));
+  assert.ok(!header.includes("language-section-label"));
+});
+
+test("site identity and clocks follow the selected UI language", () => {
+  const app = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
+  assert.ok(app.includes('name:"site_title_bn"'));
+  assert.ok(app.includes('general.site_title_bn'));
+  assert.ok(app.includes('new Intl.DateTimeFormat(locale,{hour:"2-digit"'));
+  assert.ok(app.includes('new Intl.DateTimeFormat(locale,{dateStyle:"full"'));
+  assert.ok(app.includes('["বৈশাখ","জ্যৈষ্ঠ","আষাঢ়"'));
+  assert.ok(app.includes('new Intl.NumberFormat(getUiLanguage()==="bn"?"bn-BD":"en-GB"'));
+  assert.ok(app.includes('document.addEventListener("dalimgari:languagechange",updateClock)'));
+});

@@ -210,6 +210,13 @@
 
     let activeSession = null;
     const getUiLanguage = () => window.DalimgariI18n?.getLanguage?.() === "en" ? "en" : "bn";
+    const localizedSiteTitle = config => {
+      const general = config?.ui_settings_general || {};
+      const identity = config?.ui_customization_identity || {};
+      const englishTitle = String(general.site_title || identity.site_title || "Dalimgari").trim() || "Dalimgari";
+      const bengaliTitle = String(general.site_title_bn || identity.site_title_bn || (englishTitle === "Dalimgari" ? "ডালিমগাড়ী" : englishTitle)).trim() || "ডালিমগাড়ী";
+      return getUiLanguage() === "en" ? englishTitle : bengaliTitle;
+    };
     const localizedRecordValue = (record, field) => {
       if (!record) return "";
       const lang = getUiLanguage();
@@ -338,7 +345,9 @@
       const layout=cfg.ui_customization_layout||{}, typography=cfg.ui_customization_typography||{};
       const responsive=cfg.ui_customization_responsive||{}, components=cfg.ui_customization_components||{}, media=cfg.ui_customization_media||{}, pageStyle=cfg.ui_customization_page_style||{}, effects=cfg.ui_customization_effects||{}, heroVisual=cfg.ui_customization_hero||{}, features=cfg.ui_settings_maintenance_features||{};
       const homepageDefaults=cfg.ui_settings_homepage_defaults||{};
-      const title=String(general.site_title||identity.site_title||"Dalimgari").trim()||"Dalimgari";
+      const title=getUiLanguage()==="en"
+        ? (String(general.site_title||identity.site_title||"Dalimgari").trim()||"Dalimgari")
+        : (String(general.site_title_bn||identity.site_title_bn||(String(general.site_title||identity.site_title||"Dalimgari").trim()==="Dalimgari"?"ডালিমগাড়ী":general.site_title||identity.site_title||"ডালিমগাড়ী")).trim()||"ডালিমগাড়ী");
       document.title=title;
       let descriptionMeta=document.querySelector('meta[name="description"]');
       if(!descriptionMeta){descriptionMeta=document.createElement("meta");descriptionMeta.name="description";document.head.append(descriptionMeta);}
@@ -488,7 +497,7 @@
       const selectedAlbumId=initialAlbumId||params.get("album")||"";
       const initialView=params.get("view")||"all";
       const siteConfig=await applyDalimgariSiteConfig();
-      document.title=String((siteConfig.ui_settings_general||{}).site_title||"Dalimgari").trim()||"Dalimgari";
+      document.title=localizedSiteTitle(siteConfig);
       mainContent.style.alignItems="flex-start";
       mainContent.style.justifyContent="flex-start";
 
@@ -711,7 +720,7 @@
         renderPage("Login");
         return;
       }
-      document.title = String((siteConfig.ui_settings_general||{}).site_title || "Dalimgari").trim() || "Dalimgari";
+      document.title = localizedSiteTitle(siteConfig);
       // Home content starts below the header instead of being vertically centered.
       mainContent.style.alignItems = "flex-start";
       mainContent.style.justifyContent = "flex-start";
@@ -975,7 +984,7 @@
               const dial=document.createElementNS(svgNS,"svg");
               dial.setAttribute("viewBox","0 0 160 160");
               dial.setAttribute("role","img");
-              dial.setAttribute("aria-label","Analog clock showing Bangladesh time");
+              dial.setAttribute("aria-label",getUiLanguage()==="bn"?"বাংলাদেশের সময় দেখানো অ্যানালগ ঘড়ি":"Analog clock showing Bangladesh time");
               dial.style.cssText="display:block;width:100%;height:100%;overflow:visible";
               const face=document.createElementNS(svgNS,"circle");
               face.setAttribute("cx","80");face.setAttribute("cy","80");face.setAttribute("r","75");
@@ -1003,7 +1012,7 @@
                 label.setAttribute("font-size","11");
                 label.setAttribute("font-weight","600");
                 label.setAttribute("fill","var(--text-color, #374151)");
-                label.textContent=String(numeral);
+                label.textContent=new Intl.NumberFormat(getUiLanguage()==="bn"?"bn-BD":"en-GB",{useGrouping:false}).format(numeral);
                 dial.append(label);
               }
               const makeHand=(length,width,color)=>{
@@ -1027,8 +1036,11 @@
               const updateClock=()=>{
                 const now=new Date();
                 const bangladeshTimeZone="Asia/Dhaka";
-                time.textContent=new Intl.DateTimeFormat("en-US",{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false,timeZone:bangladeshTimeZone}).format(now);
-                date.textContent=new Intl.DateTimeFormat("en-US",{dateStyle:"full",timeZone:bangladeshTimeZone}).format(now);
+                const language=getUiLanguage();
+                const locale=language==="bn"?"bn-BD":"en-GB";
+                const digitFormatter=new Intl.NumberFormat(locale,{useGrouping:false});
+                time.textContent=new Intl.DateTimeFormat(locale,{hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h23",timeZone:bangladeshTimeZone}).format(now);
+                date.textContent=new Intl.DateTimeFormat(locale,{dateStyle:"full",timeZone:bangladeshTimeZone}).format(now);
                 const parts=new Intl.DateTimeFormat("en-GB",{timeZone:bangladeshTimeZone,year:"numeric",month:"numeric",day:"numeric",hour:"numeric",minute:"numeric",second:"numeric",hourCycle:"h23"}).formatToParts(now);
                 const part=name=>Number(parts.find(part=>part.type===name)?.value);
                 const year=part("year"),month=part("month"),day=part("day");
@@ -1038,19 +1050,24 @@
                 const elapsed=Math.floor((Date.UTC(year,month-1,day)-Date.UTC(startYear,3,14))/86400000);
                 const leapYear=startYear+1;
                 const isLeap=leapYear%4===0&&(leapYear%100!==0||leapYear%400===0);
-                const monthNames=["Boishakh","Joishtho","Ashar","Srabon","Bhadro","Ashwin","Kartik","Agrahayan","Poush","Magh","Falgun","Chaitra"];
+                const monthNames=language==="bn"
+                  ? ["বৈশাখ","জ্যৈষ্ঠ","আষাঢ়","শ্রাবণ","ভাদ্র","আশ্বিন","কার্তিক","অগ্রহায়ণ","পৌষ","মাঘ","ফাল্গুন","চৈত্র"]
+                  : ["Boishakh","Joishtho","Ashar","Srabon","Bhadro","Ashwin","Kartik","Agrahayan","Poush","Magh","Falgun","Chaitra"];
                 const monthLengths=[31,31,31,31,31,31,30,30,30,30,isLeap?30:29,30];
                 let remaining=elapsed,banglaMonth=0;
                 while(banglaMonth<monthLengths.length-1&&remaining>=monthLengths[banglaMonth]){remaining-=monthLengths[banglaMonth];banglaMonth++;}
-                const weekdayNames=["Robibar","Shombar","Mongolbar","Budhbar","Brihospotibar","Shukrobar","Shonibar"];
+                const weekdayNames=language==="bn"
+                  ? ["রবিবার","সোমবার","মঙ্গলবার","বুধবার","বৃহস্পতিবার","শুক্রবার","শনিবার"]
+                  : ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
                 const weekday=new Date(Date.UTC(year,month-1,day)).getUTCDay();
-                banglaDate.textContent=weekdayNames[weekday]+", "+monthNames[banglaMonth]+" "+(remaining+1)+", "+banglaYear;
+                banglaDate.textContent=weekdayNames[weekday]+", "+monthNames[banglaMonth]+" "+digitFormatter.format(remaining+1)+", "+digitFormatter.format(banglaYear);
                 hourHand.setAttribute("transform","rotate("+((hour%12)*30+minute*0.5)+" 80 80)");
                 minuteHand.setAttribute("transform","rotate("+(minute*6+second*0.1)+" 80 80)");
                 secondHand.setAttribute("transform","rotate("+(second*6)+" 80 80)");
               };
               updateClock();
-              const clockTimer=setInterval(()=>{if(!card.isConnected){clearInterval(clockTimer);return;}updateClock();},1000);
+              document.addEventListener("dalimgari:languagechange",updateClock);
+              const clockTimer=setInterval(()=>{if(!card.isConnected){clearInterval(clockTimer);document.removeEventListener("dalimgari:languagechange",updateClock);return;}updateClock();},1000);
             }else if(item.widget_type==="map"){
               const map=document.createElement("iframe");
               const locationQuery=String(settings.location||"Saudi Arabia").trim();
@@ -1374,7 +1391,7 @@
         const detail = document.createElement("p"); detail.textContent = "The website is temporarily under maintenance. Please check again later.";
         notice.append(heading, detail); mainContent.replaceChildren(notice); return;
       }
-      const siteTitle = String((siteConfig.ui_settings_general||{}).site_title || "Dalimgari").trim() || "Dalimgari";
+      const siteTitle = localizedSiteTitle(siteConfig);
       document.title = siteTitle;
       mainContent.style.alignItems = "flex-start";
       mainContent.style.justifyContent = "flex-start";
@@ -1395,6 +1412,8 @@
       }
       const heading = document.createElement("h1");
       const pageTitle = localizedRecordValue(data,"title");
+      const pageLabel = document.querySelector("#current-page-label");
+      if (pageLabel) pageLabel.textContent = pageTitle || localizedSiteTitle(siteConfig);
       const pageDescription = localizedRecordValue(data,"description");
       data.content = localizedRecordValue(data,"content") || data.content || "";
       heading.textContent = pageTitle || "";
@@ -2844,7 +2863,8 @@
           ]}
         ] : [
           {id:"general",title:"General",key:"ui_settings_general",fields:[
-            {name:"site_title",label:"Site title",type:"text",value:"Dalimgari"},
+            {name:"site_title",label:"Site title (English)",type:"text",value:"Dalimgari"},
+            {name:"site_title_bn",label:"Site title (Bengali)",type:"text",value:"ডালিমগাড়ী"},
             {name:"site_description",label:"Site description",type:"textarea",value:""}
           ]},
           {id:"homepage_defaults",title:"Homepage Defaults",key:"ui_settings_homepage_defaults",fields:[
@@ -3928,7 +3948,23 @@
         console.error("Could not restore the current route:", error);
       }
     };
-    document.addEventListener("dalimgari:languagechange", () => { const hash=window.location.hash; const query=new URLSearchParams(window.location.search); if(!hash&&query.has("page"))renderStoredPage(query.get("page"),activeSession); else if(!hash||hash==="#home")renderHome(); else if(hash.startsWith("#gallery")){const params=new URLSearchParams(hash.includes("?")?hash.split("?").slice(1).join("?"):"");renderGalleryPage(params.get("album"),activeSession);} else if(hash==="#stored-page")renderStoredPage(new URLSearchParams(window.location.search).get("page"),activeSession); });
+    document.addEventListener("dalimgari:languagechange", async () => {
+      const hash=window.location.hash;
+      const query=new URLSearchParams(window.location.search);
+      const config=await applyDalimgariSiteConfig();
+      const siteTitle=localizedSiteTitle(config);
+      if(!hash&&query.has("page")) await renderStoredPage(query.get("page"),activeSession);
+      else if(!hash||hash==="#home") await renderHome();
+      else if(hash.startsWith("#gallery")){const params=new URLSearchParams(hash.includes("?")?hash.split("?").slice(1).join("?"):"");await renderGalleryPage(params.get("album"),activeSession);}
+      else if(hash==="#stored-page") await renderStoredPage(new URLSearchParams(window.location.search).get("page"),activeSession);
+      if(!hash||hash==="#home"||hash==="#gallery"||hash.startsWith("#gallery")) document.title=siteTitle;
+      const label=document.querySelector("#current-page-label");
+      if(label && (hash===""||hash==="#home")) label.textContent=siteTitle;
+      if(label && (hash==="#profile"||hash==="#login"||hash==="#dashboard")) {
+        const page=hash.slice(1);
+        label.textContent=window.DalimgariI18n?.t?.(page.charAt(0).toUpperCase()+page.slice(1)) || page;
+      }
+    });
     window.addEventListener("hashchange", refreshCurrentRoute);
     window.addEventListener("popstate", refreshCurrentRoute);
 

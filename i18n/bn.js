@@ -461,3 +461,13 @@ Object.assign(window.DG_I18N_BN, {
   "Title / Name": "শিরোনাম / নাম",
   "Details": "বিবরণ"
 });
+
+Object.assign(window.DG_I18N_BN, {
+  "Dalimgari": "ডালিমগাড়ী",
+  "Edit Profile": "প্রোফাইল সম্পাদনা",
+  "Create Account": "অ্যাকাউন্ট তৈরি",
+  "Forgot Password": "পাসওয়ার্ড পুনরুদ্ধার",
+  "Select language": "ভাষা নির্বাচন",
+  "Site title (English)": "ওয়েবসাইটের নাম (ইংরেজি)",
+  "Site title (Bengali)": "ওয়েবসাইটের নাম (বাংলা)"
+});

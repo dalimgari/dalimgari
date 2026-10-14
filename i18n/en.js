@@ -461,3 +461,13 @@ Object.assign(window.DG_I18N_EN, {
   "Title / Name": "Title / Name",
   "Details": "Details"
 });
+
+Object.assign(window.DG_I18N_EN, {
+  "Dalimgari": "Dalimgari",
+  "Edit Profile": "Edit Profile",
+  "Create Account": "Create Account",
+  "Forgot Password": "Forgot Password",
+  "Select language": "Select language",
+  "Site title (English)": "Site title (English)",
+  "Site title (Bengali)": "Site title (Bengali)"
+});
