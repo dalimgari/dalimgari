@@ -13,8 +13,8 @@
       align-items: center;
       justify-content: space-between;
       background-color: var(--dg-surface);
-      border-radius: 12px;
-      box-shadow: 0 8px 20px -8px rgba(0, 0, 0, 0.16);
+      border-radius: var(--dg-pillbar-radius,12px);
+      box-shadow: var(--dg-shadow-header,0 8px 20px -8px rgba(0,0,0,.16));
     }
 
 
@@ -76,7 +76,7 @@
 
     .menu-button:hover,
     .menu-button:focus-visible {
-      background-color: #f5f5f5;
+      background-color: var(--dg-hover-surface, #f5f5f5);
       outline: none;
     }
 
@@ -105,9 +105,9 @@
       overscroll-behavior: contain;
       padding: 6px;
       border: var(--dg-border-width) var(--dg-border-style) var(--dg-border);
-      border-radius: 12px;
+      border-radius: var(--dg-pillbar-radius,12px);
       background-color: var(--dg-surface);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      box-shadow: var(--dg-shadow-menu,0 8px 24px rgba(0,0,0,.12));
     }
 
 
@@ -153,11 +153,11 @@
     .menu-link:focus-visible,
     .menu-link[aria-current="page"] {
       background-color: var(--dg-hover-surface);
-      color: #111827;
+      color: var(--dg-text);
       outline: none;
     }
 
-    header { box-shadow:0 8px 20px -8px rgba(0,0,0,var(--dg-shadow-opacity,.06)); }
+    header { box-shadow:var(--dg-shadow-header,0 8px 20px -8px rgba(0,0,0,.16)); }
 
     .menu-link[aria-current="page"], .menu-link:hover { color:var(--dg-primary,#222); }
 
@@ -240,6 +240,7 @@
 
     /* User-selected night mode; customizations continue to work in day mode. */
     body.dg-night-mode {
+      --dg-hover-surface:#2b3543;
       --dg-bg:#11151b;
       --dg-surface:#1b222c;
       --dg-text:#e7edf5;
@@ -277,7 +278,7 @@
     body.dg-night-mode .menu-link:hover,
     body.dg-night-mode .menu-link:focus-visible,
     body.dg-night-mode .menu-link[aria-current="page"] {
-      background-color:#2b3543!important;
+      background-color:var(--dg-hover-surface,#2b3543)!important;
       color:var(--dg-text)!important;
     }
     body.dg-night-mode :is(input,select,textarea),
