@@ -1386,12 +1386,15 @@
         return;
       }
       const heading = document.createElement("h1");
-      heading.textContent = data.title || "";
+      const pageTitle = localizedRecordValue(data,"title");
+      const pageDescription = localizedRecordValue(data,"description");
+      data.content = localizedRecordValue(data,"content") || data.content || "";
+      heading.textContent = pageTitle || "";
       heading.style.cssText = "margin:0 0 12px;overflow-wrap:anywhere";
       shell.append(heading);
-      if (data.description) {
+      if (pageDescription) {
         const description = document.createElement("p");
-        description.textContent = data.description;
+        description.textContent = pageDescription;
         description.style.cssText = "margin:0 0 24px;color:#5b6472;font-size:17px;line-height:1.65;overflow-wrap:anywhere";
         shell.append(description);
       }
@@ -1400,7 +1403,7 @@
       shell.append(content);
       await renderHtmlInto(content, data.content || "", session);
       await renderContentMedia(content, data.media || []);
-      document.title = (data.title ? data.title + " | " : "") + siteTitle;
+      document.title = (pageTitle ? pageTitle + " | " : "") + siteTitle;
     }
 
     function renderPage(pageName) {
