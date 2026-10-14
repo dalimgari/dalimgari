@@ -521,7 +521,7 @@
       const videoPill=pill("Video","view","video",!selectedAlbumId&&initialView==="video");
 
       const [albumResult,postResult,pageResult,heroResult]=await Promise.all([
-        supabaseClient.from("albums").select("id,title,description,url,cover_path,media,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(200),
+        supabaseClient.from("albums").select("id,title,title_bn,title_en,description,description_bn,description_en,url,cover_path,media,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(200),
         supabaseClient.from("post").select("id,title,media,visibility,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(500),
         supabaseClient.from("pages").select("id,title,media,visibility,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(500),
         supabaseClient.from("hero_items").select("id,title,media,visibility,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(200)
