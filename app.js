@@ -323,11 +323,19 @@
     const contentMediaUrlPending = new Map();
     const CONTENT_MEDIA_URL_CACHE_TTL_MS = 50 * 60 * 1000;
 
-    async function createContentMediaUrl(path, bucket = "content-files") {
+    async function createContentMediaUrl(path, bucket = "content-files", transform = null) {
       const normalizedPath = typeof path === "string" ? path.trim().replace(/^\/+/, "") : "";
       const bucketId = allowedContentMediaBuckets.has(String(bucket)) ? String(bucket) : "content-files";
       if (!normalizedPath) return "";
-      const cacheKey = bucketId + ":" + normalizedPath;
+      const normalizedTransform = transform && typeof transform === "object"
+        ? Object.fromEntries(Object.entries(transform).filter(([key, value]) =>
+            ["width", "height", "quality", "resize", "format"].includes(key) && value != null
+          ))
+        : null;
+      const transformKey = normalizedTransform && Object.keys(normalizedTransform).length
+        ? ":" + JSON.stringify(normalizedTransform)
+        : "";
+      const cacheKey = bucketId + ":" + normalizedPath + transformKey;
       const cached = contentMediaUrlCache.get(cacheKey);
       if (cached && cached.expiresAt > Date.now()) return cached.url;
       if (cached) contentMediaUrlCache.delete(cacheKey);
@@ -335,19 +343,26 @@
       if (pending) return pending;
 
       const request = (async () => {
-        const { data, error } = await supabaseClient.storage.from(bucketId).createSignedUrl(normalizedPath, 3600);
-        if (error) {
-          console.warn("Could not create a content media URL:", error.message);
+        const storage = supabaseClient.storage.from(bucketId);
+        let result = normalizedTransform && Object.keys(normalizedTransform).length
+          ? await storage.createSignedUrl(normalizedPath, 3600, { transform: normalizedTransform })
+          : await storage.createSignedUrl(normalizedPath, 3600);
+        // Keep the original image as a safe fallback when Storage image transformations
+        // are unavailable for this project or object.
+        if (result.error && normalizedTransform && Object.keys(normalizedTransform).length) {
+          result = await storage.createSignedUrl(normalizedPath, 3600);
+        }
+        if (result.error) {
+          console.warn("Could not create a content media URL:", result.error.message);
           return "";
         }
-        const url = data?.signedUrl || "";
+        const url = result.data?.signedUrl || "";
         if (url) contentMediaUrlCache.set(cacheKey, { url, expiresAt: Date.now() + CONTENT_MEDIA_URL_CACHE_TTL_MS });
-        return data?.signedUrl || "";
+        return url;
       })().finally(() => contentMediaUrlPending.delete(cacheKey));
       contentMediaUrlPending.set(cacheKey, request);
       return request;
     }
-
     async function mapWithConcurrency(items, concurrency, mapper) {
       const results = new Array(items.length);
       let nextIndex = 0;
@@ -939,7 +954,7 @@
         .map(selector => page.querySelector(selector));
       const pillBar = page.querySelector(".home-page-pillbar");
       pillBar.replaceChildren();
-      await applyDalimgariSiteConfig();
+      // The site configuration was resolved above; avoid an extra await before the LCP request.
 
       // Start loading the hero record and image before unrelated homepage sections.
       // The hero image is the measured LCP element on production.
@@ -952,7 +967,7 @@
         let heroImageUrl = "";
         const heroMedia = Array.isArray(heroRecord?.media) ? heroRecord.media : [];
         const firstImage = heroMedia.find(item => String(item.mime_type || "").startsWith("image/"));
-        if (firstImage?.path) heroImageUrl = await createContentMediaUrl(firstImage.path);
+        if (firstImage?.path) heroImageUrl = await createContentMediaUrl(firstImage.path, "content-files", { width: 1200, quality: 75 });
         if (!heroRecord) {
           const { data, error } = await supabaseClient.from("site_customizations").select("value").eq("key", "home_hero").maybeSingle();
           if (!error && data && data.value) {
