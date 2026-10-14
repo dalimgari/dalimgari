@@ -4,6 +4,7 @@
   const STORAGE_KEY = "dalimgari-language";
   const supported = new Set(["bn", "en"]);
   const originalText = new WeakMap();
+  const lastRenderedText = new WeakMap();
   const originalAttrs = new WeakMap();
   const excluded = "script,style,textarea,[contenteditable='true'],.stored-html-page,.home-content-card,.dashboard-crud-card,[data-user-content]";
   const getDictionary = lang => lang === "en" ? (window.DG_I18N_EN || {}) : (window.DG_I18N_BN || {});
@@ -28,10 +29,11 @@
     while (walker.nextNode()) nodes.push(walker.currentNode);
     for (const node of nodes) {
       if (!eligible(node) || !normalize(node.nodeValue)) continue;
-      if (!originalText.has(node)) originalText.set(node, node.nodeValue);
+      if (!originalText.has(node) || (lastRenderedText.has(node) && node.nodeValue !== lastRenderedText.get(node))) originalText.set(node, node.nodeValue);
       const source = originalText.get(node);
       const translated = translate(source);
       if (node.nodeValue !== translated) node.nodeValue = translated;
+      lastRenderedText.set(node, translated);
     }
     const elements = root.nodeType === 1 ? [root, ...root.querySelectorAll("*")] : [...root.querySelectorAll("*")];
     for (const el of elements) {
@@ -67,17 +69,19 @@
         if (record.type === "childList") record.addedNodes.forEach(node => {
           if (node.nodeType === 1 || node.nodeType === 11) apply(node);
           else if (node.nodeType === 3 && eligible(node) && normalize(node.nodeValue)) {
-            if (!originalText.has(node)) originalText.set(node, node.nodeValue);
+            if (!originalText.has(node) || (lastRenderedText.has(node) && node.nodeValue !== lastRenderedText.get(node))) originalText.set(node, node.nodeValue);
             const translated = translate(originalText.get(node));
             if (node.nodeValue !== translated) node.nodeValue = translated;
+            lastRenderedText.set(node, translated);
           }
         });
         else if (record.type === "characterData") {
           const node = record.target;
           if (!eligible(node) || !normalize(node.nodeValue)) continue;
-          if (!originalText.has(node)) originalText.set(node, node.nodeValue);
+          if (!originalText.has(node) || (lastRenderedText.has(node) && node.nodeValue !== lastRenderedText.get(node))) originalText.set(node, node.nodeValue);
           const translated = translate(originalText.get(node));
           if (node.nodeValue !== translated) node.nodeValue = translated;
+          lastRenderedText.set(node, translated);
         }
       }
     });
