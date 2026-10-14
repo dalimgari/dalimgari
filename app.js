@@ -3336,6 +3336,7 @@
           values.push(record.visibility==="private"?"Only Me":record.visibility==="public"?"Public":"—",record.created_at?new Date(record.created_at).toLocaleString():"—");
           values.forEach((value,index)=>{
             const td=document.createElement("td");
+            if(index===1||index===2)td.dataset.userContent="true";
             if(section.id==="page"&&index===2&&record.url){
               const link=document.createElement("a");
               link.href=window.location.pathname+"?page="+encodeURIComponent(record.url);
