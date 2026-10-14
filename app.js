@@ -1046,9 +1046,11 @@
                 if(language==="en"){
                   time.textContent=new Intl.DateTimeFormat(locale,{hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h12",timeZone:bangladeshTimeZone}).format(now).replace(/\b(am|pm)\b/i,period=>period.toUpperCase());
                 }else{
-                  const bengaliPeriod=hour>=5&&hour<12?"সকাল":hour>=12&&hour<15?"দুপুর":hour>=15&&hour<18?"বিকেল":hour>=18&&hour<20?"সন্ধ্যা":"রাত";
-                  const bengaliTime=new Intl.DateTimeFormat(locale,{hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h23",timeZone:bangladeshTimeZone}).format(now);
-                  time.textContent=bengaliPeriod+" "+bengaliTime;
+                  const bengaliPeriod=hour>=4&&hour<11?"সকাল":hour>=11&&hour<15?"দুপুর":hour>=15&&hour<18?"বিকেল":hour>=18&&hour<20?"সন্ধ্যা":"রাত";
+                  const bengaliHour=new Intl.NumberFormat(locale,{minimumIntegerDigits:2,useGrouping:false}).format(hour%12||12);
+                  const bengaliMinute=new Intl.NumberFormat(locale,{minimumIntegerDigits:2,useGrouping:false}).format(minute);
+                  const bengaliSecond=new Intl.NumberFormat(locale,{minimumIntegerDigits:2,useGrouping:false}).format(second);
+                  time.textContent=bengaliPeriod+" "+bengaliHour+":"+bengaliMinute+":"+bengaliSecond;
                 }
                 date.textContent=new Intl.DateTimeFormat(locale,{dateStyle:"full",timeZone:bangladeshTimeZone}).format(now);
                 const banglaYear=year-(month>4||(month===4&&day>=14)?593:594);
