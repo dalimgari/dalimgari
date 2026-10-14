@@ -696,3 +696,14 @@
 }
 .home-page .home-page-pillbar[hidden] { display:none !important; }
 @media(max-width:560px) { .home-page { padding-right:12px; padding-left:12px; } }
+
+
+/* Media-saving deterrents. These discourage casual saving; they are not DRM. */
+:where(img, video, audio, .dg-lightbox-image, .home-album-cover-slideshow) {
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+}
+:where(img, video, audio, .dg-lightbox-image) {
+  user-select: none;
+  -webkit-user-select: none;
+}
