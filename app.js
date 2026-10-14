@@ -613,7 +613,7 @@
             const field="show_"+key;
             const disabledByLayout=key!=="page_title"&&Object.prototype.hasOwnProperty.call(layout,field)&&layout[field]===false;
             const disabledByFeature=features.enable_homepage_media===false&&(key==="widget"||key==="album");
-            const empty=!el.textContent.trim()&&!el.querySelector("img,video,iframe,canvas,button,a");
+            const empty=!el.classList.contains("is-loading")&&!el.textContent.trim()&&!el.querySelector("img,video,iframe,canvas,button,a");
             el.hidden=disabledByLayout||disabledByFeature||(!homepageDefaults.show_empty_sections&&empty);
           }
         };
