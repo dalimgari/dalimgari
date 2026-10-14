@@ -49,6 +49,9 @@
         // The app expects the layout and Supabase SDK to exist before initialization.
         // Mount the layout as soon as it is available, then wait for the SDK before the app.
         await supabaseSdkPromise;
+        await loadScript("i18n/bn.js");
+        await loadScript("i18n/en.js");
+        await loadScript("i18n/index.js");
         await loadScript("app.js");
         await loadScript("header.js");
       } catch (error) {

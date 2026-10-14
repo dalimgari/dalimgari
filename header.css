@@ -140,3 +140,10 @@ header { background-color:var(--dg-surface,#fff); color:var(--dg-text,#222); }
 .menu-link:hover, .menu-link:focus-visible, .menu-link[aria-current="page"] { background-color:#f3f4f6; color:var(--dg-primary,#222); outline:none; }
 .menu-link[aria-current="page"], .menu-link:hover { color:var(--dg-primary,#222); }
 header { box-shadow:0 8px 20px -8px rgba(0,0,0,var(--dg-shadow-opacity,.06)); }
+
+
+/* Compact, keyboard-accessible language control in the shared header. */
+.language-control{display:flex;align-items:center;gap:6px;min-width:0;margin-left:auto;margin-right:8px;font-size:12px;color:var(--dg-muted,#666)}
+.language-control select{max-width:100px;min-height:36px;padding:4px 6px;border:1px solid var(--dg-border,#ddd);border-radius:8px;background:var(--dg-surface,#fff);color:var(--dg-text,#222);font:inherit;font-size:13px}
+.language-control select:focus-visible{outline:2px solid var(--dg-primary,#333);outline-offset:2px}
+@media(max-width:420px){.language-control{gap:4px;margin-right:4px}.language-control-label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.language-control select{max-width:82px}}
