@@ -440,7 +440,7 @@ window.DG_I18N_EN = {
 "Could not restore the current route:":"Could not restore the current route:",
 "Logging out...":"Logging out...",
 "Could not check the session during navigation:":"Could not check the session during navigation:",
-"Menu navigation failed:":"Menu navigation failed:"
+"Menu navigation failed:":"Menu navigation failed:",
   "Title (English, required)":"Title (English, required)",
   "Title (বাংলা, required)":"Title (Bengali, required)",
   "Description (English, optional)":"Description (English, optional)",
