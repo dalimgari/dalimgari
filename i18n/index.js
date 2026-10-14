@@ -55,14 +55,18 @@
     document.documentElement.dir = "ltr";
     apply();
     const selector = document.querySelector("#language-switcher");
-    if (selector && selector.value !== language) selector.value = language;
+    if (selector) {
+      selector.setAttribute("aria-label", language === "bn" ? "Switch language to English" : "Switch language to Bengali");
+      selector.setAttribute("title", language === "bn" ? "Switch to English" : "Switch to Bengali");
+      selector.textContent = "🌐";
+    }
     document.dispatchEvent(new CustomEvent("dalimgari:languagechange", { detail: { language } }));
   }
   function init() {
     let stored = "bn";
     try { stored = localStorage.getItem(STORAGE_KEY) || "bn"; } catch (_) {}
     const selector = document.querySelector("#language-switcher");
-    if (selector) selector.addEventListener("change", () => setLanguage(selector.value));
+    if (selector) selector.addEventListener("click", () => setLanguage(language === "bn" ? "en" : "bn"));
     setLanguage(stored);
     const observer = new MutationObserver(records => {
       for (const record of records) {
