@@ -16,5 +16,5 @@ test("homepage hero rendering starts before optional homepage reads", () => {
   assert.ok(appendHero > heroRender && appendHero < includeRead, "hero should be appended before optional includes are awaited");
   assert.ok(includeRead > heroRender && pagePillsRead > includeRead, "optional homepage reads should remain after hero rendering starts");
   assert.ok(awaitHeroRender > pagePillsRead, "existing homepage section setup should continue while hero rendering proceeds");
-  assert.match(app, /image\\.fetchPriority = "high"/, "hero image should retain high fetch priority");
+  assert.match(app, /image\.fetchPriority = "high"/, "hero image should retain high fetch priority");
 });
