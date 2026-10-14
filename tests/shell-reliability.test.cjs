@@ -67,10 +67,13 @@ test("homepage starts hero loading early and gives the LCP image high priority",
 
   const renderHomeStart = js.indexOf("async function renderHome()");
   const heroStart = js.indexOf("const heroContentPromise = (async () =>", renderHomeStart);
-  const cardsStart = js.indexOf("const homepageCardsPromise = renderHomepageContentCards(siteConfig)", heroStart);
-  const heroAwait = js.indexOf("const { headline, welcomeMessage, heroImageUrl } = await heroContentPromise", cardsStart);
-  assert.ok(renderHomeStart >= 0 && heroStart > renderHomeStart && cardsStart > heroStart && heroAwait > cardsStart,
-    "hero lookup should start early and card rendering should not be awaited before hero rendering");
+  const heroRenderStart = js.indexOf("const heroRenderPromise = (async () =>", heroStart);
+  const includesRead = js.indexOf('.select("value").eq("key", "home_page_includes")', heroRenderStart);
+  const cardsStart = js.indexOf("const homepageCardsPromise = renderHomepageContentCards(siteConfig)", includesRead);
+  const heroAwait = js.indexOf("const heroRendered = await heroRenderPromise", cardsStart);
+  assert.ok(renderHomeStart >= 0 && heroStart > renderHomeStart && heroRenderStart > heroStart &&
+    includesRead > heroRenderStart && cardsStart > includesRead && heroAwait > cardsStart,
+    "hero rendering should start before optional homepage reads and cards should continue loading afterward");
   assert.match(js, /heroImagePreloader\.fetchPriority = "high"/);
   assert.match(js, /image\.fetchPriority = "high"/);
   assert.match(js, /await homepageCardsPromise/);
