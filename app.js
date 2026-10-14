@@ -283,7 +283,7 @@
         if (!resolved) continue;
         const { item, url } = resolved;
         const tile = document.createElement("div");
-        tile.style.cssText = "min-width:0;padding:10px;border:1px solid #e5e7eb;border-radius:10px;overflow-wrap:anywhere";
+        tile.style.cssText = "min-width:0;padding:10px;border:var(--dg-border-width) var(--dg-border-style) var(--dg-border);border-radius:10px;overflow-wrap:anywhere";
         if (String(item.mime_type || "").startsWith("image/")) {
           const image = document.createElement("img"); image.alt = item.alt_text || item.title || item.name || ""; image.loading = "lazy"; attachSignedImageRefresh(image, resolved.path, resolved.bucket); image.src = url;
           image.style.cssText = "display:block;width:100%;max-height:320px;object-fit:contain;border-radius:6px"; tile.append(image);
@@ -296,7 +296,7 @@
           const link = document.createElement("a"); link.href = url; link.target = "_blank"; link.rel = "noopener noreferrer";
           link.textContent = item.title || item.name || "Open file"; tile.append(link);
         }
-        if (item.title || item.name) { const caption=document.createElement("p"); caption.textContent=item.title || item.name; caption.style.cssText="margin:8px 0 0;font-size:13px"; tile.append(caption); }
+        if (item.title || item.name) { const caption=document.createElement("p"); caption.textContent=item.title || item.name; caption.style.cssText="margin:8px 0 0;font-size:var(--dg-font-size-sm)"; tile.append(caption); }
         gallery.append(tile);
       }
       if (gallery.childElementCount) container.append(gallery);
@@ -540,7 +540,7 @@
         button.dataset.kind=kind;
         if(value)button.dataset.value=value;
         button.setAttribute("aria-pressed",String(active));
-        button.style.cssText="flex:0 0 auto;min-height:40px;padding:0 16px;border:1px solid "+(active?"#222":"#dedede")+";border-radius:999px;background:"+(active?"#222":"#fff")+";color:"+(active?"#fff":"#333")+";font:inherit;font-size:14px;font-weight:600;white-space:nowrap;cursor:pointer";
+        button.style.cssText="flex:0 0 auto;min-height:40px;padding:0 16px;border:1px solid "+(active?"#222":"#dedede")+";border-radius:999px;background:"+(active?"#222":"#fff")+";color:"+(active?"#fff":"#333")+";font:inherit;font-size:var(--dg-font-size-base);font-weight:var(--dg-font-weight-semibold);white-space:nowrap;cursor:pointer";
         nav.append(button);
         return button;
       };
@@ -633,7 +633,7 @@
           if(captionText){
             const caption=document.createElement("figcaption");
             caption.textContent=captionText;
-            caption.style.cssText="padding:8px 10px;font-size:13px;line-height:1.4;overflow-wrap:anywhere";
+            caption.style.cssText="padding:8px 10px;font-size:var(--dg-font-size-sm);line-height:1.4;overflow-wrap:anywhere";
             tile.append(caption);
           }
           grid.append(tile);
@@ -663,7 +663,7 @@
           const title=document.createElement("h2");title.textContent=albumTitle||"Untitled";title.style.cssText="margin:0 0 8px;font-size:clamp(21px,3vw,28px)";
           view.append(title);
           if(albumDescription){
-            const description=document.createElement("p");description.textContent=albumDescription;description.style.cssText="margin:0 0 18px;color:#5b6472;white-space:pre-wrap;line-height:1.6";view.append(description);
+            const description=document.createElement("p");description.textContent=albumDescription;description.style.cssText="margin:0 0 18px;color:var(--dg-secondary);white-space:pre-wrap;line-height:1.6";view.append(description);
           }
           items=mediaForAlbum(album);
           if(album.cover_path&&!items.some(item=>(item.path||item.storage_path)===album.cover_path))items.push({path:album.cover_path,mime_type:"image/unknown",title:localizedRecordValue(album,"title"),alt_text:localizedRecordValue(album,"title")});
@@ -680,7 +680,7 @@
           if(kind==="all"){
             for(const album of albums){
               const section=document.createElement("section");
-              section.style.cssText="margin-top:32px;padding-top:22px;border-top:1px solid #e5e7eb";
+              section.style.cssText="margin-top:32px;padding-top:22px;border-top:var(--dg-border-width) var(--dg-border-style) var(--dg-border)";
               const sectionTitle=document.createElement("h2");sectionTitle.textContent=localizedRecordValue(album,"title")||"Untitled";sectionTitle.style.cssText="margin:0 0 14px;font-size:clamp(19px,3vw,24px)";
               section.append(sectionTitle);
               const albumItems=mediaForAlbum(album);
@@ -726,7 +726,7 @@
       const currentRole = String((currentUser && currentUser.app_metadata && currentUser.app_metadata.role) || "").toLowerCase();
       if (maintenance.maintenance_mode && currentRole !== "admin") {
         const notice = document.createElement("section");
-        notice.style.cssText = "width:min(100% - 32px,760px);margin:48px auto;padding:28px;border:1px solid #e5e7eb;border-radius:14px;background:#fff;text-align:center";
+        notice.style.cssText = "width:min(100% - 32px,760px);margin:48px auto;padding:28px;border:var(--dg-border-width) var(--dg-border-style) var(--dg-border);border-radius:var(--dg-card-radius);background:var(--dg-surface);text-align:center";
         const heading = document.createElement("h1"); heading.textContent = "We’ll be back soon";
         const detail = document.createElement("p"); detail.textContent = "The website is temporarily under maintenance. Please check again later.";
         notice.append(heading, detail);
@@ -762,7 +762,7 @@
       } catch (error) {
         console.error("Could not load the homepage template:", error);
         const notice = document.createElement("section");
-        notice.style.cssText = "width:min(100% - 32px,760px);margin:48px auto;padding:28px;border:1px solid #e5e7eb;border-radius:14px;background:#fff;text-align:center";
+        notice.style.cssText = "width:min(100% - 32px,760px);margin:48px auto;padding:28px;border:var(--dg-border-width) var(--dg-border-style) var(--dg-border);border-radius:var(--dg-card-radius);background:var(--dg-surface);text-align:center";
         const heading = document.createElement("h1");
         heading.textContent = "Home page could not be loaded";
         const detail = document.createElement("p");
@@ -870,7 +870,7 @@
           pill.dataset.pageUrl = String(storedPage.url);
           pill.textContent = storedPageTitle;
           pill.className = "home-page-pill";
-          pill.style.cssText = "display:inline-flex;flex:0 0 auto;align-items:center;justify-content:center;min-height:40px;white-space:nowrap;padding:8px 16px;border:1px solid #dedede;border-radius:999px;background:#fff;color:#333;text-decoration:none;font-size:14px;font-weight:600;line-height:1.35";
+          pill.style.cssText = "display:inline-flex;flex:0 0 auto;align-items:center;justify-content:center;min-height:40px;white-space:nowrap;padding:8px 16px;border:1px solid #dedede;border-radius:999px;background:var(--dg-surface);color:#333;text-decoration:none;font-size:var(--dg-font-size-base);font-weight:var(--dg-font-weight-semibold);line-height:1.35";
           pill.addEventListener("click",(event)=>{
             event.preventDefault();
             const target=Array.from(document.querySelectorAll(".home-page-html-card")).find(card=>card.dataset.pageUrl===pill.dataset.pageUrl);
@@ -987,11 +987,11 @@
             const widgetHeading=card.querySelector("h3");if(widgetHeading)widgetHeading.remove();
             if(item.widget_type==="datetime"){
               const date=document.createElement("p");
-              date.style.cssText="margin:4px 0 0;color:#5b6472;font-size:14px";
+              date.style.cssText="margin:4px 0 0;color:var(--dg-secondary);font-size:var(--dg-font-size-base)";
               const time=document.createElement("h2");
               time.style.cssText="margin:0 0 8px;font-size:clamp(24px,4vw,36px);line-height:1.2;font-variant-numeric:tabular-nums";
               const banglaDate=document.createElement("p");
-              banglaDate.style.cssText="margin:0 0 8px;color:#5b6472;font-size:14px";
+              banglaDate.style.cssText="margin:0 0 8px;color:var(--dg-secondary);font-size:var(--dg-font-size-base)";
               const clockLayout=document.createElement("div");
               clockLayout.style.cssText="display:flex;align-items:center;justify-content:space-between;gap:18px;width:100%;min-width:0";
               const clockDetails=document.createElement("div");
@@ -1270,7 +1270,7 @@
             const preview=document.createElement("div");
             preview.className="home-page-html-preview";
             preview.setAttribute("aria-label",(pageTitle||"Page")+" HTML preview");
-            preview.style.cssText="max-height:420px;overflow:auto;overscroll-behavior:contain;border:1px solid #e5e7eb;border-radius:10px;padding:12px;margin:12px 0;background:#fff;min-width:0;overflow-wrap:anywhere";
+            preview.style.cssText="max-height:420px;overflow:auto;overscroll-behavior:contain;border:var(--dg-border-width) var(--dg-border-style) var(--dg-border);border-radius:10px;padding:12px;margin:12px 0;background:var(--dg-surface);min-width:0;overflow-wrap:anywhere";
             card.append(preview);
             await renderHtmlInto(preview,page.content||"",activeSession,0,".home-page-html-preview");
             await renderContentMedia(preview,page.media||[]);
@@ -1279,7 +1279,7 @@
               link.href=window.location.pathname+"?page="+encodeURIComponent(page.url);
               link.textContent=getUiLanguage()==="en"?"See More":"আরও দেখুন";
               link.setAttribute("aria-label","See more of "+(pageTitle||"this page"));
-              link.style.cssText="display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:9px 16px;border-radius:9px;background:var(--dg-primary,#222);color:#fff;text-decoration:none;font-weight:600;margin-top:4px";
+              link.style.cssText="display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:9px 16px;border-radius:var(--dg-control-radius);background:var(--dg-primary,#222);color:#fff;text-decoration:none;font-weight:var(--dg-font-weight-semibold);margin-top:4px";
               card.append(link);
             }
             grid.append(card);
@@ -1412,7 +1412,7 @@
       const currentRole = String((session && session.user && session.user.app_metadata && session.user.app_metadata.role) || "").toLowerCase();
       if (maintenance.maintenance_mode && currentRole !== "admin") {
         const notice = document.createElement("section");
-        notice.style.cssText = "width:min(100% - 32px,760px);margin:48px auto;padding:28px;border:1px solid #e5e7eb;border-radius:14px;background:#fff;text-align:center";
+        notice.style.cssText = "width:min(100% - 32px,760px);margin:48px auto;padding:28px;border:var(--dg-border-width) var(--dg-border-style) var(--dg-border);border-radius:var(--dg-card-radius);background:var(--dg-surface);text-align:center";
         const heading = document.createElement("h1"); heading.textContent = "We’ll be back soon";
         const detail = document.createElement("p"); detail.textContent = "The website is temporarily under maintenance. Please check again later.";
         notice.append(heading, detail); mainContent.replaceChildren(notice); return;
@@ -1448,7 +1448,7 @@
       if (pageDescription) {
         const description = document.createElement("p");
         description.textContent = pageDescription;
-        description.style.cssText = "margin:0 0 24px;color:#5b6472;font-size:17px;line-height:1.65;overflow-wrap:anywhere";
+        description.style.cssText = "margin:0 0 24px;color:var(--dg-secondary);font-size:17px;line-height:1.65;overflow-wrap:anywhere";
         shell.append(description);
       }
       const content = document.createElement("div");
@@ -2262,7 +2262,7 @@
       filesInput.addEventListener("change",function(){
         fileRows.replaceChildren();uploadItems=[];
         Array.from(filesInput.files||[]).forEach(function(file,index){
-          const row=document.createElement("fieldset");row.style.cssText="min-width:0;border:1px solid #e5e7eb;border-radius:10px;padding:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:10px";
+          const row=document.createElement("fieldset");row.style.cssText="min-width:0;border:var(--dg-border-width) var(--dg-border-style) var(--dg-border);border-radius:10px;padding:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:10px";
           const legend=document.createElement("legend");legend.textContent=file.name+" · "+Math.max(1,Math.round(file.size/1024))+" KB";
           const field=(labelText,placeholder,maxLength,required,value,ariaLabel)=>{const wrap=document.createElement("div");wrap.className="dashboard-crud-field";const label=document.createElement("label");label.textContent=labelText;const input=document.createElement("input");input.className="dashboard-crud-input";input.maxLength=maxLength;input.required=required;if(placeholder)input.placeholder=placeholder;if(value!==undefined)input.value=value;input.setAttribute("aria-label",ariaLabel);wrap.append(label,input);return {wrap,input};};
           const titleEn=field("Title (English, required)","",180,true,file.name.replace(/\.[^.]+$/,"").trim(),"English title for "+file.name);
@@ -2357,8 +2357,8 @@
         if(!filtered.length){const empty=document.createElement("p");empty.className="dashboard-crud-empty";empty.textContent="No media files match this search.";list.append(empty);say(assets.length+" file(s) in library.");return;}
         say(assets.length+" file(s) in library; showing "+filtered.length+".");
         for(const asset of filtered){
-          const tile=document.createElement("article");tile.style.cssText="min-width:0;border:1px solid #e5e7eb;border-radius:12px;padding:12px;background:#fff";
-          const preview=document.createElement("div");preview.style.cssText="display:grid;place-items:center;min-height:110px;max-height:180px;overflow:hidden;background:#f8fafc;border-radius:8px;margin-bottom:10px";
+          const tile=document.createElement("article");tile.style.cssText="min-width:0;border:var(--dg-border-width) var(--dg-border-style) var(--dg-border);border-radius:12px;padding:12px;background:var(--dg-surface)";
+          const preview=document.createElement("div");preview.style.cssText="display:grid;place-items:center;min-height:110px;max-height:180px;overflow:hidden;background:#f8fafc;border-radius:var(--dg-radius-small);margin-bottom:10px";
           if(String(asset.mime_type||"").startsWith("image/")){
             const img=document.createElement("img");img.src="";img.alt=localizedRecordValue(asset,"alt_text")||localizedRecordValue(asset,"title");img.style.cssText="max-width:100%;max-height:170px;object-fit:contain";
             supabaseClient.storage.from(asset.storage_bucket||"content-files").createSignedUrl(asset.storage_path,3600).then(({data})=>{if(data?.signedUrl)img.src=data.signedUrl;});
@@ -2413,7 +2413,7 @@
                 const heading=document.createElement("p");heading.className="dashboard-crud-hint";heading.textContent="This file is attached in the following locations. Detach it here, then click Delete File again.";attachmentArea.append(heading);
                 const labels={hero_items:"Hero",post:"Post",pages:"Page",albums:"Album"};
                 for(const link of links){
-                  const row=document.createElement("div");row.style.cssText="border:1px solid #d1d5db;border-radius:8px;padding:10px;display:grid;gap:6px";
+                  const row=document.createElement("div");row.style.cssText="border:1px solid #d1d5db;border-radius:var(--dg-radius-small);padding:10px;display:grid;gap:6px";
                   const info=document.createElement("p");info.className="dashboard-crud-hint";
                   if(!Object.prototype.hasOwnProperty.call(labels,link.source_table)){info.textContent="Unknown location ("+link.source_table+"), record ID: "+link.source_id;row.append(info);attachmentArea.append(row);continue;}
                   const {data:source,error:sourceError}=await supabaseClient.from(link.source_table).select("id,title,url").eq("id",link.source_id).maybeSingle();
@@ -2645,12 +2645,12 @@
           for(const item of data){
             const settings=item.settings&&typeof item.settings==="object"?item.settings:{};
             const widgetCard=document.createElement("section");widgetCard.className="dashboard-crud-card";widgetCard.style.cssText="display:grid;gap:14px;align-content:start;min-width:0";
-            const cardHeader=document.createElement("div");cardHeader.style.cssText="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:12px;border-bottom:1px solid #e5e7eb";
+            const cardHeader=document.createElement("div");cardHeader.style.cssText="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:12px;border-bottom:var(--dg-border-width) var(--dg-border-style) var(--dg-border)";
             const titleGroup=document.createElement("div");titleGroup.style.cssText="display:grid;gap:4px;min-width:0";
             const name=document.createElement("h3");name.textContent=localizedRecordValue(item,"title")||item.title||"Widget";name.dataset.userContent="true";name.style.cssText="margin:0;font-size:17px;overflow-wrap:anywhere";
             const type=document.createElement("p");type.textContent=item.widget_type==="datetime"?"Date & Time":item.widget_type==="map"?"Map":String(item.widget_type||"Widget");type.style.cssText="margin:0;color:#6b7280;font-size:12px";
             titleGroup.append(name,type);
-            const badge=document.createElement("span");badge.textContent=item.is_visible?"Visible":"Hidden";badge.style.cssText="flex:0 0 auto;padding:4px 8px;border:1px solid "+(item.is_visible?"#bbf7d0":"#e5e7eb")+";border-radius:999px;background:"+(item.is_visible?"#f0fdf4":"#f9fafb")+";color:"+(item.is_visible?"#166534":"#4b5563")+";font-size:12px;font-weight:600";
+            const badge=document.createElement("span");badge.textContent=item.is_visible?"Visible":"Hidden";badge.style.cssText="flex:0 0 auto;padding:4px 8px;border:1px solid "+(item.is_visible?"#bbf7d0":"#e5e7eb")+";border-radius:999px;background:"+(item.is_visible?"#f0fdf4":"#f9fafb")+";color:"+(item.is_visible?"#166534":"#4b5563")+";font-size:12px;font-weight:var(--dg-font-weight-semibold)";
             cardHeader.append(titleGroup,badge);widgetCard.append(cardHeader);
             let locationInput=null,zoomInput=null,zoomValue=null;
             const titleBnField=document.createElement("div");titleBnField.className="dashboard-crud-field";
@@ -2662,14 +2662,14 @@
             widgetCard.append(titleBnField,titleEnField);
             if(item.widget_type==="map"){
               const locationField=document.createElement("div");locationField.className="dashboard-crud-field";
-              const locationLabel=document.createElement("label");locationLabel.textContent="Location";locationLabel.style.cssText="color:#444;font-size:13px;font-weight:600";
+              const locationLabel=document.createElement("label");locationLabel.textContent="Location";locationLabel.style.cssText="color:#444;font-size:var(--dg-font-size-sm);font-weight:var(--dg-font-weight-semibold)";
               locationInput=document.createElement("input");locationInput.type="text";locationInput.className="dashboard-crud-input";locationInput.value=String(settings.location||"");locationInput.placeholder="Address, place name, or Google Maps link";locationInput.setAttribute("aria-label","Map location for "+(item.title||"Map"));
               locationField.append(locationLabel,locationInput);widgetCard.append(locationField);
               const zoomField=document.createElement("div");zoomField.className="dashboard-crud-field";zoomField.style.cssText="display:grid;gap:8px";
               const zoomHeader=document.createElement("div");zoomHeader.style.cssText="display:flex;justify-content:space-between;align-items:center;gap:8px";
-              const zoomLabel=document.createElement("label");zoomLabel.textContent="Default Zoom";zoomLabel.style.cssText="color:#444;font-size:13px;font-weight:600";
+              const zoomLabel=document.createElement("label");zoomLabel.textContent="Default Zoom";zoomLabel.style.cssText="color:#444;font-size:var(--dg-font-size-sm);font-weight:var(--dg-font-weight-semibold)";
               const savedZoom=Number(settings.zoom);const initialZoom=Number.isFinite(savedZoom)?Math.max(1,Math.min(21,Math.round(savedZoom))):13;
-              zoomValue=document.createElement("output");zoomValue.value=String(initialZoom);zoomValue.textContent=String(initialZoom);zoomValue.style.cssText="font-size:13px;font-weight:700;color:#374151";
+              zoomValue=document.createElement("output");zoomValue.value=String(initialZoom);zoomValue.textContent=String(initialZoom);zoomValue.style.cssText="font-size:var(--dg-font-size-sm);font-weight:700;color:#374151";
               zoomHeader.append(zoomLabel,zoomValue);
               zoomInput=document.createElement("input");zoomInput.type="range";zoomInput.min="1";zoomInput.max="21";zoomInput.step="1";zoomInput.value=String(initialZoom);zoomInput.setAttribute("aria-label","Default map zoom for "+(item.title||"Map"));zoomInput.style.cssText="display:block;width:100%;min-height:26px;accent-color:#374151;cursor:pointer";
               zoomInput.addEventListener("input",()=>{zoomValue.value=zoomInput.value;zoomValue.textContent=zoomInput.value;});
@@ -2677,7 +2677,7 @@
               zoomField.append(zoomHeader,zoomInput,zoomHelp);widgetCard.append(zoomField);
             }
             const visibilityField=document.createElement("div");visibilityField.className="dashboard-crud-field";
-            const visibilityLabel=document.createElement("label");visibilityLabel.textContent="Homepage Visibility";visibilityLabel.style.cssText="color:#444;font-size:13px;font-weight:600";
+            const visibilityLabel=document.createElement("label");visibilityLabel.textContent="Homepage Visibility";visibilityLabel.style.cssText="color:#444;font-size:var(--dg-font-size-sm);font-weight:var(--dg-font-weight-semibold)";
             const select=document.createElement("select");select.className="dashboard-crud-input";select.style.minWidth="0";
             [["true","Show on homepage"],["false","Hide from homepage"]].forEach(([value,label])=>{const option=document.createElement("option");option.value=value;option.textContent=label;select.append(option);});
             select.value=String(Boolean(item.is_visible));select.setAttribute("aria-label","Visibility for "+(item.title||"Widget"));
@@ -3084,7 +3084,7 @@
           faviconPreview.alt = "Currently used favicon preview";
           faviconPreview.width = 48;
           faviconPreview.height = 48;
-          faviconPreview.style.cssText = "display:none;object-fit:contain;margin-top:6px;border:1px solid #e5e7eb;border-radius:8px;padding:6px";
+          faviconPreview.style.cssText = "display:none;object-fit:contain;margin-top:6px;border:var(--dg-border-width) var(--dg-border-style) var(--dg-border);border-radius:var(--dg-radius-small);padding:6px";
           const selectedFaviconLabel = document.createElement("p");
           selectedFaviconLabel.className = "dashboard-section-description";
           selectedFaviconLabel.textContent = "New favicon preview";
@@ -3093,7 +3093,7 @@
           selectedFaviconPreview.alt = "New favicon preview";
           selectedFaviconPreview.width = 48;
           selectedFaviconPreview.height = 48;
-          selectedFaviconPreview.style.cssText = "display:none;object-fit:contain;margin-top:6px;border:1px solid #e5e7eb;border-radius:8px;padding:6px";
+          selectedFaviconPreview.style.cssText = "display:none;object-fit:contain;margin-top:6px;border:var(--dg-border-width) var(--dg-border-style) var(--dg-border);border-radius:var(--dg-radius-small);padding:6px";
           const historyLabel = document.createElement("p");
           historyLabel.className = "dashboard-section-description";
           historyLabel.textContent = "Previous favicons (kept when a new one is applied)";
@@ -3107,7 +3107,7 @@
             if (!Array.isArray(history)) history = [];
             history.filter(item => item && typeof item.data_url === "string" && /^data:image\/(?:png|gif|x-icon|vnd[.]microsoft[.]icon);base64,/i.test(item.data_url)).forEach((item, index) => {
               const entry = document.createElement("div");
-              entry.style.cssText = "display:flex;align-items:center;gap:8px;border:1px solid #e5e7eb;border-radius:8px;padding:8px";
+              entry.style.cssText = "display:flex;align-items:center;gap:8px;border:var(--dg-border-width) var(--dg-border-style) var(--dg-border);border-radius:var(--dg-radius-small);padding:8px";
               const image = document.createElement("img");
               image.src = item.data_url; image.alt = "Previous favicon " + (index + 1); image.width = 32; image.height = 32;
               image.style.cssText = "object-fit:contain";
@@ -3261,8 +3261,8 @@
         content.append(title,intro,stats);
         const targets=[["Heroes","hero_items"],["Posts","post"],["Pages","pages"],["Albums","albums"],["Users","profiles"],["Roles","roles"]];
         for (const [label,table] of targets) {
-          const card=document.createElement("div");card.style.cssText="padding:16px;border:1px solid #e5e7eb;border-radius:10px;background:#fff";
-          const l=document.createElement("div");l.style.cssText="font-size:13px;color:#666";l.textContent=label;
+          const card=document.createElement("div");card.style.cssText="padding:16px;border:var(--dg-border-width) var(--dg-border-style) var(--dg-border);border-radius:10px;background:var(--dg-surface)";
+          const l=document.createElement("div");l.style.cssText="font-size:var(--dg-font-size-sm);color:#666";l.textContent=label;
           const n=document.createElement("strong");n.style.cssText="display:block;font-size:25px;margin-top:8px";n.textContent="—";card.append(l,n);stats.append(card);
           let countQuery=supabaseClient.from(table).select("id",{count:"exact",head:true});
           if(table==="profiles")countQuery=countQuery.neq("id","c5b6d47e-3e78-4d4e-bc15-6f137a8c1e75");
@@ -3424,7 +3424,7 @@
           const titleList=document.createElement("div");titleList.style.cssText="display:grid;gap:8px;margin-top:8px";
           const existingList=document.createElement("div");existingList.style.cssText="display:grid;gap:8px;margin-top:10px";
           const existingHeading=document.createElement("strong");existingHeading.textContent="Selected Files (uncheck to detach)";existingList.append(existingHeading);
-          const picker=document.createElement("details");picker.style.cssText="margin-top:10px;border:1px solid #e5e7eb;border-radius:8px;padding:10px";
+          const picker=document.createElement("details");picker.style.cssText="margin-top:10px;border:var(--dg-border-width) var(--dg-border-style) var(--dg-border);border-radius:var(--dg-radius-small);padding:10px";
           const pickerSummary=document.createElement("summary");pickerSummary.textContent="Select from Media Library";pickerSummary.style.cursor="pointer";
           const pickerSearch=document.createElement("input");pickerSearch.className="dashboard-crud-input";pickerSearch.type="search";pickerSearch.placeholder="Search media titles";pickerSearch.style.marginTop="10px";
           const pickerList=document.createElement("div");pickerList.style.cssText="display:grid;gap:8px;max-height:240px;overflow:auto;margin-top:8px";
@@ -3433,7 +3433,7 @@
           input.addEventListener("change",()=>{
             titleList.replaceChildren();controls.mediaTitleInputs=[];
             Array.from(input.files||[]).forEach((file,index)=>{
-              const row=document.createElement("label");row.style.cssText="display:grid;gap:4px;padding:8px;border:1px solid #e5e7eb;border-radius:8px";
+              const row=document.createElement("label");row.style.cssText="display:grid;gap:4px;padding:8px;border:var(--dg-border-width) var(--dg-border-style) var(--dg-border);border-radius:var(--dg-radius-small)";
               const filename=document.createElement("span");filename.textContent=file.name;
               const titleInput=document.createElement("input");titleInput.className="dashboard-crud-input";titleInput.required=true;titleInput.placeholder="Required title for this file";titleInput.value='';titleInput.setAttribute("aria-label","Title for "+file.name);
               controls.mediaTitleInputs[index]=titleInput;row.append(filename,titleInput);titleList.append(row);
@@ -3684,8 +3684,8 @@
           if(!ordered.length){const empty=document.createElement("p");empty.className="dashboard-crud-empty";empty.textContent="No Public pages to reorder.";orderList.append(empty);saveOrder.disabled=true;return;}
           saveOrder.disabled=false;
           ordered.forEach((record,index)=>{
-            const row=document.createElement("div");row.style.cssText="display:flex;align-items:center;gap:10px;min-width:0;padding:10px;border:1px solid #e5e7eb;border-radius:9px;background:#fff";
-            const label=document.createElement("span");label.textContent=(index+1)+". "+(record.title||record.url||"Page");label.style.cssText="flex:1;min-width:0;overflow-wrap:anywhere;font-size:14px";
+            const row=document.createElement("div");row.style.cssText="display:flex;align-items:center;gap:10px;min-width:0;padding:10px;border:var(--dg-border-width) var(--dg-border-style) var(--dg-border);border-radius:var(--dg-control-radius);background:var(--dg-surface)";
+            const label=document.createElement("span");label.textContent=(index+1)+". "+(record.title||record.url||"Page");label.style.cssText="flex:1;min-width:0;overflow-wrap:anywhere;font-size:var(--dg-font-size-base)";
             const up=document.createElement("button");up.type="button";up.className="action-button";up.textContent="↑";up.setAttribute("aria-label","Move "+(record.title||"page")+" up");up.disabled=index===0;
             const down=document.createElement("button");down.type="button";down.className="action-button";down.textContent="↓";down.setAttribute("aria-label","Move "+(record.title||"page")+" down");down.disabled=index===ordered.length-1;
             up.addEventListener("click",()=>{[ordered[index-1],ordered[index]]=[ordered[index],ordered[index-1]];drawOrder();});
@@ -3728,8 +3728,8 @@
           if(!ordered.length){const empty=document.createElement("p");empty.className="dashboard-crud-empty";empty.textContent="No Public albums to reorder.";orderList.append(empty);saveOrder.disabled=true;return;}
           saveOrder.disabled=false;
           ordered.forEach((record,index)=>{
-            const row=document.createElement("div");row.style.cssText="display:flex;align-items:center;gap:10px;min-width:0;padding:10px;border:1px solid #e5e7eb;border-radius:9px;background:#fff";
-            const label=document.createElement("span");label.textContent=(index+1)+". "+(record.title||record.url||"Album");label.style.cssText="flex:1;min-width:0;overflow-wrap:anywhere;font-size:14px";
+            const row=document.createElement("div");row.style.cssText="display:flex;align-items:center;gap:10px;min-width:0;padding:10px;border:var(--dg-border-width) var(--dg-border-style) var(--dg-border);border-radius:var(--dg-control-radius);background:var(--dg-surface)";
+            const label=document.createElement("span");label.textContent=(index+1)+". "+(record.title||record.url||"Album");label.style.cssText="flex:1;min-width:0;overflow-wrap:anywhere;font-size:var(--dg-font-size-base)";
             const up=document.createElement("button");up.type="button";up.className="action-button";up.textContent="↑";up.setAttribute("aria-label","Move "+(record.title||"album")+" up");up.disabled=index===0;
             const down=document.createElement("button");down.type="button";down.className="action-button";down.textContent="↓";down.setAttribute("aria-label","Move "+(record.title||"album")+" down");down.disabled=index===ordered.length-1;
             up.addEventListener("click",()=>{[ordered[index-1],ordered[index]]=[ordered[index],ordered[index-1]];drawOrder();});
@@ -3755,7 +3755,7 @@
           controls.mediaExistingList.replaceChildren();
           const existingHeading=document.createElement("strong");existingHeading.textContent="Selected Files (uncheck to detach)";controls.mediaExistingList.append(existingHeading);
           (Array.isArray(record.media)?record.media:[]).forEach(item=>{
-            const row=document.createElement("label");row.style.cssText="display:flex;align-items:flex-start;gap:8px;padding:7px;border:1px solid #e5e7eb;border-radius:8px";
+            const row=document.createElement("label");row.style.cssText="display:flex;align-items:flex-start;gap:8px;padding:7px;border:var(--dg-border-width) var(--dg-border-style) var(--dg-border);border-radius:var(--dg-radius-small)";
             const check=document.createElement("input");check.type="checkbox";check.checked=true;check.dataset.existingPath=String(item.path||"");check.style.cssText="width:auto;min-height:0;margin-top:3px";
             const text=document.createElement("span");text.textContent=(item.title||item.name||item.path||"File")+" — "+(item.path||"");
             row.append(check,text);controls.mediaExistingList.append(row);
