@@ -833,11 +833,12 @@
           return ar-br || new Date(a.created_at||0)-new Date(b.created_at||0);
         });
         for (const storedPage of publicPages) {
-          if (!storedPage.url || !storedPage.title) continue;
+          const storedPageTitle = localizedRecordValue(storedPage,"title");
+          if (!storedPage.url || !storedPageTitle) continue;
           const pill = document.createElement("a");
           pill.href = "#home-page-" + encodeURIComponent(storedPage.url);
           pill.dataset.pageUrl = String(storedPage.url);
-          pill.textContent = storedPage.title;
+          pill.textContent = storedPageTitle;
           pill.className = "home-page-pill";
           pill.style.cssText = "display:inline-flex;flex:0 0 auto;align-items:center;justify-content:center;min-height:40px;white-space:nowrap;padding:8px 16px;border:1px solid #dedede;border-radius:999px;background:#fff;color:#333;text-decoration:none;font-size:14px;font-weight:600;line-height:1.35";
           pill.addEventListener("click",(event)=>{
