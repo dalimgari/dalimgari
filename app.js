@@ -630,7 +630,9 @@
             const message=document.createElement("p");message.textContent="This album is unavailable.";view.append(message);
             updatePills("view","all");return;
           }
-          const title=document.createElement("h2");title.textContent=album.title||"Untitled";title.style.cssText="margin:0 0 8px;font-size:clamp(21px,3vw,28px)";
+          const albumTitle=localizedRecordValue(album,"title");
+          const albumDescription=localizedRecordValue(album,"description");
+          const title=document.createElement("h2");title.textContent=albumTitle||"Untitled";title.style.cssText="margin:0 0 8px;font-size:clamp(21px,3vw,28px)";
           view.append(title);
           if(album.description){
             const description=document.createElement("p");description.textContent=album.description;description.style.cssText="margin:0 0 18px;color:#5b6472;white-space:pre-wrap;line-height:1.6";view.append(description);
