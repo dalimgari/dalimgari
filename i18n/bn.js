@@ -441,6 +441,20 @@ window.DG_I18N_BN = {
 "Logging out...":"লগআউট হচ্ছে...",
 "Could not check the session during navigation:":"নেভিগেশনের সময় সেশন যাচাই করা যায়নি:",
 "Menu navigation failed:":"মেনু নেভিগেশন ব্যর্থ হয়েছে:"
+
+  ,"English title (required)":"ইংরেজি শিরোনাম (আবশ্যক)"
+  ,"Bangla title (required)":"বাংলা শিরোনাম (আবশ্যক)"
+  ,"English description (optional)":"ইংরেজি বিবরণ (ঐচ্ছিক)"
+  ,"Bangla description (optional)":"বাংলা বিবরণ (ঐচ্ছিক)"
+  ,"English tags (optional)":"ইংরেজি ট্যাগ (ঐচ্ছিক)"
+  ,"Bangla tags (optional)":"বাংলা ট্যাগ (ঐচ্ছিক)"
+  ,"Comma-separated English tags":"কমা দিয়ে ইংরেজি ট্যাগ আলাদা করুন"
+  ,"Comma-separated Bangla tags":"কমা দিয়ে বাংলা ট্যাগ আলাদা করুন"
+  ,"English alt text (optional)":"ইংরেজি Alt Text (ঐচ্ছিক)"
+  ,"Bangla alt text (optional)":"বাংলা Alt Text (ঐচ্ছিক)"
+  ,"Every file needs English and Bangla titles:":"প্রতিটি ফাইলের ইংরেজি ও বাংলা শিরোনাম প্রয়োজন:"
+  ,"Every media file must have English and Bangla titles.":"প্রতিটি মিডিয়ার ইংরেজি ও বাংলা শিরোনাম থাকতে হবে।"
+
 };
 Object.assign(window.DG_I18N_BN, {
   "Title (Bengali)": "শিরোনাম (বাংলা)",
