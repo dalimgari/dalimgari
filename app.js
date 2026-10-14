@@ -40,12 +40,29 @@
         const target = event.target;
         if (target instanceof Element && target.closest("img, video, audio, .dg-lightbox-image")) event.preventDefault();
       }, true);
+      const pendingRoots = new Set();
+      let hardeningScheduled = false;
+      const flushMediaHardening = () => {
+        hardeningScheduled = false;
+        const roots = Array.from(pendingRoots);
+        pendingRoots.clear();
+        const uniqueRoots = roots.filter((root, index) =>
+          root.isConnected && !roots.some((other, otherIndex) =>
+            index !== otherIndex && other.isConnected && other !== root && other.contains(root)
+          )
+        );
+        for (const root of uniqueRoots) hardenMedia(root);
+      };
       const observer = new MutationObserver(records => {
         for (const record of records) {
           for (const node of record.addedNodes) {
-            if (node instanceof Element) hardenMedia(node);
+            if (node instanceof Element) pendingRoots.add(node);
           }
         }
+        if (!pendingRoots.size || hardeningScheduled) return;
+        hardeningScheduled = true;
+        if (typeof window.requestAnimationFrame === "function") window.requestAnimationFrame(flushMediaHardening);
+        else window.setTimeout(flushMediaHardening, 0);
       });
       observer.observe(document.documentElement, { childList: true, subtree: true });
     })();
@@ -596,7 +613,7 @@
             const field="show_"+key;
             const disabledByLayout=key!=="page_title"&&Object.prototype.hasOwnProperty.call(layout,field)&&layout[field]===false;
             const disabledByFeature=features.enable_homepage_media===false&&(key==="widget"||key==="album");
-            const empty=!el.textContent.trim()&&!el.querySelector("img,video,iframe,canvas,button,a");
+            const empty=!el.classList.contains("is-loading")&&!el.textContent.trim()&&!el.querySelector("img,video,iframe,canvas,button,a");
             el.hidden=disabledByLayout||disabledByFeature||(!homepageDefaults.show_empty_sections&&empty);
           }
         };
@@ -686,56 +703,98 @@
       for(const source of sources)for(const item of (Array.isArray(source.media)?source.media:[]))addMedia(item,localizedRecordValue(source,"title"));
       for(const album of albums)pill(localizedRecordValue(album,"title")||"Untitled","album",album.id,selectedAlbumId===album.id);
 
+      const galleryLoaders = new WeakMap();
+      const observedMediaTiles = new Set();
+      const galleryMediaObserver = typeof IntersectionObserver === "function"
+        ? new IntersectionObserver(entries => {
+            for (const entry of entries) {
+              if (!entry.isIntersecting) continue;
+              galleryMediaObserver.unobserve(entry.target);
+              observedMediaTiles.delete(entry.target);
+              const load = galleryLoaders.get(entry.target);
+              if (load) load();
+            }
+          }, { rootMargin: "320px 0px" })
+        : null;
       const galleryGrid=(items)=>{
+        const container=document.createElement("div");
+        container.style.cssText="width:100%;min-width:0";
         const grid=document.createElement("div");
         grid.style.cssText="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr));gap:14px;width:100%;min-width:0";
-        for(const item of items){
-          if(!item||!(item.path||item.storage_path))continue;
-          const tile=document.createElement("figure");
-          tile.style.cssText="min-width:0;margin:0;overflow:hidden;border-radius:10px;background:#f3f4f6";
-          const mediaPath=item.path||item.storage_path;
-          const mediaBucket=item.storage_bucket||item.bucket||"content-files";
-          const urlPromise=createContentMediaUrl(mediaPath,mediaBucket);
-          const mime=inferMime(item);
-          let mediaElement;
-          if(mime.startsWith("image/")){
-            mediaElement=document.createElement("img");
-            mediaElement.alt=localizedMediaValue(item,"alt_text")||localizedMediaValue(item,"title");
-            mediaElement.loading="lazy";
-            mediaElement.decoding="async";
-            attachSignedImageRefresh(mediaElement,mediaPath,mediaBucket);
-            mediaElement.style.cssText="display:block;width:100%;aspect-ratio:4/3;object-fit:cover";
-          }else if(mime.startsWith("video/")){
-            mediaElement=document.createElement("video");
-            mediaElement.controls=true;
-            mediaElement.preload="metadata";
-            mediaElement.style.cssText="display:block;width:100%;aspect-ratio:4/3;object-fit:contain";
-          }else if(mime.startsWith("audio/")){
-            mediaElement=document.createElement("audio");
-            mediaElement.controls=true;
-            mediaElement.style.cssText="display:block;width:calc(100% - 20px);margin:10px";
+        const validItems=items.filter(item=>item&&(item.path||item.storage_path));
+        let nextIndex=0;
+        const batchSize=48;
+        const appendBatch=()=>{
+          const batch=validItems.slice(nextIndex,nextIndex+batchSize);
+          nextIndex+=batch.length;
+          for(const item of batch){
+            const tile=document.createElement("figure");
+            tile.style.cssText="min-width:0;margin:0;overflow:hidden;border-radius:10px;background:#f3f4f6";
+            const mediaPath=item.path||item.storage_path;
+            const mediaBucket=item.storage_bucket||item.bucket||"content-files";
+            const mime=inferMime(item);
+            let mediaElement;
+            if(mime.startsWith("image/")){
+              mediaElement=document.createElement("img");
+              mediaElement.alt=localizedMediaValue(item,"alt_text")||localizedMediaValue(item,"title");
+              mediaElement.loading="lazy";
+              mediaElement.decoding="async";
+              attachSignedImageRefresh(mediaElement,mediaPath,mediaBucket);
+              mediaElement.style.cssText="display:block;width:100%;aspect-ratio:4/3;object-fit:cover";
+            }else if(mime.startsWith("video/")){
+              mediaElement=document.createElement("video");
+              mediaElement.controls=true;
+              mediaElement.preload="metadata";
+              mediaElement.style.cssText="display:block;width:100%;aspect-ratio:4/3;object-fit:contain";
+            }else if(mime.startsWith("audio/")){
+              mediaElement=document.createElement("audio");
+              mediaElement.controls=true;
+              mediaElement.style.cssText="display:block;width:calc(100% - 20px);margin:10px";
+            }else{
+              // Keep non-previewable files listed without publishing a direct download URL.
+              mediaElement=document.createElement("span");
+              mediaElement.textContent=localizedMediaValue(item,"title")||"File";
+              mediaElement.setAttribute("aria-label","File attachment");
+              mediaElement.style.cssText="display:block;padding:18px;overflow-wrap:anywhere";
+            }
+            const loadMediaUrl=async()=>{
+              const url=await createContentMediaUrl(mediaPath,mediaBucket);
+              if(!tile.isConnected)return;
+              if(!url){tile.remove();return;}
+              if(["IMG","VIDEO","AUDIO"].includes(mediaElement.tagName))mediaElement.src=url;
+            };
+            if(galleryMediaObserver){
+              galleryLoaders.set(tile,loadMediaUrl);
+              observedMediaTiles.add(tile);
+              galleryMediaObserver.observe(tile);
+            }else{
+              Promise.resolve().then(loadMediaUrl);
+            }
+            tile.append(mediaElement);
+            const captionText=localizedMediaValue(item,"title");
+            if(captionText){
+              const caption=document.createElement("figcaption");
+              caption.textContent=captionText;
+              caption.style.cssText="padding:8px 10px;font-size:var(--dg-font-size-sm);line-height:1.4;overflow-wrap:anywhere";
+              tile.append(caption);
+            }
+            grid.append(tile);
+          }
+          if(nextIndex<validItems.length){
+            moreButton.hidden=false;
+            moreButton.textContent="Load more ("+(validItems.length-nextIndex)+")";
           }else{
-            // Keep non-previewable files listed without publishing a direct download URL.
-            mediaElement=document.createElement("span");
-            mediaElement.textContent=localizedMediaValue(item,"title")||"File";
-            mediaElement.setAttribute("aria-label","File attachment");
-            mediaElement.style.cssText="display:block;padding:18px;overflow-wrap:anywhere";
+            moreButton.hidden=true;
           }
-          Promise.resolve(urlPromise).then(url=>{
-            if(!url){tile.remove();return;}
-            if(["IMG","VIDEO","AUDIO"].includes(mediaElement.tagName))mediaElement.src=url;
-          });
-          tile.append(mediaElement);
-          const captionText=localizedMediaValue(item,"title");
-          if(captionText){
-            const caption=document.createElement("figcaption");
-            caption.textContent=captionText;
-            caption.style.cssText="padding:8px 10px;font-size:var(--dg-font-size-sm);line-height:1.4;overflow-wrap:anywhere";
-            tile.append(caption);
-          }
-          grid.append(tile);
-        }
-        return grid;
+        };
+        const moreButton=document.createElement("button");
+        moreButton.type="button";
+        moreButton.hidden=true;
+        moreButton.style.cssText="display:block;margin:18px auto 0;min-height:40px;padding:8px 18px;border:1px solid var(--dg-border);border-radius:var(--dg-control-radius);background:var(--dg-surface);color:var(--dg-text);font:inherit;cursor:pointer";
+        moreButton.addEventListener("click",appendBatch);
+        container.append(grid,moreButton);
+        appendBatch();
+        return container;
       };
       const updatePills=(kind,value)=>{
         nav.querySelectorAll(".gallery-pill").forEach(button=>{
@@ -747,6 +806,12 @@
         });
       };
       const showView=(kind,value,writeHistory=true)=>{
+        if(galleryMediaObserver){
+          for(const tile of observedMediaTiles){
+            if(view.contains(tile))galleryMediaObserver.unobserve(tile);
+          }
+          observedMediaTiles.clear();
+        }
         view.replaceChildren();
         let items=[];
         if(kind==="album"){
@@ -869,6 +934,7 @@
         return;
       }
       const heroSection = page.querySelector(".home-hero");
+      heroSection.classList.add("is-loading");
       const extraSections = [".home-page-title", ".home-widget", ".home-album", ".home-page-card"]
         .map(selector => page.querySelector(selector));
       const pillBar = page.querySelector(".home-page-pillbar");
@@ -914,7 +980,10 @@
       // Do not let page-order, pill-motion, or optional included-page reads delay it.
       const heroRenderPromise = (async () => {
         const { headline, welcomeMessage, heroImageUrl } = await heroContentPromise;
-        if (!headline && !welcomeMessage && !heroImageUrl && !String((siteConfig.ui_customization_identity||{}).tagline||"").trim()) return false;
+        if (!headline && !welcomeMessage && !heroImageUrl && !String((siteConfig.ui_customization_identity||{}).tagline||"").trim()) {
+          heroSection.classList.remove("is-loading");
+          return false;
+        }
         // Keep the image as the floating hero surface and layer its text over the center.
         const imageFrame = document.createElement("div");
         imageFrame.className = "home-hero-image-frame";
@@ -953,6 +1022,7 @@
         }
         imageFrame.append(textOverlay);
         heroSection.append(imageFrame);
+        heroSection.classList.remove("is-loading");
         return true;
       })();
 
@@ -2378,6 +2448,7 @@
       const search=document.createElement("input");search.className="dashboard-crud-input";search.type="search";search.placeholder="Search by title, filename or tag";search.setAttribute("aria-label","Search media");
       const status=document.createElement("p");status.className="dashboard-crud-status";status.setAttribute("role","status");status.setAttribute("aria-live","polite");
       const list=document.createElement("div");list.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:12px;margin-top:16px";
+      const loadMoreButton=document.createElement("button");loadMoreButton.type="button";loadMoreButton.className="action-button";loadMoreButton.hidden=true;loadMoreButton.style.cssText="display:block;margin:16px auto;min-height:40px;padding:8px 18px";
       const uploadCard=document.createElement("section");uploadCard.className="dashboard-crud-card";
       const uploadHeading=document.createElement("h3");uploadHeading.textContent="Upload to Media Library";
       const uploadHint=document.createElement("p");uploadHint.className="dashboard-crud-hint";uploadHint.textContent="Upload files directly to the library without creating or editing a Post, Page, Hero item or Album. Supported images, video, audio and PDF files up to 50 MB each.";
@@ -2396,7 +2467,7 @@
       fileField.append(fileLabel,filesInput);visibilityField.append(visibilityLabel,visibilitySelect);uploadActions.append(uploadButton);
       uploadForm.append(fileField,visibilityField,fileRows,uploadActions,uploadStatus);
       uploadCard.append(uploadHeading,uploadHint,uploadForm);
-      card.append(heading,hint,search,status,list);wrap.append(uploadCard,card);content.append(wrap);
+      card.append(heading,hint,search,status,list,loadMoreButton);wrap.append(uploadCard,card);content.append(wrap);
       const allowedUploadTypes=new Set(["image/jpeg","image/png","image/webp","image/gif","image/avif","image/svg+xml","video/mp4","video/webm","video/quicktime","audio/mpeg","audio/mp4","audio/wav","audio/ogg","application/pdf"]);
       let uploadItems=[];
       function setUploadStatus(message,bad){uploadStatus.textContent=message;uploadStatus.style.color=bad?"#a12622":"#176b43";}
@@ -2483,26 +2554,34 @@
         }
       });
       let assets=[];
+      let filteredAssets=[];
+      let visibleAssetCount=0;
+      const assetPageSize=24;
       const say=(msg,bad=false,target=status)=>{target.textContent=msg;target.style.color=bad?"#a12622":"#176b43";};
+      loadMoreButton.addEventListener("click",()=>draw(false));
       async function load(){
         list.replaceChildren();say("Loading media…");
-        const {data,error}=await supabaseClient.from("media_assets").select("*").order("created_at",{ascending:false}).limit(500);
+        const {data,error}=await supabaseClient.from("media_assets").select("id,title,title_en,title_bn,description,description_en,description_bn,tags,tags_en,tags_bn,alt_text,alt_text_en,alt_text_bn,original_filename,storage_bucket,storage_path,mime_type,size_bytes,created_at,updated_at").order("created_at",{ascending:false}).limit(500);
         if(!isCurrent())return;
         if(error){say("Could not load media: "+error.message,true);return;}
         assets=data||[];draw();
       }
-      function draw(){
-        list.replaceChildren();
-        const q=search.value.trim().toLowerCase();
-        const filtered=assets.filter(a=>[a.title_en,a.title_bn,a.title,a.original_filename,a.description_en,a.description_bn,a.description,(a.tags_en||""),(a.tags_bn||""),(a.tags||[]).join(" ")].some(v=>String(v||"").toLowerCase().includes(q)));
-        if(!filtered.length){const empty=document.createElement("p");empty.className="dashboard-crud-empty";empty.textContent="No media files match this search.";list.append(empty);say(assets.length+" file(s) in library.");return;}
-        say(assets.length+" file(s) in library; showing "+filtered.length+".");
-        for(const asset of filtered){
+      function draw(reset=true){
+        if(reset){
+          list.replaceChildren();
+          const q=search.value.trim().toLowerCase();
+          filteredAssets=assets.filter(a=>[a.title_en,a.title_bn,a.title,a.original_filename,a.description_en,a.description_bn,a.description,(a.tags_en||""),(a.tags_bn||""),(a.tags||[]).join(" ")].some(v=>String(v||"").toLowerCase().includes(q)));
+          visibleAssetCount=0;
+        }
+        if(!filteredAssets.length){const empty=document.createElement("p");empty.className="dashboard-crud-empty";empty.textContent="No media files match this search.";list.append(empty);loadMoreButton.hidden=true;say(assets.length+" file(s) in library.");return;}
+        say(assets.length+" file(s) in library; showing "+filteredAssets.length+".");
+        const nextAssets=filteredAssets.slice(visibleAssetCount,visibleAssetCount+assetPageSize);
+        for(const asset of nextAssets){
           const tile=document.createElement("article");tile.style.cssText="min-width:0;border:var(--dg-border-width) var(--dg-border-style) var(--dg-border);border-radius:12px;padding:12px;background:var(--dg-surface)";
           const preview=document.createElement("div");preview.style.cssText="display:grid;place-items:center;min-height:110px;max-height:180px;overflow:hidden;background:#f8fafc;border-radius:var(--dg-radius-small);margin-bottom:10px";
           if(String(asset.mime_type||"").startsWith("image/")){
-            const img=document.createElement("img");img.src="";img.alt=localizedRecordValue(asset,"alt_text")||localizedRecordValue(asset,"title");img.style.cssText="max-width:100%;max-height:170px;object-fit:contain";
-            supabaseClient.storage.from(asset.storage_bucket||"content-files").createSignedUrl(asset.storage_path,3600).then(({data})=>{if(data?.signedUrl)img.src=data.signedUrl;});
+            const img=document.createElement("img");img.alt=localizedRecordValue(asset,"alt_text")||localizedRecordValue(asset,"title");img.loading="lazy";img.decoding="async";img.style.cssText="max-width:100%;max-height:170px;object-fit:contain";
+            createContentMediaUrl(asset.storage_path,asset.storage_bucket||"content-files").then(url=>{if(url&&img.isConnected)img.src=url;});
             preview.append(img);
           }else{const icon=document.createElement("span");icon.textContent=String(asset.mime_type||"").startsWith("video/")?"Video":String(asset.mime_type||"").startsWith("audio/")?"Audio":"File";icon.style.cssText="font-weight:700;color:#475569";preview.append(icon);}
           const makeMetaField=(labelText,value,placeholder,maxLength,required=false)=>{const wrap=document.createElement("div");wrap.className="dashboard-crud-field";const label=document.createElement("label");label.textContent=labelText;const input=document.createElement("input");input.className="dashboard-crud-input";input.value=value||"";input.placeholder=placeholder||"";input.maxLength=maxLength;input.required=required;wrap.append(label,input);return {wrap,input};};
@@ -2594,8 +2673,11 @@
           });
           actions.append(save,del);tile.append(preview,titleEn.wrap,titleBn.wrap,descEn.wrap,descBn.wrap,tagsEn.wrap,tagsBn.wrap,altEn.wrap,altBn.wrap,filename,linkInfo,attachmentArea,actions,tileStatus);list.append(tile);
         }
+        visibleAssetCount+=nextAssets.length;
+        loadMoreButton.hidden=visibleAssetCount>=filteredAssets.length;
+        loadMoreButton.textContent="Load more ("+(filteredAssets.length-visibleAssetCount)+")";
       }
-      search.addEventListener("input",draw);
+      search.addEventListener("input",()=>draw(true));
       await load();
     }
 

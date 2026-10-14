@@ -729,3 +729,16 @@
   outline-offset: 3px;
   border-radius: var(--dg-radius-small, 4px);
 }
+
+
+/* Reserve the hero's final 16:9 footprint while its public record and signed image load. */
+.home-page > .home-hero.is-loading::before {
+  content:"";
+  display:block;
+  width:100%;
+  aspect-ratio:16/9;
+  border:1px solid rgba(148,163,184,.35);
+  border-radius:20px;
+  background:linear-gradient(135deg,#e2e8f0,#f8fafc);
+  box-sizing:border-box;
+}

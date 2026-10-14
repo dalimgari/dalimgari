@@ -2,6 +2,10 @@ name: Production performance audit
 
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Deploy village website to GitHub Pages"]
+    types: [completed]
+    branches: [main]
 
 permissions:
   contents: read
@@ -12,6 +16,7 @@ concurrency:
 
 jobs:
   lighthouse:
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
