@@ -35,6 +35,7 @@ test("responsive app shell keeps viewport metadata and semantic page landmarks",
 
 test("home template keeps each dynamic section exactly once and allows narrow layouts", () => {
   const html = read("home.html");
+  const styles = read("site.css");
 
   for (const section of [
     "home-hero",
@@ -48,10 +49,12 @@ test("home template keeps each dynamic section exactly once and allows narrow la
     assert.equal(matches.length, 1, `Expected one ${section} section, found ${matches.length}`);
   }
 
-  assert.match(html, /max-width:1200px/);
-  assert.match(html, /min-width:0/);
-  assert.match(html, /overflow-x:auto/);
-  assert.match(html, /overscroll-behavior-x:contain/);
+  // Layout styles intentionally live in site.css rather than inline HTML styles.
+  assert.match(styles, /\.home-page\s*\{[^}]*max-width:1200px/s);
+  assert.match(styles, /\.home-page\s*>\s*\.home-section\s*\{[^}]*min-width:0/s);
+  assert.match(styles, /\.home-page\s*\.home-page-pillbar\s*\{[^}]*overflow-x:auto/s);
+  assert.match(styles, /\.home-page\s*\.home-page-pillbar\s*\{[^}]*overscroll-behavior-x:contain/s);
+  assert.doesNotMatch(html, /\sstyle="/, "homepage layout should not use inline style attributes");
 });
 
 test("homepage starts hero loading early and gives the LCP image high priority", () => {
