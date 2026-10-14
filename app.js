@@ -275,6 +275,13 @@
       const legacy = record[field];
       return String(preferred ?? "").trim() ? preferred : (String(alternate ?? "").trim() ? alternate : (legacy ?? ""));
     };
+    // Media metadata uses the same language fallback as every other bilingual record.
+    const localizedMediaValue = (item, field = "title") => {
+      const value = localizedRecordValue(item, field);
+      if (String(value ?? "").trim()) return value;
+      if (field === "title") return item?.name || item?.original_filename || item?.path || item?.storage_path || "";
+      return "";
+    };
 
     function updateAuthMenu(session) {
       activeSession = session || null;
@@ -335,7 +342,7 @@
         const tile = document.createElement("div");
         tile.style.cssText = "min-width:0;padding:10px;border:var(--dg-border-width) var(--dg-border-style) var(--dg-border);border-radius:10px;overflow-wrap:anywhere";
         if (String(item.mime_type || "").startsWith("image/")) {
-          const image = document.createElement("img"); image.alt = item.alt_text || item.title || item.name || ""; image.loading = "lazy"; attachSignedImageRefresh(image, resolved.path, resolved.bucket); image.src = url;
+          const image = document.createElement("img"); image.alt = localizedMediaValue(item,"alt_text") || localizedMediaValue(item,"title"); image.loading = "lazy"; attachSignedImageRefresh(image, resolved.path, resolved.bucket); image.src = url;
           image.style.cssText = "display:block;width:100%;max-height:320px;object-fit:contain;border-radius:6px"; tile.append(image);
         } else if (String(item.mime_type || "").startsWith("video/")) {
           const video = document.createElement("video"); video.src = url; video.controls = true;
@@ -345,12 +352,12 @@
         } else {
           // Do not expose a direct file-opening/download link from public content views.
           const fileLabel = document.createElement("span");
-          fileLabel.textContent = item.title || item.name || "File";
+          fileLabel.textContent = localizedMediaValue(item,"title") || "File";
           fileLabel.setAttribute("aria-label", "File attachment");
           fileLabel.style.cssText = "display:block;padding:12px;overflow-wrap:anywhere";
           tile.append(fileLabel);
         }
-        if (item.title || item.name) { const caption=document.createElement("p"); caption.textContent=item.title || item.name; caption.style.cssText="margin:8px 0 0;font-size:var(--dg-font-size-sm)"; tile.append(caption); }
+        if (localizedMediaValue(item,"title")) { const caption=document.createElement("p"); caption.textContent=localizedMediaValue(item,"title"); caption.style.cssText="margin:8px 0 0;font-size:var(--dg-font-size-sm)"; tile.append(caption); }
         gallery.append(tile);
       }
       if (gallery.childElementCount) container.append(gallery);
@@ -640,6 +647,26 @@
         if(album.cover_path)addMedia({path:album.cover_path,mime_type:"image/unknown",title:localizedRecordValue(album,"title"),alt_text:localizedRecordValue(album,"title")},album.title);
       }
       for(const source of sources)for(const item of (Array.isArray(source.media)?source.media:[]))addMedia(item,localizedRecordValue(source,"title"));
+      // Enrich older attachments from Media Library metadata so existing items also localize.
+      const mediaPaths=Array.from(new Set(uniqueMedia.map(item=>String(item.path||item.storage_path||"")).filter(Boolean)));
+      if(mediaPaths.length){
+        try{
+          const {data:assets,error:assetsError}=await supabaseClient.from("media_assets")
+            .select("id,title,title_bn,title_en,alt_text,alt_text_bn,alt_text_en,storage_path")
+            .in("storage_path",mediaPaths).limit(1000);
+          if(!assetsError&&Array.isArray(assets)){
+            const assetsByPath=new Map(assets.map(asset=>[String(asset.storage_path),asset]));
+            for(const item of uniqueMedia){
+              const asset=assetsByPath.get(String(item.path||item.storage_path||""));
+              if(!asset)continue;
+              for(const field of ["title","title_bn","title_en","alt_text","alt_text_bn","alt_text_en"]){
+                if(!String(item[field]||"").trim()&&String(asset[field]||"").trim())item[field]=asset[field];
+              }
+              if(asset.id&&!item.media_id)item.media_id=asset.id;
+            }
+          }else if(assetsError)console.warn("Could not enrich gallery media metadata:",assetsError.message);
+        }catch(error){console.warn("Could not enrich gallery media metadata:",error.message||error);}
+      }
       for(const album of albums)pill(localizedRecordValue(album,"title")||"Untitled","album",album.id,selectedAlbumId===album.id);
 
       const galleryGrid=(items)=>{
@@ -656,7 +683,7 @@
           let mediaElement;
           if(mime.startsWith("image/")){
             mediaElement=document.createElement("img");
-            mediaElement.alt=item.alt_text||item.title||item.name||"";
+            mediaElement.alt=localizedMediaValue(item,"alt_text")||localizedMediaValue(item,"title");
             mediaElement.loading="lazy";
             mediaElement.decoding="async";
             attachSignedImageRefresh(mediaElement,mediaPath,mediaBucket);
@@ -673,7 +700,7 @@
           }else{
             // Keep non-previewable files listed without publishing a direct download URL.
             mediaElement=document.createElement("span");
-            mediaElement.textContent=item.title||item.name||"File";
+            mediaElement.textContent=localizedMediaValue(item,"title")||"File";
             mediaElement.setAttribute("aria-label","File attachment");
             mediaElement.style.cssText="display:block;padding:18px;overflow-wrap:anywhere";
           }
@@ -682,7 +709,7 @@
             if(["IMG","VIDEO","AUDIO"].includes(mediaElement.tagName))mediaElement.src=url;
           });
           tile.append(mediaElement);
-          const captionText=item.title||item.name||"";
+          const captionText=localizedMediaValue(item,"title");
           if(captionText){
             const caption=document.createElement("figcaption");
             caption.textContent=captionText;
@@ -1201,7 +1228,7 @@
             for(const item of media){
               if(!String(item.mime_type||"").startsWith("image/")||!item.path)continue;
               const imageUrl=await createContentMediaUrl(item.path);
-              if(imageUrl)coverImages.push({url:imageUrl,alt:item.alt_text||item.title||item.name||albumTitle||""});
+              if(imageUrl)coverImages.push({url:imageUrl,alt:localizedMediaValue(item,"alt_text")||localizedMediaValue(item,"title")||albumTitle||""});
             }
             if(!coverImages.length&&album.cover_path){
               const coverUrl=await createContentMediaUrl(album.cover_path);
@@ -3372,7 +3399,7 @@
           const tbody=document.createElement("tbody");
           for(const item of data){
             const row=document.createElement("tr");
-            const name=item.record_data?.caption||item.record_data?.title||item.record_data?.name||item.record_data?.key||item.record_data?.full_name||item.original_id;
+            const name=localizedRecordValue(item.record_data,"title")||localizedRecordValue(item.record_data,"caption")||item.record_data?.name||item.record_data?.key||localizedRecordValue(item.record_data,"full_name")||item.original_id;
             [String(name),String(item.original_table),new Date(item.deleted_at).toLocaleString(),new Date(item.purge_after).toLocaleString()].forEach(value=>{const td=document.createElement("td");td.textContent=value;row.append(td);});
             const actionCell=document.createElement("td");
             const rowStatus=document.createElement("p");rowStatus.className="dashboard-crud-status";rowStatus.setAttribute("role","status");rowStatus.setAttribute("aria-live","polite");
@@ -3512,18 +3539,19 @@
             Array.from(input.files||[]).forEach((file,index)=>{
               const row=document.createElement("label");row.style.cssText="display:grid;gap:4px;padding:8px;border:var(--dg-border-width) var(--dg-border-style) var(--dg-border);border-radius:var(--dg-radius-small)";
               const filename=document.createElement("span");filename.textContent=file.name;
-              const titleInput=document.createElement("input");titleInput.className="dashboard-crud-input";titleInput.required=true;titleInput.placeholder="Required title for this file";titleInput.value='';titleInput.setAttribute("aria-label","Title for "+file.name);
-              controls.mediaTitleInputs[index]=titleInput;row.append(filename,titleInput);titleList.append(row);
+              const titleEnInput=document.createElement("input");titleEnInput.className="dashboard-crud-input";titleEnInput.required=true;titleEnInput.placeholder="English title (required)";titleEnInput.value="";titleEnInput.setAttribute("aria-label","English title for "+file.name);
+              const titleBnInput=document.createElement("input");titleBnInput.className="dashboard-crud-input";titleBnInput.required=true;titleBnInput.placeholder="বাংলা নাম (আবশ্যক)";titleBnInput.value="";titleBnInput.setAttribute("aria-label","Bengali title for "+file.name);
+              controls.mediaTitleInputs[index]={en:titleEnInput,bn:titleBnInput};row.append(filename,titleEnInput,titleBnInput);titleList.append(row);
             });
           });
           async function loadMediaChoices(){
             pickerList.replaceChildren();controls.mediaLibraryChecks=[];
-            const {data,error}=await supabaseClient.from("media_assets").select("id,title,original_filename,storage_bucket,storage_path,mime_type,size_bytes").order("title").limit(500);
+            const {data,error}=await supabaseClient.from("media_assets").select("id,title,title_bn,title_en,original_filename,storage_bucket,storage_path,mime_type,size_bytes").order("title").limit(500);
             if(error){const p=document.createElement("p");p.textContent="Could not load Media Library: "+error.message;pickerList.append(p);return;}
             const drawChoices=()=>{
               pickerList.replaceChildren();
               const q=pickerSearch.value.trim().toLowerCase();
-              (data||[]).filter(a=>[a.title,a.original_filename].some(v=>String(v||"").toLowerCase().includes(q))).forEach(asset=>{
+              (data||[]).filter(a=>[a.title,a.title_bn,a.title_en,a.original_filename].some(v=>String(v||"").toLowerCase().includes(q))).forEach(asset=>{
                 const row=document.createElement("label");row.style.cssText="display:flex;align-items:flex-start;gap:8px;padding:7px;border-bottom:1px solid #eee";
                 const check=document.createElement("input");check.type="checkbox";check.style.cssText="width:auto;min-height:0;margin-top:3px";check.dataset.mediaId=asset.id;
                 check.checked=Array.isArray(controls.mediaSelectedAssets)&&controls.mediaSelectedAssets.some(x=>x.id===asset.id);
@@ -3533,7 +3561,7 @@
                   else chosen=chosen.filter(x=>x.id!==asset.id);
                   controls.mediaSelectedAssets=chosen;
                 });
-                const text=document.createElement("span");text.textContent=asset.title+" ("+asset.original_filename+")";row.append(check,text);pickerList.append(row);controls.mediaLibraryChecks.push(check);
+                const text=document.createElement("span");text.textContent=localizedMediaValue(asset,"title")||asset.original_filename||"File";text.title=asset.original_filename||"";row.append(check,text);pickerList.append(row);controls.mediaLibraryChecks.push(check);
               });
               if(!pickerList.childElementCount){const p=document.createElement("p");p.className="dashboard-crud-hint";p.textContent="No matching files.";pickerList.append(p);}
             };
@@ -3674,9 +3702,9 @@
       }
 
       if(controls.album_id) {
-        const {data:albums,error:albumsError}=await supabaseClient.from("albums").select("id,title").order("title").limit(500);
+        const {data:albums,error:albumsError}=await supabaseClient.from("albums").select("id,title,title_bn,title_en").order("title").limit(500);
         if(!isCurrent())return;
-        if(!albumsError)for(const album of albums||[]){const option=document.createElement("option");option.value=album.id;option.textContent=album.title;controls.album_id.append(option);}
+        if(!albumsError)for(const album of albums||[]){const option=document.createElement("option");option.value=album.id;option.textContent=localizedRecordValue(album,"title");controls.album_id.append(option);}
       }
       if(controls.permissions) {
         const {data:permissions,error:permissionsError}=await supabaseClient.from("permissions").select("id,name").order("name");
@@ -3762,9 +3790,9 @@
           saveOrder.disabled=false;
           ordered.forEach((record,index)=>{
             const row=document.createElement("div");row.style.cssText="display:flex;align-items:center;gap:10px;min-width:0;padding:10px;border:var(--dg-border-width) var(--dg-border-style) var(--dg-border);border-radius:var(--dg-control-radius);background:var(--dg-surface)";
-            const label=document.createElement("span");label.textContent=(index+1)+". "+(record.title||record.url||"Page");label.style.cssText="flex:1;min-width:0;overflow-wrap:anywhere;font-size:var(--dg-font-size-base)";
-            const up=document.createElement("button");up.type="button";up.className="action-button";up.textContent="↑";up.setAttribute("aria-label","Move "+(record.title||"page")+" up");up.disabled=index===0;
-            const down=document.createElement("button");down.type="button";down.className="action-button";down.textContent="↓";down.setAttribute("aria-label","Move "+(record.title||"page")+" down");down.disabled=index===ordered.length-1;
+            const label=document.createElement("span");label.textContent=(index+1)+". "+(localizedRecordValue(record,"title")||record.url||"Page");label.style.cssText="flex:1;min-width:0;overflow-wrap:anywhere;font-size:var(--dg-font-size-base)";
+            const up=document.createElement("button");up.type="button";up.className="action-button";up.textContent="↑";up.setAttribute("aria-label","Move "+(localizedRecordValue(record,"title")||"page")+" up");up.disabled=index===0;
+            const down=document.createElement("button");down.type="button";down.className="action-button";down.textContent="↓";down.setAttribute("aria-label","Move "+(localizedRecordValue(record,"title")||"page")+" down");down.disabled=index===ordered.length-1;
             up.addEventListener("click",()=>{[ordered[index-1],ordered[index]]=[ordered[index],ordered[index-1]];drawOrder();});
             down.addEventListener("click",()=>{[ordered[index+1],ordered[index]]=[ordered[index],ordered[index+1]];drawOrder();});
             row.append(label,up,down);orderList.append(row);
@@ -3806,9 +3834,9 @@
           saveOrder.disabled=false;
           ordered.forEach((record,index)=>{
             const row=document.createElement("div");row.style.cssText="display:flex;align-items:center;gap:10px;min-width:0;padding:10px;border:var(--dg-border-width) var(--dg-border-style) var(--dg-border);border-radius:var(--dg-control-radius);background:var(--dg-surface)";
-            const label=document.createElement("span");label.textContent=(index+1)+". "+(record.title||record.url||"Album");label.style.cssText="flex:1;min-width:0;overflow-wrap:anywhere;font-size:var(--dg-font-size-base)";
-            const up=document.createElement("button");up.type="button";up.className="action-button";up.textContent="↑";up.setAttribute("aria-label","Move "+(record.title||"album")+" up");up.disabled=index===0;
-            const down=document.createElement("button");down.type="button";down.className="action-button";down.textContent="↓";down.setAttribute("aria-label","Move "+(record.title||"album")+" down");down.disabled=index===ordered.length-1;
+            const label=document.createElement("span");label.textContent=(index+1)+". "+(localizedRecordValue(record,"title")||record.url||"Album");label.style.cssText="flex:1;min-width:0;overflow-wrap:anywhere;font-size:var(--dg-font-size-base)";
+            const up=document.createElement("button");up.type="button";up.className="action-button";up.textContent="↑";up.setAttribute("aria-label","Move "+(localizedRecordValue(record,"title")||"album")+" up");up.disabled=index===0;
+            const down=document.createElement("button");down.type="button";down.className="action-button";down.textContent="↓";down.setAttribute("aria-label","Move "+(localizedRecordValue(record,"title")||"album")+" down");down.disabled=index===ordered.length-1;
             up.addEventListener("click",()=>{[ordered[index-1],ordered[index]]=[ordered[index],ordered[index-1]];drawOrder();});
             down.addEventListener("click",()=>{[ordered[index+1],ordered[index]]=[ordered[index],ordered[index+1]];drawOrder();});
             row.append(label,up,down);orderList.append(row);
@@ -3834,7 +3862,7 @@
           (Array.isArray(record.media)?record.media:[]).forEach(item=>{
             const row=document.createElement("label");row.style.cssText="display:flex;align-items:flex-start;gap:8px;padding:7px;border:var(--dg-border-width) var(--dg-border-style) var(--dg-border);border-radius:var(--dg-radius-small)";
             const check=document.createElement("input");check.type="checkbox";check.checked=true;check.dataset.existingPath=String(item.path||"");check.style.cssText="width:auto;min-height:0;margin-top:3px";
-            const text=document.createElement("span");text.textContent=(item.title||item.name||item.path||"File")+" — "+(item.path||"");
+            const text=document.createElement("span");text.textContent=(localizedMediaValue(item,"title")||item.path||"File")+" — "+(item.path||"");
             row.append(check,text);controls.mediaExistingList.append(row);
           });
         }
@@ -3908,12 +3936,16 @@
           }
           const selectedLibraryAssets=Array.isArray(controls.mediaSelectedAssets)?controls.mediaSelectedAssets.slice():[];
           for(const asset of selectedLibraryAssets){
-            if(!existingMedia.some(item=>item.path===asset.storage_path))existingMedia.push({path:asset.storage_path,name:asset.original_filename,mime_type:asset.mime_type,size_bytes:asset.size_bytes,media_id:asset.id,title:asset.title});
+            if(!existingMedia.some(item=>item.path===asset.storage_path))existingMedia.push({path:asset.storage_path,name:asset.original_filename,mime_type:asset.mime_type,size_bytes:asset.size_bytes,media_id:asset.id,title:asset.title,title_bn:asset.title_bn,title_en:asset.title_en,alt_text:asset.alt_text,alt_text_bn:asset.alt_text_bn,alt_text_en:asset.alt_text_en});
           }
           const chosenFiles=Array.from(controls.media?.files||[]);
           const allowedTypes=new Set(["image/jpeg","image/png","image/webp","image/gif","image/avif","image/svg+xml","video/mp4","video/webm","video/quicktime","audio/mpeg","audio/mp4","audio/wav","audio/ogg","application/pdf"]);
           const visibility=payload.visibility||"public";
-          for(const file of chosenFiles)if(!allowedTypes.has(file.type)||file.size>50*1024*1024)throw new Error("Choose supported image, video, audio or PDF files up to 50 MB each.");
+          for(const file of chosenFiles){
+            if(!allowedTypes.has(file.type)||file.size>50*1024*1024)throw new Error("Choose supported image, video, audio or PDF files up to 50 MB each.");
+            const titleInputs=controls.mediaTitleInputs?.[chosenFiles.indexOf(file)];
+            if(!String(titleInputs?.en?.value||"").trim()||!String(titleInputs?.bn?.value||"").trim())throw new Error("Enter both English and Bengali titles for every uploaded file.");
+          }
           // Keep stored paths stable: Media Library IDs and section links refer to them.
           for(const file of chosenFiles) {
             const extension=(file.name.match(/\.([a-zA-Z0-9]{1,10})$/)||[])[1]||"bin";
@@ -3921,11 +3953,14 @@
             const path=folder+"/"+user.id+"/"+crypto.randomUUID()+"."+extension.toLowerCase();
             const {error:uploadError}=await supabaseClient.storage.from("content-files").upload(path,file,{contentType:file.type,cacheControl:"0",upsert:false});
             if(uploadError)throw uploadError;
-            const title=String(controls.mediaTitleInputs?.[chosenFiles.indexOf(file)]?.value||"").trim();
+            const titleInputs=controls.mediaTitleInputs?.[chosenFiles.indexOf(file)];
+            const titleEn=String(titleInputs?.en?.value||"").trim();
+            const titleBn=String(titleInputs?.bn?.value||"").trim();
+            const title=titleEn;
             try{
-              const {data:asset,error:assetError}=await supabaseClient.from("media_assets").insert({title,original_filename:file.name,storage_bucket:"content-files",storage_path:path,mime_type:file.type||"application/octet-stream",size_bytes:file.size,created_by:user.id}).select("id,title,storage_path").single();
+              const {data:asset,error:assetError}=await supabaseClient.from("media_assets").insert({title,title_en:titleEn,title_bn:titleBn,original_filename:file.name,storage_bucket:"content-files",storage_path:path,mime_type:file.type||"application/octet-stream",size_bytes:file.size,created_by:user.id}).select("id,title,title_bn,title_en,storage_path").single();
               if(assetError)throw assetError;
-              existingMedia.push({path,name:file.name,mime_type:file.type,size_bytes:file.size,media_id:asset.id,title});
+              existingMedia.push({path,name:file.name,mime_type:file.type,size_bytes:file.size,media_id:asset.id,title,title_bn:titleBn,title_en:titleEn});
             }catch(assetError){
               await supabaseClient.storage.from("content-files").remove([path]);
               throw new Error("File uploaded but could not be registered in Media Library: "+(assetError.message||"Unknown error"));
