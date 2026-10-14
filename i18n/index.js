@@ -7,15 +7,15 @@
   const originalAttrs = new WeakMap();
   const excluded = "script,style,textarea,[contenteditable='true'],.stored-html-page,.home-content-card,.dashboard-crud-card,[data-user-content]";
   const getDictionary = lang => lang === "en" ? (window.DG_I18N_EN || {}) : (window.DG_I18N_BN || {});
-  const normalize = value => String(value || "").replace(/\\s+/g, " ").trim();
+  const normalize = value => String(value || "").replace(/\s+/g, " ").trim();
   let language = "bn";
   function translate(value) {
     const dict = getDictionary(language);
     const source = String(value ?? "");
     const key = normalize(source);
     if (!Object.prototype.hasOwnProperty.call(dict, key)) return value;
-    const leading = source.match(/^\\s*/)?.[0] || "";
-    const trailing = source.match(/\\s*$/)?.[0] || "";
+        const leading = source.match(/^\s*/)?.[0] || "";
+        const trailing = source.match(/\s*$/)?.[0] || "";
     return leading + dict[key] + trailing;
   }
   function eligible(node) {
