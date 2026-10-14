@@ -6,7 +6,7 @@
   const originalText = new WeakMap();
   const lastRenderedText = new WeakMap();
   const originalAttrs = new WeakMap();
-  const excluded = "script,style,textarea,[contenteditable='true'],.stored-html-page,.home-content-card,.dashboard-crud-card,[data-user-content]";
+  const excluded = "script,style,textarea,[contenteditable='true'],.stored-html-page,.home-content-card,[data-user-content]";
   const getDictionary = lang => lang === "en" ? (window.DG_I18N_EN || {}) : (window.DG_I18N_BN || {});
   const normalize = value => String(value || "").replace(/\s+/g, " ").trim();
   let language = "bn";
