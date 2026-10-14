@@ -30,6 +30,9 @@ jobs:
 
       - name: Set up Chrome
         uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+          install-dependencies: true
 
       - name: Create report directory
         run: mkdir -p artifacts/lighthouse
@@ -44,7 +47,7 @@ jobs:
               --form-factor=mobile \
               --screenEmulation.mobile=true \
               --throttling-method=simulate \
-              --chrome-flags="--headless --no-sandbox" \
+              --chrome-flags="--headless=new --no-sandbox --disable-dev-shm-usage --disable-gpu" \
               --output=json --output=html \
               --output-path="artifacts/lighthouse/run-${run}" \
               --quiet
