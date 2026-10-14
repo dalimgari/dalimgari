@@ -3310,8 +3310,8 @@
         const tbody=document.createElement("tbody");
         records.forEach(record=>{
           const row=document.createElement("tr");row.className="dashboard-crud-row";row.tabIndex=0;
-          const title=record.caption||record.title||record.name||record.key||record.full_name||record.id||"Record";
-          const details=record.url||record.description||record.phone||(Array.isArray(record.media)?record.media.length+" file(s)":"");
+          const title=localizedRecordValue(record,"title")||record.caption_en||record.caption_bn||record.caption||record.title||record.name||record.key||record.full_name||record.id||"Record";
+          const details=record.url||localizedRecordValue(record,"description")||record.description||record.phone||(Array.isArray(record.media)?record.media.length+" file(s)":"");
           const values=[String(record.id||"").slice(0,8)||"—",title,details];
           values.push(record.visibility==="private"?"Only Me":record.visibility==="public"?"Public":"—",record.created_at?new Date(record.created_at).toLocaleString():"—");
           values.forEach((value,index)=>{
@@ -3465,14 +3465,32 @@
             else if(value==="")value=null;
             payload[def.name]=value;
           });
-          if(["post","page","album"].includes(section.id)) {
-            payload.url=generateUrlValue(payload.url||payload.title);
-            if(!payload.url)throw new Error("URL is required. Use English letters, numbers and hyphens.");
-            const {data:duplicate,error:duplicateError}=await supabaseClient.from(config.table).select("id").eq("url",payload.url).limit(1).maybeSingle();
-            if(duplicateError)throw duplicateError;
-            if(duplicate&&duplicate.id!==selectedId)throw new Error("This URL is already in use. Choose another URL.");
+          if(["hero","post","page","album"].includes(section.id)) {
+            const lang = getUiLanguage();
+            const localizedTitle = String((lang === "en" ? payload.title_en : payload.title_bn) || payload.title_bn || payload.title_en || "").trim();
+            const localizedDescription = String((lang === "en" ? payload.description_en : payload.description_bn) || payload.description_bn || payload.description_en || "").trim();
+            if (!String(payload.title_bn || "").trim() && !String(payload.title_en || "").trim()) throw new Error("Enter at least one title in Bengali or English.");
+            payload.title = localizedTitle;
+            if (Object.prototype.hasOwnProperty.call(payload, "description_bn") || Object.prototype.hasOwnProperty.call(payload, "description_en")) payload.description = localizedDescription || null;
+            if (section.id === "page" || section.id === "post") payload.content = (lang === "en" ? payload.content_en : payload.content_bn) || payload.content_bn || payload.content_en || "";
+            if (section.id === "post") {
+              payload.caption = localizedTitle;
+              payload.caption_bn = payload.title_bn || null;
+              payload.caption_en = payload.title_en || null;
+            }
+            if (section.id !== "hero") {
+              payload.url=generateUrlValue(payload.url||localizedTitle);
+              if(!payload.url)throw new Error("URL is required. Use English letters, numbers and hyphens.");
+              const {data:duplicate,error:duplicateError}=await supabaseClient.from(config.table).select("id").eq("url",payload.url).limit(1).maybeSingle();
+              if(duplicateError)throw duplicateError;
+              if(duplicate&&duplicate.id!==selectedId)throw new Error("This URL is already in use. Choose another URL.");
+            }
           }
-          if(section.id==="post")payload.caption=String(payload.title||"").trim();
+          if(section.id==="post") {
+            payload.caption=String(payload.title||"").trim();
+            payload.caption_bn=payload.title_bn||null;
+            payload.caption_en=payload.title_en||null;
+          }
           if(controls.album_id)payload.album_id=controls.album_id.value||null;
           const existingMedia=Array.isArray(selectedRecordData?.media)?selectedRecordData.media.map(item=>({...item})):[];
           if(controls.mediaExistingList&&selectedRecordData){
