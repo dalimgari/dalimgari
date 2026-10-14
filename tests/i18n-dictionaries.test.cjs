@@ -118,7 +118,7 @@ test("day/night mode toggles immediately and persists the visitor preference", (
 });
 
 test("site identity and clock time follow the selected UI language while calendar dates stay bilingual", () => {
-  const app = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
+  const app = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8") + "\n" + fs.readFileSync(path.join(__dirname, "..", "dashboard.js"), "utf8");
   assert.ok(app.includes('name:"site_title_bn"'));
   assert.ok(app.includes('general.site_title_bn'));
   assert.ok(app.includes('new Intl.DateTimeFormat(locale,{hour:"2-digit"'));
@@ -141,7 +141,7 @@ test("site identity and clock time follow the selected UI language while calenda
 });
 
 test("media titles and metadata follow the selected UI language across the site", () => {
-  const app = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
+  const app = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8") + "\n" + fs.readFileSync(path.join(__dirname, "..", "dashboard.js"), "utf8");
   assert.ok(app.includes("const localizedMediaValue ="), "Media labels should share the centralized localization helper");
   assert.ok(app.includes('const captionText=localizedMediaValue(item,"title")'), "Gallery captions should use the selected language");
   assert.ok(app.includes('mediaElement.textContent=localizedMediaValue(item,"title")'), "Non-previewable gallery files should use localized titles");
