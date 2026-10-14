@@ -58,7 +58,6 @@
     if (selector) {
       selector.setAttribute("aria-label", language === "bn" ? "Switch language to English" : "Switch language to Bengali");
       selector.setAttribute("title", language === "bn" ? "Switch to English" : "Switch to Bengali");
-      selector.textContent = "🌐";
     }
     document.dispatchEvent(new CustomEvent("dalimgari:languagechange", { detail: { language } }));
   }
