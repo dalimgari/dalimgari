@@ -479,5 +479,12 @@ Object.assign(window.DG_I18N_BN, {
   "Forgot Password": "পাসওয়ার্ড পুনরুদ্ধার",
   "Select language": "ভাষা নির্বাচন",
   "Site title (English)": "ওয়েবসাইটের নাম (ইংরেজি)",
-  "Site title (Bengali)": "ওয়েবসাইটের নাম (বাংলা)"
+  "Site title (Bengali)": "ওয়েবসাইটের নাম (বাংলা)",
+  "Website Favicon": "ওয়েবসাইটের ফেভিকন",
+  "Upload a small PNG, GIF, or ICO icon (maximum 128 KB). Select the file, then use Save and Apply to publish it.": "সর্বোচ্চ ১২৮ KB-এর PNG, GIF বা ICO আইকন আপলোড করুন। ফাইল বেছে নিয়ে Save and Apply চাপুন।",
+  "Choose website favicon": "ওয়েবসাইটের ফেভিকন বেছে নিন",
+  "Choose a valid PNG, GIF, or ICO file no larger than 128 KB.": "সর্বোচ্চ ১২৮ KB-এর বৈধ PNG, GIF বা ICO ফাইল বেছে নিন।",
+  "This image format is not supported as a favicon.": "এই ছবির ফরম্যাট ফেভিকন হিসেবে সমর্থিত নয়।",
+  "Favicon selected. Click Save and Apply below to save it.": "ফেভিকন নির্বাচন করা হয়েছে। সংরক্ষণ করতে নিচের Save and Apply চাপুন।",
+  "Could not read this file. Please choose it again.": "ফাইলটি পড়া যায়নি। আবার নির্বাচন করুন।"
 });
