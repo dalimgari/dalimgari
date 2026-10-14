@@ -40,12 +40,29 @@
         const target = event.target;
         if (target instanceof Element && target.closest("img, video, audio, .dg-lightbox-image")) event.preventDefault();
       }, true);
+      const pendingRoots = new Set();
+      let hardeningScheduled = false;
+      const flushMediaHardening = () => {
+        hardeningScheduled = false;
+        const roots = Array.from(pendingRoots);
+        pendingRoots.clear();
+        const uniqueRoots = roots.filter((root, index) =>
+          root.isConnected && !roots.some((other, otherIndex) =>
+            index !== otherIndex && other.isConnected && other !== root && other.contains(root)
+          )
+        );
+        for (const root of uniqueRoots) hardenMedia(root);
+      };
       const observer = new MutationObserver(records => {
         for (const record of records) {
           for (const node of record.addedNodes) {
-            if (node instanceof Element) hardenMedia(node);
+            if (node instanceof Element) pendingRoots.add(node);
           }
         }
+        if (!pendingRoots.size || hardeningScheduled) return;
+        hardeningScheduled = true;
+        if (typeof window.requestAnimationFrame === "function") window.requestAnimationFrame(flushMediaHardening);
+        else window.setTimeout(flushMediaHardening, 0);
       });
       observer.observe(document.documentElement, { childList: true, subtree: true });
     })();
@@ -869,6 +886,7 @@
         return;
       }
       const heroSection = page.querySelector(".home-hero");
+      heroSection.classList.add("is-loading");
       const extraSections = [".home-page-title", ".home-widget", ".home-album", ".home-page-card"]
         .map(selector => page.querySelector(selector));
       const pillBar = page.querySelector(".home-page-pillbar");
@@ -914,7 +932,10 @@
       // Do not let page-order, pill-motion, or optional included-page reads delay it.
       const heroRenderPromise = (async () => {
         const { headline, welcomeMessage, heroImageUrl } = await heroContentPromise;
-        if (!headline && !welcomeMessage && !heroImageUrl && !String((siteConfig.ui_customization_identity||{}).tagline||"").trim()) return false;
+        if (!headline && !welcomeMessage && !heroImageUrl && !String((siteConfig.ui_customization_identity||{}).tagline||"").trim()) {
+          heroSection.classList.remove("is-loading");
+          return false;
+        }
         // Keep the image as the floating hero surface and layer its text over the center.
         const imageFrame = document.createElement("div");
         imageFrame.className = "home-hero-image-frame";
@@ -953,6 +974,7 @@
         }
         imageFrame.append(textOverlay);
         heroSection.append(imageFrame);
+        heroSection.classList.remove("is-loading");
         return true;
       })();
 
