@@ -236,7 +236,7 @@
         const target = event.target;
         if (!(target instanceof Element)) return;
         const image = target.closest("img");
-        if (!image || lightbox.contains(image) || image.closest(".home-album-open, .home-album-cover-slideshow")) return;
+        if (!image || lightbox.contains(image) || image.closest(".header-home-link, .home-album-open, .home-album-cover-slideshow")) return;
         if (image.closest("[data-no-image-preview], .dg-no-image-preview")) return;
         if (image.closest("button, [role='button']") && image.closest(".home-album-open")) return;
         event.preventDefault();
@@ -246,6 +246,17 @@
         openPreview(image);
       }, true);
     })();
+
+    // The header favicon is a navigation control, never an image-preview target.
+    document.addEventListener("click", event => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const homeControl = target.closest(".header-home-link");
+      if (!homeControl) return;
+      event.preventDefault();
+      event.stopPropagation();
+      document.querySelector('.menu-link[data-page="Home"]')?.click();
+    }, true);
 
     let activeSession = null;
     const getUiLanguage = () => window.DalimgariI18n?.getLanguage?.() === "en" ? "en" : "bn";
