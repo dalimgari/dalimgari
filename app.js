@@ -2588,7 +2588,7 @@
             const widgetCard=document.createElement("section");widgetCard.className="dashboard-crud-card";widgetCard.style.cssText="display:grid;gap:14px;align-content:start;min-width:0";
             const cardHeader=document.createElement("div");cardHeader.style.cssText="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:12px;border-bottom:1px solid #e5e7eb";
             const titleGroup=document.createElement("div");titleGroup.style.cssText="display:grid;gap:4px;min-width:0";
-            const name=document.createElement("h3");name.textContent=item.title||"Widget";name.style.cssText="margin:0;font-size:17px;overflow-wrap:anywhere";
+            const name=document.createElement("h3");name.textContent=localizedRecordValue(item,"title")||item.title||"Widget";name.dataset.userContent="true";name.style.cssText="margin:0;font-size:17px;overflow-wrap:anywhere";
             const type=document.createElement("p");type.textContent=item.widget_type==="datetime"?"Date & Time":item.widget_type==="map"?"Map":String(item.widget_type||"Widget");type.style.cssText="margin:0;color:#6b7280;font-size:12px";
             titleGroup.append(name,type);
             const badge=document.createElement("span");badge.textContent=item.is_visible?"Visible":"Hidden";badge.style.cssText="flex:0 0 auto;padding:4px 8px;border:1px solid "+(item.is_visible?"#bbf7d0":"#e5e7eb")+";border-radius:999px;background:"+(item.is_visible?"#f0fdf4":"#f9fafb")+";color:"+(item.is_visible?"#166534":"#4b5563")+";font-size:12px;font-weight:600";
@@ -2631,7 +2631,9 @@
               saveButton.disabled=true;cardStatus.textContent="Saving widget settings…";cardStatus.style.color="#6b7280";
               try{
                 const current=await getCurrentUser();if(!current)throw new Error("Your admin session has expired. Please sign in again.");
-                const update={is_visible:select.value==="true",updated_by:current.id,updated_at:new Date().toISOString()};
+                const titleBn=titleBnInput.value.trim(),titleEn=titleEnInput.value.trim();
+                if(!titleBn&&!titleEn)throw new Error("Enter the widget title in Bengali or English.");
+                const update={is_visible:select.value==="true",title_bn:titleBn||null,title_en:titleEn||null,title:(getUiLanguage()==="en"?(titleEn||titleBn):(titleBn||titleEn)),updated_by:current.id,updated_at:new Date().toISOString()};
                 if(item.widget_type==="map"){
                   const location=String(locationInput&&locationInput.value||"").trim();
                   if(!location)throw new Error("Enter the address, place name, or Google Maps link.");
