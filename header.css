@@ -280,3 +280,44 @@ body.dg-night-mode footer {
   background-color:var(--dg-surface);
   color:var(--dg-muted);
 }
+
+
+/* Consistent vector icon treatment for language and day/night controls. */
+.menu-language-section #language-switcher,
+.menu-language-section #theme-switcher {
+  color:var(--dg-primary,var(--dg-text,#333));
+  border-color:var(--dg-border,#e5e7eb);
+  background:var(--dg-surface,#fff);
+  box-shadow:0 1px 2px rgba(15,23,42,.05);
+  transition:background-color .18s ease,border-color .18s ease,color .18s ease,box-shadow .18s ease,transform .18s ease;
+}
+.menu-language-section .header-icon {
+  display:block;
+  width:21px;
+  height:21px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.7;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  pointer-events:none;
+}
+.menu-language-section #language-switcher:hover,
+.menu-language-section #theme-switcher:hover {
+  color:var(--dg-primary,#222);
+  border-color:var(--dg-primary,#222);
+  box-shadow:0 2px 7px rgba(15,23,42,.10);
+}
+.menu-language-section #language-switcher:active,
+.menu-language-section #theme-switcher:active { transform:scale(.96); }
+body.dg-night-mode .menu-language-section #language-switcher,
+body.dg-night-mode .menu-language-section #theme-switcher {
+  color:var(--dg-text,#e7edf5);
+  background:var(--dg-surface,#1b222c);
+  border-color:var(--dg-border,#364152);
+}
+body.dg-night-mode .menu-language-section #language-switcher:hover,
+body.dg-night-mode .menu-language-section #theme-switcher:hover {
+  color:var(--dg-link,#9dbbff);
+  border-color:var(--dg-link,#9dbbff);
+}
