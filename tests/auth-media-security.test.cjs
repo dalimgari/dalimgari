@@ -17,9 +17,9 @@ test("dashboard visibility is based on trusted app metadata, not editable user m
 test("private content media is resolved through expiring signed URLs", () => {
   const app = read("app.js");
 
-  assert.match(app, /async function createContentMediaUrl\(path, bucket = "content-files"\)/);
-  assert.match(app, /storage\.from\(bucketId\)\.createSignedUrl\(normalizedPath, 3600\)/);
-  assert.match(app, /return data\?\.signedUrl \|\| ""/);
+  assert.match(app, /async function createContentMediaUrl\(path, bucket = "content-files", transform = null\)/);
+  assert.match(app, /storage\.createSignedUrl\(normalizedPath, 3600\)/);
+  assert.match(app, /return url/);
   assert.doesNotMatch(app, /createContentMediaUrl\(path\)[\s\S]{0,500}?return path;/);
 });
 
@@ -44,7 +44,7 @@ test("homepage loading checks HTTP status and validates required sections before
 test("content media resolves both legacy paths and Media Library storage fields with bounded parallelism", () => {
   const app = read("app.js");
 
-  assert.match(app, /async function createContentMediaUrl\(path, bucket = "content-files"\)/);
+  assert.match(app, /async function createContentMediaUrl\(path, bucket = "content-files", transform = null\)/);
   assert.match(app, /const path = item\.path \|\| item\.storage_path/);
   assert.match(app, /const bucket = item\.storage_bucket \|\| item\.bucket \|\| "content-files"/);
   assert.match(app, /const allowedContentMediaBuckets = new Set\(\["content-files", "hero-images", "profile-pictures"\]\)/);
