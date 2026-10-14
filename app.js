@@ -523,7 +523,7 @@
       const [albumResult,postResult,pageResult,heroResult]=await Promise.all([
         supabaseClient.from("albums").select("id,title,title_bn,title_en,description,description_bn,description_en,url,cover_path,media,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(200),
         supabaseClient.from("post").select("id,title,title_bn,title_en,caption_bn,caption_en,media,visibility,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(500),
-        supabaseClient.from("pages").select("id,title,media,visibility,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(500),
+        supabaseClient.from("pages").select("id,title,title_bn,title_en,media,visibility,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(500),
         supabaseClient.from("hero_items").select("id,title,media,visibility,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(200)
       ]);
       const albums=!albumResult.error&&Array.isArray(albumResult.data)?albumResult.data:[];
