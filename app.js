@@ -753,9 +753,9 @@
       let heroImagePreloader = null;
       const heroContentPromise = (async () => {
         const { data: heroRecord } = await supabaseClient.from("hero_items")
-          .select("title,description,media,visibility").eq("visibility","public").order("created_at",{ascending:false}).limit(1).maybeSingle();
-        let headline = String(heroRecord?.title || "").trim();
-        let welcomeMessage = String(heroRecord?.description || "").trim();
+          .select("title,title_bn,title_en,description,description_bn,description_en,media,visibility").eq("visibility","public").order("created_at",{ascending:false}).limit(1).maybeSingle();
+        let headline = String(localizedRecordValue(heroRecord,"title") || "").trim();
+        let welcomeMessage = String(localizedRecordValue(heroRecord,"description") || "").trim();
         let heroImageUrl = "";
         const heroMedia = Array.isArray(heroRecord?.media) ? heroRecord.media : [];
         const firstImage = heroMedia.find(item => String(item.mime_type || "").startsWith("image/"));
