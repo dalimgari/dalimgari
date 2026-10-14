@@ -1072,7 +1072,7 @@
         }
       }
       if(albumSection){
-        const {data:albumRows,error}=await supabaseClient.from("albums").select("id,title,description,url,cover_path,media,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(24);
+        const {data:albumRows,error}=await supabaseClient.from("albums").select("id,title,title_bn,title_en,description,description_bn,description_en,url,cover_path,media,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(24);
         // Home only shows albums with media items or a configured cover image.
         const albums=Array.isArray(albumRows)?albumRows.filter(album=>
           Boolean(String(album.cover_path||"").trim())||
@@ -1095,22 +1095,24 @@
           grid.classList.add("home-album-carousel");
           grid.style.cssText="display:flex;flex-wrap:nowrap;gap:16px;width:100%;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;scroll-behavior:auto;overscroll-behavior-x:contain;padding:2px 1px 12px";
           for(const album of albums){
-            const card=makeCard(album.title,album.description||"");
+            const albumTitle=localizedRecordValue(album,"title");
+            const albumDescription=localizedRecordValue(album,"description");
+            const card=makeCard(albumTitle,albumDescription||"");
             const media=Array.isArray(album.media)?album.media:[];
             const coverImages=[];
             for(const item of media){
               if(!String(item.mime_type||"").startsWith("image/")||!item.path)continue;
               const imageUrl=await createContentMediaUrl(item.path);
-              if(imageUrl)coverImages.push({url:imageUrl,alt:item.alt_text||item.title||item.name||album.title||""});
+              if(imageUrl)coverImages.push({url:imageUrl,alt:item.alt_text||item.title||item.name||albumTitle||""});
             }
             if(!coverImages.length&&album.cover_path){
               const coverUrl=await createContentMediaUrl(album.cover_path);
-              if(coverUrl)coverImages.push({url:coverUrl,alt:album.title||""});
+              if(coverUrl)coverImages.push({url:coverUrl,alt:albumTitle||""});
             }
             if(coverImages.length){
               const cover=document.createElement("div");
               cover.className="home-album-cover-slideshow";
-              cover.setAttribute("aria-label",(album.title||"Album")+" cover slideshow");
+              cover.setAttribute("aria-label",(albumTitle||"Album")+" cover slideshow");
               cover.style.cssText="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:10px;margin:0 0 14px;background:#f3f4f6";
               let currentIndex=Math.floor(Math.random()*coverImages.length);
               let front=document.createElement("img"),back=document.createElement("img");
@@ -1141,7 +1143,7 @@
             card.style.maxWidth="85vw";
             card.tabIndex=0;
             card.setAttribute("role","button");
-            card.setAttribute("aria-label","Open album in Gallery: "+(album.title||"Untitled"));
+            card.setAttribute("aria-label","Open album in Gallery: "+(albumTitle||"Untitled"));
             card.style.cursor="pointer";
             grid.append(card);
           }
