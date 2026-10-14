@@ -3332,6 +3332,120 @@
       }
       function generateUrlValue(value){return String(value||"").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");}
       for(const def of config.fields)makeField(def);
+
+      // Global bilingual auto-translation: every matching *_bn / *_en field pair
+      // uses the same server-side Translation LLM and remains editable by the admin.
+      const bilingualPairs=[];
+      const bilingualTimers=new Map();
+      const bilingualLastEdited=new Map();
+      const bilingualGeneratedValues=new Map();
+      const bilingualPending=new Map();
+      const bilingualStatusNodes=new Map();
+      const bilingualDefinitions=new Map(config.fields.map(def=>[def.name,def]));
+      const bilingualBases=[...new Set(config.fields.map(def=>def.name).filter(name=>/_bn$/.test(name)).map(name=>name.slice(0,-3)).filter(base=>bilingualDefinitions.has(base+"_en")))];
+      function bilingualSetStatus(base,message,type=""){
+        for(const node of bilingualStatusNodes.get(base)||[]){
+          node.textContent=message;
+          node.style.color=type==="error"?"#a12622":type==="success"?"#176b43":"#555";
+          node.hidden=!message;
+        }
+      }
+      async function bilingualTranslate(base,sourceName){
+        const sourceInput=controls[sourceName];
+        const targetName=sourceName===base+"_bn"?base+"_en":base+"_bn";
+        const targetInput=controls[targetName];
+        if(!sourceInput||!targetInput)return;
+        const sourceText=String(sourceInput.value||"").trim();
+        if(!sourceText){bilingualSetStatus(base,"");return;}
+        const targetValue=String(targetInput.value||"");
+        const targetIsGenerated=bilingualGeneratedValues.get(targetName)===targetValue;
+        if(targetValue.trim()&&!targetIsGenerated)return;
+        const sourceBefore=sourceInput.value;
+        const targetBefore=targetInput.value;
+        bilingualSetStatus(base,"Translating…");
+        const request=(async()=>{
+          try{
+            const {data,error}=await supabaseClient.functions.invoke("translate-bilingual",{
+              body:{
+                text:sourceText,
+                source_language:sourceName.endsWith("_bn")?"bn":"en",
+                target_language:targetName.endsWith("_bn")?"bn":"en",
+                format:/^content(_bn|_en)$/.test(sourceName)||/^content(_bn|_en)$/.test(targetName)?"html":"text"
+              }
+            });
+            if(error)throw new Error(data?.error||error.message||"Translation request failed.");
+            if(!data?.translated_text)throw new Error(data?.error||"The translation service returned no text.");
+            // Never overwrite edits made while the network request was running.
+            if(!sourceInput.isConnected||!targetInput.isConnected||sourceInput.value!==sourceBefore||targetInput.value!==targetBefore)return;
+            targetInput.value=data.translated_text;
+            bilingualGeneratedValues.set(targetName,targetInput.value);
+            bilingualSetStatus(base,"Auto-translated. Review and edit either language before saving.","success");
+          }catch(error){
+            console.warn("Bilingual auto-translation failed:",error);
+            bilingualSetStatus(base,error.message||"Translation failed. Your text is unchanged.","error");
+          }
+        })();
+        bilingualPending.set(base,request);
+        try{await request;}finally{if(bilingualPending.get(base)===request)bilingualPending.delete(base);}
+      }
+      function scheduleBilingualTranslation(base,sourceName,immediate=false){
+        const oldTimer=bilingualTimers.get(base);
+        if(oldTimer)clearTimeout(oldTimer);
+        if(immediate){
+          bilingualTimers.delete(base);
+          void bilingualTranslate(base,sourceName);
+          return;
+        }
+        bilingualTimers.set(base,setTimeout(()=>{
+          bilingualTimers.delete(base);
+          void bilingualTranslate(base,sourceName);
+        },650));
+      }
+      for(const base of bilingualBases){
+        const bnInput=controls[base+"_bn"],enInput=controls[base+"_en"];
+        if(!bnInput||!enInput||!["input","textarea"].includes(bilingualDefinitions[base+"_bn"].type)||!["input","textarea"].includes(bilingualDefinitions[base+"_en"].type))continue;
+        const bnHolder=bnInput.closest(".dashboard-crud-field"),enHolder=enInput.closest(".dashboard-crud-field");
+        const statusNodes=[];
+        for(const holder of [bnHolder,enHolder]){
+          if(!holder)continue;
+          const note=document.createElement("small");note.className="dashboard-crud-hint";note.setAttribute("aria-live","polite");note.hidden=true;
+          holder.append(note);statusNodes.push(note);
+        }
+        bilingualStatusNodes.set(base,statusNodes);
+        const pair={base,bnInput,enInput};bilingualPairs.push(pair);
+        for(const [input,sourceName] of [[bnInput,base+"_bn"],[enInput,base+"_en"]]){
+          input.addEventListener("input",()=>{
+            const generated=bilingualGeneratedValues.get(sourceName);
+            if(generated!==undefined&&input.value!==generated)bilingualGeneratedValues.delete(sourceName);
+            bilingualLastEdited.set(base,sourceName);
+            scheduleBilingualTranslation(base,sourceName);
+          });
+          input.addEventListener("blur",()=>{
+            const source=String(input.value||"").trim();
+            const other=sourceName===base+"_bn"?enInput:bnInput;
+            const otherGenerated=bilingualGeneratedValues.get(other.name)===other.value;
+            if(source&&(!String(other.value||"").trim()||otherGenerated))scheduleBilingualTranslation(base,sourceName,true);
+          });
+        }
+      }
+      async function flushBilingualTranslations(){
+        for(const pair of bilingualPairs){
+          const timer=bilingualTimers.get(pair.base);
+          if(timer)clearTimeout(timer);
+          bilingualTimers.delete(pair.base);
+          const sourceName=bilingualLastEdited.get(pair.base)||
+            (String(pair.bnInput.value||"").trim()?pair.base+"_bn":pair.base+"_en");
+          const source=sourceName===pair.base+"_bn"?pair.bnInput:pair.enInput;
+          const target=sourceName===pair.base+"_bn"?pair.enInput:pair.bnInput;
+          const targetGenerated=bilingualGeneratedValues.get(target.name)===target.value;
+          if(String(source.value||"").trim()&&(!String(target.value||"").trim()||targetGenerated)){
+            await bilingualTranslate(pair.base,sourceName);
+          }else if(bilingualPending.has(pair.base)){
+            await bilingualPending.get(pair.base);
+          }
+        }
+      }
+
       if(controls.album_id) {
         const {data:albums,error:albumsError}=await supabaseClient.from("albums").select("id,title").order("title").limit(500);
         if(!isCurrent())return;
@@ -3518,6 +3632,7 @@
         event.preventDefault();
         save.disabled=true;remove.disabled=true;save.textContent="Saving…";setStatus("");
         try{
+          await flushBilingualTranslations();
           const payload={};
           config.fields.forEach(def=>{
             const input=controls[def.name];
