@@ -1117,11 +1117,11 @@
                 const bangladeshTimeZone="Asia/Dhaka";
                 const language=getUiLanguage();
                 const locale=language==="bn"?"bn-BD":"en-GB";
-                const digitFormatter=new Intl.NumberFormat(locale,{useGrouping:false});
                 const parts=new Intl.DateTimeFormat("en-GB",{timeZone:bangladeshTimeZone,year:"numeric",month:"numeric",day:"numeric",hour:"numeric",minute:"numeric",second:"numeric",hourCycle:"h23"}).formatToParts(now);
                 const part=name=>Number(parts.find(part=>part.type===name)?.value);
                 const year=part("year"),month=part("month"),day=part("day");
                 const hour=part("hour"),minute=part("minute"),second=part("second");
+                const banglaDigitFormatter=new Intl.NumberFormat("bn-BD",{useGrouping:false});
                 if(language==="en"){
                   time.textContent=new Intl.DateTimeFormat(locale,{hour:"2-digit",minute:"2-digit",hourCycle:"h12",timeZone:bangladeshTimeZone}).format(now).replace(/\b(am|pm)\b/i,period=>period.toUpperCase());
                 }else{
@@ -1130,23 +1130,21 @@
                   const bengaliMinute=new Intl.NumberFormat(locale,{minimumIntegerDigits:2,useGrouping:false}).format(minute);
                   time.textContent=bengaliPeriod+" "+bengaliHour+":"+bengaliMinute;
                 }
-                date.textContent=new Intl.DateTimeFormat(locale,{dateStyle:"full",timeZone:bangladeshTimeZone}).format(now);
+                const gregorianParts=new Intl.DateTimeFormat("en-GB",{timeZone:bangladeshTimeZone,weekday:"long",day:"numeric",month:"long",year:"numeric"}).formatToParts(now);
+                const gregorianPart=name=>gregorianParts.find(part=>part.type===name)?.value||"";
+                date.textContent=gregorianPart("weekday")+", "+gregorianPart("day")+" "+gregorianPart("month")+", "+gregorianPart("year");
                 const banglaYear=year-(month>4||(month===4&&day>=14)?593:594);
                 const startYear=month>4||(month===4&&day>=14)?year:year-1;
                 const elapsed=Math.floor((Date.UTC(year,month-1,day)-Date.UTC(startYear,3,14))/86400000);
                 const leapYear=startYear+1;
                 const isLeap=leapYear%4===0&&(leapYear%100!==0||leapYear%400===0);
-                const monthNames=language==="bn"
-                  ? ["বৈশাখ","জ্যৈষ্ঠ","আষাঢ়","শ্রাবণ","ভাদ্র","আশ্বিন","কার্তিক","অগ্রহায়ণ","পৌষ","মাঘ","ফাল্গুন","চৈত্র"]
-                  : ["Boishakh","Joishtho","Ashar","Srabon","Bhadro","Ashwin","Kartik","Agrahayan","Poush","Magh","Falgun","Chaitra"];
+                const monthNames=["বৈশাখ","জ্যৈষ্ঠ","আষাঢ়","শ্রাবণ","ভাদ্র","আশ্বিন","কার্তিক","অগ্রহায়ণ","পৌষ","মাঘ","ফাল্গুন","চৈত্র"];
                 const monthLengths=[31,31,31,31,31,31,30,30,30,30,isLeap?30:29,30];
                 let remaining=elapsed,banglaMonth=0;
                 while(banglaMonth<monthLengths.length-1&&remaining>=monthLengths[banglaMonth]){remaining-=monthLengths[banglaMonth];banglaMonth++;}
-                const weekdayNames=language==="bn"
-                  ? ["রবিবার","সোমবার","মঙ্গলবার","বুধবার","বৃহস্পতিবার","শুক্রবার","শনিবার"]
-                  : ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+                const weekdayNames=["রবিবার","সোমবার","মঙ্গলবার","বুধবার","বৃহস্পতিবার","শুক্রবার","শনিবার"];
                 const weekday=new Date(Date.UTC(year,month-1,day)).getUTCDay();
-                banglaDate.textContent=weekdayNames[weekday]+", "+monthNames[banglaMonth]+" "+digitFormatter.format(remaining+1)+", "+digitFormatter.format(banglaYear);
+                banglaDate.textContent=weekdayNames[weekday]+", "+monthNames[banglaMonth]+" "+banglaDigitFormatter.format(remaining+1)+", "+banglaDigitFormatter.format(banglaYear);
                 hourHand.setAttribute("transform","rotate("+((hour%12)*30+minute*0.5)+" 80 80)");
                 minuteHand.setAttribute("transform","rotate("+(minute*6+second*0.1)+" 80 80)");
                 secondHand.setAttribute("transform","rotate("+(second*6)+" 80 80)");
