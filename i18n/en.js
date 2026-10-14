@@ -440,7 +440,17 @@ window.DG_I18N_EN = {
 "Could not restore the current route:":"Could not restore the current route:",
 "Logging out...":"Logging out...",
 "Could not check the session during navigation:":"Could not check the session during navigation:",
-"Menu navigation failed:":"Menu navigation failed:"
+"Menu navigation failed:":"Menu navigation failed:",
+  "Title (English, required)":"Title (English, required)",
+  "Title (বাংলা, required)":"Title (Bengali, required)",
+  "Description (English, optional)":"Description (English, optional)",
+  "Description (বাংলা, optional)":"Description (Bengali, optional)",
+  "Tags (English, optional)":"Tags (English, optional)",
+  "Tags (বাংলা, optional)":"Tags (Bengali, optional)",
+  "Alt text (English, optional)":"Alt text (English, optional)",
+  "Alt text (বাংলা, optional)":"Alt text (Bengali, optional)",
+  "Every file needs both English and Bengali titles: ":"Every file needs both English and Bengali titles: ",
+  "Every media file needs both English and Bengali titles.":"Every media file needs both English and Bengali titles.",
 };
 Object.assign(window.DG_I18N_EN, {
   "Title (Bengali)": "Title (Bengali)",

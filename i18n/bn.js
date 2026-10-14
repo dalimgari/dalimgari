@@ -440,7 +440,17 @@ window.DG_I18N_BN = {
 "Could not restore the current route:":"বর্তমান রুট পুনরুদ্ধার করা যায়নি:",
 "Logging out...":"লগআউট হচ্ছে...",
 "Could not check the session during navigation:":"নেভিগেশনের সময় সেশন যাচাই করা যায়নি:",
-"Menu navigation failed:":"মেনু নেভিগেশন ব্যর্থ হয়েছে:"
+"Menu navigation failed:":"মেনু নেভিগেশন ব্যর্থ হয়েছে:",
+  "Title (English, required)":"শিরোনাম (ইংরেজি, আবশ্যক)",
+  "Title (বাংলা, required)":"শিরোনাম (বাংলা, আবশ্যক)",
+  "Description (English, optional)":"বিবরণ (ইংরেজি, ঐচ্ছিক)",
+  "Description (বাংলা, optional)":"বিবরণ (বাংলা, ঐচ্ছিক)",
+  "Tags (English, optional)":"ট্যাগ (ইংরেজি, ঐচ্ছিক)",
+  "Tags (বাংলা, optional)":"ট্যাগ (বাংলা, ঐচ্ছিক)",
+  "Alt text (English, optional)":"বিকল্প টেক্সট (ইংরেজি, ঐচ্ছিক)",
+  "Alt text (বাংলা, optional)":"বিকল্প টেক্সট (বাংলা, ঐচ্ছিক)",
+  "Every file needs both English and Bengali titles: ":"প্রতিটি ফাইলের ইংরেজি ও বাংলা শিরোনাম দিতে হবে: ",
+  "Every media file needs both English and Bengali titles.":"প্রতিটি মিডিয়া ফাইলের ইংরেজি ও বাংলা শিরোনাম দিতে হবে।",
 };
 Object.assign(window.DG_I18N_BN, {
   "Title (Bengali)": "শিরোনাম (বাংলা)",

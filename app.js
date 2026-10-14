@@ -2245,23 +2245,19 @@
         Array.from(filesInput.files||[]).forEach(function(file,index){
           const row=document.createElement("fieldset");row.style.cssText="min-width:0;border:1px solid #e5e7eb;border-radius:10px;padding:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:10px";
           const legend=document.createElement("legend");legend.textContent=file.name+" · "+Math.max(1,Math.round(file.size/1024))+" KB";
-          const titleWrap=document.createElement("div");titleWrap.className="dashboard-crud-field";
-          const titleLabel=document.createElement("label");titleLabel.textContent="Title (required)";
-          const titleInput=document.createElement("input");titleInput.className="dashboard-crud-input";titleInput.required=true;titleInput.maxLength=180;titleInput.value=file.name.replace(/\.[^.]+$/,"").trim();titleInput.setAttribute("aria-label","Title for "+file.name);
-          const descWrap=document.createElement("div");descWrap.className="dashboard-crud-field";
-          const descLabel=document.createElement("label");descLabel.textContent="Description (optional)";
-          const descInput=document.createElement("input");descInput.className="dashboard-crud-input";descInput.maxLength=1000;descInput.placeholder="Description";descInput.setAttribute("aria-label","Description for "+file.name);
-          const tagsWrap=document.createElement("div");tagsWrap.className="dashboard-crud-field";
-          const tagsLabel=document.createElement("label");tagsLabel.textContent="Tags (optional)";
-          const tagsInput=document.createElement("input");tagsInput.className="dashboard-crud-input";tagsInput.placeholder="Comma-separated tags";tagsInput.maxLength=500;tagsInput.setAttribute("aria-label","Tags for "+file.name);
-          const altWrap=document.createElement("div");altWrap.className="dashboard-crud-field";
-          const altLabel=document.createElement("label");altLabel.textContent="Alt text (optional)";
-          const altInput=document.createElement("input");altInput.className="dashboard-crud-input";altInput.maxLength=500;altInput.placeholder="Image description";altInput.setAttribute("aria-label","Alt text for "+file.name);
-          titleWrap.append(titleLabel,titleInput);descWrap.append(descLabel,descInput);tagsWrap.append(tagsLabel,tagsInput);altWrap.append(altLabel,altInput);
-          row.append(legend,titleWrap,descWrap,tagsWrap,altWrap);fileRows.append(row);
-          uploadItems.push({file:file,title:titleInput,description:descInput,tags:tagsInput,alt:altInput,row:row});
+          const field=(labelText,placeholder,maxLength,required,value,ariaLabel)=>{const wrap=document.createElement("div");wrap.className="dashboard-crud-field";const label=document.createElement("label");label.textContent=labelText;const input=document.createElement("input");input.className="dashboard-crud-input";input.maxLength=maxLength;input.required=required;if(placeholder)input.placeholder=placeholder;if(value!==undefined)input.value=value;input.setAttribute("aria-label",ariaLabel);wrap.append(label,input);return {wrap,input};};
+          const titleEn=field("Title (English, required)","",180,true,file.name.replace(/\.[^.]+$/,"").trim(),"English title for "+file.name);
+          const titleBn=field("Title (বাংলা, required)","",180,true,"","Bengali title for "+file.name);
+          const descEn=field("Description (English, optional)","",1000,false,"","English description for "+file.name);
+          const descBn=field("Description (বাংলা, optional)","",1000,false,"","Bengali description for "+file.name);
+          const tagsEn=field("Tags (English, optional)","Comma-separated tags",500,false,"","English tags for "+file.name);
+          const tagsBn=field("Tags (বাংলা, optional)","কমা দিয়ে আলাদা করা ট্যাগ",500,false,"","Bengali tags for "+file.name);
+          const altEn=field("Alt text (English, optional)","",500,false,"","English alt text for "+file.name);
+          const altBn=field("Alt text (বাংলা, optional)","",500,false,"","Bengali alt text for "+file.name);
+          row.append(legend,titleEn.wrap,titleBn.wrap,descEn.wrap,descBn.wrap,tagsEn.wrap,tagsBn.wrap,altEn.wrap,altBn.wrap);fileRows.append(row);
+          uploadItems.push({file:file,titleEn:titleEn.input,titleBn:titleBn.input,descriptionEn:descEn.input,descriptionBn:descBn.input,tagsEn:tagsEn.input,tagsBn:tagsBn.input,altEn:altEn.input,altBn:altBn.input,row:row});
         });
-        setUploadStatus(uploadItems.length?uploadItems.length+" file(s) selected. Add a title for each file, then upload.":"",false);
+        setUploadStatus(uploadItems.length?uploadItems.length+" file(s) selected. Add both English and Bengali titles for each file, then upload.":"",false);
       });
       uploadForm.addEventListener("submit",async function(event){
         event.preventDefault();
@@ -2270,7 +2266,7 @@
         if(!user||String(user.app_metadata&&user.app_metadata.role||"").toLowerCase()!=="admin"){setUploadStatus("An active administrator session is required to upload media.",true);return;}
         for(const item of uploadItems){
           if(!allowedUploadTypes.has(item.file.type)||item.file.size>50*1024*1024){setUploadStatus("Unsupported file or file exceeds 50 MB: "+item.file.name+". Remove it and choose a supported file.",true);return;}
-          if(!item.title.value.trim()){setUploadStatus("Every file needs a title: "+item.file.name,true);item.title.focus();return;}
+          if(!item.titleEn.value.trim()||!item.titleBn.value.trim()){setUploadStatus("Every file needs both English and Bengali titles: "+item.file.name,true);(!item.titleEn.value.trim()?item.titleEn:item.titleBn).focus();return;}
         }
         uploadButton.disabled=true;filesInput.disabled=true;visibilitySelect.disabled=true;
         let uploaded=0;const failures=[];
@@ -2285,11 +2281,21 @@
               path=folder+"/"+user.id+"/"+crypto.randomUUID()+"."+extension.toLowerCase();
               const {error:uploadError}=await supabaseClient.storage.from("content-files").upload(path,file,{contentType:file.type,cacheControl:"3600",upsert:false});
               if(uploadError)throw uploadError;
+              const englishTags=item.tagsEn.value.split(",").map(function(tag){return tag.trim();}).filter(Boolean);
+              const bengaliTags=item.tagsBn.value.split(",").map(function(tag){return tag.trim();}).filter(Boolean);
               const metadata={
-                title:item.title.value.trim(),
-                description:item.description.value.trim()||null,
-                tags:item.tags.value.split(",").map(function(tag){return tag.trim();}).filter(Boolean),
-                alt_text:item.alt.value.trim()||null,
+                title:item.titleEn.value.trim(),
+                title_en:item.titleEn.value.trim(),
+                title_bn:item.titleBn.value.trim(),
+                description:item.descriptionEn.value.trim()||null,
+                description_en:item.descriptionEn.value.trim()||null,
+                description_bn:item.descriptionBn.value.trim()||null,
+                tags:englishTags,
+                tags_en:englishTags,
+                tags_bn:bengaliTags,
+                alt_text:item.altEn.value.trim()||null,
+                alt_text_en:item.altEn.value.trim()||null,
+                alt_text_bn:item.altBn.value.trim()||null,
                 original_filename:file.name,
                 storage_bucket:"content-files",
                 storage_path:path,
@@ -2328,21 +2334,26 @@
       function draw(){
         list.replaceChildren();
         const q=search.value.trim().toLowerCase();
-        const filtered=assets.filter(a=>[a.title,a.original_filename,a.description,(a.tags||[]).join(" ")].some(v=>String(v||"").toLowerCase().includes(q)));
+        const filtered=assets.filter(a=>[a.title_en,a.title_bn,a.title,a.original_filename,a.description_en,a.description_bn,a.description,(a.tags_en||""),(a.tags_bn||""),(a.tags||[]).join(" ")].some(v=>String(v||"").toLowerCase().includes(q)));
         if(!filtered.length){const empty=document.createElement("p");empty.className="dashboard-crud-empty";empty.textContent="No media files match this search.";list.append(empty);say(assets.length+" file(s) in library.");return;}
         say(assets.length+" file(s) in library; showing "+filtered.length+".");
         for(const asset of filtered){
           const tile=document.createElement("article");tile.style.cssText="min-width:0;border:1px solid #e5e7eb;border-radius:12px;padding:12px;background:#fff";
           const preview=document.createElement("div");preview.style.cssText="display:grid;place-items:center;min-height:110px;max-height:180px;overflow:hidden;background:#f8fafc;border-radius:8px;margin-bottom:10px";
           if(String(asset.mime_type||"").startsWith("image/")){
-            const img=document.createElement("img");img.src="";img.alt=asset.alt_text||asset.title;img.style.cssText="max-width:100%;max-height:170px;object-fit:contain";
+            const img=document.createElement("img");img.src="";img.alt=localizedRecordValue(asset,"alt_text")||localizedRecordValue(asset,"title");img.style.cssText="max-width:100%;max-height:170px;object-fit:contain";
             supabaseClient.storage.from(asset.storage_bucket||"content-files").createSignedUrl(asset.storage_path,3600).then(({data})=>{if(data?.signedUrl)img.src=data.signedUrl;});
             preview.append(img);
           }else{const icon=document.createElement("span");icon.textContent=String(asset.mime_type||"").startsWith("video/")?"Video":String(asset.mime_type||"").startsWith("audio/")?"Audio":"File";icon.style.cssText="font-weight:700;color:#475569";preview.append(icon);}
-          const title=document.createElement("input");title.className="dashboard-crud-input";title.value=asset.title||"";title.required=true;title.setAttribute("aria-label","Media title");
-          const description=document.createElement("textarea");description.className="dashboard-crud-input";description.rows=2;description.placeholder="Description (optional)";description.value=asset.description||"";
-          const tags=document.createElement("input");tags.className="dashboard-crud-input";tags.placeholder="Tags separated by commas";tags.value=(asset.tags||[]).join(", ");
-          const alt=document.createElement("input");alt.className="dashboard-crud-input";alt.placeholder="Alt text (optional)";alt.value=asset.alt_text||"";
+          const makeMetaField=(labelText,value,placeholder,maxLength,required=false)=>{const wrap=document.createElement("div");wrap.className="dashboard-crud-field";const label=document.createElement("label");label.textContent=labelText;const input=document.createElement("input");input.className="dashboard-crud-input";input.value=value||"";input.placeholder=placeholder||"";input.maxLength=maxLength;input.required=required;wrap.append(label,input);return {wrap,input};};
+          const titleEn=makeMetaField("Title (English, required)",asset.title_en||asset.title,"",180,true);
+          const titleBn=makeMetaField("Title (বাংলা, required)",asset.title_bn,"",180,true);
+          const descEn=makeMetaField("Description (English, optional)",asset.description_en||asset.description,"",1000);
+          const descBn=makeMetaField("Description (বাংলা, optional)",asset.description_bn,"",1000);
+          const tagsEn=makeMetaField("Tags (English, optional)",Array.isArray(asset.tags_en)?asset.tags_en.join(", "):(asset.tags_en||(Array.isArray(asset.tags)?asset.tags.join(", "):asset.tags)),"Comma-separated tags",500);
+          const tagsBn=makeMetaField("Tags (বাংলা, optional)",Array.isArray(asset.tags_bn)?asset.tags_bn.join(", "):(asset.tags_bn||""),"কমা দিয়ে আলাদা করা ট্যাগ",500);
+          const altEn=makeMetaField("Alt text (English, optional)",asset.alt_text_en||asset.alt_text,"",500);
+          const altBn=makeMetaField("Alt text (বাংলা, optional)",asset.alt_text_bn,"",500);
           const filename=document.createElement("p");filename.className="dashboard-crud-hint";filename.textContent=(asset.original_filename||"File")+" · "+(asset.size_bytes?Math.round(asset.size_bytes/1024)+" KB":"size unknown");
           const linkInfo=document.createElement("p");linkInfo.className="dashboard-crud-hint";linkInfo.textContent="Media ID: "+asset.id;
           const attachmentArea=document.createElement("div");attachmentArea.style.cssText="display:grid;gap:8px;margin:8px 0";
@@ -2351,10 +2362,13 @@
           const save=document.createElement("button");save.type="button";save.className="action-button primary";save.textContent="Save Metadata";
           const del=document.createElement("button");del.type="button";del.className="action-button";del.textContent="Delete File";
           save.addEventListener("click",async()=>{
-            const cleanTitle=title.value.trim();if(!cleanTitle){say("Every media file must have a title.",true,tileStatus);title.focus();return;}
+            const cleanTitleEn=titleEn.input.value.trim();const cleanTitleBn=titleBn.input.value.trim();
+            if(!cleanTitleEn||!cleanTitleBn){say("Every media file needs both English and Bengali titles.",true,tileStatus);(!cleanTitleEn?titleEn.input:titleBn.input).focus();return;}
             save.disabled=true;
             try{
-              const payload={title:cleanTitle,description:description.value.trim()||null,tags:tags.value.split(",").map(x=>x.trim()).filter(Boolean),alt_text:alt.value.trim()||null,updated_at:new Date().toISOString()};
+              const englishTags=tagsEn.input.value.split(",").map(x=>x.trim()).filter(Boolean);
+              const bengaliTags=tagsBn.input.value.split(",").map(x=>x.trim()).filter(Boolean);
+              const payload={title:cleanTitleEn,title_en:cleanTitleEn,title_bn:cleanTitleBn,description:descEn.input.value.trim()||null,description_en:descEn.input.value.trim()||null,description_bn:descBn.input.value.trim()||null,tags:englishTags,tags_en:englishTags,tags_bn:bengaliTags,alt_text:altEn.input.value.trim()||null,alt_text_en:altEn.input.value.trim()||null,alt_text_bn:altBn.input.value.trim()||null,updated_at:new Date().toISOString()};
               const {error}=await supabaseClient.from("media_assets").update(payload).eq("id",asset.id);if(error)throw error;
               const {data:links,error:linksError}=await supabaseClient.from("media_links").select("source_table,source_id").eq("media_id",asset.id);
               if(linksError)throw linksError;
@@ -2363,7 +2377,7 @@
                 const {data:source,error:sourceError}=await supabaseClient.from(link.source_table).select("media").eq("id",link.source_id).maybeSingle();
                 if(sourceError)throw sourceError;
                 const media=Array.isArray(source?.media)?source.media:[];
-                const updated=media.map(item=>String(item.path||item.storage_path||"")===String(asset.storage_path)?{...item,media_id:asset.id,title:cleanTitle,alt_text:payload.alt_text}:item);
+                const updated=media.map(item=>String(item.path||item.storage_path||"")===String(asset.storage_path)?{...item,media_id:asset.id,title:cleanTitleEn,title_en:cleanTitleEn,title_bn:cleanTitleBn,alt_text:payload.alt_text,alt_text_en:payload.alt_text_en,alt_text_bn:payload.alt_text_bn}:item);
                 const {error:updateSourceError}=await supabaseClient.from(link.source_table).update({media:updated,updated_at:new Date().toISOString()}).eq("id",link.source_id);
                 if(updateSourceError)throw updateSourceError;
               }
@@ -2418,7 +2432,7 @@
             }catch(e){say("Delete failed: "+(e.message||"Unknown error"),true,tileStatus);}
             finally{del.disabled=false;}
           });
-          actions.append(save,del);tile.append(preview,title,description,tags,alt,filename,linkInfo,attachmentArea,actions,tileStatus);list.append(tile);
+          actions.append(save,del);tile.append(preview,titleEn.wrap,titleBn.wrap,descEn.wrap,descBn.wrap,tagsEn.wrap,tagsBn.wrap,altEn.wrap,altBn.wrap,filename,linkInfo,attachmentArea,actions,tileStatus);list.append(tile);
         }
       }
       search.addEventListener("input",draw);
