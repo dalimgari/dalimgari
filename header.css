@@ -321,3 +321,29 @@ body.dg-night-mode .menu-language-section #theme-switcher:hover {
   color:var(--dg-link,#9dbbff);
   border-color:var(--dg-link,#9dbbff);
 }
+
+
+/* Keep both utility icons neutral, like the site's other interface controls. */
+.menu-language-section #language-switcher,
+.menu-language-section #theme-switcher {
+  color:var(--dg-text,#333)!important;
+  border-color:var(--dg-border,#e5e7eb);
+  background:transparent;
+  box-shadow:none;
+}
+.menu-language-section #language-switcher:hover,
+.menu-language-section #theme-switcher:hover {
+  color:var(--dg-text,#222)!important;
+  border-color:var(--dg-border,#d1d5db);
+  background:var(--dg-hover,var(--dg-surface,#fff));
+  box-shadow:none;
+}
+body.dg-night-mode .menu-language-section #language-switcher,
+body.dg-night-mode .menu-language-section #theme-switcher,
+body.dg-night-mode .menu-language-section #language-switcher:hover,
+body.dg-night-mode .menu-language-section #theme-switcher:hover {
+  color:var(--dg-text,#e7edf5)!important;
+  border-color:var(--dg-border,#364152);
+  background:transparent;
+  box-shadow:none;
+}
