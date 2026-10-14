@@ -919,6 +919,14 @@
         return true;
       })();
 
+      // These reads do not depend on each other: start the public-page list and its
+      // ordering settings while optional included-page configuration is being resolved.
+      const publicPageConfigPromise = Promise.all([
+        supabaseClient.from("pages").select("id,title,title_bn,title_en,url,visibility,created_at").eq("visibility","public").order("created_at",{ascending:true}).limit(200),
+        supabaseClient.from("site_customizations").select("value").eq("key","home_page_order").maybeSingle(),
+        supabaseClient.from("site_customizations").select("value").eq("key","home_page_pill_autoscroll").maybeSingle()
+      ]);
+
       // Optional homepage placement map, configured in Dashboard > Customizations
       // with key "home_page_includes" and JSON such as {"home-page-title":"about-us"}.
       const { data: includeConfigRow } = await supabaseClient.from("site_customizations")
@@ -947,11 +955,8 @@
       // Public Pages appear as pill buttons in the homepage Page Title section.
       const pageTitleSection = extraSections[0];
       pillBar.setAttribute("aria-label", "Pages");
-      const [{data: publicPages, error: pagesError}, {data: pageOrderSetting}, {data: pillMotionSetting}] = await Promise.all([
-        supabaseClient.from("pages").select("id,title,title_bn,title_en,url,visibility,created_at").eq("visibility","public").order("created_at",{ascending:true}).limit(200),
-        supabaseClient.from("site_customizations").select("value").eq("key","home_page_order").maybeSingle(),
-        supabaseClient.from("site_customizations").select("value").eq("key","home_page_pill_autoscroll").maybeSingle()
-      ]);
+      const [{data: publicPages, error: pagesError}, {data: pageOrderSetting}, {data: pillMotionSetting}] =
+        await publicPageConfigPromise;
       let pillMotionConfig = pillMotionSetting?.value;
       if (typeof pillMotionConfig === "string") { try { pillMotionConfig = JSON.parse(pillMotionConfig); } catch (_) { pillMotionConfig = {}; } }
       if (!pillMotionConfig || typeof pillMotionConfig !== "object" || Array.isArray(pillMotionConfig)) pillMotionConfig = {};
