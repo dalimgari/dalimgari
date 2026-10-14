@@ -950,7 +950,7 @@
       const makeCard=(title,description)=>{const card=document.createElement("article");card.className="home-content-card";const h=document.createElement("h3");h.textContent=title||"Untitled";card.append(h);if(description){const p=document.createElement("p");p.textContent=description;card.append(p);}return card;};
       // Only configured widgets belong in the homepage Widget section.
       if(widget){
-        const {data:widgets,error}=await supabaseClient.from("widgets").select("id,widget_type,title,is_visible,settings").eq("is_visible",true).order("created_at",{ascending:true});
+        const {data:widgets,error}=await supabaseClient.from("widgets").select("id,widget_type,title,title_bn,title_en,is_visible,settings").eq("is_visible",true).order("created_at",{ascending:true});
         if(!error&&Array.isArray(widgets)&&widgets.length){
           const grid=makeGrid();
           for(const item of widgets){
@@ -2578,7 +2578,7 @@
         async function loadWidgets(){
           list.replaceChildren();
           const loading=document.createElement("p");loading.className="dashboard-crud-empty";loading.textContent="Loading widgets…";list.append(loading);
-          const {data,error}=await supabaseClient.from("widgets").select("id,widget_type,title,is_visible,settings").order("created_at",{ascending:true});
+          const {data,error}=await supabaseClient.from("widgets").select("id,widget_type,title,title_bn,title_en,is_visible,settings").order("created_at",{ascending:true});
           if(!isCurrent())return;
           if(error){list.replaceChildren();const msg=document.createElement("p");msg.className="dashboard-crud-empty";msg.textContent="Could not load widgets: "+error.message;list.append(msg);status.textContent="Load failed.";status.style.color="#a12622";return;}
           list.replaceChildren();
