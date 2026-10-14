@@ -1234,7 +1234,7 @@
             if(page.url){
               const link=document.createElement("a");
               link.href=window.location.pathname+"?page="+encodeURIComponent(page.url);
-              link.textContent="See More";
+              link.textContent=getUiLanguage()==="en"?"See More":"আরও দেখুন";
               link.setAttribute("aria-label","See more of "+(pageTitle||"this page"));
               link.style.cssText="display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:9px 16px;border-radius:9px;background:var(--dg-primary,#222);color:#fff;text-decoration:none;font-weight:600;margin-top:4px";
               card.append(link);
