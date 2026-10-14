@@ -2941,6 +2941,11 @@
         const presetSelect = document.createElement("select");
         presetSelect.className = "dashboard-crud-input";
         presetSelect.setAttribute("aria-label", "Select theme preset");
+        presetSelect.disabled = true;
+        const loadingOption = document.createElement("option");
+        loadingOption.value = "";
+        loadingOption.textContent = "Loading saved presets…";
+        presetSelect.append(loadingOption);
         const presetApply = document.createElement("button");
         presetApply.type = "button";
         presetApply.className = "action-button primary";
@@ -2953,20 +2958,39 @@
         if(isCustomization)form.append(presetCard);
         async function loadPresets(preferredName="") {
           const previousName=preferredName||presetSelect.value;
-          const {data,error}=await supabaseClient.from("site_customizations").select("value").eq("key","ui_customization_presets").maybeSingle();
-          if(error)throw error;
-          let stored=data?.value||{};
-          if(typeof stored==="string"){try{stored=JSON.parse(stored)}catch(_){stored={}}}
-          availablePresets=stored&&typeof stored==="object"&&!Array.isArray(stored)?stored:{};
-          presetSelect.replaceChildren();
-          const names=Object.keys(availablePresets).sort((a,b)=>a.localeCompare(b));
-          if(!names.length){
-            const option=document.createElement("option");option.value="";option.textContent="No saved presets";presetSelect.append(option);
-            presetApply.disabled=true;
-          }else{
+          presetSelect.disabled = true;
+          presetApply.disabled = true;
+          presetStatus.textContent = "Loading saved presets…";
+          presetStatus.style.color = "";
+          try {
+            const {data,error}=await supabaseClient.from("site_customizations").select("value").eq("key","ui_customization_presets").maybeSingle();
+            if(error)throw error;
+            let stored=data?.value||{};
+            if(typeof stored==="string"){try{stored=JSON.parse(stored)}catch(_){stored={}}}
+            availablePresets=stored&&typeof stored==="object"&&!Array.isArray(stored)?stored:{};
+            const names=Object.keys(availablePresets).filter(name=>name.trim()).sort((a,b)=>a.localeCompare(b));
+            presetSelect.replaceChildren();
+            if(!names.length){
+              const option=document.createElement("option");option.value="";option.textContent="No saved presets";presetSelect.append(option);
+              presetSelect.disabled = true;
+              presetApply.disabled = true;
+              presetStatus.textContent = "No saved presets were returned by the database.";
+              return;
+            }
             names.forEach(name=>{const option=document.createElement("option");option.value=name;option.textContent=name;presetSelect.append(option)});
-            presetApply.disabled=false;
             presetSelect.value=names.includes(previousName)?previousName:names[0];
+            presetSelect.disabled = false;
+            presetApply.disabled = false;
+            presetStatus.textContent = names.length + " saved presets available.";
+          } catch(error) {
+            availablePresets = {};
+            presetSelect.replaceChildren();
+            const option=document.createElement("option");option.value="";option.textContent="Presets could not be loaded";presetSelect.append(option);
+            presetSelect.disabled = true;
+            presetApply.disabled = true;
+            presetStatus.textContent = "Could not load theme presets: " + (error?.message || "Unknown database error") + ". Use Reload Saved Values to retry.";
+            presetStatus.style.color = "#a12622";
+            throw error;
           }
         }
         presetApply.addEventListener("click",async()=>{
