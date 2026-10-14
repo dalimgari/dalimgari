@@ -18,9 +18,25 @@
     }
 
 
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      margin-right: auto;
+    }
+
+    .header-favicon {
+      display: block;
+      flex: 0 0 32px;
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
+    }
+
     .current-page-label {
       min-width: 0;
-      margin: 0 auto 0 0;
+      margin: 0;
       padding-right: 16px;
       color: #222222;
       font-size: 18px;
@@ -133,227 +149,227 @@
 
     .menu-link[aria-current="page"], .menu-link:hover { color:var(--dg-primary,#222); }
 
-/* Keep header and navigation colors connected to the active site theme. */
-header { background-color:var(--dg-surface,#fff); color:var(--dg-text,#222); }
-.current-page-label { color:var(--dg-text,#222); }
-.floating-menu { background-color:var(--dg-surface,#fff); border-color:var(--dg-border,#eee); }
-.menu-link { color:var(--dg-text,#333); }
-.menu-link:hover, .menu-link:focus-visible, .menu-link[aria-current="page"] { background-color:#f3f4f6; color:var(--dg-primary,#222); outline:none; }
-.menu-link[aria-current="page"], .menu-link:hover { color:var(--dg-primary,#222); }
-header { box-shadow:0 8px 20px -8px rgba(0,0,0,var(--dg-shadow-opacity,.06)); }
+    /* Keep header and navigation colors connected to the active site theme. */
+    header { background-color:var(--dg-surface,#fff); color:var(--dg-text,#222); }
+    .current-page-label { color:var(--dg-text,#222); }
+    .floating-menu { background-color:var(--dg-surface,#fff); border-color:var(--dg-border,#eee); }
+    .menu-link { color:var(--dg-text,#333); }
+    .menu-link:hover, .menu-link:focus-visible, .menu-link[aria-current="page"] { background-color:#f3f4f6; color:var(--dg-primary,#222); outline:none; }
+    .menu-link[aria-current="page"], .menu-link:hover { color:var(--dg-primary,#222); }
+    header { box-shadow:0 8px 20px -8px rgba(0,0,0,var(--dg-shadow-opacity,.06)); }
 
 
-/* Compact, keyboard-accessible language control in the shared header. */
-.language-control{display:flex;align-items:center;gap:6px;min-width:0;margin-left:auto;margin-right:8px;font-size:12px;color:var(--dg-muted,#666)}
-.language-control select{max-width:100px;min-height:36px;padding:4px 6px;border:1px solid var(--dg-border,#ddd);border-radius:8px;background:var(--dg-surface,#fff);color:var(--dg-text,#222);font:inherit;font-size:13px}
-.language-control select:focus-visible{outline:2px solid var(--dg-primary,#333);outline-offset:2px}
-@media(max-width:420px){.language-control{gap:4px;margin-right:4px}.language-control-label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.language-control select{max-width:82px}}
+    /* Compact, keyboard-accessible language control in the shared header. */
+    .language-control{display:flex;align-items:center;gap:6px;min-width:0;margin-left:auto;margin-right:8px;font-size:12px;color:var(--dg-muted,#666)}
+    .language-control select{max-width:100px;min-height:36px;padding:4px 6px;border:1px solid var(--dg-border,#ddd);border-radius:8px;background:var(--dg-surface,#fff);color:var(--dg-text,#222);font:inherit;font-size:13px}
+    .language-control select:focus-visible{outline:2px solid var(--dg-primary,#333);outline-offset:2px}
+    @media(max-width:420px){.language-control{gap:4px;margin-right:4px}.language-control-label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.language-control select{max-width:82px}}
 
 
-/* Language selector is a distinct final section inside the menu. */
-.menu-language-section{display:flex;flex-direction:column;gap:8px;margin-top:10px;padding:14px 12px 4px;border-top:1px solid var(--dg-border,#e5e7eb)}
-.menu-language-section #language-switcher{display:block;width:100%;max-width:none;min-height:40px;padding:8px 10px;border:1px solid var(--dg-border,#ddd);border-radius:8px;background:var(--dg-surface,#fff);color:var(--dg-text,#222);font:inherit;font-size:14px}
-.menu-language-section #language-switcher:focus-visible{outline:2px solid var(--dg-primary,#333);outline-offset:2px}
-.menu-language-heading{font-size:12px;font-weight:600;letter-spacing:.02em;color:var(--dg-muted,#666)}
-.menu-language-section .language-control{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0;color:var(--dg-text,#333);font-size:14px}
-.menu-language-section .language-control-label{display:inline;position:static;width:auto;height:auto;padding:0;margin:0;overflow:visible;clip:auto;white-space:normal;border:0}
-.menu-language-section .language-control select{width:100%;max-width:none;min-height:40px;padding:8px 10px;border:1px solid var(--dg-border,#ddd);border-radius:8px;background:var(--dg-surface,#fff);color:var(--dg-text,#222);font:inherit;font-size:14px}
-@media(max-width:420px){.menu-language-section .language-control-label{position:static;width:auto;height:auto;padding:0;margin:0;overflow:visible;clip:auto;white-space:normal;border:0}.menu-language-section .language-control select{max-width:none}}
+    /* Language selector is a distinct final section inside the menu. */
+    .menu-language-section{display:flex;flex-direction:column;gap:8px;margin-top:10px;padding:14px 12px 4px;border-top:1px solid var(--dg-border,#e5e7eb)}
+    .menu-language-section #language-switcher{display:block;width:100%;max-width:none;min-height:40px;padding:8px 10px;border:1px solid var(--dg-border,#ddd);border-radius:8px;background:var(--dg-surface,#fff);color:var(--dg-text,#222);font:inherit;font-size:14px}
+    .menu-language-section #language-switcher:focus-visible{outline:2px solid var(--dg-primary,#333);outline-offset:2px}
+    .menu-language-heading{font-size:12px;font-weight:600;letter-spacing:.02em;color:var(--dg-muted,#666)}
+    .menu-language-section .language-control{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0;color:var(--dg-text,#333);font-size:14px}
+    .menu-language-section .language-control-label{display:inline;position:static;width:auto;height:auto;padding:0;margin:0;overflow:visible;clip:auto;white-space:normal;border:0}
+    .menu-language-section .language-control select{width:100%;max-width:none;min-height:40px;padding:8px 10px;border:1px solid var(--dg-border,#ddd);border-radius:8px;background:var(--dg-surface,#fff);color:var(--dg-text,#222);font:inherit;font-size:14px}
+    @media(max-width:420px){.menu-language-section .language-control-label{position:static;width:auto;height:auto;padding:0;margin:0;overflow:visible;clip:auto;white-space:normal;border:0}.menu-language-section .language-control select{max-width:none}}
 
 
-/* Language and appearance controls sit side-by-side in the menu. */
-.menu-language-section {
-  display:flex;
-  box-sizing:border-box;
-  width:100%;
-  flex-direction:row;
-  align-items:center;
-  justify-content:center;
-  gap:22px;
-  margin-top:10px;
-  padding:12px 8px 6px;
-  border-top:1px solid var(--dg-border,#e5e7eb);
-}
+    /* Language and appearance controls sit side-by-side in the menu. */
+    .menu-language-section {
+      display:flex;
+      box-sizing:border-box;
+      width:100%;
+      flex-direction:row;
+      align-items:center;
+      justify-content:center;
+      gap:22px;
+      margin-top:10px;
+      padding:12px 8px 6px;
+      border-top:1px solid var(--dg-border,#e5e7eb);
+    }
 
-/* Center navigation labels consistently within the floating menu. */
-.floating-menu .menu-link {
-  text-align:center;
-}
-.menu-language-section #language-switcher,
-.menu-language-section #theme-switcher {
-  display:inline-flex;
-  flex:0 0 42px;
-  align-items:center;
-  justify-content:center;
-  width:42px;
-  min-width:42px;
-  max-width:42px;
-  height:42px;
-  min-height:42px;
-  padding:0;
-  border:1px solid var(--dg-border,#ddd);
-  border-radius:10px;
-  background:var(--dg-surface,#fff);
-  color:var(--dg-text,#222);
-  font:inherit;
-  font-size:20px;
-  line-height:1;
-  cursor:pointer;
-}
-.menu-language-section #language-switcher:hover,
-.menu-language-section #theme-switcher:hover {
-  background:color-mix(in srgb,var(--dg-primary,#222) 8%,var(--dg-surface,#fff));
-}
-.menu-language-section #language-switcher:focus-visible,
-.menu-language-section #theme-switcher:focus-visible {
-  outline:2px solid var(--dg-primary,#333);
-  outline-offset:2px;
-}
+    /* Center navigation labels consistently within the floating menu. */
+    .floating-menu .menu-link {
+      text-align:center;
+    }
+    .menu-language-section #language-switcher,
+    .menu-language-section #theme-switcher {
+      display:inline-flex;
+      flex:0 0 42px;
+      align-items:center;
+      justify-content:center;
+      width:42px;
+      min-width:42px;
+      max-width:42px;
+      height:42px;
+      min-height:42px;
+      padding:0;
+      border:1px solid var(--dg-border,#ddd);
+      border-radius:10px;
+      background:var(--dg-surface,#fff);
+      color:var(--dg-text,#222);
+      font:inherit;
+      font-size:20px;
+      line-height:1;
+      cursor:pointer;
+    }
+    .menu-language-section #language-switcher:hover,
+    .menu-language-section #theme-switcher:hover {
+      background:color-mix(in srgb,var(--dg-primary,#222) 8%,var(--dg-surface,#fff));
+    }
+    .menu-language-section #language-switcher:focus-visible,
+    .menu-language-section #theme-switcher:focus-visible {
+      outline:2px solid var(--dg-primary,#333);
+      outline-offset:2px;
+    }
 
-/* User-selected night mode; customizations continue to work in day mode. */
-body.dg-night-mode {
-  --dg-bg:#11151b;
-  --dg-surface:#1b222c;
-  --dg-text:#e7edf5;
-  --dg-muted:#aab5c4;
-  --dg-border:#364152;
-  --dg-link:#9dbbff;
-  color:var(--dg-text);
-  background-color:var(--dg-bg);
-  color-scheme:dark;
-}
-body.dg-night-mode header,
-body.dg-night-mode .floating-menu,
-body.dg-night-mode .login-form,
-body.dg-night-mode .profile-page,
-body.dg-night-mode .profile-section,
-body.dg-night-mode .profile-picture-editor,
-body.dg-night-mode .dashboard-section-content,
-body.dg-night-mode .dashboard-crud-card,
-body.dg-night-mode .home-content-card,
-body.dg-night-mode .gallery-page,
-body.dg-night-mode .stored-html-page,
-body.dg-night-mode .home-page nav,
-body.dg-night-mode .gallery-page nav {
-  background-color:var(--dg-surface)!important;
-  color:var(--dg-text)!important;
-  border-color:var(--dg-border)!important;
-}
-body.dg-night-mode .menu-link,
-body.dg-night-mode .current-page-label,
-body.dg-night-mode :is(h1,h2,h3,h4,h5,h6,p,label,span,li,dt,dd,td,th),
-body.dg-night-mode .detail-value,
-body.dg-night-mode .profile-name {
-  color:var(--dg-text);
-}
-body.dg-night-mode .menu-link:hover,
-body.dg-night-mode .menu-link:focus-visible,
-body.dg-night-mode .menu-link[aria-current="page"] {
-  background-color:#2b3543!important;
-  color:var(--dg-text)!important;
-}
-body.dg-night-mode :is(input,select,textarea),
-body.dg-night-mode .login-field,
-body.dg-night-mode .profile-input,
-body.dg-night-mode .dashboard-crud-input,
-body.dg-night-mode .dashboard-page input,
-body.dg-night-mode .dashboard-page select,
-body.dg-night-mode .dashboard-page textarea {
-  background-color:#151b23!important;
-  color:var(--dg-text)!important;
-  border-color:var(--dg-border)!important;
-  color-scheme:dark;
-}
-body.dg-night-mode .dashboard-crud-table th,
-body.dg-night-mode .dashboard-crud-row:hover,
-body.dg-night-mode .dashboard-crud-row.is-selected {
-  background-color:#222b37!important;
-  color:var(--dg-text)!important;
-}
-body.dg-night-mode .home-page .home-page-pill,
-body.dg-night-mode .gallery-page .gallery-pill,
-body.dg-night-mode .gallery-page figure {
-  background-color:var(--dg-surface)!important;
-  color:var(--dg-text)!important;
-  border-color:var(--dg-border)!important;
-}
-body.dg-night-mode .home-page .home-page-pill:hover,
-body.dg-night-mode .gallery-page .gallery-pill:hover {
-  background-color:#2b3543!important;
-}
-body.dg-night-mode .dashboard-navigation-area,
-body.dg-night-mode .dashboard-navigation {
-  background-color:var(--dg-surface)!important;
-  border-color:var(--dg-border)!important;
-}
-body.dg-night-mode footer {
-  background-color:var(--dg-surface);
-  color:var(--dg-muted);
-}
-
-
-/* Consistent vector icon treatment for language and day/night controls. */
-.menu-language-section #language-switcher,
-.menu-language-section #theme-switcher {
-  color:var(--dg-primary,var(--dg-text,#333));
-  border-color:var(--dg-border,#e5e7eb);
-  background:var(--dg-surface,#fff);
-  box-shadow:0 1px 2px rgba(15,23,42,.05);
-  transition:background-color .18s ease,border-color .18s ease,color .18s ease,box-shadow .18s ease,transform .18s ease;
-}
-.menu-language-section .header-icon {
-  display:block;
-  width:21px;
-  height:21px;
-  fill:none;
-  stroke:currentColor;
-  stroke-width:1.7;
-  stroke-linecap:round;
-  stroke-linejoin:round;
-  pointer-events:none;
-}
-.menu-language-section #language-switcher:hover,
-.menu-language-section #theme-switcher:hover {
-  color:var(--dg-primary,#222);
-  border-color:var(--dg-primary,#222);
-  box-shadow:0 2px 7px rgba(15,23,42,.10);
-}
-.menu-language-section #language-switcher:active,
-.menu-language-section #theme-switcher:active { transform:scale(.96); }
-body.dg-night-mode .menu-language-section #language-switcher,
-body.dg-night-mode .menu-language-section #theme-switcher {
-  color:var(--dg-text,#e7edf5);
-  background:var(--dg-surface,#1b222c);
-  border-color:var(--dg-border,#364152);
-}
-body.dg-night-mode .menu-language-section #language-switcher:hover,
-body.dg-night-mode .menu-language-section #theme-switcher:hover {
-  color:var(--dg-link,#9dbbff);
-  border-color:var(--dg-link,#9dbbff);
-}
+    /* User-selected night mode; customizations continue to work in day mode. */
+    body.dg-night-mode {
+      --dg-bg:#11151b;
+      --dg-surface:#1b222c;
+      --dg-text:#e7edf5;
+      --dg-muted:#aab5c4;
+      --dg-border:#364152;
+      --dg-link:#9dbbff;
+      color:var(--dg-text);
+      background-color:var(--dg-bg);
+      color-scheme:dark;
+    }
+    body.dg-night-mode header,
+    body.dg-night-mode .floating-menu,
+    body.dg-night-mode .login-form,
+    body.dg-night-mode .profile-page,
+    body.dg-night-mode .profile-section,
+    body.dg-night-mode .profile-picture-editor,
+    body.dg-night-mode .dashboard-section-content,
+    body.dg-night-mode .dashboard-crud-card,
+    body.dg-night-mode .home-content-card,
+    body.dg-night-mode .gallery-page,
+    body.dg-night-mode .stored-html-page,
+    body.dg-night-mode .home-page nav,
+    body.dg-night-mode .gallery-page nav {
+      background-color:var(--dg-surface)!important;
+      color:var(--dg-text)!important;
+      border-color:var(--dg-border)!important;
+    }
+    body.dg-night-mode .menu-link,
+    body.dg-night-mode .current-page-label,
+    body.dg-night-mode :is(h1,h2,h3,h4,h5,h6,p,label,span,li,dt,dd,td,th),
+    body.dg-night-mode .detail-value,
+    body.dg-night-mode .profile-name {
+      color:var(--dg-text);
+    }
+    body.dg-night-mode .menu-link:hover,
+    body.dg-night-mode .menu-link:focus-visible,
+    body.dg-night-mode .menu-link[aria-current="page"] {
+      background-color:#2b3543!important;
+      color:var(--dg-text)!important;
+    }
+    body.dg-night-mode :is(input,select,textarea),
+    body.dg-night-mode .login-field,
+    body.dg-night-mode .profile-input,
+    body.dg-night-mode .dashboard-crud-input,
+    body.dg-night-mode .dashboard-page input,
+    body.dg-night-mode .dashboard-page select,
+    body.dg-night-mode .dashboard-page textarea {
+      background-color:#151b23!important;
+      color:var(--dg-text)!important;
+      border-color:var(--dg-border)!important;
+      color-scheme:dark;
+    }
+    body.dg-night-mode .dashboard-crud-table th,
+    body.dg-night-mode .dashboard-crud-row:hover,
+    body.dg-night-mode .dashboard-crud-row.is-selected {
+      background-color:#222b37!important;
+      color:var(--dg-text)!important;
+    }
+    body.dg-night-mode .home-page .home-page-pill,
+    body.dg-night-mode .gallery-page .gallery-pill,
+    body.dg-night-mode .gallery-page figure {
+      background-color:var(--dg-surface)!important;
+      color:var(--dg-text)!important;
+      border-color:var(--dg-border)!important;
+    }
+    body.dg-night-mode .home-page .home-page-pill:hover,
+    body.dg-night-mode .gallery-page .gallery-pill:hover {
+      background-color:#2b3543!important;
+    }
+    body.dg-night-mode .dashboard-navigation-area,
+    body.dg-night-mode .dashboard-navigation {
+      background-color:var(--dg-surface)!important;
+      border-color:var(--dg-border)!important;
+    }
+    body.dg-night-mode footer {
+      background-color:var(--dg-surface);
+      color:var(--dg-muted);
+    }
 
 
-/* Keep both utility icons neutral, like the site's other interface controls. */
-.menu-language-section #language-switcher,
-.menu-language-section #theme-switcher {
-  color:var(--dg-text,#333)!important;
-  border-color:var(--dg-border,#e5e7eb);
-  background:transparent;
-  box-shadow:none;
-}
-.menu-language-section #language-switcher:hover,
-.menu-language-section #theme-switcher:hover {
-  color:var(--dg-text,#222)!important;
-  border-color:var(--dg-border,#d1d5db);
-  background:var(--dg-hover,var(--dg-surface,#fff));
-  box-shadow:none;
-}
-body.dg-night-mode .menu-language-section #language-switcher,
-body.dg-night-mode .menu-language-section #theme-switcher,
-body.dg-night-mode .menu-language-section #language-switcher:hover,
-body.dg-night-mode .menu-language-section #theme-switcher:hover {
-  color:var(--dg-text,#e7edf5)!important;
-  border-color:var(--dg-border,#364152);
-  background:transparent;
-  box-shadow:none;
-}
+    /* Consistent vector icon treatment for language and day/night controls. */
+    .menu-language-section #language-switcher,
+    .menu-language-section #theme-switcher {
+      color:var(--dg-primary,var(--dg-text,#333));
+      border-color:var(--dg-border,#e5e7eb);
+      background:var(--dg-surface,#fff);
+      box-shadow:0 1px 2px rgba(15,23,42,.05);
+      transition:background-color .18s ease,border-color .18s ease,color .18s ease,box-shadow .18s ease,transform .18s ease;
+    }
+    .menu-language-section .header-icon {
+      display:block;
+      width:21px;
+      height:21px;
+      fill:none;
+      stroke:currentColor;
+      stroke-width:1.7;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+      pointer-events:none;
+    }
+    .menu-language-section #language-switcher:hover,
+    .menu-language-section #theme-switcher:hover {
+      color:var(--dg-primary,#222);
+      border-color:var(--dg-primary,#222);
+      box-shadow:0 2px 7px rgba(15,23,42,.10);
+    }
+    .menu-language-section #language-switcher:active,
+    .menu-language-section #theme-switcher:active { transform:scale(.96); }
+    body.dg-night-mode .menu-language-section #language-switcher,
+    body.dg-night-mode .menu-language-section #theme-switcher {
+      color:var(--dg-text,#e7edf5);
+      background:var(--dg-surface,#1b222c);
+      border-color:var(--dg-border,#364152);
+    }
+    body.dg-night-mode .menu-language-section #language-switcher:hover,
+    body.dg-night-mode .menu-language-section #theme-switcher:hover {
+      color:var(--dg-link,#9dbbff);
+      border-color:var(--dg-link,#9dbbff);
+    }
+
+
+    /* Keep both utility icons neutral, like the site's other interface controls. */
+    .menu-language-section #language-switcher,
+    .menu-language-section #theme-switcher {
+      color:var(--dg-text,#333)!important;
+      border-color:var(--dg-border,#e5e7eb);
+      background:transparent;
+      box-shadow:none;
+    }
+    .menu-language-section #language-switcher:hover,
+    .menu-language-section #theme-switcher:hover {
+      color:var(--dg-text,#222)!important;
+      border-color:var(--dg-border,#d1d5db);
+      background:var(--dg-hover,var(--dg-surface,#fff));
+      box-shadow:none;
+    }
+    body.dg-night-mode .menu-language-section #language-switcher,
+    body.dg-night-mode .menu-language-section #theme-switcher,
+    body.dg-night-mode .menu-language-section #language-switcher:hover,
+    body.dg-night-mode .menu-language-section #theme-switcher:hover {
+      color:var(--dg-text,#e7edf5)!important;
+      border-color:var(--dg-border,#364152);
+      background:transparent;
+      box-shadow:none;
+    }
