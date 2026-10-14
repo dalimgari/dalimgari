@@ -48,6 +48,16 @@
       }
     }
   }
+  function translateTextNode(node) {
+    if (!node || node.nodeType !== Node.TEXT_NODE || !eligible(node) || !normalize(node.nodeValue)) return;
+    if (!originalText.has(node) || (lastRenderedText.has(node) && node.nodeValue !== lastRenderedText.get(node))) {
+      originalText.set(node, node.nodeValue);
+    }
+    const translated = translate(originalText.get(node));
+    if (node.nodeValue !== translated) node.nodeValue = translated;
+    lastRenderedText.set(node, translated);
+  }
+
   function setLanguage(next) {
     language = supported.has(next) ? next : "bn";
     try { localStorage.setItem(STORAGE_KEY, language); } catch (_) {}
@@ -67,26 +77,55 @@
     const selector = document.querySelector("#language-switcher");
     if (selector) selector.addEventListener("click", () => setLanguage(language === "bn" ? "en" : "bn"));
     setLanguage(stored);
-    const observer = new MutationObserver(records => {
-      for (const record of records) {
-        if (record.type === "childList") record.addedNodes.forEach(node => {
-          if (node.nodeType === 1 || node.nodeType === 11) apply(node);
-          else if (node.nodeType === 3 && eligible(node) && normalize(node.nodeValue)) {
-            if (!originalText.has(node) || (lastRenderedText.has(node) && node.nodeValue !== lastRenderedText.get(node))) originalText.set(node, node.nodeValue);
-            const translated = translate(originalText.get(node));
-            if (node.nodeValue !== translated) node.nodeValue = translated;
-            lastRenderedText.set(node, translated);
-          }
-        });
-        else if (record.type === "characterData") {
-          const node = record.target;
-          if (!eligible(node) || !normalize(node.nodeValue)) continue;
-          if (!originalText.has(node) || (lastRenderedText.has(node) && node.nodeValue !== lastRenderedText.get(node))) originalText.set(node, node.nodeValue);
-          const translated = translate(originalText.get(node));
-          if (node.nodeValue !== translated) node.nodeValue = translated;
-          lastRenderedText.set(node, translated);
+    const pendingRoots = new Set();
+    const pendingTextNodes = new Set();
+    let flushScheduled = false;
+
+    const flushPendingTranslations = () => {
+      flushScheduled = false;
+      const roots = Array.from(pendingRoots);
+      const textNodes = Array.from(pendingTextNodes);
+      pendingRoots.clear();
+      pendingTextNodes.clear();
+
+      // A parent root already covers all of its descendants; avoid walking the same
+      // subtree repeatedly when frameworks append a parent and its children together.
+      const uniqueRoots = roots.filter((root, index) =>
+        root.isConnected && !roots.some((other, otherIndex) =>
+          index !== otherIndex && other.isConnected && other !== root &&
+          typeof other.contains === "function" && other.contains(root)
+        )
+      );
+      for (const root of uniqueRoots) apply(root);
+      for (const node of textNodes) {
+        if (node.isConnected && !uniqueRoots.some(root => root === node.parentElement || root.contains(node))) {
+          translateTextNode(node);
         }
       }
+    };
+
+    const scheduleTranslationFlush = () => {
+      if (flushScheduled) return;
+      flushScheduled = true;
+      if (typeof window.requestAnimationFrame === "function") {
+        window.requestAnimationFrame(flushPendingTranslations);
+      } else {
+        window.setTimeout(flushPendingTranslations, 0);
+      }
+    };
+
+    const observer = new MutationObserver(records => {
+      for (const record of records) {
+        if (record.type === "childList") {
+          for (const node of record.addedNodes) {
+            if (node.nodeType === Node.ELEMENT_NODE || node.nodeType === Node.DOCUMENT_FRAGMENT_NODE) pendingRoots.add(node);
+            else if (node.nodeType === Node.TEXT_NODE) pendingTextNodes.add(node);
+          }
+        } else if (record.type === "characterData") {
+          pendingTextNodes.add(record.target);
+        }
+      }
+      if (pendingRoots.size || pendingTextNodes.size) scheduleTranslationFlush();
     });
     observer.observe(document.body, { subtree: true, childList: true, characterData: true });
   }
