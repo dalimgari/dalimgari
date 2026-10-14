@@ -38,3 +38,20 @@ test("production Lighthouse audit can run after a successful deployment", () => 
   assert.match(workflow, /github\.event\.workflow_run\.conclusion == 'success'/);
   assert.match(workflow, /Run three mobile Lighthouse measurements/);
 });
+
+test("gallery defers signed URL creation until tiles approach the viewport and paginates large sets", () => {
+  const app = read("app.js");
+  assert.match(app, /new IntersectionObserver\(entries =>/);
+  assert.match(app, /rootMargin: "320px 0px"/);
+  assert.match(app, /const batchSize=48/);
+  assert.match(app, /const url=await createContentMediaUrl\(mediaPath,mediaBucket\)/);
+  assert.match(app, /Load more \("/);
+});
+
+test("media library renders metadata cards in batches and requests only required columns", () => {
+  const app = read("app.js");
+  assert.match(app, /const assetPageSize=24/);
+  assert.match(app, /slice\(visibleAssetCount,visibleAssetCount\+assetPageSize\)/);
+  assert.match(app, /select\("id,title,title_en,title_bn,description,description_en,description_bn,tags,tags_en,tags_bn,alt_text,alt_text_en,alt_text_bn,original_filename,storage_bucket,storage_path,mime_type,size_bytes,created_at,updated_at"\)/);
+  assert.match(app, /createContentMediaUrl\(asset\.storage_path,asset\.storage_bucket\|\|"content-files"\)/);
+});
