@@ -583,7 +583,7 @@
           let mediaElement;
           if(mime.startsWith("image/")){
             mediaElement=document.createElement("img");
-            mediaElement.alt=item.alt_text||item.title||item.name||"";
+            mediaElement.alt=localizedRecordValue(item,"alt_text")||localizedRecordValue(item,"title")||item.name||"";
             mediaElement.loading="lazy";
             mediaElement.decoding="async";
             attachSignedImageRefresh(mediaElement,mediaPath,mediaBucket);
@@ -610,7 +610,7 @@
             else mediaElement.src=url;
           });
           if(mediaElement.tagName!=="A")tile.append(mediaElement);
-          const captionText=item.title||item.name||"";
+          const captionText=localizedRecordValue(item,"title")||item.name||"";
           if(captionText){
             const caption=document.createElement("figcaption");
             caption.textContent=captionText;
@@ -2021,20 +2021,20 @@
 
     async function loadUserProfile(user) {
       const { data, error } = await supabaseClient.from("profiles")
-        .select("id,full_name,phone,date_of_birth,bio")
+        .select("id,full_name,full_name_bn,phone,date_of_birth,bio,bio_bn")
         .eq("id", user.id).maybeSingle();
       if (error) {
         console.error("Could not load the user record from the profiles table:", error);
-        return { id: user.id, full_name: "", phone: "", date_of_birth: null, bio: "" };
+        return { id: user.id, full_name: "", full_name_bn: "", phone: "", date_of_birth: null, bio: "", bio_bn: "" };
       }
-      return data || { id: user.id, full_name: "", phone: "", date_of_birth: null, bio: "" };
+      return data || { id: user.id, full_name: "", full_name_bn: "", phone: "", date_of_birth: null, bio: "", bio_bn: "" };
     }
 
     async function renderProfile() {
       const user = await getCurrentUser();
       if (!user) { renderPage("Login"); history.replaceState(null, "", "#login"); setCurrentMenuPage("Login"); return; }
       const profile = await loadUserProfile(user);
-      const name = profile.full_name || "";
+      const name = localizedRecordValue(profile, "full_name") || "";
       const role = user.app_metadata && String(user.app_metadata.role || "").toLowerCase() === "admin" ? "ADMIN" : "MEMBER";
       const page = document.createElement("section"); page.className = "profile-page";
       const heading = document.createElement("h1"); heading.className = "profile-heading"; heading.textContent = "My Profile";
@@ -2059,7 +2059,7 @@
       const info = document.createElement("section"); info.className = "profile-section";
       const infoHeading = document.createElement("h2"); infoHeading.textContent = "Profile Information";
       const details = document.createElement("div"); details.className = "profile-details";
-      [["Full Name",name],["Phone Number",profile.phone||"Not added"],["Date of Birth",profile.date_of_birth||"Not added"],["Bio",profile.bio||"No bio yet"]].forEach(([label,value])=>{
+      [["Full Name",name],["Phone Number",profile.phone||"Not added"],["Date of Birth",profile.date_of_birth||"Not added"],["Bio",localizedRecordValue(profile,"bio")||"No bio yet"]].forEach(([label,value])=>{
         const item=document.createElement("div"), l=document.createElement("p"), v=document.createElement("p");
         l.className="detail-label";l.textContent=label;v.className="detail-value";v.textContent=value;item.append(l,v);details.append(item);
       });
@@ -2247,20 +2247,35 @@
           const row=document.createElement("fieldset");row.style.cssText="min-width:0;border:1px solid #e5e7eb;border-radius:10px;padding:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:10px";
           const legend=document.createElement("legend");legend.textContent=file.name+" · "+Math.max(1,Math.round(file.size/1024))+" KB";
           const titleWrap=document.createElement("div");titleWrap.className="dashboard-crud-field";
-          const titleLabel=document.createElement("label");titleLabel.textContent="Title (required)";
-          const titleInput=document.createElement("input");titleInput.className="dashboard-crud-input";titleInput.required=true;titleInput.maxLength=180;titleInput.value=file.name.replace(/\.[^.]+$/,"").trim();titleInput.setAttribute("aria-label","Title for "+file.name);
+          const titleLabel=document.createElement("label");titleLabel.textContent="English title (required)";
+          const titleInput=document.createElement("input");titleInput.className="dashboard-crud-input";titleInput.required=true;titleInput.maxLength=180;titleInput.value=file.name.replace(/\.[^.]+$/,"").trim();titleInput.setAttribute("aria-label","English title for "+file.name);
+          const titleBnWrap=document.createElement("div");titleBnWrap.className="dashboard-crud-field";
+          const titleBnLabel=document.createElement("label");titleBnLabel.textContent="Bangla title (required)";
+          const titleBnInput=document.createElement("input");titleBnInput.className="dashboard-crud-input";titleBnInput.required=true;titleBnInput.maxLength=180;titleBnInput.setAttribute("aria-label","Bangla title for "+file.name);
           const descWrap=document.createElement("div");descWrap.className="dashboard-crud-field";
-          const descLabel=document.createElement("label");descLabel.textContent="Description (optional)";
-          const descInput=document.createElement("input");descInput.className="dashboard-crud-input";descInput.maxLength=1000;descInput.placeholder="Description";descInput.setAttribute("aria-label","Description for "+file.name);
+          const descLabel=document.createElement("label");descLabel.textContent="English description (optional)";
+          const descInput=document.createElement("input");descInput.className="dashboard-crud-input";descInput.maxLength=1000;descInput.placeholder="English description";descInput.setAttribute("aria-label","English description for "+file.name);
+          const descBnWrap=document.createElement("div");descBnWrap.className="dashboard-crud-field";
+          const descBnLabel=document.createElement("label");descBnLabel.textContent="Bangla description (optional)";
+          const descBnInput=document.createElement("input");descBnInput.className="dashboard-crud-input";descBnInput.maxLength=1000;descBnInput.placeholder="Bangla description";descBnInput.setAttribute("aria-label","Bangla description for "+file.name);
           const tagsWrap=document.createElement("div");tagsWrap.className="dashboard-crud-field";
-          const tagsLabel=document.createElement("label");tagsLabel.textContent="Tags (optional)";
-          const tagsInput=document.createElement("input");tagsInput.className="dashboard-crud-input";tagsInput.placeholder="Comma-separated tags";tagsInput.maxLength=500;tagsInput.setAttribute("aria-label","Tags for "+file.name);
+          const tagsLabel=document.createElement("label");tagsLabel.textContent="English tags (optional)";
+          const tagsInput=document.createElement("input");tagsInput.className="dashboard-crud-input";tagsInput.placeholder="Comma-separated English tags";tagsInput.maxLength=500;tagsInput.setAttribute("aria-label","English tags for "+file.name);
+          const tagsBnWrap=document.createElement("div");tagsBnWrap.className="dashboard-crud-field";
+          const tagsBnLabel=document.createElement("label");tagsBnLabel.textContent="Bangla tags (optional)";
+          const tagsBnInput=document.createElement("input");tagsBnInput.className="dashboard-crud-input";tagsBnInput.placeholder="Comma-separated Bangla tags";tagsBnInput.maxLength=500;tagsBnInput.setAttribute("aria-label","Bangla tags for "+file.name);
           const altWrap=document.createElement("div");altWrap.className="dashboard-crud-field";
-          const altLabel=document.createElement("label");altLabel.textContent="Alt text (optional)";
-          const altInput=document.createElement("input");altInput.className="dashboard-crud-input";altInput.maxLength=500;altInput.placeholder="Image description";altInput.setAttribute("aria-label","Alt text for "+file.name);
-          titleWrap.append(titleLabel,titleInput);descWrap.append(descLabel,descInput);tagsWrap.append(tagsLabel,tagsInput);altWrap.append(altLabel,altInput);
-          row.append(legend,titleWrap,descWrap,tagsWrap,altWrap);fileRows.append(row);
-          uploadItems.push({file:file,title:titleInput,description:descInput,tags:tagsInput,alt:altInput,row:row});
+          const altLabel=document.createElement("label");altLabel.textContent="English alt text (optional)";
+          const altInput=document.createElement("input");altInput.className="dashboard-crud-input";altInput.maxLength=500;altInput.placeholder="English image description";altInput.setAttribute("aria-label","English alt text for "+file.name);
+          const altBnWrap=document.createElement("div");altBnWrap.className="dashboard-crud-field";
+          const altBnLabel=document.createElement("label");altBnLabel.textContent="Bangla alt text (optional)";
+          const altBnInput=document.createElement("input");altBnInput.className="dashboard-crud-input";altBnInput.maxLength=500;altBnInput.placeholder="Bangla image description";altBnInput.setAttribute("aria-label","Bangla alt text for "+file.name);
+          titleWrap.append(titleLabel,titleInput);titleBnWrap.append(titleBnLabel,titleBnInput);
+          descWrap.append(descLabel,descInput);descBnWrap.append(descBnLabel,descBnInput);
+          tagsWrap.append(tagsLabel,tagsInput);tagsBnWrap.append(tagsBnLabel,tagsBnInput);
+          altWrap.append(altLabel,altInput);altBnWrap.append(altBnLabel,altBnInput);
+          row.append(legend,titleWrap,titleBnWrap,descWrap,descBnWrap,tagsWrap,tagsBnWrap,altWrap,altBnWrap);fileRows.append(row);
+          uploadItems.push({file:file,title:titleInput,titleBn:titleBnInput,description:descInput,descriptionBn:descBnInput,tags:tagsInput,tagsBn:tagsBnInput,alt:altInput,altBn:altBnInput,row:row});
         });
         setUploadStatus(uploadItems.length?uploadItems.length+" file(s) selected. Add a title for each file, then upload.":"",false);
       });
@@ -2271,7 +2286,7 @@
         if(!user||String(user.app_metadata&&user.app_metadata.role||"").toLowerCase()!=="admin"){setUploadStatus("An active administrator session is required to upload media.",true);return;}
         for(const item of uploadItems){
           if(!allowedUploadTypes.has(item.file.type)||item.file.size>50*1024*1024){setUploadStatus("Unsupported file or file exceeds 50 MB: "+item.file.name+". Remove it and choose a supported file.",true);return;}
-          if(!item.title.value.trim()){setUploadStatus("Every file needs a title: "+item.file.name,true);item.title.focus();return;}
+          if(!item.title.value.trim()||!item.titleBn.value.trim()){setUploadStatus("Every file needs English and Bangla titles: "+item.file.name,true);(!item.title.value.trim()?item.title:item.titleBn).focus();return;}
         }
         uploadButton.disabled=true;filesInput.disabled=true;visibilitySelect.disabled=true;
         let uploaded=0;const failures=[];
@@ -2287,10 +2302,11 @@
               const {error:uploadError}=await supabaseClient.storage.from("content-files").upload(path,file,{contentType:file.type,cacheControl:"3600",upsert:false});
               if(uploadError)throw uploadError;
               const metadata={
-                title:item.title.value.trim(),
-                description:item.description.value.trim()||null,
+                title:item.title.value.trim(),title_en:item.title.value.trim(),title_bn:item.titleBn.value.trim(),
+                description:item.description.value.trim()||null,description_en:item.description.value.trim()||null,description_bn:item.descriptionBn.value.trim()||null,
                 tags:item.tags.value.split(",").map(function(tag){return tag.trim();}).filter(Boolean),
-                alt_text:item.alt.value.trim()||null,
+                tags_en:item.tags.value.split(",").map(function(tag){return tag.trim();}).filter(Boolean),tags_bn:item.tagsBn.value.split(",").map(function(tag){return tag.trim();}).filter(Boolean),
+                alt_text:item.alt.value.trim()||null,alt_text_en:item.alt.value.trim()||null,alt_text_bn:item.altBn.value.trim()||null,
                 original_filename:file.name,
                 storage_bucket:"content-files",
                 storage_path:path,
@@ -2329,21 +2345,25 @@
       function draw(){
         list.replaceChildren();
         const q=search.value.trim().toLowerCase();
-        const filtered=assets.filter(a=>[a.title,a.original_filename,a.description,(a.tags||[]).join(" ")].some(v=>String(v||"").toLowerCase().includes(q)));
+        const filtered=assets.filter(a=>[a.title,a.title_en,a.title_bn,a.original_filename,a.description,a.description_en,a.description_bn,(a.tags||[]).join(" "),(a.tags_en||[]).join(" "),(a.tags_bn||[]).join(" ")].some(v=>String(v||"").toLowerCase().includes(q)));
         if(!filtered.length){const empty=document.createElement("p");empty.className="dashboard-crud-empty";empty.textContent="No media files match this search.";list.append(empty);say(assets.length+" file(s) in library.");return;}
         say(assets.length+" file(s) in library; showing "+filtered.length+".");
         for(const asset of filtered){
           const tile=document.createElement("article");tile.style.cssText="min-width:0;border:1px solid #e5e7eb;border-radius:12px;padding:12px;background:#fff";
           const preview=document.createElement("div");preview.style.cssText="display:grid;place-items:center;min-height:110px;max-height:180px;overflow:hidden;background:#f8fafc;border-radius:8px;margin-bottom:10px";
           if(String(asset.mime_type||"").startsWith("image/")){
-            const img=document.createElement("img");img.src="";img.alt=asset.alt_text||asset.title;img.style.cssText="max-width:100%;max-height:170px;object-fit:contain";
+            const img=document.createElement("img");img.src="";img.alt=localizedRecordValue(asset,"alt_text")||localizedRecordValue(asset,"title")||asset.title||"";img.style.cssText="max-width:100%;max-height:170px;object-fit:contain";
             supabaseClient.storage.from(asset.storage_bucket||"content-files").createSignedUrl(asset.storage_path,3600).then(({data})=>{if(data?.signedUrl)img.src=data.signedUrl;});
             preview.append(img);
           }else{const icon=document.createElement("span");icon.textContent=String(asset.mime_type||"").startsWith("video/")?"Video":String(asset.mime_type||"").startsWith("audio/")?"Audio":"File";icon.style.cssText="font-weight:700;color:#475569";preview.append(icon);}
-          const title=document.createElement("input");title.className="dashboard-crud-input";title.value=asset.title||"";title.required=true;title.setAttribute("aria-label","Media title");
-          const description=document.createElement("textarea");description.className="dashboard-crud-input";description.rows=2;description.placeholder="Description (optional)";description.value=asset.description||"";
-          const tags=document.createElement("input");tags.className="dashboard-crud-input";tags.placeholder="Tags separated by commas";tags.value=(asset.tags||[]).join(", ");
-          const alt=document.createElement("input");alt.className="dashboard-crud-input";alt.placeholder="Alt text (optional)";alt.value=asset.alt_text||"";
+          const title=document.createElement("input");title.className="dashboard-crud-input";title.value=asset.title_en||asset.title||"";title.required=true;title.setAttribute("aria-label","English media title");title.placeholder="English title (required)";
+          const titleBn=document.createElement("input");titleBn.className="dashboard-crud-input";titleBn.value=asset.title_bn||"";titleBn.required=true;titleBn.setAttribute("aria-label","Bangla media title");titleBn.placeholder="Bangla title (required)";
+          const description=document.createElement("textarea");description.className="dashboard-crud-input";description.rows=2;description.placeholder="English description (optional)";description.value=asset.description_en??asset.description??"";
+          const descriptionBn=document.createElement("textarea");descriptionBn.className="dashboard-crud-input";descriptionBn.rows=2;descriptionBn.placeholder="Bangla description (optional)";descriptionBn.value=asset.description_bn||"";
+          const tags=document.createElement("input");tags.className="dashboard-crud-input";tags.placeholder="English tags separated by commas";tags.value=(asset.tags_en||asset.tags||[]).join(", ");
+          const tagsBn=document.createElement("input");tagsBn.className="dashboard-crud-input";tagsBn.placeholder="Bangla tags separated by commas";tagsBn.value=(asset.tags_bn||[]).join(", ");
+          const alt=document.createElement("input");alt.className="dashboard-crud-input";alt.placeholder="English alt text (optional)";alt.value=asset.alt_text_en??asset.alt_text??"";
+          const altBn=document.createElement("input");altBn.className="dashboard-crud-input";altBn.placeholder="Bangla alt text (optional)";altBn.value=asset.alt_text_bn||"";
           const filename=document.createElement("p");filename.className="dashboard-crud-hint";filename.textContent=(asset.original_filename||"File")+" · "+(asset.size_bytes?Math.round(asset.size_bytes/1024)+" KB":"size unknown");
           const linkInfo=document.createElement("p");linkInfo.className="dashboard-crud-hint";linkInfo.textContent="Media ID: "+asset.id;
           const attachmentArea=document.createElement("div");attachmentArea.style.cssText="display:grid;gap:8px;margin:8px 0";
@@ -2352,10 +2372,11 @@
           const save=document.createElement("button");save.type="button";save.className="action-button primary";save.textContent="Save Metadata";
           const del=document.createElement("button");del.type="button";del.className="action-button";del.textContent="Delete File";
           save.addEventListener("click",async()=>{
-            const cleanTitle=title.value.trim();if(!cleanTitle){say("Every media file must have a title.",true,tileStatus);title.focus();return;}
+            const cleanTitle=title.value.trim(),cleanTitleBn=titleBn.value.trim();if(!cleanTitle||!cleanTitleBn){say("Every media file must have English and Bangla titles.",true,tileStatus);(!cleanTitle?title:titleBn).focus();return;}
             save.disabled=true;
             try{
-              const payload={title:cleanTitle,description:description.value.trim()||null,tags:tags.value.split(",").map(x=>x.trim()).filter(Boolean),alt_text:alt.value.trim()||null,updated_at:new Date().toISOString()};
+              const englishTags=tags.value.split(",").map(x=>x.trim()).filter(Boolean),banglaTags=tagsBn.value.split(",").map(x=>x.trim()).filter(Boolean);
+              const payload={title:cleanTitle,title_en:cleanTitle,title_bn:cleanTitleBn,description:description.value.trim()||null,description_en:description.value.trim()||null,description_bn:descriptionBn.value.trim()||null,tags:englishTags,tags_en:englishTags,tags_bn:banglaTags,alt_text:alt.value.trim()||null,alt_text_en:alt.value.trim()||null,alt_text_bn:altBn.value.trim()||null,updated_at:new Date().toISOString()};
               const {error}=await supabaseClient.from("media_assets").update(payload).eq("id",asset.id);if(error)throw error;
               const {data:links,error:linksError}=await supabaseClient.from("media_links").select("source_table,source_id").eq("media_id",asset.id);
               if(linksError)throw linksError;
@@ -2364,7 +2385,7 @@
                 const {data:source,error:sourceError}=await supabaseClient.from(link.source_table).select("media").eq("id",link.source_id).maybeSingle();
                 if(sourceError)throw sourceError;
                 const media=Array.isArray(source?.media)?source.media:[];
-                const updated=media.map(item=>String(item.path||item.storage_path||"")===String(asset.storage_path)?{...item,media_id:asset.id,title:cleanTitle,alt_text:payload.alt_text}:item);
+                const updated=media.map(item=>String(item.path||item.storage_path||"")===String(asset.storage_path)?{...item,media_id:asset.id,title:cleanTitle,title_en:cleanTitle,title_bn:cleanTitleBn,description_en:payload.description_en,description_bn:payload.description_bn,alt_text:payload.alt_text,alt_text_en:payload.alt_text_en,alt_text_bn:payload.alt_text_bn,tags_en:payload.tags_en,tags_bn:payload.tags_bn}:item);
                 const {error:updateSourceError}=await supabaseClient.from(link.source_table).update({media:updated,updated_at:new Date().toISOString()}).eq("id",link.source_id);
                 if(updateSourceError)throw updateSourceError;
               }
@@ -2419,7 +2440,7 @@
             }catch(e){say("Delete failed: "+(e.message||"Unknown error"),true,tileStatus);}
             finally{del.disabled=false;}
           });
-          actions.append(save,del);tile.append(preview,title,description,tags,alt,filename,linkInfo,attachmentArea,actions,tileStatus);list.append(tile);
+          actions.append(save,del);tile.append(preview,title,titleBn,description,descriptionBn,tags,tagsBn,alt,altBn,filename,linkInfo,attachmentArea,actions,tileStatus);list.append(tile);
         }
       }
       search.addEventListener("input",draw);
@@ -2710,6 +2731,8 @@
         post:{table:"post",label:"Posts",fields:[
           {name:"title_bn",label:"Title (Bengali)",type:"text",required:true},
           {name:"title_en",label:"Title (English)",type:"text",required:true},
+          {name:"caption_bn",label:"Caption (Bengali)",type:"text",full:true},
+          {name:"caption_en",label:"Caption (English)",type:"text",full:true},
           {name:"description_bn",label:"Description (Bengali)",type:"textarea",full:true},
           {name:"description_en",label:"Description (English)",type:"textarea",full:true},
           {name:"content_bn",label:"Content (HTML — Bengali)",type:"textarea",rows:10,full:true},
@@ -2753,10 +2776,12 @@
         ]},
         user:{table:"profiles",label:"User profiles",readOnlyCreate:true,noDelete:true,fields:[
           {name:"id",label:"Auth user ID",type:"text",readonly:true,required:true,full:true},
-          {name:"full_name",label:"Full name",type:"text"},
+          {name:"full_name",label:"Full name (English)",type:"text"},
+          {name:"full_name_bn",label:"Full name (Bengali)",type:"text"},
           {name:"phone",label:"Phone",type:"tel"},
           {name:"date_of_birth",label:"Date of birth",type:"date"},
-          {name:"bio",label:"Bio",type:"textarea",full:true}
+          {name:"bio",label:"Bio (English)",type:"textarea",full:true},
+          {name:"bio_bn",label:"Bio (Bengali)",type:"textarea",full:true}
         ]}
       };
       if (section.id === "customization" || section.id === "settings") {
@@ -3528,9 +3553,9 @@
             if (Object.prototype.hasOwnProperty.call(payload, "description_bn") || Object.prototype.hasOwnProperty.call(payload, "description_en")) payload.description = localizedDescription || null;
             if (section.id === "page" || section.id === "post") payload.content = (lang === "en" ? payload.content_en : payload.content_bn) || payload.content_bn || payload.content_en || "";
             if (section.id === "post") {
-              payload.caption = localizedTitle;
-              payload.caption_bn = payload.title_bn || null;
-              payload.caption_en = payload.title_en || null;
+              payload.caption = String(payload.caption_en || payload.title_en || localizedTitle || "").trim();
+              payload.caption_bn = String(payload.caption_bn || "").trim() || null;
+              payload.caption_en = String(payload.caption_en || payload.title_en || "").trim() || null;
             }
             if (section.id !== "hero") {
               payload.url=generateUrlValue(payload.url||localizedTitle);
@@ -3541,9 +3566,9 @@
             }
           }
           if(section.id==="post") {
-            payload.caption=String(payload.title||"").trim();
-            payload.caption_bn=payload.title_bn||null;
-            payload.caption_en=payload.title_en||null;
+            payload.caption=String(payload.caption_en||payload.title_en||payload.title||"").trim();
+            payload.caption_bn=String(payload.caption_bn||"").trim()||null;
+            payload.caption_en=String(payload.caption_en||payload.title_en||"").trim()||null;
           }
           if(controls.album_id)payload.album_id=controls.album_id.value||null;
           const existingMedia=Array.isArray(selectedRecordData?.media)?selectedRecordData.media.map(item=>({...item})):[];
@@ -3751,10 +3776,12 @@
         finally{if(objectUrl)URL.revokeObjectURL(objectUrl);avatarInput.disabled=false;avatarInput.value="";}
       });
 
-      const fullName=field("Full Name","full_name","text",profile.full_name||metadataValue(user,"full_name")||metadataValue(user,"name"));
+      const fullName=field("Full Name (English)","full_name","text",profile.full_name||metadataValue(user,"full_name")||metadataValue(user,"name"));
+      const fullNameBn=field("Full Name (Bengali)","full_name_bn","text",profile.full_name_bn);
       field("Phone Number","phone","tel",profile.phone);
       field("Date of Birth","date_of_birth","date",profile.date_of_birth);
-      field("Bio","bio","textarea",profile.bio);
+      field("Bio (English)","bio","textarea",profile.bio);
+      field("Bio (Bengali)","bio_bn","textarea",profile.bio_bn);
       const status=document.createElement("p");status.className="profile-status";status.setAttribute("role","status");
       const actions=document.createElement("div");actions.className="profile-actions";
       const save=document.createElement("button");save.className="action-button primary";save.type="submit";save.textContent="Save Changes";
@@ -3766,9 +3793,11 @@
         const profileData = {
           id: user.id,
           full_name: fullName.value.trim(),
+          full_name_bn: fullNameBn.value.trim() || null,
           phone: form.elements.phone.value.trim() || null,
           date_of_birth: form.elements.date_of_birth.value || null,
           bio: form.elements.bio.value.trim() || null,
+          bio_bn: form.elements.bio_bn.value.trim() || null,
           updated_at: new Date().toISOString()
         };
         const { error } = await supabaseClient.from("profiles").upsert(profileData, { onConflict: "id" });

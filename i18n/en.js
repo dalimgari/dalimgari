@@ -441,6 +441,20 @@ window.DG_I18N_EN = {
 "Logging out...":"Logging out...",
 "Could not check the session during navigation:":"Could not check the session during navigation:",
 "Menu navigation failed:":"Menu navigation failed:"
+
+  ,"English title (required)":"English title (required)"
+  ,"Bangla title (required)":"Bangla title (required)"
+  ,"English description (optional)":"English description (optional)"
+  ,"Bangla description (optional)":"Bangla description (optional)"
+  ,"English tags (optional)":"English tags (optional)"
+  ,"Bangla tags (optional)":"Bangla tags (optional)"
+  ,"Comma-separated English tags":"Comma-separated English tags"
+  ,"Comma-separated Bangla tags":"Comma-separated Bangla tags"
+  ,"English alt text (optional)":"English alt text (optional)"
+  ,"Bangla alt text (optional)":"Bangla alt text (optional)"
+  ,"Every file needs English and Bangla titles:":"Every file needs English and Bangla titles:"
+  ,"Every media file must have English and Bangla titles.":"Every media file must have English and Bangla titles."
+
 };
 Object.assign(window.DG_I18N_EN, {
   "Title (Bengali)": "Title (Bengali)",
