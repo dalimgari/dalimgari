@@ -341,19 +341,32 @@
       if (!cfg) return {};
       dalimgariRuntimeConfig = cfg;
       const identity=cfg.ui_customization_identity||{}, general=cfg.ui_settings_general||{};
-      // Apply the saved favicon without changing the existing page shell or route behavior.
-      const faviconHref = typeof general.favicon_data_url === "string" && /^data:image\/(?:png|gif|x-icon|vnd\.microsoft\.icon);base64,/i.test(general.favicon_data_url)
-        ? general.favicon_data_url : new URL("favicon.svg", document.baseURI).href;
+      // Use only the administrator-uploaded favicon. No bundled/default icon is applied.
+      const faviconDataUrl = typeof general.favicon_data_url === "string" &&
+        /^data:image\/(?:png|gif|x-icon|vnd\.microsoft\.icon);base64,/i.test(general.favicon_data_url)
+        ? general.favicon_data_url : "";
       let faviconLink = document.querySelector('link[rel~="icon"]');
-      if (!faviconLink) {
-        faviconLink = document.createElement("link");
-        faviconLink.rel = "icon";
-        document.head.append(faviconLink);
+      const headerFavicon = document.querySelector(".header-favicon");
+      if (faviconDataUrl) {
+        if (!faviconLink) {
+          faviconLink = document.createElement("link");
+          faviconLink.rel = "icon";
+          document.head.append(faviconLink);
+        }
+        faviconLink.href = faviconDataUrl;
+        faviconLink.type = faviconDataUrl.startsWith("data:image/png") ? "image/png" :
+          (faviconDataUrl.startsWith("data:image/gif") ? "image/gif" : "image/x-icon");
+        if (headerFavicon) {
+          headerFavicon.src = faviconDataUrl;
+          headerFavicon.hidden = false;
+        }
+      } else {
+        if (faviconLink) faviconLink.remove();
+        if (headerFavicon) {
+          headerFavicon.removeAttribute("src");
+          headerFavicon.hidden = true;
+        }
       }
-      faviconLink.href = faviconHref;
-      faviconLink.type = faviconHref.startsWith("data:image/png") ? "image/png" :
-        (faviconHref.startsWith("data:image/gif") ? "image/gif" :
-        (faviconHref.startsWith("data:image/") ? "image/x-icon" : "image/svg+xml"));
       const theme=cfg.ui_customization_theme||{}, header=cfg.ui_customization_header_footer||{};
       const layout=cfg.ui_customization_layout||{}, typography=cfg.ui_customization_typography||{};
       const responsive=cfg.ui_customization_responsive||{}, components=cfg.ui_customization_components||{}, media=cfg.ui_customization_media||{}, pageStyle=cfg.ui_customization_page_style||{}, effects=cfg.ui_customization_effects||{}, heroVisual=cfg.ui_customization_hero||{}, features=cfg.ui_settings_maintenance_features||{};
