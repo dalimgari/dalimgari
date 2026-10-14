@@ -2257,7 +2257,7 @@
           row.append(legend,titleEn.wrap,titleBn.wrap,descEn.wrap,descBn.wrap,tagsEn.wrap,tagsBn.wrap,altEn.wrap,altBn.wrap);fileRows.append(row);
           uploadItems.push({file:file,titleEn:titleEn.input,titleBn:titleBn.input,descriptionEn:descEn.input,descriptionBn:descBn.input,tagsEn:tagsEn.input,tagsBn:tagsBn.input,altEn:altEn.input,altBn:altBn.input,row:row});
         });
-        setUploadStatus(uploadItems.length?uploadItems.length+" file(s) selected. Add a title for each file, then upload.":"",false);
+        setUploadStatus(uploadItems.length?uploadItems.length+" file(s) selected. Add both English and Bengali titles for each file, then upload.":"",false);
       });
       uploadForm.addEventListener("submit",async function(event){
         event.preventDefault();
