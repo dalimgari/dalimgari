@@ -558,7 +558,7 @@
         if(album.cover_path)addMedia({path:album.cover_path,mime_type:"image/unknown",title:localizedRecordValue(album,"title"),alt_text:localizedRecordValue(album,"title")},album.title);
       }
       for(const source of sources)for(const item of (Array.isArray(source.media)?source.media:[]))addMedia(item,localizedRecordValue(source,"title"));
-      for(const album of albums)pill(album.title||"Untitled","album",album.id,selectedAlbumId===album.id);
+      for(const album of albums)pill(localizedRecordValue(album,"title")||"Untitled","album",album.id,selectedAlbumId===album.id);
 
       const galleryGrid=(items)=>{
         const grid=document.createElement("div");
