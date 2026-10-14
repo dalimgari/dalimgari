@@ -8,7 +8,8 @@ test("shell loads independent startup resources in parallel before dependent ini
   const sdkReady = html.indexOf("await supabaseSdkPromise");
   const parallelStart = html.indexOf("await Promise.all([", sdkReady);
   const parallelEnd = html.indexOf("]);", parallelStart);
-  assert.ok(parallelStart >= 0 && parallelEnd > parallelStart, "independent startup resources should use Promise.all");
+  assert.ok(sdkReady >= 0 && parallelStart > sdkReady && parallelEnd > parallelStart,
+    "independent startup resources should use Promise.all after the SDK is ready");
 
   const parallelBlock = html.slice(parallelStart, parallelEnd);
   for (const resource of ['loadScript("i18n/bn.js")', 'loadScript("i18n/en.js")', 'loadScript("config.js")']) {
