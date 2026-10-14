@@ -23,7 +23,7 @@ test("Media Library upload MIME types match the Storage bucket allowlist", () =>
 });
 
 test("Client upload size validation matches the 50 MiB Storage limit", () => {
-  const app = read("app.js");
+  const app = read("app.js") + "\n" + read("dashboard.js");
   const migration = read("supabase/migrations/20261010213728_minimal_dashboard_content_system.sql");
 
   assert.match(app, /file\.size>50\*1024\*1024/);
