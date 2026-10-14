@@ -2632,7 +2632,7 @@
               try{
                 const current=await getCurrentUser();if(!current)throw new Error("Your admin session has expired. Please sign in again.");
                 const titleBn=titleBnInput.value.trim(),titleEn=titleEnInput.value.trim();
-                if(!titleBn&&!titleEn)throw new Error("Enter the widget title in Bengali or English.");
+                if(!titleBn||!titleEn)throw new Error("Enter the widget title in both Bengali and English.");
                 const update={is_visible:select.value==="true",title_bn:titleBn||null,title_en:titleEn||null,title:(getUiLanguage()==="en"?(titleEn||titleBn):(titleBn||titleEn)),updated_by:current.id,updated_at:new Date().toISOString()};
                 if(item.widget_type==="map"){
                   const location=String(locationInput&&locationInput.value||"").trim();
