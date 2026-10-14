@@ -374,7 +374,7 @@
     .menu-language-section #theme-switcher:hover {
       color:var(--dg-text,#222)!important;
       border-color:var(--dg-border,#d1d5db);
-      background:var(--dg-hover,var(--dg-surface,#fff));
+      background:var(--dg-hover-surface,var(--dg-surface,#fff));
       box-shadow:none;
     }
     body.dg-night-mode .menu-language-section #language-switcher,
