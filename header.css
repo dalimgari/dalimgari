@@ -240,6 +240,7 @@
 
     /* User-selected night mode; customizations continue to work in day mode. */
     body.dg-night-mode {
+      --dg-hover-surface:#2b3543;
       --dg-bg:#11151b;
       --dg-surface:#1b222c;
       --dg-text:#e7edf5;
