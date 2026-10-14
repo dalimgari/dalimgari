@@ -110,6 +110,11 @@ test("site identity and clocks follow the selected UI language", () => {
   assert.ok(app.includes('name:"site_title_bn"'));
   assert.ok(app.includes('general.site_title_bn'));
   assert.ok(app.includes('new Intl.DateTimeFormat(locale,{hour:"2-digit"'));
+  assert.ok(app.includes('hourCycle:"h12"'));
+  assert.ok(app.includes('period=>period.toUpperCase()'));
+  for (const period of ["সকাল","দুপুর","বিকেল","সন্ধ্যা","রাত"]) {
+    assert.ok(app.includes('?"' + period + '"'), "Missing Bengali clock period: " + period);
+  }
   assert.ok(app.includes('new Intl.DateTimeFormat(locale,{dateStyle:"full"'));
   assert.ok(app.includes('["বৈশাখ","জ্যৈষ্ঠ","আষাঢ়"'));
   assert.ok(app.includes('new Intl.NumberFormat(getUiLanguage()==="bn"?"bn-BD":"en-GB"'));
