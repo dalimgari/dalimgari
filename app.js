@@ -1207,11 +1207,14 @@
         }
       }
       if(pageCards){
-        const {data:pages,error}=await supabaseClient.from("pages").select("title,description,content,url,media,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(200);
+        const {data:pages,error}=await supabaseClient.from("pages").select("title,title_bn,title_en,description,description_bn,description_en,content,content_bn,content_en,url,media,created_at").eq("visibility","public").order("created_at",{ascending:false}).limit(200);
         if(!error&&pages?.length){
           const grid=makeGrid();
           for(const page of pages){
-            const card=makeCard(page.title,page.description||"");
+            const pageTitle=localizedRecordValue(page,"title");
+            const pageDescription=localizedRecordValue(page,"description");
+            page.content=localizedRecordValue(page,"content")||page.content||"";
+            const card=makeCard(pageTitle,pageDescription||"");
             card.classList.add("home-page-html-card");
             card.dataset.pageUrl=String(page.url||"");
             card.id="home-page-"+String(page.url||"").replace(/[^a-zA-Z0-9_-]/g,"-");
@@ -1219,7 +1222,7 @@
             card.style.scrollMarginTop="24px";
             const preview=document.createElement("div");
             preview.className="home-page-html-preview";
-            preview.setAttribute("aria-label",(page.title||"Page")+" HTML preview");
+            preview.setAttribute("aria-label",(pageTitle||"Page")+" HTML preview");
             preview.style.cssText="max-height:420px;overflow:auto;overscroll-behavior:contain;border:1px solid #e5e7eb;border-radius:10px;padding:12px;margin:12px 0;background:#fff;min-width:0;overflow-wrap:anywhere";
             card.append(preview);
             await renderHtmlInto(preview,page.content||"",activeSession,0,".home-page-html-preview");
@@ -1228,7 +1231,7 @@
               const link=document.createElement("a");
               link.href=window.location.pathname+"?page="+encodeURIComponent(page.url);
               link.textContent="See More";
-              link.setAttribute("aria-label","See more of "+(page.title||"this page"));
+              link.setAttribute("aria-label","See more of "+(pageTitle||"this page"));
               link.style.cssText="display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:9px 16px;border-radius:9px;background:var(--dg-primary,#222);color:#fff;text-decoration:none;font-weight:600;margin-top:4px";
               card.append(link);
             }
