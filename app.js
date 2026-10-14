@@ -1378,7 +1378,7 @@
       mainContent.append(shell);
       if (!slug) { shell.textContent = "Page not found."; return; }
       const { data, error } = await supabaseClient.from("pages")
-        .select("title,description,content,url,visibility,media").eq("url", slug).maybeSingle();
+        .select("title,title_bn,title_en,description,description_bn,description_en,content,content_bn,content_en,url,visibility,media").eq("url", slug).maybeSingle();
       if (error || !data) {
         const message = document.createElement("p");
         message.textContent = "This page is unavailable or you do not have permission to view it.";
