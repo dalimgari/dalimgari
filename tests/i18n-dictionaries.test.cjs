@@ -135,3 +135,16 @@ test("site identity and clocks follow the selected UI language", () => {
   assert.ok(app.includes('new Intl.NumberFormat(getUiLanguage()==="bn"?"bn-BD":"en-GB"'));
   assert.ok(app.includes('document.addEventListener("dalimgari:languagechange",updateClock)'));
 });
+
+test("media titles and metadata follow the selected UI language across the site", () => {
+  const app = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
+  assert.ok(app.includes("const localizedMediaValue ="), "Media labels should share the centralized localization helper");
+  assert.ok(app.includes('const captionText=localizedMediaValue(item,"title")'), "Gallery captions should use the selected language");
+  assert.ok(app.includes('mediaElement.textContent=localizedMediaValue(item,"title")'), "Non-previewable gallery files should use localized titles");
+  assert.ok(app.includes('.select("id,title,title_bn,title_en,alt_text,alt_text_bn,alt_text_en,storage_path")'), "Gallery should enrich older attachments from bilingual Media Library metadata");
+  assert.ok(app.includes('.in("storage_path",mediaPaths)'), "Gallery metadata lookup should match existing attached files by storage path");
+  assert.ok(app.includes('select("id,title,title_bn,title_en,original_filename,storage_bucket,storage_path,mime_type,size_bytes")'), "Media picker should fetch both title languages");
+  assert.ok(app.includes('text.textContent=localizedMediaValue(asset,"title")'), "Media picker should display the localized title");
+  assert.ok(app.includes('insert({title,title_en:titleEn,title_bn:titleBn,original_filename:file.name'), "Files uploaded from content editors should save both language titles");
+  assert.ok(app.includes('option.textContent=localizedRecordValue(album,"title")'), "Album selectors should display the localized title");
+});
