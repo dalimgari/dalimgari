@@ -7,7 +7,7 @@ const read = (file) => fs.readFileSync(path.join(__dirname, "..", file), "utf8")
 const mimeSet = (source) => [...source.matchAll(/['"]([^'"]+\/[^'"]+)['"]/g)].map((match) => match[1]).sort();
 
 test("Media Library upload MIME types match the Storage bucket allowlist", () => {
-  const app = read("app.js");
+  const app = read("app.js") + "\n" + read("dashboard.js");
   const migration = read("supabase/migrations/20261010213728_minimal_dashboard_content_system.sql");
   const libraryBlock = app.match(/const allowedUploadTypes=new Set\(\[([\s\S]*?)\]\);/);
   const contentBlock = app.match(/const allowedTypes=new Set\(\[([\s\S]*?)\]\);/);
