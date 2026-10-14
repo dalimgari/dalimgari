@@ -163,11 +163,15 @@ header { box-shadow:0 8px 20px -8px rgba(0,0,0,var(--dg-shadow-opacity,.06)); }
 /* Language and appearance controls sit side-by-side in the menu. */
 .menu-language-section {
   display:flex;
+  box-sizing:border-box;
+  width:100%;
   flex-direction:row;
   align-items:center;
-  justify-content:flex-start;
-  gap:8px;
-  padding:12px 8px 6px;
+  justify-content:space-between;
+  gap:16px;
+  margin-top:10px;
+  padding:14px 12px 6px;
+  border-top:1px solid var(--dg-border,#e5e7eb);
 }
 .menu-language-section #language-switcher,
 .menu-language-section #theme-switcher {
