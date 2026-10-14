@@ -4,6 +4,30 @@
       const floatingMenu = document.querySelector("#floating-menu");
       if (!menuButton || !floatingMenu) return;
 
+      // Persist the visitor's day/night preference independently of the language setting.
+      const themeButton = document.querySelector("#theme-switcher");
+      const themeStorageKey = "dalimgari-color-mode";
+      const applyColorMode = (mode) => {
+        const isNight = mode === "night";
+        document.body.classList.toggle("dg-night-mode", isNight);
+        if (themeButton) {
+          themeButton.textContent = isNight ? "☀️" : "🌙";
+          themeButton.setAttribute("aria-label", isNight ? "Switch to light mode" : "Switch to dark mode");
+          themeButton.setAttribute("title", isNight ? "Switch to light mode" : "Switch to dark mode");
+          themeButton.setAttribute("aria-pressed", String(isNight));
+        }
+      };
+      let savedColorMode = "day";
+      try { savedColorMode = localStorage.getItem(themeStorageKey) || "day"; } catch (_) {}
+      applyColorMode(savedColorMode);
+      if (themeButton) {
+        themeButton.addEventListener("click", () => {
+          const nextMode = document.body.classList.contains("dg-night-mode") ? "day" : "night";
+          applyColorMode(nextMode);
+          try { localStorage.setItem(themeStorageKey, nextMode); } catch (_) {}
+        });
+      }
+
       const closeMenu = () => {
         floatingMenu.hidden = true;
         menuButton.setAttribute("aria-expanded", "false");
