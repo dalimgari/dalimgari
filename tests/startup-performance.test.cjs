@@ -16,10 +16,10 @@ test("shell loads independent startup resources in parallel before dependent ini
     assert.ok(parallelBlock.includes(resource), `${resource} should be in the parallel startup group`);
   }
 
-  const translationRegistry = html.indexOf('await loadScript("i18n/index.js")', parallelEnd);
+  const translationRegistry = html.indexOf('await loadScript("i18n/index.js")', resourceEnd);
   const app = html.indexOf('await loadScript("app.js")', translationRegistry);
   const header = html.indexOf('await loadScript("header.js")', app);
-  assert.ok(translationRegistry > parallelEnd, "translation registry must wait for language dictionaries");
+  assert.ok(translationRegistry > resourceEnd, "translation registry must wait for language dictionaries");
   assert.ok(app > translationRegistry, "app must wait for config and translation registry");
   assert.ok(header > app, "header initialization must retain its app dependency");
 });
