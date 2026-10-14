@@ -223,7 +223,7 @@
     }
 
     .login-submit:hover {
-      background: color-mix(in srgb, var(--dg-primary) 82%, var(--dg-text));
+      background: color-mix(in srgb, var(--dg-primary) 82%, var(--dg-surface));
     }
 
     .login-message {
