@@ -653,7 +653,7 @@
             for(const album of albums){
               const section=document.createElement("section");
               section.style.cssText="margin-top:32px;padding-top:22px;border-top:1px solid #e5e7eb";
-              const sectionTitle=document.createElement("h2");sectionTitle.textContent=album.title||"Untitled";sectionTitle.style.cssText="margin:0 0 14px;font-size:clamp(19px,3vw,24px)";
+              const sectionTitle=document.createElement("h2");sectionTitle.textContent=localizedRecordValue(album,"title")||"Untitled";sectionTitle.style.cssText="margin:0 0 14px;font-size:clamp(19px,3vw,24px)";
               section.append(sectionTitle);
               const albumItems=mediaForAlbum(album);
               if(album.cover_path&&!albumItems.some(item=>(item.path||item.storage_path)===album.cover_path))albumItems.push({path:album.cover_path,mime_type:"image/unknown",title:album.title,alt_text:album.title});
