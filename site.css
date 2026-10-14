@@ -671,7 +671,7 @@
 .home-page > .home-widget,
 .home-page > .home-album,
 .home-page > .home-page-card { padding-bottom:24px; }
-.home-page > .home-hero { padding:0; }
+.home-page > .home-hero { margin-top:16px; padding:0; }
 .home-page .home-page-pillbar {
   position:sticky;
   top:var(--dg-page-pill-sticky-top,104px);
