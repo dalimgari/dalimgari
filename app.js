@@ -1420,7 +1420,7 @@
       const heading = document.createElement("h1");
       const pageTitle = localizedRecordValue(data,"title");
       const pageLabel = document.querySelector("#current-page-label");
-      if (pageLabel) pageLabel.textContent = pageTitle || localizedSiteTitle(siteConfig);
+      if (pageLabel) pageLabel.textContent = pageTitle || window.DalimgariI18n?.t?.("Page") || "Page";
       const pageDescription = localizedRecordValue(data,"description");
       data.content = localizedRecordValue(data,"content") || data.content || "";
       heading.textContent = pageTitle || "";
