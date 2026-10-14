@@ -105,6 +105,16 @@ test("header language control contains no adjacent language labels", () => {
   assert.ok(!header.includes("Language / ভাষা"));
   assert.ok(!header.includes("language-control-label"));
   assert.ok(!header.includes("language-section-label"));
+  assert.ok(header.includes('id="theme-switcher"'), "Header should expose a day/night toggle beside the language control");
+});
+
+test("day/night mode toggles immediately and persists the visitor preference", () => {
+  const headerScript = fs.readFileSync(path.join(__dirname, "..", "header.js"), "utf8");
+  const headerStyles = fs.readFileSync(path.join(__dirname, "..", "header.css"), "utf8");
+  assert.ok(headerScript.includes('localStorage.getItem(themeStorageKey)'));
+  assert.ok(headerScript.includes('localStorage.setItem(themeStorageKey, nextMode)'));
+  assert.ok(headerScript.includes('classList.toggle("dg-night-mode", isNight)'));
+  assert.ok(headerStyles.includes("body.dg-night-mode"));
 });
 
 test("site identity and clocks follow the selected UI language", () => {
