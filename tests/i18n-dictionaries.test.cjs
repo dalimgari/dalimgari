@@ -28,3 +28,34 @@ test("Bengali dictionary includes key authentication and common action labels", 
     assert.ok(bn[key], `Expected Bengali translation for ${key}`);
   }
 });
+
+test("Bengali and English dictionaries have matching keys for every supported UI label", () => {
+  const bn = loadDictionary("bn.js", "DG_I18N_BN");
+  const en = loadDictionary("en.js", "DG_I18N_EN");
+  assert.deepEqual(
+    Object.keys(bn).sort(),
+    Object.keys(en).sort(),
+    "Every supported UI key must have both Bengali and English values"
+  );
+});
+
+test("Dictionaries cover dashboard settings, account flows, and recovery actions", () => {
+  const bn = loadDictionary("bn.js", "DG_I18N_BN");
+  const en = loadDictionary("en.js", "DG_I18N_EN");
+  const required = [
+    "Site Identity",
+    "Appearance & Theme",
+    "Allow new account creation",
+    "Permanently delete this item and its stored file, if any? This cannot be undone.",
+    "Your admin session has expired. Please sign in again.",
+    "Could not save role assignment:",
+    "Change profile picture",
+    "Email limit reached. Please try again after one hour.",
+    "Homepage page order saved.",
+    "Move this record to Recycle Bin? It can be restored within 30 days."
+  ];
+  for (const key of required) {
+    assert.equal(typeof bn[key], "string", `Bengali translation missing: ${key}`);
+    assert.equal(typeof en[key], "string", `English value missing: ${key}`);
+  }
+});
