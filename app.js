@@ -3092,6 +3092,15 @@
           faviconPreview.width = 48;
           faviconPreview.height = 48;
           faviconPreview.style.cssText = "display:none;object-fit:contain;margin-top:6px;border:1px solid #e5e7eb;border-radius:8px;padding:6px";
+          const selectedFaviconLabel = document.createElement("p");
+          selectedFaviconLabel.className = "dashboard-section-description";
+          selectedFaviconLabel.textContent = "New favicon preview";
+          selectedFaviconLabel.hidden = true;
+          const selectedFaviconPreview = document.createElement("img");
+          selectedFaviconPreview.alt = "New favicon preview";
+          selectedFaviconPreview.width = 48;
+          selectedFaviconPreview.height = 48;
+          selectedFaviconPreview.style.cssText = "display:none;object-fit:contain;margin-top:6px;border:1px solid #e5e7eb;border-radius:8px;padding:6px";
           const historyLabel = document.createElement("p");
           historyLabel.className = "dashboard-section-description";
           historyLabel.textContent = "Previous favicons (kept when a new one is applied)";
@@ -3145,9 +3154,10 @@
               historyInput.value = JSON.stringify(history);
               renderFaviconHistory();
               inputMap.get("general.favicon_data_url").value = reader.result;
-              faviconPreview.src = reader.result;
-              faviconPreview.style.display = "block";
-              currentFaviconLabel.textContent = "New favicon preview — becomes active after Save and Apply";
+              selectedFaviconPreview.src = reader.result;
+              selectedFaviconPreview.style.display = "block";
+              selectedFaviconLabel.hidden = false;
+              currentFaviconLabel.textContent = savedFaviconDataUrl ? "Currently used favicon (remains active until Save and Apply)" : "No favicon is active yet";
               faviconStatus.textContent = "New favicon selected. The previous icon will remain in history. Click Save and Apply to activate the new icon.";
               faviconStatus.style.color = "#176b43";
             };
@@ -3157,7 +3167,7 @@
             };
             reader.readAsDataURL(file);
           });
-          faviconCard.append(faviconHeading, faviconHelp, currentFaviconLabel, faviconPreview, historyLabel, faviconHistoryList, faviconInput, faviconStatus);
+          faviconCard.append(faviconHeading, faviconHelp, currentFaviconLabel, faviconPreview, selectedFaviconLabel, selectedFaviconPreview, historyLabel, faviconHistoryList, faviconInput, faviconStatus);
           form.append(faviconCard);
         }
         const actions = document.createElement("div");actions.className="dashboard-crud-actions";
@@ -3182,6 +3192,7 @@
             }
           }
           savedFaviconDataUrl = inputMap.get("general.favicon_data_url")?.value || "";
+          selectedFaviconPreview.removeAttribute("src"); selectedFaviconPreview.style.display = "none"; selectedFaviconLabel.hidden = true;
           if (savedFaviconDataUrl && /^data:image\/(?:png|gif|x-icon|vnd\.microsoft\\.icon);base64,/i.test(savedFaviconDataUrl)) {
             faviconPreview.src = savedFaviconDataUrl;
             faviconPreview.style.display = "block";
@@ -3236,6 +3247,12 @@
               }
             }
             await applyDalimgariSiteConfig(true);
+            if (!isCustomization) {
+              savedFaviconDataUrl = inputMap.get("general.favicon_data_url")?.value || "";
+              if (savedFaviconDataUrl) { faviconPreview.src = savedFaviconDataUrl; faviconPreview.style.display = "block"; currentFaviconLabel.textContent = "Currently used favicon"; }
+              else { faviconPreview.removeAttribute("src"); faviconPreview.style.display = "none"; currentFaviconLabel.textContent = "No favicon is currently saved"; }
+              selectedFaviconPreview.removeAttribute("src"); selectedFaviconPreview.style.display = "none"; selectedFaviconLabel.hidden = true;
+            }
             status.textContent="Saved. Website configuration has been applied.";status.style.color="#176b43";
           }catch(error){status.textContent="Save failed: "+(error.message||"Unknown error");status.style.color="#a12622"}
           finally{save.disabled=false;reload.disabled=false}
