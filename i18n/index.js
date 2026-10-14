@@ -11,8 +11,12 @@
   let language = "bn";
   function translate(value) {
     const dict = getDictionary(language);
-    const key = normalize(value);
-    return Object.prototype.hasOwnProperty.call(dict, key) ? dict[key] : value;
+    const source = String(value ?? "");
+    const key = normalize(source);
+    if (!Object.prototype.hasOwnProperty.call(dict, key)) return value;
+    const leading = source.match(/^\\s*/)?.[0] || "";
+    const trailing = source.match(/\\s*$/)?.[0] || "";
+    return leading + dict[key] + trailing;
   }
   function eligible(node) {
     const parent = node.parentElement;
