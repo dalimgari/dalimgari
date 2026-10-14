@@ -7,7 +7,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "check:syntax": "node --check app.js && node --check header.js",
+    "check:syntax": "node --check app.js && node --check header.js && node --check i18n/bn.js && node --check i18n/en.js && node --check i18n/index.js",
     "test": "node --test tests/*.test.cjs",
     "check": "npm run check:syntax && npm test"
   }
