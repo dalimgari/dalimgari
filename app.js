@@ -3923,6 +3923,7 @@
         console.error("Could not restore the current route:", error);
       }
     };
+    document.addEventListener("dalimgari:languagechange", () => { if (!window.location.hash || window.location.hash === "#home") renderHome(); });
     window.addEventListener("hashchange", refreshCurrentRoute);
     window.addEventListener("popstate", refreshCurrentRoute);
 
