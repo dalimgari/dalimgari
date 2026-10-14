@@ -650,6 +650,7 @@
 
 /* Homepage template presentation lives here rather than as repeated inline declarations. */
 .home-page {
+  padding-top:16px;
   display:flex;
   flex-direction:column;
   gap:var(--dg-section-gap,24px);
