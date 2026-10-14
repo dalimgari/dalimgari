@@ -647,26 +647,6 @@
         if(album.cover_path)addMedia({path:album.cover_path,mime_type:"image/unknown",title:localizedRecordValue(album,"title"),alt_text:localizedRecordValue(album,"title")},album.title);
       }
       for(const source of sources)for(const item of (Array.isArray(source.media)?source.media:[]))addMedia(item,localizedRecordValue(source,"title"));
-      // Enrich older attachments from Media Library metadata so existing items also localize.
-      const mediaPaths=Array.from(new Set(uniqueMedia.map(item=>String(item.path||item.storage_path||"")).filter(Boolean)));
-      if(mediaPaths.length){
-        try{
-          const {data:assets,error:assetsError}=await supabaseClient.from("media_assets")
-            .select("id,title,title_bn,title_en,alt_text,alt_text_bn,alt_text_en,storage_path")
-            .in("storage_path",mediaPaths).limit(1000);
-          if(!assetsError&&Array.isArray(assets)){
-            const assetsByPath=new Map(assets.map(asset=>[String(asset.storage_path),asset]));
-            for(const item of uniqueMedia){
-              const asset=assetsByPath.get(String(item.path||item.storage_path||""));
-              if(!asset)continue;
-              for(const field of ["title","title_bn","title_en","alt_text","alt_text_bn","alt_text_en"]){
-                if(!String(item[field]||"").trim()&&String(asset[field]||"").trim())item[field]=asset[field];
-              }
-              if(asset.id&&!item.media_id)item.media_id=asset.id;
-            }
-          }else if(assetsError)console.warn("Could not enrich gallery media metadata:",assetsError.message);
-        }catch(error){console.warn("Could not enrich gallery media metadata:",error.message||error);}
-      }
       for(const album of albums)pill(localizedRecordValue(album,"title")||"Untitled","album",album.id,selectedAlbumId===album.id);
 
       const galleryGrid=(items)=>{
