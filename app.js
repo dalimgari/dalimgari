@@ -934,7 +934,7 @@
       // Keep the image as the floating hero surface and layer its text over the center.
       const imageFrame = document.createElement("div");
       imageFrame.className = "home-hero-image-frame";
-      imageFrame.style.cssText = "position:relative;isolation:isolate;display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:100%;aspect-ratio:16/9;margin:0;overflow:hidden;border:1px solid rgba(148,163,184,.35);border-radius:20px;background:linear-gradient(135deg,#e2e8f0,#f8fafc);box-shadow:0 14px 36px rgba(15,23,42,.16)";
+      imageFrame.style.cssText = "position:relative;isolation:isolate;display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:100%;aspect-ratio:16/9;margin:0;overflow:hidden;border:1px solid rgba(148,163,184,.35);border-radius:20px;background:linear-gradient(135deg,#e2e8f0,#f8fafc)";
       if (heroImageUrl) {
         const image = document.createElement("img");
         image.src = heroImageUrl;
