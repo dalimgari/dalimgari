@@ -353,7 +353,7 @@
       if(!descriptionMeta){descriptionMeta=document.createElement("meta");descriptionMeta.name="description";document.head.append(descriptionMeta);}
       descriptionMeta.content=String(general.site_description||"").trim();
       const titleLabel=document.querySelector("#current-page-label");
-      if(titleLabel && (!titleLabel.textContent || titleLabel.textContent==="Home"))titleLabel.textContent=title;
+      if(titleLabel && (!titleLabel.textContent || titleLabel.textContent==="Home"))titleLabel.textContent=window.DalimgariI18n?.t?.("Home") || "Home";
       const root=document.documentElement;
       const validColor=value=>/^#[0-9a-f]{6}$/i.test(String(value||""))?String(value):"";
       const setColor=(token,value)=>{const color=validColor(value);if(color)root.style.setProperty(token,color);};
@@ -1958,7 +1958,7 @@
     function setCurrentMenuPage(pageName) {
       const currentPageLabel = document.querySelector("#current-page-label");
       const displayName = pageName === "Home"
-        ? (String(document.title || "Dalimgari").trim() || "Dalimgari")
+        ? (window.DalimgariI18n?.t?.("Home") || "Home")
         : pageName === "Profile" && window.location.hash.toLowerCase() === "#edit-profile"
           ? "Edit Profile"
           : pageName === "CreateAccount"
@@ -3967,7 +3967,7 @@
       const isStoredPage=(!hash&&query.has("page"))||hash==="#stored-page";
       if(!isStoredPage && (!hash||hash==="#home"||hash==="#gallery"||hash.startsWith("#gallery"))) document.title=siteTitle;
       const label=document.querySelector("#current-page-label");
-      if(label && !isStoredPage && (hash===""||hash==="#home")) label.textContent=siteTitle;
+      if(label && !isStoredPage && (hash===""||hash==="#home")) label.textContent=window.DalimgariI18n?.t?.("Home") || "Home";
       if(label && (hash==="#profile"||hash==="#login"||hash==="#dashboard")) {
         const page=hash.slice(1);
         label.textContent=window.DalimgariI18n?.t?.(page.charAt(0).toUpperCase()+page.slice(1)) || page;
