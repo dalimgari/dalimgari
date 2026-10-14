@@ -873,6 +873,52 @@
         return { headline, welcomeMessage, heroImageUrl };
       })();
 
+      // Render the LCP hero as soon as its record and signed image URL are ready.
+      // Do not let page-order, pill-motion, or optional included-page reads delay it.
+      const heroRenderPromise = (async () => {
+        const { headline, welcomeMessage, heroImageUrl } = await heroContentPromise;
+        if (!headline && !welcomeMessage && !heroImageUrl && !String((siteConfig.ui_customization_identity||{}).tagline||"").trim()) return false;
+        // Keep the image as the floating hero surface and layer its text over the center.
+        const imageFrame = document.createElement("div");
+        imageFrame.className = "home-hero-image-frame";
+        imageFrame.style.cssText = "position:relative;isolation:isolate;display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:100%;aspect-ratio:16/9;margin:0;overflow:hidden;border:1px solid rgba(148,163,184,.35);border-radius:20px;background:linear-gradient(135deg,#e2e8f0,#f8fafc)";
+        if (heroImageUrl) {
+          const image = document.createElement("img");
+          image.src = heroImageUrl;
+          image.alt = "";
+          image.loading = "eager";
+          image.decoding = "async";
+          image.fetchPriority = "high";
+          image.style.cssText = "position:absolute;inset:0;z-index:-2;display:block;width:100%;height:100%;max-width:100%;object-fit:cover;object-position:center";
+          imageFrame.append(image);
+          const shade = document.createElement("div");
+          shade.setAttribute("aria-hidden", "true");
+          shade.style.cssText = "position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(15,23,42,.48),rgba(15,23,42,.2),rgba(15,23,42,.48))";
+          imageFrame.append(shade);
+        }
+  
+        const textOverlay = document.createElement("div");
+        textOverlay.className = "home-hero-text-overlay";
+        textOverlay.style.cssText = "position:relative;z-index:1;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-height:100%;overflow-y:auto;padding:clamp(16px,4vw,44px);text-align:center;color:" + (heroImageUrl ? "#fff" : "#334155") + ";text-shadow:" + (heroImageUrl ? "0 2px 12px rgba(0,0,0,.5)" : "none");
+        const tagline=String((siteConfig.ui_customization_identity||{}).tagline||"").trim();
+        if(tagline){const tag=document.createElement("p");tag.className="home-tagline";tag.textContent=tagline;textOverlay.append(tag);}
+        if (headline) {
+          const heading = document.createElement("h1");
+          heading.textContent = headline;
+          heading.style.cssText = "max-width:900px;margin:0 0 12px;font-size:clamp(24px,5.5vw,52px);line-height:1.12;font-weight:750;overflow-wrap:anywhere";
+          textOverlay.append(heading);
+        }
+        if (welcomeMessage) {
+          const welcome = document.createElement("p");
+          welcome.textContent = welcomeMessage;
+          welcome.style.cssText = "max-width:760px;margin:0;font-size:clamp(14px,2.5vw,20px);line-height:1.55;overflow-wrap:anywhere";
+          textOverlay.append(welcome);
+        }
+        imageFrame.append(textOverlay);
+        heroSection.append(imageFrame);
+        return true;
+      })();
+
       // Optional homepage placement map, configured in Dashboard > Customizations
       // with key "home_page_includes" and JSON such as {"home-page-title":"about-us"}.
       const { data: includeConfigRow } = await supabaseClient.from("site_customizations")
@@ -980,55 +1026,13 @@
         else if (pillMotion.addListener) pillMotion.addListener(startPillAutoScroll);
         startPillAutoScroll();
       }
-      // Render lower homepage sections concurrently; do not make the hero wait for them.
+      // Render lower homepage sections after the hero has already started rendering.
       const homepageCardsPromise = renderHomepageContentCards(siteConfig);
-
-      // The uploader is a normal homepage section, not a separate page or route.
-
-      const { headline, welcomeMessage, heroImageUrl } = await heroContentPromise;
-      if (!headline && !welcomeMessage && !heroImageUrl && !String((siteConfig.ui_customization_identity||{}).tagline||"").trim()) {
+      const heroRendered = await heroRenderPromise;
+      if (!heroRendered) {
         await homepageCardsPromise;
         return;
       }
-
-      // Keep the image as the floating hero surface and layer its text over the center.
-      const imageFrame = document.createElement("div");
-      imageFrame.className = "home-hero-image-frame";
-      imageFrame.style.cssText = "position:relative;isolation:isolate;display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:100%;aspect-ratio:16/9;margin:0;overflow:hidden;border:1px solid rgba(148,163,184,.35);border-radius:20px;background:linear-gradient(135deg,#e2e8f0,#f8fafc)";
-      if (heroImageUrl) {
-        const image = document.createElement("img");
-        image.src = heroImageUrl;
-        image.alt = "";
-        image.loading = "eager";
-        image.decoding = "async";
-        image.fetchPriority = "high";
-        image.style.cssText = "position:absolute;inset:0;z-index:-2;display:block;width:100%;height:100%;max-width:100%;object-fit:cover;object-position:center";
-        imageFrame.append(image);
-        const shade = document.createElement("div");
-        shade.setAttribute("aria-hidden", "true");
-        shade.style.cssText = "position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(15,23,42,.48),rgba(15,23,42,.2),rgba(15,23,42,.48))";
-        imageFrame.append(shade);
-      }
-
-      const textOverlay = document.createElement("div");
-      textOverlay.className = "home-hero-text-overlay";
-      textOverlay.style.cssText = "position:relative;z-index:1;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-height:100%;overflow-y:auto;padding:clamp(16px,4vw,44px);text-align:center;color:" + (heroImageUrl ? "#fff" : "#334155") + ";text-shadow:" + (heroImageUrl ? "0 2px 12px rgba(0,0,0,.5)" : "none");
-      const tagline=String((siteConfig.ui_customization_identity||{}).tagline||"").trim();
-      if(tagline){const tag=document.createElement("p");tag.className="home-tagline";tag.textContent=tagline;textOverlay.append(tag);}
-      if (headline) {
-        const heading = document.createElement("h1");
-        heading.textContent = headline;
-        heading.style.cssText = "max-width:900px;margin:0 0 12px;font-size:clamp(24px,5.5vw,52px);line-height:1.12;font-weight:750;overflow-wrap:anywhere";
-        textOverlay.append(heading);
-      }
-      if (welcomeMessage) {
-        const welcome = document.createElement("p");
-        welcome.textContent = welcomeMessage;
-        welcome.style.cssText = "max-width:760px;margin:0;font-size:clamp(14px,2.5vw,20px);line-height:1.55;overflow-wrap:anywhere";
-        textOverlay.append(welcome);
-      }
-      imageFrame.append(textOverlay);
-      heroSection.append(imageFrame);
       await homepageCardsPromise;
     }
 
