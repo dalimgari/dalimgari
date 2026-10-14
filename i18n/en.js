@@ -479,5 +479,12 @@ Object.assign(window.DG_I18N_EN, {
   "Forgot Password": "Forgot Password",
   "Select language": "Select language",
   "Site title (English)": "Site title (English)",
-  "Site title (Bengali)": "Site title (Bengali)"
+  "Site title (Bengali)": "Site title (Bengali)",
+  "Website Favicon": "Website Favicon",
+  "Upload a small PNG, GIF, or ICO icon (maximum 128 KB). Select the file, then use Save and Apply to publish it.": "Upload a small PNG, GIF, or ICO icon (maximum 128 KB). Select the file, then use Save and Apply to publish it.",
+  "Choose website favicon": "Choose website favicon",
+  "Choose a valid PNG, GIF, or ICO file no larger than 128 KB.": "Choose a valid PNG, GIF, or ICO file no larger than 128 KB.",
+  "This image format is not supported as a favicon.": "This image format is not supported as a favicon.",
+  "Favicon selected. Click Save and Apply below to save it.": "Favicon selected. Click Save and Apply below to save it.",
+  "Could not read this file. Please choose it again.": "Could not read this file. Please choose it again."
 });
