@@ -5,6 +5,47 @@
     const floatingMenu = document.querySelector("#floating-menu");
     const mainContent = document.querySelector("#main-content");
     const menuLinks = document.querySelectorAll(".menu-link");
+    // Best-effort media-saving deterrents. Browsers cannot reliably block OS screenshots,
+    // developer tools, or copying a URL that a visitor is authorized to view.
+    (() => {
+      const mediaSelector = "img, video, audio, .dg-image-lightbox";
+      const hardenMedia = (root) => {
+        const nodes = [];
+        if (root instanceof Element && root.matches("img, video, audio")) nodes.push(root);
+        if (root && typeof root.querySelectorAll === "function") nodes.push(...root.querySelectorAll("img, video, audio"));
+        for (const media of nodes) {
+          media.draggable = false;
+          media.setAttribute("draggable", "false");
+          if (media instanceof HTMLMediaElement) {
+            media.setAttribute("controlslist", "nodownload noplaybackrate");
+            media.disablePictureInPicture = true;
+            media.disableRemotePlayback = true;
+          }
+        }
+      };
+      hardenMedia(document);
+      document.addEventListener("contextmenu", event => {
+        const target = event.target;
+        if (target instanceof Element && target.closest(mediaSelector)) event.preventDefault();
+      }, true);
+      document.addEventListener("dragstart", event => {
+        const target = event.target;
+        if (target instanceof Element && target.closest(mediaSelector)) event.preventDefault();
+      }, true);
+      document.addEventListener("selectstart", event => {
+        const target = event.target;
+        if (target instanceof Element && target.closest("img, video, audio, .dg-lightbox-image")) event.preventDefault();
+      }, true);
+      const observer = new MutationObserver(records => {
+        for (const record of records) {
+          for (const node of record.addedNodes) {
+            if (node instanceof Element) hardenMedia(node);
+          }
+        }
+      });
+      observer.observe(document.documentElement, { childList: true, subtree: true });
+    })();
+
 
     // Site-wide: automatically scroll focused controls into view on every page.
     document.addEventListener("focusin", (event) => {
@@ -291,8 +332,12 @@
         } else if (String(item.mime_type || "").startsWith("audio/")) {
           const audio = document.createElement("audio"); audio.src = url; audio.controls = true; audio.style.width = "100%"; tile.append(audio);
         } else {
-          const link = document.createElement("a"); link.href = url; link.target = "_blank"; link.rel = "noopener noreferrer";
-          link.textContent = item.title || item.name || "Open file"; tile.append(link);
+          // Do not expose a direct file-opening/download link from public content views.
+          const fileLabel = document.createElement("span");
+          fileLabel.textContent = item.title || item.name || "File";
+          fileLabel.setAttribute("aria-label", "File attachment");
+          fileLabel.style.cssText = "display:block;padding:12px;overflow-wrap:anywhere";
+          tile.append(fileLabel);
         }
         if (item.title || item.name) { const caption=document.createElement("p"); caption.textContent=item.title || item.name; caption.style.cssText="margin:8px 0 0;font-size:var(--dg-font-size-sm)"; tile.append(caption); }
         gallery.append(tile);
@@ -615,18 +660,17 @@
             mediaElement.controls=true;
             mediaElement.style.cssText="display:block;width:calc(100% - 20px);margin:10px";
           }else{
-            mediaElement=document.createElement("a");
-            mediaElement.textContent=item.title||item.name||"Open file";
-            mediaElement.target="_blank";
-            mediaElement.rel="noopener noreferrer";
+            // Keep non-previewable files listed without publishing a direct download URL.
+            mediaElement=document.createElement("span");
+            mediaElement.textContent=item.title||item.name||"File";
+            mediaElement.setAttribute("aria-label","File attachment");
             mediaElement.style.cssText="display:block;padding:18px;overflow-wrap:anywhere";
           }
           Promise.resolve(urlPromise).then(url=>{
             if(!url){tile.remove();return;}
-            if(mediaElement.tagName==="A")mediaElement.href=url;
-            else mediaElement.src=url;
+            if(["IMG","VIDEO","AUDIO"].includes(mediaElement.tagName))mediaElement.src=url;
           });
-          if(mediaElement.tagName!=="A")tile.append(mediaElement);
+          tile.append(mediaElement);
           const captionText=item.title||item.name||"";
           if(captionText){
             const caption=document.createElement("figcaption");
