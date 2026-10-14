@@ -886,6 +886,39 @@
 
     async function renderHome() {
       // Fetch the small homepage template while Supabase configuration and session checks run.
+      let heroImagePreloader = null;
+      const heroContentPromise = (async () => {
+        const { data: heroRecord } = await supabaseClient.from("hero_items")
+          .select("title,title_bn,title_en,description,description_bn,description_en,media,visibility").eq("visibility","public").order("created_at",{ascending:false}).limit(1).maybeSingle();
+        let headline = String(localizedRecordValue(heroRecord,"title") || "").trim();
+        let welcomeMessage = String(localizedRecordValue(heroRecord,"description") || "").trim();
+        let heroImageUrl = "";
+        const heroMedia = Array.isArray(heroRecord?.media) ? heroRecord.media : [];
+        const firstImage = heroMedia.find(item => String(item.mime_type || "").startsWith("image/"));
+        if (firstImage?.path) heroImageUrl = await createContentMediaUrl(firstImage.path, "content-files", { width: 1200, quality: 75 });
+        if (!heroRecord) {
+          const { data, error } = await supabaseClient.from("site_customizations").select("value").eq("key", "home_hero").maybeSingle();
+          if (!error && data && data.value) {
+            let heroData = data.value;
+            if (typeof heroData === "string") { try { heroData = JSON.parse(heroData); } catch (_) { heroData = {}; } }
+            if (heroData && typeof heroData === "object") {
+              headline = String(heroData.headline || "").trim();
+              welcomeMessage = String(heroData.welcomeMessage || "").trim();
+              heroImageUrl = String(heroData.heroImageUrl || "").trim();
+            }
+          }
+        }
+        // Warm the image request as soon as its signed URL is available, without
+        // changing its source, access policy, or displayed dimensions.
+        if (heroImageUrl) {
+          heroImagePreloader = new Image();
+          heroImagePreloader.fetchPriority = "high";
+          heroImagePreloader.decoding = "async";
+          heroImagePreloader.src = heroImageUrl;
+        }
+        return { headline, welcomeMessage, heroImageUrl };
+      })();
+
       const homeTemplatePromise = (async () => {
         try {
           const response = await fetch(new URL("home.html", window.location.href), { credentials: "same-origin" });
@@ -958,38 +991,7 @@
 
       // Start loading the hero record and image before unrelated homepage sections.
       // The hero image is the measured LCP element on production.
-      let heroImagePreloader = null;
-      const heroContentPromise = (async () => {
-        const { data: heroRecord } = await supabaseClient.from("hero_items")
-          .select("title,title_bn,title_en,description,description_bn,description_en,media,visibility").eq("visibility","public").order("created_at",{ascending:false}).limit(1).maybeSingle();
-        let headline = String(localizedRecordValue(heroRecord,"title") || "").trim();
-        let welcomeMessage = String(localizedRecordValue(heroRecord,"description") || "").trim();
-        let heroImageUrl = "";
-        const heroMedia = Array.isArray(heroRecord?.media) ? heroRecord.media : [];
-        const firstImage = heroMedia.find(item => String(item.mime_type || "").startsWith("image/"));
-        if (firstImage?.path) heroImageUrl = await createContentMediaUrl(firstImage.path, "content-files", { width: 1200, quality: 75 });
-        if (!heroRecord) {
-          const { data, error } = await supabaseClient.from("site_customizations").select("value").eq("key", "home_hero").maybeSingle();
-          if (!error && data && data.value) {
-            let heroData = data.value;
-            if (typeof heroData === "string") { try { heroData = JSON.parse(heroData); } catch (_) { heroData = {}; } }
-            if (heroData && typeof heroData === "object") {
-              headline = String(heroData.headline || "").trim();
-              welcomeMessage = String(heroData.welcomeMessage || "").trim();
-              heroImageUrl = String(heroData.heroImageUrl || "").trim();
-            }
-          }
-        }
-        // Warm the image request as soon as its signed URL is available, without
-        // changing its source, access policy, or displayed dimensions.
-        if (heroImageUrl) {
-          heroImagePreloader = new Image();
-          heroImagePreloader.fetchPriority = "high";
-          heroImagePreloader.decoding = "async";
-          heroImagePreloader.src = heroImageUrl;
-        }
-        return { headline, welcomeMessage, heroImageUrl };
-      })();
+
 
       // Render the LCP hero as soon as its record and signed image URL are ready.
       // Do not let page-order, pill-motion, or optional included-page reads delay it.
