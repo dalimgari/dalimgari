@@ -385,3 +385,14 @@
       background:transparent;
       box-shadow:none;
     }
+
+
+/* Keep the header menu icon clearly visible against the dark theme. */
+body.dg-night-mode .menu-button span {
+  background-color: var(--dg-text, #e7edf5);
+}
+
+body.dg-night-mode .menu-button:hover,
+body.dg-night-mode .menu-button:focus-visible {
+  background-color: #2b3543;
+}
