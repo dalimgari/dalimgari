@@ -74,6 +74,8 @@
       --dg-focus-outline:2px;
       --dg-z-header:10;
       --dg-z-lightbox:10000;
+      --dg-header-utility-gap:22px;
+      --dg-icon-size:21px;
     }
     * {
       box-sizing: border-box;
