@@ -6,7 +6,7 @@ const path = require("node:path");
 const read = (file) => fs.readFileSync(path.join(__dirname, "..", file), "utf8");
 
 test("dashboard bilingual field pairs use the shared translation edge function", () => {
-  const app = read("app.js");
+  const app = read("dashboard.js");
   assert.match(app, /const bilingualBases=\[\.\.\.new Set\(config\.fields\.map/);
   assert.match(app, /supabaseClient\.functions\.invoke\("translate-bilingual"/);
   assert.match(app, /source_language:sourceName\.endsWith\("_bn"\)\?"bn":"en"/);
