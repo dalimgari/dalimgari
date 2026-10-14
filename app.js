@@ -555,7 +555,7 @@
       };
       for(const album of albums){
         for(const item of mediaForAlbum(album))addMedia(item,album.title);
-        if(album.cover_path)addMedia({path:album.cover_path,mime_type:"image/unknown",title:album.title,alt_text:album.title},album.title);
+        if(album.cover_path)addMedia({path:album.cover_path,mime_type:"image/unknown",title:localizedRecordValue(album,"title"),alt_text:localizedRecordValue(album,"title")},album.title);
       }
       for(const source of sources)for(const item of (Array.isArray(source.media)?source.media:[]))addMedia(item,source.title);
       for(const album of albums)pill(album.title||"Untitled","album",album.id,selectedAlbumId===album.id);
@@ -638,7 +638,7 @@
             const description=document.createElement("p");description.textContent=albumDescription;description.style.cssText="margin:0 0 18px;color:#5b6472;white-space:pre-wrap;line-height:1.6";view.append(description);
           }
           items=mediaForAlbum(album);
-          if(album.cover_path&&!items.some(item=>(item.path||item.storage_path)===album.cover_path))items.push({path:album.cover_path,mime_type:"image/unknown",title:album.title,alt_text:album.title});
+          if(album.cover_path&&!items.some(item=>(item.path||item.storage_path)===album.cover_path))items.push({path:album.cover_path,mime_type:"image/unknown",title:localizedRecordValue(album,"title"),alt_text:localizedRecordValue(album,"title")});
           if(items.length)view.append(galleryGrid(items));
           else{const empty=document.createElement("p");empty.textContent="No media in this album.";view.append(empty);}
           updatePills("album",value);
@@ -656,7 +656,7 @@
               const sectionTitle=document.createElement("h2");sectionTitle.textContent=localizedRecordValue(album,"title")||"Untitled";sectionTitle.style.cssText="margin:0 0 14px;font-size:clamp(19px,3vw,24px)";
               section.append(sectionTitle);
               const albumItems=mediaForAlbum(album);
-              if(album.cover_path&&!albumItems.some(item=>(item.path||item.storage_path)===album.cover_path))albumItems.push({path:album.cover_path,mime_type:"image/unknown",title:album.title,alt_text:album.title});
+              if(album.cover_path&&!albumItems.some(item=>(item.path||item.storage_path)===album.cover_path))albumItems.push({path:album.cover_path,mime_type:"image/unknown",title:localizedRecordValue(album,"title"),alt_text:localizedRecordValue(album,"title")});
               if(albumItems.length)section.append(galleryGrid(albumItems));
               else{const empty=document.createElement("p");empty.textContent="No media in this album.";section.append(empty);}
               view.append(section);
