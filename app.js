@@ -1039,12 +1039,18 @@
                 const language=getUiLanguage();
                 const locale=language==="bn"?"bn-BD":"en-GB";
                 const digitFormatter=new Intl.NumberFormat(locale,{useGrouping:false});
-                time.textContent=new Intl.DateTimeFormat(locale,{hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h23",timeZone:bangladeshTimeZone}).format(now);
-                date.textContent=new Intl.DateTimeFormat(locale,{dateStyle:"full",timeZone:bangladeshTimeZone}).format(now);
                 const parts=new Intl.DateTimeFormat("en-GB",{timeZone:bangladeshTimeZone,year:"numeric",month:"numeric",day:"numeric",hour:"numeric",minute:"numeric",second:"numeric",hourCycle:"h23"}).formatToParts(now);
                 const part=name=>Number(parts.find(part=>part.type===name)?.value);
                 const year=part("year"),month=part("month"),day=part("day");
                 const hour=part("hour"),minute=part("minute"),second=part("second");
+                if(language==="en"){
+                  time.textContent=new Intl.DateTimeFormat(locale,{hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h12",timeZone:bangladeshTimeZone}).format(now).replace(/\\b(am|pm)\\b/i,period=>period.toUpperCase());
+                }else{
+                  const bengaliPeriod=hour>=5&&hour<12?"সকাল":hour>=12&&hour<15?"দুপুর":hour>=15&&hour<18?"বিকেল":hour>=18&&hour<20?"সন্ধ্যা":"রাত";
+                  const bengaliTime=new Intl.DateTimeFormat(locale,{hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h23",timeZone:bangladeshTimeZone}).format(now);
+                  time.textContent=bengaliPeriod+" "+bengaliTime;
+                }
+                date.textContent=new Intl.DateTimeFormat(locale,{dateStyle:"full",timeZone:bangladeshTimeZone}).format(now);
                 const banglaYear=year-(month>4||(month===4&&day>=14)?593:594);
                 const startYear=month>4||(month===4&&day>=14)?year:year-1;
                 const elapsed=Math.floor((Date.UTC(year,month-1,day)-Date.UTC(startYear,3,14))/86400000);
