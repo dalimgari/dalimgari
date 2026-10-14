@@ -112,6 +112,8 @@ test("site identity and clocks follow the selected UI language", () => {
   assert.ok(app.includes('new Intl.DateTimeFormat(locale,{hour:"2-digit"'));
   assert.ok(app.includes('hourCycle:"h12"'));
   assert.ok(app.includes('period=>period.toUpperCase()'));
+  assert.ok(app.includes('hour%12||12'), "Bengali clock should use a 12-hour numeric display");
+  assert.ok(app.includes('bengaliHour+":"+bengaliMinute+":"+bengaliSecond'));
   for (const period of ["সকাল","দুপুর","বিকেল","সন্ধ্যা","রাত"]) {
     assert.ok(app.includes('?"' + period + '"'), "Missing Bengali clock period: " + period);
   }
