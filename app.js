@@ -416,16 +416,9 @@
       const safeMenuGap=Number(header.menu_gap);
       const safeColumns=Number(media.gallery_columns);
       const animationRule=effects.animations_enabled===false ? " *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}" : "";
-      const themeBackgroundImages={
-        "#222222":"https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=1800&q=75",
-        "#8a5638":"https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1800&q=75",
-        "#2e6b45":"https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1800&q=75",
-        "#65452f":"https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1800&q=75",
-        "#176b87":"https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=1800&q=75",
-        "#4657d9":"https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1800&q=75"
-      };
-      const themeBackgroundImage=themeBackgroundImages[String(theme.primary_color||"").toLowerCase()]||"";
-      const backgroundImageRule=themeBackgroundImage?"body::before{background-image:url('"+themeBackgroundImage+"')}":"body::before{background-image:none}";
+      // The page canvas uses one solid background color. Header styling is confined
+      // to the floating header surface and must not introduce a page background image.
+      const backgroundImageRule="body::before{background-image:none;opacity:0}";
       const heroOverlayHex=/^#[0-9a-f]{6}$/i.test(String(heroVisual.overlay_color||""))?String(heroVisual.overlay_color):"#0f172a";
       const heroOverlayRgb=heroOverlayHex.match(/[0-9a-f]{2}/ig).map(part=>parseInt(part,16)).join(",");
       const heroOverlayOpacity=Math.max(0,Math.min(90,Number(heroVisual.overlay_opacity)||0))/100;
