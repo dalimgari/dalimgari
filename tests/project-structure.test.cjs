@@ -64,3 +64,14 @@ test("homepage template loading overlaps initial setup and site configuration is
   assert.ok(app.includes("const templateResult = await homeTemplatePromise;"));
   assert.ok(app.includes("if (force) {"), "Dashboard-triggered forced configuration refresh must remain available");
 });
+
+test("admin dashboard implementation is a deployed, on-demand asset", () => {
+  const app = read("app.js");
+  const dashboard = read("dashboard.js");
+  assert.match(app, /new URL\("dashboard\.js", window\.location\.href\)/);
+  assert.match(app, /window\.DalimgariDashboard\.renderDashboard\(\)/);
+  assert.match(app, /getRuntimeConfig: \(\) => dalimgariRuntimeConfig/);
+  assert.match(dashboard, /supabaseClient\.rpc\("get_my_permissions"\)/);
+  assert.match(dashboard, /window\.DalimgariDashboard = \{ renderDashboard \}/);
+  assert.doesNotMatch(app, /get_my_permissions/);
+});
