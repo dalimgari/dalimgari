@@ -440,7 +440,7 @@ window.DG_I18N_BN = {
 "Could not restore the current route:":"বর্তমান রুট পুনরুদ্ধার করা যায়নি:",
 "Logging out...":"লগআউট হচ্ছে...",
 "Could not check the session during navigation:":"নেভিগেশনের সময় সেশন যাচাই করা যায়নি:",
-"Menu navigation failed:":"মেনু নেভিগেশন ব্যর্থ হয়েছে:"
+"Menu navigation failed:":"মেনু নেভিগেশন ব্যর্থ হয়েছে:",
   "Title (English, required)":"শিরোনাম (ইংরেজি, আবশ্যক)",
   "Title (বাংলা, required)":"শিরোনাম (বাংলা, আবশ্যক)",
   "Description (English, optional)":"বিবরণ (ইংরেজি, ঐচ্ছিক)",
