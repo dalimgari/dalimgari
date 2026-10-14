@@ -442,3 +442,22 @@ window.DG_I18N_BN = {
 "Could not check the session during navigation:":"নেভিগেশনের সময় সেশন যাচাই করা যায়নি:",
 "Menu navigation failed:":"মেনু নেভিগেশন ব্যর্থ হয়েছে:"
 };
+Object.assign(window.DG_I18N_BN, {
+  "Title (Bengali)": "শিরোনাম (বাংলা)",
+  "Description (Bengali)": "বিবরণ (বাংলা)",
+  "Content (HTML — Bengali)": "কনটেন্ট (HTML — বাংলা)",
+  "Page Title (Bengali)": "পেজের শিরোনাম (বাংলা)",
+  "HTML Content (Bengali)": "HTML কনটেন্ট (বাংলা)",
+  "Album Title (Bengali)": "অ্যালবামের শিরোনাম (বাংলা)",
+  "Widget Title (Bengali)": "উইজেটের শিরোনাম (বাংলা)",
+  "Title (English)": "শিরোনাম (ইংরেজি)",
+  "Description (English)": "বিবরণ (ইংরেজি)",
+  "Content (HTML — English)": "কনটেন্ট (HTML — ইংরেজি)",
+  "Page Title (English)": "পেজের শিরোনাম (ইংরেজি)",
+  "HTML Content (English)": "HTML কনটেন্ট (ইংরেজি)",
+  "Album Title (English)": "অ্যালবামের শিরোনাম (ইংরেজি)",
+  "Widget Title (English)": "উইজেটের শিরোনাম (ইংরেজি)",
+  "All": "সব",
+  "Title / Name": "শিরোনাম / নাম",
+  "Details": "বিবরণ"
+});

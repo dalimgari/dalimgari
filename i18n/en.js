@@ -442,3 +442,22 @@ window.DG_I18N_EN = {
 "Could not check the session during navigation:":"Could not check the session during navigation:",
 "Menu navigation failed:":"Menu navigation failed:"
 };
+Object.assign(window.DG_I18N_EN, {
+  "Title (Bengali)": "Title (Bengali)",
+  "Description (Bengali)": "Description (Bengali)",
+  "Content (HTML — Bengali)": "Content (HTML — Bengali)",
+  "Page Title (Bengali)": "Page Title (Bengali)",
+  "HTML Content (Bengali)": "HTML Content (Bengali)",
+  "Album Title (Bengali)": "Album Title (Bengali)",
+  "Widget Title (Bengali)": "Widget Title (Bengali)",
+  "Title (English)": "Title (English)",
+  "Description (English)": "Description (English)",
+  "Content (HTML — English)": "Content (HTML — English)",
+  "Page Title (English)": "Page Title (English)",
+  "HTML Content (English)": "HTML Content (English)",
+  "Album Title (English)": "Album Title (English)",
+  "Widget Title (English)": "Widget Title (English)",
+  "All": "All",
+  "Title / Name": "Title / Name",
+  "Details": "Details"
+});

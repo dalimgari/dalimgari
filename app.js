@@ -2595,7 +2595,7 @@
             cardHeader.append(titleGroup,badge);widgetCard.append(cardHeader);
             let locationInput=null,zoomInput=null,zoomValue=null;
             const titleBnField=document.createElement("div");titleBnField.className="dashboard-crud-field";
-            const titleBnLabel=document.createElement("label");titleBnLabel.textContent="Widget Title (বাংলা)";
+            const titleBnLabel=document.createElement("label");titleBnLabel.textContent="Widget Title (Bengali)";
             const titleBnInput=document.createElement("input");titleBnInput.type="text";titleBnInput.className="dashboard-crud-input";titleBnInput.value=String(item.title_bn||"");titleBnInput.maxLength=120;titleBnLabel.htmlFor="widget-title-bn-"+item.id;titleBnInput.id=titleBnLabel.htmlFor;titleBnField.append(titleBnLabel,titleBnInput);
             const titleEnField=document.createElement("div");titleEnField.className="dashboard-crud-field";
             const titleEnLabel=document.createElement("label");titleEnLabel.textContent="Widget Title (English)";
@@ -2672,20 +2672,20 @@
 
       const configs = {
         hero:{table:"hero_items",label:"Hero",fields:[
-          {name:"title_bn",label:"Title (বাংলা)",type:"text"},
+          {name:"title_bn",label:"Title (Bengali)",type:"text"},
           {name:"title_en",label:"Title (English)",type:"text"},
-          {name:"description_bn",label:"Description (বাংলা)",type:"textarea",full:true},
+          {name:"description_bn",label:"Description (Bengali)",type:"textarea",full:true},
           {name:"description_en",label:"Description (English)",type:"textarea",full:true},
           {name:"url",label:"URL",type:"text"},
           {name:"media",label:"Content Files (Image, Video, Other)",type:"files",full:true,accept:"image/jpeg,image/png,image/webp,image/gif,image/avif,image/svg+xml,video/mp4,video/webm,video/quicktime,audio/mpeg,audio/mp4,audio/wav,audio/ogg,application/pdf"},
           {name:"visibility",label:"Visibility",type:"select",required:true,options:[["public","Public"],["private","Private"]]}
         ]},
         post:{table:"post",label:"Posts",fields:[
-          {name:"title_bn",label:"Title (বাংলা)",type:"text"},
+          {name:"title_bn",label:"Title (Bengali)",type:"text"},
           {name:"title_en",label:"Title (English)",type:"text"},
-          {name:"description_bn",label:"Description (বাংলা)",type:"textarea",full:true},
+          {name:"description_bn",label:"Description (Bengali)",type:"textarea",full:true},
           {name:"description_en",label:"Description (English)",type:"textarea",full:true},
-          {name:"content_bn",label:"Content (HTML — বাংলা)",type:"textarea",rows:10,full:true},
+          {name:"content_bn",label:"Content (HTML — Bengali)",type:"textarea",rows:10,full:true},
           {name:"content_en",label:"Content (HTML — English)",type:"textarea",rows:10,full:true},
           {name:"url",label:"URL",type:"text",required:true,help:"A unique URL slug. Generated from either title; you can edit it."},
           {name:"media",label:"Content Files (Image, Video, Other)",type:"files",full:true,accept:"image/jpeg,image/png,image/webp,image/gif,image/avif,image/svg+xml,video/mp4,video/webm,video/quicktime,audio/mpeg,audio/mp4,audio/wav,audio/ogg,application/pdf"},
@@ -2694,20 +2694,20 @@
           {name:"visibility",label:"Visibility",type:"select",required:true,options:[["public","Public"],["private","Private"]]}
         ]},
         page:{table:"pages",label:"Custom Page",fields:[
-          {name:"title_bn",label:"Page Title (বাংলা)",type:"text"},
+          {name:"title_bn",label:"Page Title (Bengali)",type:"text"},
           {name:"title_en",label:"Page Title (English)",type:"text"},
-          {name:"description_bn",label:"Description (বাংলা)",type:"textarea",full:true},
+          {name:"description_bn",label:"Description (Bengali)",type:"textarea",full:true},
           {name:"description_en",label:"Description (English)",type:"textarea",full:true},
           {name:"url",label:"URL",type:"text",required:true,help:"A unique URL slug. Use English letters, numbers, and hyphens; you can edit it."},
-          {name:"content_bn",label:"HTML Content (বাংলা)",type:"textarea",rows:14,full:true,help:"Write Bengali page content using safe HTML. The public page sanitizes unsafe markup."},
+          {name:"content_bn",label:"HTML Content (Bengali)",type:"textarea",rows:14,full:true,help:"Write Bengali page content using safe HTML. The public page sanitizes unsafe markup."},
           {name:"content_en",label:"HTML Content (English)",type:"textarea",rows:14,full:true,help:"Write English page content using safe HTML. The public page sanitizes unsafe markup."},
           {name:"media",label:"Content Files (Image, Video, Other)",type:"files",full:true,accept:"image/jpeg,image/png,image/webp,image/gif,image/avif,image/svg+xml,video/mp4,video/webm,video/quicktime,audio/mpeg,audio/mp4,audio/wav,audio/ogg,application/pdf"},
           {name:"visibility",label:"Visibility",type:"select",required:true,options:[["public","Public"],["private","Private"]]}
         ]},
         album:{table:"albums",label:"Albums",fields:[
-          {name:"title_bn",label:"Album Title (বাংলা)",type:"text"},
+          {name:"title_bn",label:"Album Title (Bengali)",type:"text"},
           {name:"title_en",label:"Album Title (English)",type:"text"},
-          {name:"description_bn",label:"Description (বাংলা)",type:"textarea",full:true},
+          {name:"description_bn",label:"Description (Bengali)",type:"textarea",full:true},
           {name:"description_en",label:"Description (English)",type:"textarea",full:true},
           {name:"url",label:"URL",type:"text",required:true,help:"A unique URL slug. Generated from either title; you can edit it."},
           {name:"media",label:"Content Files (Image, Video, Other)",type:"files",full:true,accept:"image/jpeg,image/png,image/webp,image/gif,image/avif,image/svg+xml,video/mp4,video/webm,video/quicktime,audio/mpeg,audio/mp4,audio/wav,audio/ogg,application/pdf"},
