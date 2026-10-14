@@ -99,7 +99,9 @@ test("existing custom pages have English title, description, and HTML seed trans
 test("header language control contains no adjacent language labels", () => {
   const header = fs.readFileSync(path.join(__dirname, "..", "header.html"), "utf8");
   assert.ok(header.includes('id="language-switcher"'));
-  assert.ok(header.includes('aria-label="Select language"'));
+  assert.ok(header.includes('aria-label="Switch language"'));
+  assert.ok(header.includes('type="button" aria-label="Switch language"'));
+  assert.ok(!header.includes("<select"));
   assert.ok(!header.includes("Language / ভাষা"));
   assert.ok(!header.includes("language-control-label"));
   assert.ok(!header.includes("language-section-label"));
