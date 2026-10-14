@@ -77,3 +77,14 @@ test("dashboard code is split from the initial application bundle", () => {
   assert.match(dashboard, /async function renderDashboard\(\)/);
   assert.match(dashboard, /get_my_permissions/);
 });
+
+test("homepage hero record and image URL loading starts before template and session setup waits", () => {
+  const app = read("app.js");
+  const renderHomeStart = app.indexOf("async function renderHome()");
+  const heroFetchStart = app.indexOf("const heroContentPromise = (async () =>", renderHomeStart);
+  const templateFetchStart = app.indexOf("const homeTemplatePromise =", renderHomeStart);
+  const setupAwaitStart = app.indexOf("const [siteConfig, currentUser] = await Promise.all", renderHomeStart);
+  assert.ok(renderHomeStart >= 0 && heroFetchStart > renderHomeStart);
+  assert.ok(heroFetchStart < templateFetchStart, "hero data should begin fetching before template setup");
+  assert.ok(heroFetchStart < setupAwaitStart, "hero data should begin fetching before auth/config setup resolves");
+});
