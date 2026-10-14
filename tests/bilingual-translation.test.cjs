@@ -15,7 +15,7 @@ test("dashboard bilingual field pairs use the shared translation edge function",
 });
 
 test("auto-translation preserves administrator edits and avoids overwriting existing manual translations", () => {
-  const app = read("app.js");
+  const app = read("dashboard.js");
   assert.match(app, /const targetIsGenerated=bilingualGeneratedValues\.get\(targetName\)===targetValue/);
   assert.match(app, /if\(targetValue\.trim\(\)&&!targetIsGenerated\)return/);
   assert.match(app, /Never overwrite edits made while the network request was running/);
