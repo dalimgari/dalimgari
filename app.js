@@ -2594,6 +2594,13 @@
             const badge=document.createElement("span");badge.textContent=item.is_visible?"Visible":"Hidden";badge.style.cssText="flex:0 0 auto;padding:4px 8px;border:1px solid "+(item.is_visible?"#bbf7d0":"#e5e7eb")+";border-radius:999px;background:"+(item.is_visible?"#f0fdf4":"#f9fafb")+";color:"+(item.is_visible?"#166534":"#4b5563")+";font-size:12px;font-weight:600";
             cardHeader.append(titleGroup,badge);widgetCard.append(cardHeader);
             let locationInput=null,zoomInput=null,zoomValue=null;
+            const titleBnField=document.createElement("div");titleBnField.className="dashboard-crud-field";
+            const titleBnLabel=document.createElement("label");titleBnLabel.textContent="Widget Title (বাংলা)";
+            const titleBnInput=document.createElement("input");titleBnInput.type="text";titleBnInput.className="dashboard-crud-input";titleBnInput.value=String(item.title_bn||"");titleBnInput.maxLength=120;titleBnLabel.htmlFor="widget-title-bn-"+item.id;titleBnInput.id=titleBnLabel.htmlFor;titleBnField.append(titleBnLabel,titleBnInput);
+            const titleEnField=document.createElement("div");titleEnField.className="dashboard-crud-field";
+            const titleEnLabel=document.createElement("label");titleEnLabel.textContent="Widget Title (English)";
+            const titleEnInput=document.createElement("input");titleEnInput.type="text";titleEnInput.className="dashboard-crud-input";titleEnInput.value=String(item.title_en||"");titleEnInput.maxLength=120;titleEnLabel.htmlFor="widget-title-en-"+item.id;titleEnInput.id=titleEnLabel.htmlFor;titleEnField.append(titleEnLabel,titleEnInput);
+            widgetCard.append(titleBnField,titleEnField);
             if(item.widget_type==="map"){
               const locationField=document.createElement("div");locationField.className="dashboard-crud-field";
               const locationLabel=document.createElement("label");locationLabel.textContent="Location";locationLabel.style.cssText="color:#444;font-size:13px;font-weight:600";
