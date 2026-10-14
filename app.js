@@ -325,7 +325,7 @@
         }
         const url = data?.signedUrl || "";
         if (url) contentMediaUrlCache.set(cacheKey, { url, expiresAt: Date.now() + CONTENT_MEDIA_URL_CACHE_TTL_MS });
-        return url;
+        return data?.signedUrl || "";
       })().finally(() => contentMediaUrlPending.delete(cacheKey));
       contentMediaUrlPending.set(cacheKey, request);
       return request;
