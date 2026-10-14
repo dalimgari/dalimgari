@@ -703,56 +703,98 @@
       for(const source of sources)for(const item of (Array.isArray(source.media)?source.media:[]))addMedia(item,localizedRecordValue(source,"title"));
       for(const album of albums)pill(localizedRecordValue(album,"title")||"Untitled","album",album.id,selectedAlbumId===album.id);
 
+      const galleryLoaders = new WeakMap();
+      const observedMediaTiles = new Set();
+      const galleryMediaObserver = typeof IntersectionObserver === "function"
+        ? new IntersectionObserver(entries => {
+            for (const entry of entries) {
+              if (!entry.isIntersecting) continue;
+              galleryMediaObserver.unobserve(entry.target);
+              observedMediaTiles.delete(entry.target);
+              const load = galleryLoaders.get(entry.target);
+              if (load) load();
+            }
+          }, { rootMargin: "320px 0px" })
+        : null;
       const galleryGrid=(items)=>{
+        const container=document.createElement("div");
+        container.style.cssText="width:100%;min-width:0";
         const grid=document.createElement("div");
         grid.style.cssText="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr));gap:14px;width:100%;min-width:0";
-        for(const item of items){
-          if(!item||!(item.path||item.storage_path))continue;
-          const tile=document.createElement("figure");
-          tile.style.cssText="min-width:0;margin:0;overflow:hidden;border-radius:10px;background:#f3f4f6";
-          const mediaPath=item.path||item.storage_path;
-          const mediaBucket=item.storage_bucket||item.bucket||"content-files";
-          const urlPromise=createContentMediaUrl(mediaPath,mediaBucket);
-          const mime=inferMime(item);
-          let mediaElement;
-          if(mime.startsWith("image/")){
-            mediaElement=document.createElement("img");
-            mediaElement.alt=localizedMediaValue(item,"alt_text")||localizedMediaValue(item,"title");
-            mediaElement.loading="lazy";
-            mediaElement.decoding="async";
-            attachSignedImageRefresh(mediaElement,mediaPath,mediaBucket);
-            mediaElement.style.cssText="display:block;width:100%;aspect-ratio:4/3;object-fit:cover";
-          }else if(mime.startsWith("video/")){
-            mediaElement=document.createElement("video");
-            mediaElement.controls=true;
-            mediaElement.preload="metadata";
-            mediaElement.style.cssText="display:block;width:100%;aspect-ratio:4/3;object-fit:contain";
-          }else if(mime.startsWith("audio/")){
-            mediaElement=document.createElement("audio");
-            mediaElement.controls=true;
-            mediaElement.style.cssText="display:block;width:calc(100% - 20px);margin:10px";
+        const validItems=items.filter(item=>item&&(item.path||item.storage_path));
+        let nextIndex=0;
+        const batchSize=48;
+        const appendBatch=()=>{
+          const batch=validItems.slice(nextIndex,nextIndex+batchSize);
+          nextIndex+=batch.length;
+          for(const item of batch){
+            const tile=document.createElement("figure");
+            tile.style.cssText="min-width:0;margin:0;overflow:hidden;border-radius:10px;background:#f3f4f6";
+            const mediaPath=item.path||item.storage_path;
+            const mediaBucket=item.storage_bucket||item.bucket||"content-files";
+            const mime=inferMime(item);
+            let mediaElement;
+            if(mime.startsWith("image/")){
+              mediaElement=document.createElement("img");
+              mediaElement.alt=localizedMediaValue(item,"alt_text")||localizedMediaValue(item,"title");
+              mediaElement.loading="lazy";
+              mediaElement.decoding="async";
+              attachSignedImageRefresh(mediaElement,mediaPath,mediaBucket);
+              mediaElement.style.cssText="display:block;width:100%;aspect-ratio:4/3;object-fit:cover";
+            }else if(mime.startsWith("video/")){
+              mediaElement=document.createElement("video");
+              mediaElement.controls=true;
+              mediaElement.preload="metadata";
+              mediaElement.style.cssText="display:block;width:100%;aspect-ratio:4/3;object-fit:contain";
+            }else if(mime.startsWith("audio/")){
+              mediaElement=document.createElement("audio");
+              mediaElement.controls=true;
+              mediaElement.style.cssText="display:block;width:calc(100% - 20px);margin:10px";
+            }else{
+              // Keep non-previewable files listed without publishing a direct download URL.
+              mediaElement=document.createElement("span");
+              mediaElement.textContent=localizedMediaValue(item,"title")||"File";
+              mediaElement.setAttribute("aria-label","File attachment");
+              mediaElement.style.cssText="display:block;padding:18px;overflow-wrap:anywhere";
+            }
+            const loadMediaUrl=async()=>{
+              const url=await createContentMediaUrl(mediaPath,mediaBucket);
+              if(!tile.isConnected)return;
+              if(!url){tile.remove();return;}
+              if(["IMG","VIDEO","AUDIO"].includes(mediaElement.tagName))mediaElement.src=url;
+            };
+            if(galleryMediaObserver){
+              galleryLoaders.set(tile,loadMediaUrl);
+              observedMediaTiles.add(tile);
+              galleryMediaObserver.observe(tile);
+            }else{
+              Promise.resolve().then(loadMediaUrl);
+            }
+            tile.append(mediaElement);
+            const captionText=localizedMediaValue(item,"title");
+            if(captionText){
+              const caption=document.createElement("figcaption");
+              caption.textContent=captionText;
+              caption.style.cssText="padding:8px 10px;font-size:var(--dg-font-size-sm);line-height:1.4;overflow-wrap:anywhere";
+              tile.append(caption);
+            }
+            grid.append(tile);
+          }
+          if(nextIndex<validItems.length){
+            moreButton.hidden=false;
+            moreButton.textContent="Load more ("+(validItems.length-nextIndex)+")";
           }else{
-            // Keep non-previewable files listed without publishing a direct download URL.
-            mediaElement=document.createElement("span");
-            mediaElement.textContent=localizedMediaValue(item,"title")||"File";
-            mediaElement.setAttribute("aria-label","File attachment");
-            mediaElement.style.cssText="display:block;padding:18px;overflow-wrap:anywhere";
+            moreButton.hidden=true;
           }
-          Promise.resolve(urlPromise).then(url=>{
-            if(!url){tile.remove();return;}
-            if(["IMG","VIDEO","AUDIO"].includes(mediaElement.tagName))mediaElement.src=url;
-          });
-          tile.append(mediaElement);
-          const captionText=localizedMediaValue(item,"title");
-          if(captionText){
-            const caption=document.createElement("figcaption");
-            caption.textContent=captionText;
-            caption.style.cssText="padding:8px 10px;font-size:var(--dg-font-size-sm);line-height:1.4;overflow-wrap:anywhere";
-            tile.append(caption);
-          }
-          grid.append(tile);
-        }
-        return grid;
+        };
+        const moreButton=document.createElement("button");
+        moreButton.type="button";
+        moreButton.hidden=true;
+        moreButton.style.cssText="display:block;margin:18px auto 0;min-height:40px;padding:8px 18px;border:1px solid var(--dg-border);border-radius:var(--dg-control-radius);background:var(--dg-surface);color:var(--dg-text);font:inherit;cursor:pointer";
+        moreButton.addEventListener("click",appendBatch);
+        container.append(grid,moreButton);
+        appendBatch();
+        return container;
       };
       const updatePills=(kind,value)=>{
         nav.querySelectorAll(".gallery-pill").forEach(button=>{
@@ -764,6 +806,12 @@
         });
       };
       const showView=(kind,value,writeHistory=true)=>{
+        if(galleryMediaObserver){
+          for(const tile of observedMediaTiles){
+            if(view.contains(tile))galleryMediaObserver.unobserve(tile);
+          }
+          observedMediaTiles.clear();
+        }
         view.replaceChildren();
         let items=[];
         if(kind==="album"){
