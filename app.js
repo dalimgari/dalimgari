@@ -2913,7 +2913,8 @@
             {name:"site_title",label:"Site title (English)",type:"text",value:"Dalimgari"},
             {name:"site_title_bn",label:"Site title (Bengali)",type:"text",value:"ডালিমগাড়ী"},
             {name:"site_description",label:"Site description",type:"textarea",value:""},
-            {name:"favicon_data_url",label:"Favicon data",type:"hidden",value:""}
+            {name:"favicon_data_url",label:"Favicon data",type:"hidden",value:""},
+            {name:"favicon_history",label:"Favicon history",type:"hidden",value:"[]"}
           ]},
           {id:"homepage_defaults",title:"Homepage Defaults",key:"ui_settings_homepage_defaults",fields:[
             {name:"default_home_route",label:"Default route",type:"select",value:"home",options:[["home","Home"],["login","Login"]]},
@@ -3083,11 +3084,36 @@
           faviconInput.accept = ".png,.gif,.ico,image/png,image/gif,image/x-icon,image/vnd.microsoft.icon";
           faviconInput.className = "dashboard-crud-input";
           faviconInput.setAttribute("aria-label", "Choose website favicon");
+          const currentFaviconLabel = document.createElement("p");
+          currentFaviconLabel.className = "dashboard-section-description";
+          currentFaviconLabel.textContent = "Currently used favicon";
           const faviconPreview = document.createElement("img");
-          faviconPreview.alt = "Favicon preview";
+          faviconPreview.alt = "Currently used favicon preview";
           faviconPreview.width = 48;
           faviconPreview.height = 48;
-          faviconPreview.style.cssText = "display:none;object-fit:contain;margin-top:10px;border:1px solid #e5e7eb;border-radius:8px;padding:6px";
+          faviconPreview.style.cssText = "display:none;object-fit:contain;margin-top:6px;border:1px solid #e5e7eb;border-radius:8px;padding:6px";
+          const historyLabel = document.createElement("p");
+          historyLabel.className = "dashboard-section-description";
+          historyLabel.textContent = "Previous favicons (kept when a new one is applied)";
+          const faviconHistoryList = document.createElement("div");
+          faviconHistoryList.style.cssText = "display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 14px";
+          let savedFaviconDataUrl = "";
+          function renderFaviconHistory() {
+            faviconHistoryList.replaceChildren();
+            let history = [];
+            try { history = JSON.parse(inputMap.get("general.favicon_history").value || "[]"); } catch (_) { history = []; }
+            if (!Array.isArray(history)) history = [];
+            history.filter(item => item && typeof item.data_url === "string" && /^data:image\\/(?:png|gif|x-icon|vnd\\.microsoft\\.icon);base64,/i.test(item.data_url)).forEach((item, index) => {
+              const entry = document.createElement("div");
+              entry.style.cssText = "display:flex;align-items:center;gap:8px;border:1px solid #e5e7eb;border-radius:8px;padding:8px";
+              const image = document.createElement("img");
+              image.src = item.data_url; image.alt = "Previous favicon " + (index + 1); image.width = 32; image.height = 32;
+              image.style.cssText = "object-fit:contain";
+              const label = document.createElement("span"); label.textContent = item.saved_at ? new Date(item.saved_at).toLocaleDateString() : "Previous favicon";
+              entry.append(image, label); faviconHistoryList.append(entry);
+            });
+            historyLabel.hidden = faviconHistoryList.childElementCount === 0;
+          }
           const faviconStatus = document.createElement("p");
           faviconStatus.className = "dashboard-crud-status";
           faviconStatus.setAttribute("role", "status");
@@ -3109,10 +3135,20 @@
                 faviconStatus.style.color = "#a12622";
                 return;
               }
+              const historyInput = inputMap.get("general.favicon_history");
+              let history = [];
+              try { history = JSON.parse(historyInput.value || "[]"); } catch (_) { history = []; }
+              if (!Array.isArray(history)) history = [];
+              if (savedFaviconDataUrl && savedFaviconDataUrl !== reader.result && !history.some(item => item && item.data_url === savedFaviconDataUrl)) {
+                history.unshift({data_url:savedFaviconDataUrl,saved_at:new Date().toISOString()});
+              }
+              historyInput.value = JSON.stringify(history);
+              renderFaviconHistory();
               inputMap.get("general.favicon_data_url").value = reader.result;
               faviconPreview.src = reader.result;
               faviconPreview.style.display = "block";
-              faviconStatus.textContent = "Favicon selected. Click Save and Apply below to save it.";
+              currentFaviconLabel.textContent = "New favicon preview — becomes active after Save and Apply";
+              faviconStatus.textContent = "New favicon selected. The previous icon will remain in history. Click Save and Apply to activate the new icon.";
               faviconStatus.style.color = "#176b43";
             };
             reader.onerror = () => {
@@ -3121,7 +3157,7 @@
             };
             reader.readAsDataURL(file);
           });
-          faviconCard.append(faviconHeading, faviconHelp, faviconInput, faviconPreview, faviconStatus);
+          faviconCard.append(faviconHeading, faviconHelp, currentFaviconLabel, faviconPreview, historyLabel, faviconHistoryList, faviconInput, faviconStatus);
           form.append(faviconCard);
         }
         const actions = document.createElement("div");actions.className="dashboard-crud-actions";
@@ -3141,9 +3177,20 @@
               const value=values[field.name];
               if(field.type==="checkbox")input.checked=Boolean(value);
               else if(field.name==="section_order"&&Array.isArray(value)){input.value=JSON.stringify(value);input.dispatchEvent(new Event("change"));}
+              else if(field.name==="favicon_history")input.value=JSON.stringify(Array.isArray(value)?value:[]);
               else input.value=value==null?"":String(value);
             }
           }
+          savedFaviconDataUrl = inputMap.get("general.favicon_data_url")?.value || "";
+          if (savedFaviconDataUrl && /^data:image\\/(?:png|gif|x-icon|vnd\\.microsoft\\.icon);base64,/i.test(savedFaviconDataUrl)) {
+            faviconPreview.src = savedFaviconDataUrl;
+            faviconPreview.style.display = "block";
+            currentFaviconLabel.textContent = "Currently used favicon";
+          } else {
+            faviconPreview.removeAttribute("src"); faviconPreview.style.display = "none";
+            currentFaviconLabel.textContent = "No favicon is currently saved";
+          }
+          renderFaviconHistory();
           await loadPresets();
           status.textContent="Saved configuration loaded.";status.style.color="#176b43";
         }
@@ -3155,7 +3202,11 @@
             if(field.name==="hide_private_content")value[field.name]=true;
             else if(field.type==="checkbox")value[field.name]=input.checked;
             else if(field.type==="number")value[field.name]=Number(input.value);
-            else if(field.name==="section_order"){
+            else if(field.name==="favicon_history"){
+              let parsed;try{parsed=JSON.parse(input.value||"[]")}catch(_){throw new Error("Favicon history is invalid. Reload saved values and try again.");}
+              if(!Array.isArray(parsed)||parsed.some(item=>!item||typeof item.data_url!=="string"||!/^data:image\\/(?:png|gif|x-icon|vnd\\.microsoft\\.icon);base64,/i.test(item.data_url)))throw new Error("Favicon history contains an invalid image.");
+              value[field.name]=parsed;
+            } else if(field.name==="section_order"){
               let parsed;try{parsed=JSON.parse(input.value||"[]")}catch(_){throw new Error("Section order must be valid JSON.");}
               const allowed=["hero","page_title","widget","album","page_card"];
               if(!Array.isArray(parsed)||parsed.some(item=>!allowed.includes(item))||new Set(parsed).size!==parsed.length)throw new Error("Use the section order controls to set each homepage section once.");
