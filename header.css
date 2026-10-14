@@ -530,3 +530,38 @@ body.dg-night-mode a:not(.menu-link):hover {
   color: #c6d8ff;
 }
 
+
+
+/* Header visual values consume shared tokens; component geometry remains header-owned. */
+header {
+  background-color:var(--dg-surface,#fff);
+  color:var(--dg-text,#222);
+  border-radius:var(--dg-card-radius,14px);
+  box-shadow:var(--dg-shadow-md,0 8px 24px rgba(0,0,0,.08));
+}
+.current-page-label { color:var(--dg-text,#222); }
+.menu-button { border-radius:var(--dg-control-radius,9px); }
+.menu-button span { background-color:var(--dg-text,#333); }
+.menu-button:hover,.menu-button:focus-visible { background-color:var(--dg-hover-surface,#f3f4f6); }
+.floating-menu {
+  background-color:var(--dg-surface,#fff);
+  color:var(--dg-text,#222);
+  border-color:var(--dg-border,#e5e7eb);
+  border-radius:var(--dg-card-radius,14px);
+  box-shadow:var(--dg-shadow-md,0 8px 24px rgba(0,0,0,.08));
+}
+.menu-link { color:var(--dg-text,#333); border-radius:var(--dg-control-radius,9px); }
+.menu-link:hover,.menu-link:focus-visible,.menu-link[aria-current="page"] {
+  background-color:var(--dg-hover-surface,#f3f4f6);
+  color:var(--dg-primary,#222);
+}
+.menu-link.menu-dashboard { border-top-color:var(--dg-border,#e5e7eb); }
+.menu-language-section { border-top-color:var(--dg-border,#e5e7eb); }
+.menu-language-section #language-switcher,.menu-language-section #theme-switcher {
+  border-radius:var(--dg-control-radius,9px);
+  border-color:var(--dg-border,#e5e7eb);
+}
+body.dg-night-mode .menu-button:hover,
+body.dg-night-mode .menu-button:focus-visible {
+  background-color:var(--dg-hover-surface,#2b3543);
+}
