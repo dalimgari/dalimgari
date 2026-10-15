@@ -68,6 +68,17 @@ test("homepage hero requests a responsive transformed image with an original-ima
   assert.match(app, /avoid an extra await before the LCP request/);
 });
 
+test("large general settings and favicon do not block initial public configuration", () => {
+  const app = read("app.js");
+  const configStart = app.indexOf("async function applyDalimgariSiteConfig");
+  const configEnd = app.indexOf("const theme=cfg.ui_customization_theme", configStart);
+  const initialConfig = app.slice(configStart, configEnd);
+  assert.doesNotMatch(initialConfig, /"ui_settings_general"/);
+  assert.match(app, /async function loadDalimgariGeneralConfig\(requestId\)/);
+  assert.match(app, /void loadDalimgariGeneralConfig\(configRequestId\)/);
+  assert.match(app, /select\("value"\)\.eq\("key","ui_settings_general"\)/);
+});
+
 test("dashboard code is split from the initial application bundle", () => {
   const app = read("app.js");
   const dashboard = read("dashboard.js");
