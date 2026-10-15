@@ -609,18 +609,20 @@
         if(width>=640&&width<=1800)home.style.maxWidth=width+"px";
         const padding=Number(responsive.mobile_padding);
         if(padding>=8&&padding<=32)home.style.paddingLeft=padding+"px",home.style.paddingRight=padding+"px";
-        const sectionMap={"hero":".home-hero","page_title":".home-page-title","widget":".home-widget","album":".home-album","page_card":".home-page-card"};
+        const sectionMap={"hero":".home-hero","page_pills":".home-page-pillbar","album":".home-album","widget":".home-widget","page_card":".home-page-card"};
         for(const [key,selector] of Object.entries(sectionMap)){
           const el=home.querySelector(selector);if(!el)continue;
           const field="show_"+key;
           if(key!=="page_title"&&Object.prototype.hasOwnProperty.call(layout,field))el.hidden=!layout[field];
           if(features.enable_homepage_media===false&&(key==="widget"||key==="album"))el.hidden=true;
         }
-        if(Array.isArray(layout.section_order)){
-          const ordered=layout.section_order.map(key=>sectionMap[key]).filter(Boolean).map(selector=>home.querySelector(selector)).filter(Boolean);
-          const rest=Array.from(home.children).filter(el=>!ordered.includes(el));
-          home.append(...ordered,...rest);
-        }
+        const defaultSectionOrder=["hero","page_pills","album","widget","page_card"];
+        const savedSectionOrder=Array.isArray(layout.section_order)?layout.section_order:[];
+        const requestedSectionOrder=savedSectionOrder.includes("page_pills")?savedSectionOrder:defaultSectionOrder;
+        const orderedKeys=[...requestedSectionOrder.filter(key=>Object.prototype.hasOwnProperty.call(sectionMap,key)),...defaultSectionOrder.filter(key=>!requestedSectionOrder.includes(key))];
+        const ordered=orderedKeys.map(key=>home.querySelector(sectionMap[key])).filter(Boolean);
+        const rest=Array.from(home.children).filter(el=>!ordered.includes(el));
+        home.append(...ordered,...rest);
         if(dalimgariHomeObserver){dalimgariHomeObserver.disconnect();dalimgariHomeObserver=null;}
         const syncEmptySections=()=>{
           for(const [key,selector] of Object.entries(sectionMap)){
@@ -961,7 +963,7 @@
         if (templateResult.error) throw templateResult.error;
         const homeMarkup = templateResult.markup;
         const homeDocument = new DOMParser().parseFromString(homeMarkup, "text/html");
-        const requiredSections = ["home-hero", "home-page-title", "home-widget", "home-album", "home-page-card"];
+        const requiredSections = ["home-hero", "home-widget", "home-album", "home-page-card"];
         if (homeDocument.querySelectorAll(".home-page").length !== 1) throw new Error("home.html must contain exactly one .home-page template");
         page = homeDocument.querySelector(".home-page");
         if (requiredSections.some(className => page.querySelectorAll("." + className).length !== 1) ||
@@ -983,7 +985,7 @@
       }
       const heroSection = page.querySelector(".home-hero");
       heroSection.classList.add("is-loading");
-      const extraSections = [".home-page-title", ".home-widget", ".home-album", ".home-page-card"]
+      const extraSections = [".home-widget", ".home-album", ".home-page-card"]
         .map(selector => page.querySelector(selector));
       const pillBar = page.querySelector(".home-page-pillbar");
       pillBar.replaceChildren();
@@ -1052,7 +1054,7 @@
       ]);
 
       // Optional homepage placement map, configured in Dashboard > Customizations
-      // with key "home_page_includes" and JSON such as {"home-page-title":"about-us"}.
+      // with key "home_page_includes" and JSON such as {"home-page-card":"about-us"}.
       const { data: includeConfigRow } = await supabaseClient.from("site_customizations")
         .select("value").eq("key", "home_page_includes").maybeSingle();
       let homeIncludes = includeConfigRow?.value || {};
@@ -1076,8 +1078,7 @@
         ));
       }
 
-      // Public Pages appear as pill buttons in the homepage Page Title section.
-      const pageTitleSection = extraSections[0];
+      // Public Pages appear as navigation pills above the Album section.
       pillBar.setAttribute("aria-label", "Pages");
       const [{data: publicPages, error: pagesError}, {data: pageOrderSetting}, {data: pillMotionSetting}] =
         await publicPageConfigPromise;
@@ -1123,7 +1124,6 @@
       }
       if (pillBar.childElementCount) {
         pillBar.hidden = false;
-        page.insertBefore(pillBar,pageTitleSection);
         const pillMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
         let pillAutoTimer = null;
         const stopPillAutoScroll = () => {
