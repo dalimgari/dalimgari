@@ -81,6 +81,29 @@
       box-sizing: border-box;
     }
 
+    /* Hide scrollbar chrome site-wide without disabling scrolling or keyboard access. */
+    html,
+    body,
+    *,
+    *::before,
+    *::after {
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
+    }
+
+    *::-webkit-scrollbar,
+    *::-webkit-scrollbar-button,
+    *::-webkit-scrollbar-thumb,
+    *::-webkit-scrollbar-track,
+    *::-webkit-scrollbar-track-piece,
+    *::-webkit-scrollbar-corner,
+    *::-webkit-resizer {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+      background: transparent !important;
+    }
+
     /* Global responsive sizing and overflow protection for every page/component. */
     html, body { max-width:100%; }
     body { overflow-x:clip; }
