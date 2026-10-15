@@ -437,14 +437,72 @@
     let dalimgariSiteConfigCache = null;
     let dalimgariSiteConfigPromise = null;
     let dalimgariSiteConfigRequestId = 0;
+    let dalimgariGeneralConfigPromise = null;
     let dalimgariHomeObserver = null;
+
+    // Keep the large favicon data URL out of the blocking theme/layout request.
+    function applyDalimgariGeneralMetadata(general, config) {
+      const identity=config.ui_customization_identity||{};
+      const title=getUiLanguage()==="en"
+        ? (String(general.site_title||identity.site_title||"Dalimgari").trim()||"Dalimgari")
+        : (String(general.site_title_bn||identity.site_title_bn||(String(general.site_title||identity.site_title||"Dalimgari").trim()==="Dalimgari"?"ডালিমগাড়ী":general.site_title||identity.site_title||"ডালিমগাড়ী")).trim()||"ডালিমগাড়ী");
+      document.title=title;
+      let descriptionMeta=document.querySelector('meta[name="description"]');
+      if(!descriptionMeta){descriptionMeta=document.createElement("meta");descriptionMeta.name="description";document.head.append(descriptionMeta);}
+      descriptionMeta.content=String(general.site_description||"").trim();
+      const faviconDataUrl=typeof general.favicon_data_url==="string" &&
+        /^data:image\/(?:png|gif|x-icon|vnd\.microsoft\.icon);base64,/i.test(general.favicon_data_url)
+        ? general.favicon_data_url : "";
+      let faviconLink=document.querySelector('link[rel~="icon"]');
+      const headerFavicon=document.querySelector(".header-favicon");
+      if(faviconDataUrl){
+        if(!faviconLink){faviconLink=document.createElement("link");faviconLink.rel="icon";document.head.append(faviconLink);}
+        faviconLink.href=faviconDataUrl;
+        faviconLink.type=faviconDataUrl.startsWith("data:image/png")?"image/png":(faviconDataUrl.startsWith("data:image/gif")?"image/gif":"image/x-icon");
+        if(headerFavicon){headerFavicon.src=faviconDataUrl;headerFavicon.hidden=false;}
+      }else{
+        if(faviconLink)faviconLink.remove();
+        if(headerFavicon){headerFavicon.removeAttribute("src");headerFavicon.hidden=true;}
+      }
+    }
+
+    async function loadDalimgariGeneralConfig(requestId) {
+      if(requestId!==dalimgariSiteConfigRequestId) return null;
+      const cached=dalimgariSiteConfigCache?.ui_settings_general;
+      if(cached){applyDalimgariGeneralMetadata(cached,dalimgariSiteConfigCache);return cached;}
+      if(dalimgariGeneralConfigPromise) return dalimgariGeneralConfigPromise;
+      const pending=(async()=>{
+        try{
+          const {data,error}=await supabaseClient.from("site_customizations").select("value").eq("key","ui_settings_general").maybeSingle();
+          if(error) throw error;
+          if(requestId!==dalimgariSiteConfigRequestId) return null;
+          let general=data?.value||{};
+          if(typeof general==="string"){try{general=JSON.parse(general)}catch(_){general={}}}
+          if(!general||typeof general!=="object"||Array.isArray(general)) general={};
+          const merged={...(dalimgariSiteConfigCache||{}),ui_settings_general:general};
+          dalimgariSiteConfigCache=merged;
+          dalimgariRuntimeConfig=merged;
+          applyDalimgariGeneralMetadata(general,merged);
+          return general;
+        }catch(error){
+          console.warn("General site settings could not be loaded:",error?.message||error);
+          return null;
+        }finally{
+          if(dalimgariGeneralConfigPromise===pending) dalimgariGeneralConfigPromise=null;
+        }
+      })();
+      dalimgariGeneralConfigPromise=pending;
+      return pending;
+    }
+
     // Loads public-safe configuration once per page lifecycle; force=true refreshes after dashboard saves.
     async function applyDalimgariSiteConfig(force=false) {
-      const keys=["ui_customization_identity","ui_customization_theme","ui_customization_header_footer","ui_customization_layout","ui_customization_typography","ui_customization_responsive","ui_customization_components","ui_customization_media","ui_customization_page_style","ui_customization_effects","ui_customization_hero","ui_settings_general","ui_settings_homepage_defaults","ui_settings_content_defaults","ui_settings_users_access","ui_settings_privacy_visibility","ui_settings_maintenance_features"];
+      const keys=["ui_customization_identity","ui_customization_theme","ui_customization_header_footer","ui_customization_layout","ui_customization_typography","ui_customization_responsive","ui_customization_components","ui_customization_media","ui_customization_page_style","ui_customization_effects","ui_customization_hero","ui_settings_homepage_defaults","ui_settings_content_defaults","ui_settings_users_access","ui_settings_privacy_visibility","ui_settings_maintenance_features"];
       if (force) {
         dalimgariSiteConfigCache = null;
         dalimgariSiteConfigPromise = null;
         dalimgariSiteConfigRequestId += 1;
+        dalimgariGeneralConfigPromise = null;
       }
       let cfg = dalimgariSiteConfigCache;
       if (!cfg) {
@@ -470,44 +528,13 @@
       }
       if (!cfg) return {};
       dalimgariRuntimeConfig = cfg;
-      const identity=cfg.ui_customization_identity||{}, general=cfg.ui_settings_general||{};
-      // Use only the administrator-uploaded favicon. No bundled/default icon is applied.
-      const faviconDataUrl = typeof general.favicon_data_url === "string" &&
-        /^data:image\/(?:png|gif|x-icon|vnd\.microsoft\.icon);base64,/i.test(general.favicon_data_url)
-        ? general.favicon_data_url : "";
-      let faviconLink = document.querySelector('link[rel~="icon"]');
-      const headerFavicon = document.querySelector(".header-favicon");
-      if (faviconDataUrl) {
-        if (!faviconLink) {
-          faviconLink = document.createElement("link");
-          faviconLink.rel = "icon";
-          document.head.append(faviconLink);
-        }
-        faviconLink.href = faviconDataUrl;
-        faviconLink.type = faviconDataUrl.startsWith("data:image/png") ? "image/png" :
-          (faviconDataUrl.startsWith("data:image/gif") ? "image/gif" : "image/x-icon");
-        if (headerFavicon) {
-          headerFavicon.src = faviconDataUrl;
-          headerFavicon.hidden = false;
-        }
-      } else {
-        if (faviconLink) faviconLink.remove();
-        if (headerFavicon) {
-          headerFavicon.removeAttribute("src");
-          headerFavicon.hidden = true;
-        }
-      }
+      const configRequestId = dalimgariSiteConfigRequestId;
+      void loadDalimgariGeneralConfig(configRequestId);
+      const identity=cfg.ui_customization_identity||{};
       const theme=cfg.ui_customization_theme||{}, header=cfg.ui_customization_header_footer||{};
       const layout=cfg.ui_customization_layout||{}, typography=cfg.ui_customization_typography||{};
       const responsive=cfg.ui_customization_responsive||{}, components=cfg.ui_customization_components||{}, media=cfg.ui_customization_media||{}, pageStyle=cfg.ui_customization_page_style||{}, effects=cfg.ui_customization_effects||{}, heroVisual=cfg.ui_customization_hero||{}, features=cfg.ui_settings_maintenance_features||{};
       const homepageDefaults=cfg.ui_settings_homepage_defaults||{};
-      const title=getUiLanguage()==="en"
-        ? (String(general.site_title||identity.site_title||"Dalimgari").trim()||"Dalimgari")
-        : (String(general.site_title_bn||identity.site_title_bn||(String(general.site_title||identity.site_title||"Dalimgari").trim()==="Dalimgari"?"ডালিমগাড়ী":general.site_title||identity.site_title||"ডালিমগাড়ী")).trim()||"ডালিমগাড়ী");
-      document.title=title;
-      let descriptionMeta=document.querySelector('meta[name="description"]');
-      if(!descriptionMeta){descriptionMeta=document.createElement("meta");descriptionMeta.name="description";document.head.append(descriptionMeta);}
-      descriptionMeta.content=String(general.site_description||"").trim();
       const titleLabel=document.querySelector("#current-page-label");
       if(titleLabel && (!titleLabel.textContent || titleLabel.textContent==="Home"))titleLabel.textContent=window.DalimgariI18n?.t?.("Home") || "Home";
       const root=document.documentElement;
