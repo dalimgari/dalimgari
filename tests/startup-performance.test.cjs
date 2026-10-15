@@ -8,7 +8,7 @@ test("shell loads independent startup resources in parallel before dependent ini
   const sdkStart = html.indexOf('const supabaseSdkPromise = loadScript("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2")');
   const layoutStart = html.indexOf("const [headerResponse, footerResponse] = await Promise.all([");
   const layoutEnd = html.indexOf("]);", layoutStart);
-  const dictionariesStart = html.indexOf("await Promise.all([", layoutEnd);
+  const dictionariesStart = html.indexOf("await Promise.all([", html.indexOf("// Load dictionaries and initialize language"));
   const dictionariesEnd = html.indexOf("]);", dictionariesStart);
   const sdkReady = html.indexOf("await supabaseSdkPromise", dictionariesEnd);
   assert.ok(sdkStart >= 0 && layoutStart > sdkStart && layoutEnd > layoutStart &&
