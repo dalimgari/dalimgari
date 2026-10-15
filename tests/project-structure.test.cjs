@@ -19,8 +19,8 @@ test("main entry keeps the independent header, content, and footer landmarks", (
 
 test("inline JavaScript in the HTML entry compiles before deployment", () => {
   const html = read("index.html");
-  const scripts = [...html.matchAll(/<script\\b([^>]*)>([\\s\\S]*?)<\\/script>/gi)]
-    .filter((match) => !/\\bsrc\\s*=/.test(match[1]));
+  const scripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)]
+    .filter((match) => !/\bsrc\s*=/.test(match[1]));
   assert.ok(scripts.length > 0, "Expected inline bootstrap scripts in index.html");
   scripts.forEach((match, index) => {
     assert.doesNotThrow(
