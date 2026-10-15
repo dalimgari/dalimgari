@@ -657,7 +657,7 @@
       shell.style.cssText="width:100%;max-width:1200px;min-width:0;margin:0 auto;padding:24px 16px 40px;box-sizing:border-box";
       const nav=document.createElement("nav");
       nav.setAttribute("aria-label","Gallery filters and albums");
-      nav.style.cssText="position:sticky;top:104px;z-index:9;display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;overflow-y:hidden;padding:10px 2px 12px;margin:0 0 22px;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);overscroll-behavior-x:contain;scrollbar-width:thin";
+      nav.style.cssText="position:sticky;top:104px;z-index:9;display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;overflow-y:hidden;padding:10px 2px 12px;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);overscroll-behavior-x:contain;scrollbar-width:thin";
       const view=document.createElement("div");
       view.className="gallery-view";
       view.style.cssText="width:100%;min-width:0";
