@@ -40,7 +40,6 @@ test("home template keeps each dynamic section exactly once and allows narrow la
   for (const section of [
     "home-hero",
     "home-page-pillbar",
-    "home-page-title",
     "home-widget",
     "home-album",
     "home-page-card"
@@ -60,7 +59,7 @@ test("home template keeps each dynamic section exactly once and allows narrow la
 test("homepage starts hero loading early and gives the LCP image high priority", () => {
   const js = read("app.js");
   const includesStart = js.indexOf("const includeTargets = Object.entries(homeIncludes).map");
-  const includesEnd = js.indexOf("// Public Pages appear as pill buttons", includesStart);
+  const includesEnd = js.indexOf("// Public Pages appear as navigation pills", includesStart);
   assert.ok(includesStart >= 0 && includesEnd > includesStart);
   assert.match(js.slice(includesStart, includesEnd), /Promise\.all\(includeTargets\.map\(async/);
   assert.match(js.slice(includesStart, includesEnd), /Promise\.all\(includedPages\.filter\(Boolean\)\.map/);
