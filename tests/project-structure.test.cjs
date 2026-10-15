@@ -2,6 +2,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
+const vm = require("node:vm");
 
 const read = (file) => fs.readFileSync(path.join(__dirname, "..", file), "utf8");
 const exists = (file) => fs.existsSync(path.join(__dirname, "..", file));
@@ -12,6 +13,21 @@ test("main entry keeps the independent header, content, and footer landmarks", (
   assert.match(html, /<main\s+id="main-content"/);
   assert.match(html, /<footer\s+id="site-footer"/);
   assert.match(html, /<html\s+lang="bn"/i);
+  assert.match(html, /catch \(error\) \{[\s\S]*?dataset\.uiLanguageReady = "true"/,
+    "initialization errors must reveal the shell so the visible alert is not hidden");
+});
+
+test("inline JavaScript in the HTML entry compiles before deployment", () => {
+  const html = read("index.html");
+  const scripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)]
+    .filter((match) => !/\bsrc\s*=/.test(match[1]));
+  assert.ok(scripts.length > 0, "Expected inline bootstrap scripts in index.html");
+  scripts.forEach((match, index) => {
+    assert.doesNotThrow(
+      () => new vm.Script(match[2], { filename: `index.html inline script ${index + 1}` }),
+      `Invalid inline JavaScript in index.html script ${index + 1}`
+    );
+  });
 });
 
 test("the app shell retains all required local layout assets", () => {

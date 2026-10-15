@@ -68,6 +68,8 @@
         await loadScript("app.js");
         await loadScript("header.js");
       } catch (error) {
+        // The shell hides content until localization is ready; never leave failures invisible.
+        document.documentElement.dataset.uiLanguageReady = "true";
         console.error("Site layout initialization failed:", error);
         const errorMessage = document.createElement("p");
         errorMessage.setAttribute("role", "alert");
