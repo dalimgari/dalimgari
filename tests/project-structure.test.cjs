@@ -12,6 +12,8 @@ test("main entry keeps the independent header, content, and footer landmarks", (
   assert.match(html, /<main\s+id="main-content"/);
   assert.match(html, /<footer\s+id="site-footer"/);
   assert.match(html, /<html\s+lang="bn"/i);
+  assert.match(html, /catch \(error\) \{[\s\S]*?dataset\.uiLanguageReady = "true"/,
+    "initialization errors must reveal the shell so the visible alert is not hidden");
 });
 
 test("the app shell retains all required local layout assets", () => {
