@@ -691,9 +691,6 @@
   padding:0;
   box-sizing:border-box;
 }
-.home-page > .home-widget,
-.home-page > .home-album,
-.home-page > .home-page-card { padding-bottom:24px; }
 .home-page > .home-hero { margin-top:16px; padding:0; }
 .home-page .home-page-pillbar {
   position:sticky;
