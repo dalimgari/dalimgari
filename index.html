@@ -1,9 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dalimgari</title>
+  <script>
+    // Set the saved language before the first paint; Bengali is the permanent default.
+    (() => {
+      let language = "bn";
+      try { language = localStorage.getItem("dalimgari-language") === "en" ? "en" : "bn"; } catch (_) {}
+      document.documentElement.lang = language;
+      document.documentElement.dataset.uiLanguage = language;
+    })();
+  </script>
+  <style>html:not([data-ui-language-ready="true"]) body { visibility: hidden; }</style>
+  <title>ডালিমগাড়ী</title>
   <link rel="stylesheet" href="site.css">
   <link rel="stylesheet" href="header.css">
   <link rel="stylesheet" href="footer.css">
@@ -46,15 +56,15 @@
         headerHost.innerHTML = headerMarkup;
         footerHost.innerHTML = footerMarkup;
 
-        // Dictionaries and configuration are independent of the SDK download. Start them
-        // as soon as the layout is mounted, while the SDK request is still in flight.
-        const startupResourcesPromise = Promise.all([
+        // Load dictionaries and initialize language before waiting for the Supabase SDK.
+        // This prevents English header labels from flashing before Bengali is applied.
+        await Promise.all([
           loadScript("i18n/bn.js"),
           loadScript("i18n/en.js"),
           loadScript("config.js")
         ]);
-        await Promise.all([supabaseSdkPromise, startupResourcesPromise]);
         await loadScript("i18n/index.js");
+        await supabaseSdkPromise;
         await loadScript("app.js");
         await loadScript("header.js");
       } catch (error) {
