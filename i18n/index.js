@@ -62,8 +62,10 @@
     language = supported.has(next) ? next : "bn";
     try { localStorage.setItem(STORAGE_KEY, language); } catch (_) {}
     document.documentElement.lang = language;
+    document.documentElement.dataset.uiLanguage = language;
     document.documentElement.dir = "ltr";
     apply();
+    document.documentElement.dataset.uiLanguageReady = "true";
     const selector = document.querySelector("#language-switcher");
     if (selector) {
       selector.setAttribute("aria-label", language === "bn" ? "Switch language to English" : "Switch language to Bengali");
