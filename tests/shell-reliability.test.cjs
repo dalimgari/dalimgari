@@ -50,6 +50,9 @@ test("home template keeps each dynamic section exactly once and allows narrow la
 
   // Layout styles intentionally live in site.css rather than inline HTML styles.
   assert.match(styles, /\.home-page\s*\{[^}]*max-width:1200px/s);
+  assert.match(styles, /\.home-page\s*\{[^}]*gap:var\(--dg-section-gap,24px\)/s, "all homepage sections should use the centralized section gap");
+  assert.doesNotMatch(styles, /\.home-page\s*>\s*\.home-(?:widget|album|page-card)\s*\{[^}]*padding-bottom/s, "sections must not add local spacing on top of the global gap");
+  assert.doesNotMatch(read("app.js"), /home-page-pillbar[^;]*margin:0 0 22px/, "page pills must not add an extra local bottom margin");
   assert.match(styles, /\.home-page\s*>\s*\.home-section\s*\{[^}]*min-width:0/s);
   assert.match(styles, /\.home-page\s*\.home-page-pillbar\s*\{[^}]*overflow-x:auto/s);
   assert.match(styles, /\.home-page\s*\.home-page-pillbar\s*\{[^}]*overscroll-behavior-x:contain/s);
