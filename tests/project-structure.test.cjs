@@ -11,7 +11,7 @@ test("main entry keeps the independent header, content, and footer landmarks", (
   assert.match(html, /<header\s+id="site-header"/);
   assert.match(html, /<main\s+id="main-content"/);
   assert.match(html, /<footer\s+id="site-footer"/);
-  assert.match(html, /<html\s+lang="en"/i);
+  assert.match(html, /<html\s+lang="bn"/i);
 });
 
 test("the app shell retains all required local layout assets", () => {
@@ -22,11 +22,19 @@ test("the app shell retains all required local layout assets", () => {
   }
 });
 
-test("the home template retains all configurable content sections", () => {
+test("the home template contains only the requested sections in the requested order", () => {
   const html = read("home.html");
-  for (const section of ["home-hero", "home-page-pillbar", "home-page-title", "home-widget", "home-album", "home-page-card"]) {
-    assert.ok(html.includes(section), `Missing homepage section: ${section}`);
-  }
+  const sections = ["home-hero", "home-page-pillbar", "home-album", "home-widget", "home-page-card"];
+  for (const section of sections) assert.ok(html.includes(section), `Missing homepage section: ${section}`);
+  assert.doesNotMatch(html, /home-page-title|aria-label="Page Title"/);
+  const positions = sections.map((section) => html.indexOf(section));
+  assert.deepEqual(positions, [...positions].sort((a, b) => a - b), "Homepage sections are out of order");
+  const app = read("app.js");
+  assert.doesNotMatch(app, /home-page-title/);
+  assert.match(app, /defaultSectionOrder=\["hero","page_pills","album","widget","page_card"\]/);
+  const dashboard = read("dashboard.js");
+  assert.doesNotMatch(dashboard, /show_page_title|page_title:"Page Title"/);
+  assert.match(dashboard, /page_pills:"Page Pill Button"/);
 });
 
 test("the current GitHub Pages deployment remains configured with limited permissions", () => {

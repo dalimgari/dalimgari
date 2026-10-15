@@ -787,13 +787,12 @@
             ]},
             {id:"layout",title:"Homepage Layout & Section Visibility",key:"ui_customization_layout",fields:[
               {name:"show_hero",label:"Show Hero section",type:"checkbox",value:true},
-              {name:"show_page_title",label:"Show Page Title section",type:"checkbox",value:true},
               {name:"show_widget",label:"Show Widget section",type:"checkbox",value:true},
               {name:"show_album",label:"Show Album section",type:"checkbox",value:true},
-              {name:"show_page_card",label:"Show Page Card section",type:"checkbox",value:true},
+              {name:"show_page_card",label:"Show Page Section",type:"checkbox",value:true},
               {name:"section_gap",label:"Homepage section spacing (px)",type:"number",value:24,min:0,max:64},
               {name:"card_gap",label:"Card spacing (px)",type:"number",value:16,min:0,max:48},
-              {name:"section_order",label:"Homepage section order",type:"order",full:true,value:'["hero","page_title","widget","album","page_card"]'}
+              {name:"section_order",label:"Homepage section order",type:"order",full:true,value:'["hero","page_pills","album","widget","page_card"]'}
             ]},
             {id:"typography",title:"Typography",key:"ui_customization_typography",fields:[
               {name:"font_family",label:"Font family",type:"select",value:"system",options:[["system","System default"],["Arial, sans-serif","Arial"],["Georgia, serif","Georgia"],["Verdana, sans-serif","Verdana"],["Tahoma, sans-serif","Tahoma"]]},
@@ -982,8 +981,9 @@
               inputMap.set(group.id+"."+field.name,hidden);
               label.htmlFor="cfg-"+group.id+"-"+field.name;label.id=label.htmlFor+"-label";
               const control=document.createElement("div");control.className="section-order-control";control.setAttribute("aria-labelledby",label.id);
-              const names={hero:"Hero",page_title:"Page Title",widget:"Widget",album:"Album",page_card:"Page Card"};
-              const normalizeOrder=raw=>{let order=[];try{order=Array.isArray(raw)?raw:JSON.parse(String(raw||"[]"));}catch(_){}if(!Array.isArray(order))order=[];const valid=["hero","page_title","widget","album","page_card"];order=order.filter(key=>valid.includes(key));return [...new Set(order),...valid.filter(key=>!order.includes(key))];};
+              const names={hero:"Hero",page_pills:"Page Pill Button",album:"Album",widget:"Widget",page_card:"Page Section"};
+              const valid=["hero","page_pills","album","widget","page_card"];
+              const normalizeOrder=raw=>{let order=[];try{order=Array.isArray(raw)?raw:JSON.parse(String(raw||"[]"));}catch(_){}if(!Array.isArray(order))order=[];if(!order.includes("page_pills"))return [...valid];order=order.filter(key=>valid.includes(key));return [...new Set(order),...valid.filter(key=>!order.includes(key))];};
               const draw=()=>{control.replaceChildren();const order=normalizeOrder(hidden.value);hidden.value=JSON.stringify(order);order.forEach((key,index)=>{const row=document.createElement("div");row.className="section-order-row";const number=document.createElement("span");number.className="section-order-index";number.textContent=String(index+1);const name=document.createElement("span");name.className="section-order-name";name.textContent=names[key];const moves=document.createElement("div");moves.className="section-order-moves";const up=document.createElement("button");up.type="button";up.className="action-button";up.textContent="↑";up.setAttribute("aria-label","Move "+names[key]+" up");up.disabled=index===0;const down=document.createElement("button");down.type="button";down.className="action-button";down.textContent="↓";down.setAttribute("aria-label","Move "+names[key]+" down");down.disabled=index===order.length-1;up.addEventListener("click",()=>{[order[index-1],order[index]]=[order[index],order[index-1]];hidden.value=JSON.stringify(order);draw();});down.addEventListener("click",()=>{[order[index+1],order[index]]=[order[index],order[index+1]];hidden.value=JSON.stringify(order);draw();});moves.append(up,down);row.append(number,name,moves);control.append(row);});};
               hidden.addEventListener("change",draw);draw();wrap.append(label,hidden,control);return wrap;
             }
@@ -1177,7 +1177,7 @@
                 value[field.name]=parsed;
               } else if(field.name==="section_order"){
                 let parsed;try{parsed=JSON.parse(input.value||"[]")}catch(_){throw new Error("Section order must be valid JSON.");}
-                const allowed=["hero","page_title","widget","album","page_card"];
+                const allowed=["hero","page_pills","album","widget","page_card"];
                 if(!Array.isArray(parsed)||parsed.some(item=>!allowed.includes(item))||new Set(parsed).size!==parsed.length)throw new Error("Use the section order controls to set each homepage section once.");
                 value[field.name]=[...parsed,...allowed.filter(item=>!parsed.includes(item))];
               } else value[field.name]=input.value.trim();
