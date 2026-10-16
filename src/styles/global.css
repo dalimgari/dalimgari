@@ -881,3 +881,61 @@ button {
     max-height: 16rem;
   }
 }
+
+
+.home-page-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+  gap: var(--space-4);
+  margin-block: 1rem 2rem;
+}
+
+.home-page-card {
+  min-width: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  overflow-wrap: anywhere;
+  scroll-margin-top: 1.5rem;
+}
+
+.home-page-card h2 {
+  margin-top: 0;
+}
+
+.home-page-card a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5rem;
+  margin-top: var(--space-2);
+  font-weight: 600;
+}
+
+.public-page {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.public-page-content {
+  overflow-wrap: anywhere;
+}
+
+.public-page-content img {
+  max-width: 100%;
+  height: auto;
+}
+
+.public-page-content table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+
+.public-page-content th,
+.public-page-content td {
+  padding: 0.5rem;
+  border: 1px solid var(--color-border);
+  text-align: start;
+}
