@@ -231,7 +231,11 @@ export function HomePage() {
                 key={page.id}
                 type="button"
                 className="home-page-pill"
-                onClick={() => document.getElementById("public-page-card-" + page.id)?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                onClick={() =>
+                  document
+                    .getElementById("public-page-card-" + page.id)
+                    ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                }
               >
                 {page.title}
               </button>
@@ -245,7 +249,11 @@ export function HomePage() {
           {state.pages.map((page) => (
             <article className="home-page-card" id={"public-page-card-" + page.id} key={page.id}>
               <h2>{page.title}</h2>
-              {page.description ? <p>{page.description}</p> : <p>Open this page to read its content.</p>}
+              {page.description ? (
+                <p>{page.description}</p>
+              ) : (
+                <p>Open this page to read its content.</p>
+              )}
               {page.url ? <a href={"#/pages/" + encodeURIComponent(page.url)}>See more</a> : null}
             </article>
           ))}
