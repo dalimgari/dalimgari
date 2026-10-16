@@ -29,7 +29,7 @@ test(
   "public custom-page route stays inside the preview and handles unavailable pages",
   async ({ page }) => {
     await page.goto("/react-preview.html#/pages/migration-test-page-that-does-not-exist");
-    await expect(page).toHaveURL(/react-preview\\.html#\\/pages\\//);
+    await expect(page).toHaveURL(/react-preview\.html#\/pages\//);
     await expect(page.getByRole("heading", { name: "Page unavailable" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Return home" })).toBeVisible();
   },
