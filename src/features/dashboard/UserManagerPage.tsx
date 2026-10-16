@@ -140,8 +140,8 @@ export function UserManagerPage() {
       </p>
       <h1 id="user-manager-title">User and Role Assignment</h1>
       <p>
-        শুধু trusted admin এই তালিকা দেখতে পারেন। এখানে role assignment করা যায়; Auth user
-        delete/ban বা email পরিবর্তন করা হয় না।
+        Only trusted admins can view this list. Roles can be assigned here; Auth users
+        cannot be deleted, banned, or have their email changed here.
       </p>
       {error ? <p role="alert">{error}</p> : null}
       {message ? <p role="status">{message}</p> : null}
@@ -164,8 +164,8 @@ export function UserManagerPage() {
             <h2 id="user-role-title">{selectedUser.full_name || selectedUser.email}</h2>
             <p>{selectedUser.email}</p>
             <p>
-              যে role গুলো প্রয়োজন সেগুলো নির্বাচন করুন। Role পরিবর্তন করলে সংশ্লিষ্ট permission
-              সঙ্গে সঙ্গে কার্যকর হতে পারে।
+              Select the required roles. Role changes may affect permissions
+              immediately.
             </p>
             {roles.map((role) => (
               <label className="permission-option" key={role.id}>
