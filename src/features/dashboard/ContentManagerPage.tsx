@@ -276,7 +276,11 @@ export function ContentManagerPage() {
     setEditingId(String(row.id));
     setTitle(String(row.title ?? ""));
     setDescription(String(row.description ?? ""));
-    setBody(settings.table === "pages" ? sanitizeHtml(String(row.content ?? "")) : htmlToPlainText(String(row.content ?? "")));
+    setBody(
+      settings.table === "pages"
+        ? sanitizeHtml(String(row.content ?? ""))
+        : htmlToPlainText(String(row.content ?? "")),
+    );
     setUrl(String(row.url ?? ""));
     setVisibility(String(row.visibility ?? "private"));
     setWidgetType(String(row.widget_type ?? "datetime"));
@@ -414,7 +418,9 @@ export function ContentManagerPage() {
           ) : null}
           {settings.hasContent ? (
             <>
-              <label htmlFor="managed-content">{settings.table === "pages" ? "HTML Code" : "Content (plain text)"}</label>
+              <label htmlFor="managed-content">
+                {settings.table === "pages" ? "HTML Code" : "Content (plain text)"}
+              </label>
               <textarea
                 id="managed-content"
                 rows={settings.table === "pages" ? 16 : 8}
