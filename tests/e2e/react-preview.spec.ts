@@ -35,18 +35,21 @@ test(
   },
 );
 
-test("public HTML sanitizer removes scripts, event handlers, and unsafe URLs", async ({ page }) => {
-  await page.goto("/react-preview.html");
-  const html = await page.evaluate(async () => {
-    const { sanitizeHtml } = await import("/src/utils/sanitizeHtml.ts");
-    return sanitizeHtml(
-      '<h2 onclick="alert(1)">Safe heading</h2><script>alert(1)</script><a href="javascript:alert(1)">Unsafe link</a><img src="https://example.com/image.png" onerror="alert(1)">',
-    );
-  });
-  expect(html).toContain("Safe heading");
-  expect(html).not.toContain("<script");
-  expect(html).not.toContain("onclick");
-  expect(html).not.toContain("onerror");
-  expect(html).not.toContain("javascript:");
-  expect(html).toContain('src="https://example.com/image.png"');
-});
+test(
+  "public HTML sanitizer removes scripts, event handlers, and unsafe URLs",
+  async ({ page }) => {
+    await page.goto("/react-preview.html");
+    const html = await page.evaluate(async () => {
+      const { sanitizeHtml } = await import("/src/utils/sanitizeHtml.ts");
+      return sanitizeHtml(
+        '<h2 onclick="alert(1)">Safe heading</h2><script>alert(1)</script><a href="javascript:alert(1)">Unsafe link</a><img src="https://example.com/image.png" onerror="alert(1)">',
+      );
+    });
+    expect(html).toContain("Safe heading");
+    expect(html).not.toContain("<script");
+    expect(html).not.toContain("onclick");
+    expect(html).not.toContain("onerror");
+    expect(html).not.toContain("javascript:");
+    expect(html).toContain('src="https://example.com/image.png"');
+  },
+);
