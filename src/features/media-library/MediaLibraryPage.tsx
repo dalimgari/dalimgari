@@ -45,7 +45,7 @@ export function MediaLibraryPage() {
 
   const loadAssets = useCallback(async () => {
     const client = supabase;
-    if (!client) throw new Error("Supabase configuration পাওয়া যায়নি।");
+    if (!client) throw new Error("Supabase configuration is missing.");
     const { data, error: queryError } = await client
       .from("media_assets")
       .select(
@@ -74,27 +74,27 @@ export function MediaLibraryPage() {
     let active = true;
     const init = async () => {
       try {
-        if (!supabase) throw new Error("Supabase configuration পাওয়া যায়নি।");
+        if (!supabase) throw new Error("Supabase configuration is missing.");
         const user = await getCurrentUser();
-        if (!user) throw new Error("Media Library দেখতে লগইন করতে হবে।");
+        if (!user) throw new Error("Log in to access the Media Library.");
         const isAdmin = String(user.app_metadata?.role ?? "").toLowerCase() === "admin";
         let permissions: string[] = [];
         if (!isAdmin) {
           const { data, error: permissionError } = await supabase.rpc("get_my_permissions");
-          if (permissionError) throw new Error("আপনার permission যাচাই করা যায়নি।");
+          if (permissionError) throw new Error("Your permissions could not be verified.");
           if (Array.isArray(data))
             permissions = data.filter((value): value is string => typeof value === "string");
         }
         const view = isAdmin || permissions.includes("content.view");
         const upload = isAdmin || permissions.includes("content.create");
-        if (!view) throw new Error("Media Library ব্যবহারের অনুমতি নেই।");
+        if (!view) throw new Error("You do not have permission to access the Media Library.");
         if (!active) return;
         setCanView(view);
         setCanUpload(upload);
         await loadAssets();
       } catch (initError) {
         if (active)
-          setError(initError instanceof Error ? initError.message : "Media Library লোড করা যায়নি।");
+          setError(initError instanceof Error ? initError.message : "The Media Library could not be loaded.");
       } finally {
         if (active) setLoading(false);
       }
@@ -112,15 +112,15 @@ export function MediaLibraryPage() {
     setError("");
     setMessage("");
     if (!title.trim()) {
-      setError("মিডিয়ার শিরোনাম লিখুন।");
+      setError("Enter a media title.");
       return;
     }
     if (!ACCEPTED_TYPES.test(file.type)) {
-      setError("এই ফাইল টাইপ সমর্থিত নয়। ছবি, ভিডিও, অডিও বা PDF বেছে নিন।");
+      setError("This file type is not supported. Choose an image, video, audio file, or PDF.");
       return;
     }
     if (file.size <= 0 || file.size > MAX_FILE_SIZE) {
-      setError("ফাইলের আকার ২৫ MB-এর মধ্যে হতে হবে।");
+      setError("File size must be 25 MB or less.");
       return;
     }
 
@@ -129,7 +129,7 @@ export function MediaLibraryPage() {
     let metadataSaved = false;
     try {
       const user = await getCurrentUser();
-      if (!user) throw new Error("আপনার session শেষ হয়েছে। আবার লগইন করুন।");
+      if (!user) throw new Error("Your session has expired. Please log in again.");
       const extension = file.name.match(/\.([a-zA-Z0-9]{1,10})$/)?.[1]?.toLowerCase() || "bin";
       uploadedPath = visibility + "/" + user.id + "/" + crypto.randomUUID() + "." + extension;
       const { error: storageError } = await supabase.storage
@@ -159,7 +159,7 @@ export function MediaLibraryPage() {
       if (metadataError) throw metadataError;
       metadataSaved = true;
 
-      setMessage("ফাইল আপলোড ও metadata সংরক্ষণ হয়েছে।");
+      setMessage("File uploaded and metadata saved.");
       setTitle("");
       setDescription("");
       setTags("");
@@ -171,7 +171,7 @@ export function MediaLibraryPage() {
       if (uploadedPath && !metadataSaved) {
         await supabase.storage.from("content-files").remove([uploadedPath]);
       }
-      setError(uploadError instanceof Error ? uploadError.message : "ফাইল আপলোড করা যায়নি।");
+      setError(uploadError instanceof Error ? uploadError.message : "File upload failed.");
     } finally {
       setUploading(false);
     }
@@ -192,8 +192,8 @@ export function MediaLibraryPage() {
     ),
   );
 
-  if (loading) return <p role="status">Media Library permission যাচাই হচ্ছে…</p>;
-  if (!canView) return <p role="alert">{error || "অনুমতি নেই।"}</p>;
+  if (loading) return <p role="status">Checking Media Library permissions…</p>;
+  if (!canView) return <p role="alert">{error || "Access denied."}</p>;
 
   return (
     <section className="media-library-page" aria-labelledby="media-library-title">
@@ -202,8 +202,8 @@ export function MediaLibraryPage() {
       {message ? <p role="status">{message}</p> : null}
       {canUpload ? (
         <form className="media-upload-form" onSubmit={(event) => void uploadFile(event)}>
-          <h2>নতুন মিডিয়া আপলোড</h2>
-          <label htmlFor="media-file">ফাইল (সর্বোচ্চ ২৫ MB)</label>
+          <h2>Upload new media</h2>
+          <label htmlFor="media-file">File (maximum 25 MB)</label>
           <input
             id="media-file"
             type="file"
@@ -211,7 +211,7 @@ export function MediaLibraryPage() {
             required
             onChange={(event) => setFile(event.target.files?.[0] ?? null)}
           />
-          <label htmlFor="media-title">শিরোনাম</label>
+          <label htmlFor="media-title">Title</label>
           <input
             id="media-title"
             required
@@ -219,7 +219,7 @@ export function MediaLibraryPage() {
             value={title}
             onChange={(event) => setTitle(event.target.value)}
           />
-          <label htmlFor="media-description">বিবরণ</label>
+          <label htmlFor="media-description">Description</label>
           <textarea
             id="media-description"
             rows={3}
@@ -227,14 +227,14 @@ export function MediaLibraryPage() {
             value={description}
             onChange={(event) => setDescription(event.target.value)}
           />
-          <label htmlFor="media-tags">ট্যাগ (কমা দিয়ে আলাদা করুন)</label>
+          <label htmlFor="media-tags">Tags (comma-separated)</label>
           <input
             id="media-tags"
             maxLength={500}
             value={tags}
             onChange={(event) => setTags(event.target.value)}
           />
-          <label htmlFor="media-alt">ছবির বিকল্প লেখা</label>
+          <label htmlFor="media-alt">Image alt text</label>
           <input
             id="media-alt"
             maxLength={300}
@@ -255,23 +255,23 @@ export function MediaLibraryPage() {
             চূড়ান্ত অনুমোদন নির্ধারণ করে।
           </p>
           <button type="submit" disabled={uploading || !file}>
-            {uploading ? "আপলোড হচ্ছে…" : "আপলোড"}
+            {uploading ? "Uploading…" : "Upload"}
           </button>
         </form>
       ) : (
-        <p>আপনার অ্যাকাউন্টে upload permission নেই।</p>
+        <p>Your account does not have upload permission.</p>
       )}
 
       <section aria-labelledby="media-list-title">
-        <h2 id="media-list-title">সংরক্ষিত মিডিয়া ({assets.length})</h2>
-        <label htmlFor="media-search">মিডিয়া খুঁজুন</label>
+        <h2 id="media-list-title">Stored media ({assets.length})</h2>
+        <label htmlFor="media-search">Search media</label>
         <input
           id="media-search"
           type="search"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
         />
-        {filteredAssets.length === 0 ? <p>কোনো মিডিয়া পাওয়া যায়নি।</p> : null}
+        {filteredAssets.length === 0 ? <p>No media found.</p> : null}
         <div className="media-library-grid">
           {filteredAssets.map((asset) => (
             <article className="media-library-card" key={asset.id}>
