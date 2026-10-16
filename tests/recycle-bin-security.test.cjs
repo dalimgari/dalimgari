@@ -30,12 +30,14 @@ test("Recycle Bin snapshots role, permission, and album relations before deletio
   assert.match(migration, /on conflict \(role_id, permission_id\) do nothing/);
 });
 
-test("expired-item cleanup queues Storage paths but never deletes objects without reference checks", () => {
+test("expired-item cleanup checks live references before removing approved Storage objects", () => {
   const cleanup = read("supabase/functions/cleanup-recycle-bin/index.ts");
   assert.ok(cleanup.includes("enqueueStorageObjects(item"));
   assert.ok(cleanup.indexOf("enqueueStorageObjects(item") < cleanup.indexOf('admin.from("recycle_bin").delete()'));
   assert.ok(cleanup.includes("storage_cleanup_queue"));
-  assert.ok(cleanup.includes("queuedFiles: queuedFilesTotal"));
-  assert.ok(cleanup.includes("purgedFiles: 0"));
-  assert.equal(cleanup.includes(".remove("), false);
+  assert.ok(cleanup.includes("allowedStorageBuckets"));
+  assert.ok(cleanup.includes("const liveValues = await loadLiveStorageReferences()"));
+  assert.ok(cleanup.includes("Reference scan failed for "));
+  assert.ok(cleanup.indexOf("const liveValues = await loadLiveStorageReferences()") < cleanup.indexOf("admin.storage.from(item.bucket_id).remove"));
+  assert.ok(cleanup.includes("retainedReferencedFiles"));
 });
