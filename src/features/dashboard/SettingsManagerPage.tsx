@@ -15,7 +15,7 @@ export function SettingsManagerPage() {
   const [message, setMessage] = useState("");
 
   const load = useCallback(async () => {
-    if (!supabase) throw new Error("Supabase configuration পাওয়া যায়নি।");
+    if (!supabase) throw new Error("Supabase configuration is missing.");
     const { data, error: queryError } = await supabase
       .from("site_customizations")
       .select("id,key,value,description,updated_at,created_at,updated_by")
@@ -33,18 +33,18 @@ export function SettingsManagerPage() {
     let active = true;
     const init = async () => {
       try {
-        if (!supabase) throw new Error("Supabase configuration পাওয়া যায়নি।");
+        if (!supabase) throw new Error("Supabase configuration is missing.");
         const { data: userData, error: authError } = await supabase.auth.getUser();
-        if (authError || !userData.user) throw new Error("Settings পরিচালনা করতে লগইন করতে হবে।");
+        if (authError || !userData.user) throw new Error("Log in to manage settings.");
         const { data: permissions, error: permissionError } =
           await supabase.rpc("get_my_permissions");
         if (permissionError || !permissions.includes("settings.manage")) {
-          throw new Error("এই বিভাগের জন্য settings.manage permission প্রয়োজন।");
+          throw new Error("The settings.manage permission is required for this section.");
         }
         await load();
       } catch (loadError) {
         if (active)
-          setError(loadError instanceof Error ? loadError.message : "Settings লোড করা যায়নি।");
+          setError(loadError instanceof Error ? loadError.message : "Settings could not be loaded.");
       } finally {
         if (active) setLoading(false);
       }
@@ -77,7 +77,7 @@ export function SettingsManagerPage() {
     try {
       parsed = JSON.parse(valueText) as Json;
     } catch {
-      setError("Value অবশ্যই বৈধ JSON হতে হবে।");
+      setError("Value must be valid JSON.");
       return;
     }
     setSaving(true);
@@ -88,31 +88,31 @@ export function SettingsManagerPage() {
         .update(payload)
         .eq("id", selected.id);
       if (updateError) throw updateError;
-      setMessage("Setting সংরক্ষণ হয়েছে।");
+      setMessage("Setting saved.");
       await load();
     } catch {
-      setError("Setting সংরক্ষণ করা যায়নি। RLS policy ও JSON schema যাচাই করুন।");
+      setError("Could not save the setting. Verify the RLS policy and JSON schema.");
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <p role="status">Settings permission যাচাই হচ্ছে…</p>;
+  if (loading) return <p role="status">Checking settings permissions…</p>;
   if (error && rows.length === 0)
     return (
       <section className="notice-card">
         <h1>Settings</h1>
         <p role="alert">{error}</p>
-        <Link to="/dashboard">ড্যাশবোর্ডে ফিরুন</Link>
+        <Link to="/dashboard">Return to dashboard</Link>
       </section>
     );
 
   return (
     <section className="settings-manager" aria-labelledby="settings-manager-title">
       <p>
-        <Link to="/dashboard">← ড্যাশবোর্ড</Link>
+        <Link to="/dashboard">← Dashboard</Link>
       </p>
-      <h1 id="settings-manager-title">Site Settings ও Customization</h1>
+      <h1 id="settings-manager-title">Site Settings and Customization</h1>
       <p>
         শুধু settings.manage permission-ধারী ব্যবহারকারী এই মানগুলো পরিবর্তন করতে পারবেন। JSON value
         সংরক্ষণের আগে যাচাই করা হয়।
@@ -128,7 +128,7 @@ export function SettingsManagerPage() {
               aria-current={row.id === selectedId ? "true" : undefined}
               onClick={() => selectSetting(row)}
             >
-              <strong>{row.key || "(key নেই)"}</strong>
+              <strong>{row.key || "(no key)"}</strong>
               {row.description ? <small>{row.description}</small> : null}
             </button>
           ))}
@@ -146,17 +146,17 @@ export function SettingsManagerPage() {
               onChange={(event) => setValueText(event.target.value)}
             />
             <small>
-              শেষ আপডেট:{" "}
+              Last updated:{" "}
               {selected.updated_at
                 ? new Date(selected.updated_at).toLocaleString("bn-BD")
-                : "অজানা"}
+                : "Unknown"}
             </small>
             <button type="submit" disabled={saving}>
-              {saving ? "সংরক্ষণ হচ্ছে…" : "Setting সংরক্ষণ"}
+              {saving ? "Saving…" : "Save setting"}
             </button>
           </form>
         ) : (
-          <p>কোনো setting পাওয়া যায়নি।</p>
+          <p>No settings found.</p>
         )}
       </div>
     </section>
