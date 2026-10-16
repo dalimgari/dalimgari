@@ -80,7 +80,7 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
           "allow_account_creation" in config &&
           config.allow_account_creation === false
         ) {
-          throw new Error("বর্তমানে Create account তৈরি বন্ধ আছে।");
+          throw new Error("New account creation is currently disabled.");
         }
         const { data, error } = await supabase.auth.signUp({
           email: email.trim(),
@@ -104,7 +104,7 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
         setPassword("");
         setConfirmPassword("");
         setMessageType("success");
-        setMessage("Password পরিবর্তন হয়েছে। এখন Login করতে পারেন।");
+        setMessage("Password updated. You can now log in.");
         return;
       }
       const redirectTo = new URL("forgot-password.html", window.location.href).toString();
@@ -157,7 +157,7 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
         ) : null}
         {mode === "create-account" || (mode === "forgot-password" && recoveryMode) ? (
           <>
-            <label htmlFor="auth-confirm-password">Password নিশ্চিত করুন</label>
+            <label htmlFor="auth-confirm-password">Confirm password</label>
             <input
               id="auth-confirm-password"
               name="confirm-password"
@@ -183,7 +183,7 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
         {mode !== "login" ? <Link to="/login">Login</Link> : null}
         {mode !== "create-account" ? <Link to="/create-account">Create account</Link> : null}
         {mode !== "forgot-password" ? (
-          <Link to="/forgot-password">Password ভুলে গেছেন?</Link>
+          <Link to="/forgot-password">Forgot password?</Link>
         ) : null}
       </nav>
     </section>
