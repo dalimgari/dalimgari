@@ -18,9 +18,9 @@ import { MediaLibraryPage } from "../features/media-library/MediaLibraryPage";
 function NotFoundPage() {
   return (
     <section className="notice-card">
-      <h1>পেজ পাওয়া যায়নি</h1>
-      <p>আপনি যে ঠিকানাটি খুলেছেন সেটি পাওয়া যায়নি।</p>
-      <Link to="/">হোমপেজে ফিরুন</Link>
+      <h1>Page not found</h1>
+      <p>The address you opened could not be found.</p>
+      <Link to="/">Return home</Link>
     </section>
   );
 }
