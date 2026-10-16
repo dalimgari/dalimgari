@@ -182,7 +182,7 @@ export function HomePage() {
     try {
       const result = await getPublicPageByUrl(page.url);
       setPageContent(result?.content ?? "");
-      if (!result) setPageError("পেজটি পাওয়া যায়নি অথবা এটি আর পাবলিক নেই।");
+      if (!result) setPageError("This page was not found or is no longer public.");
     } catch {
       setPageError("The page content could not be loaded.");
     } finally {
@@ -194,7 +194,7 @@ export function HomePage() {
     return (
       <section className="notice-card" aria-labelledby="maintenance-title">
         <h1 id="maintenance-title">Website temporarily under maintenance</h1>
-        <p>কিছু সময় পরে Try again।</p>
+        <p>Please try again in a moment.</p>
       </section>
     );
   }
@@ -204,7 +204,7 @@ export function HomePage() {
       {state.settings?.maintenanceMode ? (
         <section className="notice-card">
           <h1>Website temporarily under maintenance</h1>
-          <p>কিছু সময় পরে Try again।</p>
+          <p>Please try again in a moment.</p>
         </section>
       ) : null}
 
@@ -213,7 +213,7 @@ export function HomePage() {
         state.hero.description ||
         state.hero.imageUrl ||
         state.settings?.tagline) ? (
-        <section className="home-hero" aria-label="প্রধান পরিচিতি">
+        <section className="home-hero" aria-label="Main introduction">
           {state.hero.imageUrl ? (
             <img src={state.hero.imageUrl} alt="" fetchPriority="high" />
           ) : null}
@@ -278,13 +278,13 @@ export function HomePage() {
               বন্ধ
             </button>
           </div>
-          {pageLoading ? <p role="status">পেজ Loading…</p> : null}
+          {pageLoading ? <p role="status">Loading page…</p> : null}
           {pageError ? <p role="alert">{pageError}</p> : null}
           {pageContent ? (
             <div className="public-page-content">{htmlToPlainText(pageContent)}</div>
           ) : null}
           {!pageLoading && !pageError && !pageContent ? (
-            <p>এই পেজে প্রদর্শনের মতো লেখা নেই।</p>
+            <p>There is no text to display on this page.</p>
           ) : null}
         </section>
       ) : null}
@@ -331,13 +331,13 @@ export function HomePage() {
           ) : null}
         </div>
         {!state.loading && !state.error && state.albums.length === 0 ? (
-          <p>এখনো কোনো পাবলিক Albums নেই।</p>
+          <p>There are no public albums yet.</p>
         ) : null}
         {state.albums.length > 0 ? (
           <div
             ref={carouselRef}
             className="album-carousel"
-            aria-label="পাবলিক Albums"
+            aria-label="Public albums"
             onMouseEnter={() => setPaused(true)}
             onMouseLeave={() => setPaused(false)}
             onFocus={() => setPaused(true)}
