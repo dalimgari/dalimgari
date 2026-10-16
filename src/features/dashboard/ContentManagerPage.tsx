@@ -80,7 +80,7 @@ function plainTextToSafeHtml(value: string): string {
 }
 
 async function listRows(table: ManagedTable): Promise<Row[]> {
-  if (!supabase) throw new Error("Supabase configuration পাওয়া যায়নি।");
+  if (!supabase) throw new Error("Supabase configuration is missing.");
   switch (table) {
     case "hero_items": {
       const { data, error } = await supabase
@@ -131,7 +131,7 @@ async function listRows(table: ManagedTable): Promise<Row[]> {
 }
 
 async function saveRow(table: ManagedTable, payload: Row, id: string | null): Promise<void> {
-  if (!supabase) throw new Error("Supabase configuration পাওয়া যায়নি।");
+  if (!supabase) throw new Error("Supabase configuration is missing.");
   switch (table) {
     case "hero_items": {
       const result = id
@@ -216,14 +216,14 @@ export function ContentManagerPage() {
     let active = true;
     const init = async () => {
       try {
-        if (!supabase) throw new Error("Supabase configuration পাওয়া যায়নি।");
+        if (!supabase) throw new Error("Supabase configuration is missing.");
         const { data, error: authError } = await supabase.auth.getUser();
-        if (authError || !data.user) throw new Error("এই বিভাগ দেখতে লগইন করতে হবে।");
+        if (authError || !data.user) throw new Error("Log in to access this section.");
         const admin = String(data.user.app_metadata?.role ?? "").toLowerCase() === "admin";
         let granted: string[] = [];
         if (!admin || settings.table === "widgets") {
           const { data: values, error: permissionError } = await supabase.rpc("get_my_permissions");
-          if (permissionError) throw new Error("Permission যাচাই করা যায়নি।");
+          if (permissionError) throw new Error("Could not verify permissions.");
           if (Array.isArray(values))
             granted = values.filter((value): value is string => typeof value === "string");
         }
@@ -239,7 +239,7 @@ export function ContentManagerPage() {
                   granted.includes(value),
                 );
         if (!canAccessSection) {
-          throw new Error("এই বিভাগের অনুমতি নেই।");
+          throw new Error("You do not have permission to access this section.");
         }
         if (!active) return;
         setIsAdmin(admin);
@@ -247,7 +247,7 @@ export function ContentManagerPage() {
         await load();
       } catch (loadError) {
         if (active)
-          setError(loadError instanceof Error ? loadError.message : "ডেটা লোড করা যায়নি।");
+          setError(loadError instanceof Error ? loadError.message : "Data could not be loaded.");
       } finally {
         if (active) setLoading(false);
       }
@@ -303,11 +303,11 @@ export function ContentManagerPage() {
     setError("");
     setNotice("");
     if (editingId && !canEdit) {
-      setError("আপনার edit permission নেই।");
+      setError("You do not have edit permission.");
       return;
     }
     if (!editingId && !canCreate) {
-      setError("আপনার create permission নেই।");
+      setError("You do not have create permission.");
       return;
     }
     const payload: Row = { title: title.trim() };
@@ -316,7 +316,7 @@ export function ContentManagerPage() {
     if (settings.hasUrl) {
       const normalizedUrl = url.trim().replace(/^\/+|\/+$/g, "");
       if (!normalizedUrl) {
-        setError("URL/slug লিখুন।");
+        setError("Enter a URL/slug.");
         return;
       }
       payload.url = normalizedUrl;
@@ -327,11 +327,11 @@ export function ContentManagerPage() {
       try {
         parsedSettings = JSON.parse(widgetSettings);
       } catch {
-        setError("Widget settings অবশ্যই বৈধ JSON হতে হবে।");
+        setError("Widget settings must be valid JSON.");
         return;
       }
       if (!parsedSettings || typeof parsedSettings !== "object" || Array.isArray(parsedSettings)) {
-        setError("Widget settings একটি JSON object হতে হবে।");
+        setError("Widget settings must be a JSON object.");
         return;
       }
       payload.widget_type = widgetType;
@@ -343,13 +343,13 @@ export function ContentManagerPage() {
     try {
       await saveRow(settings.table, payload, editingId);
       await load();
-      setNotice(editingId ? "পরিবর্তন সংরক্ষণ হয়েছে।" : "নতুন রেকর্ড তৈরি হয়েছে।");
+      setNotice(editingId ? "Changes saved." : "New record created.");
       resetForm();
     } catch (saveError) {
       setError(
         saveError instanceof Error
           ? saveError.message
-          : "সংরক্ষণ করা যায়নি। Database RLS policy যাচাই করুন।",
+          : "Could not save. Check the database RLS policy.",
       );
     } finally {
       setSaving(false);
@@ -359,24 +359,24 @@ export function ContentManagerPage() {
   if (!settings)
     return (
       <section className="notice-card">
-        <h1>বিভাগ পাওয়া যায়নি</h1>
-        <Link to="/dashboard">ড্যাশবোর্ডে ফিরুন</Link>
+        <h1>Section not found</h1>
+        <Link to="/dashboard">Return to dashboard</Link>
       </section>
     );
-  if (loading) return <p role="status">Permission যাচাই ও ডেটা লোড হচ্ছে…</p>;
+  if (loading) return <p role="status">Checking permissions and loading data…</p>;
 
   return (
     <section className="content-manager" aria-labelledby="manager-title">
       <p>
-        <Link to="/dashboard">← ড্যাশবোর্ড</Link>
+        <Link to="/dashboard">← Dashboard</Link>
       </p>
       <h1 id="manager-title">{settings.title} পরিচালনা</h1>
       {error ? <p role="alert">{error}</p> : null}
       {notice ? <p role="status">{notice}</p> : null}
       {canCreate || (editingId && canEdit) ? (
         <form className="content-manager-form" onSubmit={(event) => void submit(event)}>
-          <h2>{editingId ? "রেকর্ড সম্পাদনা" : "নতুন রেকর্ড"}</h2>
-          <label htmlFor="managed-title">শিরোনাম</label>
+          <h2>{editingId ? "Edit record" : "New record"}</h2>
+          <label htmlFor="managed-title">Title</label>
           <input
             id="managed-title"
             required
@@ -400,7 +400,7 @@ export function ContentManagerPage() {
           ) : null}
           {settings.hasDescription ? (
             <>
-              <label htmlFor="managed-description">বিবরণ</label>
+              <label htmlFor="managed-description">Description</label>
               <textarea
                 id="managed-description"
                 rows={3}
@@ -412,7 +412,7 @@ export function ContentManagerPage() {
           ) : null}
           {settings.hasContent ? (
             <>
-              <label htmlFor="managed-content">কনটেন্ট (plain text)</label>
+              <label htmlFor="managed-content">Content (plain text)</label>
               <textarea
                 id="managed-content"
                 rows={8}
@@ -450,7 +450,7 @@ export function ContentManagerPage() {
                   checked={widgetVisible}
                   onChange={(event) => setWidgetVisible(event.target.checked)}
                 />{" "}
-                Homepage-এ দেখান
+                Show on homepage
               </label>
             </>
           ) : (
@@ -468,22 +468,22 @@ export function ContentManagerPage() {
           )}
           <div className="profile-actions">
             <button type="submit" disabled={saving}>
-              {saving ? "সংরক্ষণ হচ্ছে…" : editingId ? "পরিবর্তন সংরক্ষণ" : "তৈরি করুন"}
+              {saving ? "Saving…" : editingId ? "Save changes" : "Create"}
             </button>
             {editingId ? (
               <button type="button" onClick={resetForm}>
-                বাতিল
+                Cancel
               </button>
             ) : null}
           </div>
         </form>
       ) : (
-        <p>আপনার create/edit permission নেই।</p>
+        <p>You do not have create/edit permission.</p>
       )}
 
       <section aria-labelledby="managed-records-title">
-        <h2 id="managed-records-title">রেকর্ড ({rows.length})</h2>
-        {rows.length === 0 ? <p>কোনো রেকর্ড পাওয়া যায়নি।</p> : null}
+        <h2 id="managed-records-title">Records ({rows.length})</h2>
+        {rows.length === 0 ? <p>No records found.</p> : null}
         <div className="managed-record-list">
           {rows.map((row) => (
             <article className="managed-record" key={String(row.id)}>
@@ -503,7 +503,7 @@ export function ContentManagerPage() {
               </div>
               {canEdit ? (
                 <button type="button" onClick={() => startEdit(row)}>
-                  সম্পাদনা
+                  Edit
                 </button>
               ) : null}
             </article>
