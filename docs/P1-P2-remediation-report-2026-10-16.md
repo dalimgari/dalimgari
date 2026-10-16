@@ -22,6 +22,26 @@ Fresh snapshot:
 - Production versions without an exact repository filename: 37
 - Repository files without an exact production version: 11
 
+### Exact version matches (15)
+
+```text
+20261010130741 remove_unused_media_schema
+20261010192154 remove_home_media_upload_feature
+20261010192245 remove_test_homepage_page
+20261010213728 minimal_dashboard_content_system
+20261010213757 allow_public_content_media_reads
+20261010214400 allow_public_homepage_settings
+20261010214431 grant_public_homepage_settings_read
+20261010234520 create_homepage_widgets
+20261011005317 village_pages_content_and_seed
+20261012175029 project_audit_hardening_20261012
+20261012175120 optimize_pages_rls_initplan_20261012
+20261012175429 separate_public_and_authenticated_pages_read_policies_20261012
+20261013184928 remove_duplicate_profile_insert_trigger
+20261013185319 grant_cleanup_function_minimal_table_access
+20261013185707 grant_cleanup_media_link_read
+```
+
 ### Production-only versions (exact filename/version absent from repository)
 
 ```text
