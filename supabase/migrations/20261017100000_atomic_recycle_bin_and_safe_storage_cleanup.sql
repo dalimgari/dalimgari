@@ -1,6 +1,24 @@
 -- Make Recycle Bin operations atomic and prevent unsafe Storage object deletion.
 begin;
 
+-- Preserve candidate object paths before expired Recycle Bin metadata is purged.
+create table if not exists public.storage_cleanup_queue (
+  id uuid primary key default gen_random_uuid(),
+  bucket_id text not null check (char_length(btrim(bucket_id)) between 1 and 120),
+  object_path text not null check (char_length(btrim(object_path)) between 1 and 2048),
+  created_at timestamptz not null default now(),
+  attempt_count integer not null default 0 check (attempt_count >= 0),
+  last_attempt_at timestamptz,
+  last_error text,
+  unique (bucket_id, object_path)
+);
+alter table public.storage_cleanup_queue enable row level security;
+revoke all on table public.storage_cleanup_queue from public, anon, authenticated;
+grant select, insert, update, delete on table public.storage_cleanup_queue to service_role;
+drop policy if exists storage_cleanup_queue_service_role_all on public.storage_cleanup_queue;
+create policy storage_cleanup_queue_service_role_all on public.storage_cleanup_queue
+  for all to service_role using (true) with check (true);
+
 create or replace function public.move_to_recycle_bin(p_table text, p_id uuid)
 returns uuid language plpgsql security definer set search_path = ''
 as $function$

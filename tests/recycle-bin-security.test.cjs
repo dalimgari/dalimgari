@@ -30,9 +30,10 @@ test("Recycle Bin snapshots role, permission, and album relations before deletio
   assert.match(migration, /on conflict \(role_id, permission_id\) do nothing/);
 });
 
-test("expired-item cleanup does not delete Storage objects without reference checks", () => {
+test("expired-item cleanup queues Storage paths but never deletes objects without reference checks", () => {
   const cleanup = read("supabase/functions/cleanup-recycle-bin/index.ts");
-  assert.match(cleanup, /Storage objects are[\s\S]*?intentionally retained/);
-  assert.doesNotMatch(cleanup, /admin\.storage\.from\([^)]*\)\.remove\(/);
-  assert.doesNotMatch(cleanup, /function collectStorageObjects/);
+  assert.ok(cleanup.includes("enqueueStorageObjects(item"));
+  assert.ok(cleanup.indexOf("enqueueStorageObjects(item") < cleanup.indexOf('admin.from("recycle_bin").delete()'));
+  assert.ok(cleanup.includes("storage_cleanup_queue"));
+  assert.equal(cleanup.includes(".remove("), false);
 });

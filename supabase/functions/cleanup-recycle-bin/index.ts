@@ -16,9 +16,52 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// Expired Recycle Bin records are purged only after retention. Storage objects are
-// intentionally retained until a complete cross-table reference check can prove that
-// an object is not used by live content, media-library records, profiles, or trash.
+// Expired Recycle Bin records are purged only after candidate Storage paths are saved
+// to a service-role-only queue. Objects are not removed until a later reference check.
+
+function collectStorageObjects(item: Record<string, unknown>) {
+  const objects = new Map<string, Set<string>>();
+  const add = (bucket: string, path: string) => {
+    const normalized = path.trim().replace(/^\\/+/, "");
+    if (!normalized || /^https?:\\/\\//i.test(normalized)) return;
+    if (!objects.has(bucket)) objects.set(bucket, new Set<string>());
+    objects.get(bucket)!.add(normalized);
+  };
+  const scan = (value: unknown, defaultBucket = "content-files"): void => {
+    if (!value || typeof value !== "object") return;
+    if (Array.isArray(value)) {
+      for (const child of value) scan(child, defaultBucket);
+      return;
+    }
+    const record = value as Record<string, unknown>;
+    const bucket = String(record.bucket_id || record.bucket || record.storage_bucket || defaultBucket);
+    for (const key of ["path", "file_path", "storage_path", "object_path", "cover_path"]) {
+      if (typeof record[key] === "string") add(bucket, record[key] as string);
+    }
+    for (const child of Object.values(record)) {
+      if (child && typeof child === "object") scan(child, bucket);
+    }
+  };
+  scan(item.record_data);
+  scan(item.related_data);
+  return objects;
+}
+
+async function enqueueStorageObjects(item: Record<string, unknown>) {
+  const objects = collectStorageObjects(item);
+  const rows = Array.from(objects.entries()).flatMap(([bucket_id, paths]) =>
+    Array.from(paths, (object_path) => ({ bucket_id, object_path })),
+  );
+  for (let offset = 0; offset < rows.length; offset += 500) {
+    const { error } = await admin.from("storage_cleanup_queue").upsert(
+      rows.slice(offset, offset + 500),
+      { onConflict: "bucket_id,object_path", ignoreDuplicates: true },
+    );
+    if (error) throw new Error("Could not queue Storage paths: " + error.message);
+  }
+  return rows.length;
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") {
@@ -80,8 +123,10 @@ Deno.serve(async (req: Request) => {
   let failedItems = 0;
   for (const item of expired || []) {
     try {
+      const queuedFiles = await enqueueStorageObjects(item as Record<string, unknown>);
       const { error: deleteError } = await admin.from("recycle_bin").delete().eq("id", item.id);
       if (deleteError) throw deleteError;
+      purgedFiles += queuedFiles;
       purgedItems += 1;
     } catch (error) {
       failedItems += 1;
