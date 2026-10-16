@@ -114,8 +114,8 @@ export function SettingsManagerPage() {
       </p>
       <h1 id="settings-manager-title">Site Settings and Customization</h1>
       <p>
-        শুধু settings.manage permission-ধারী ব্যবহারকারী এই মানগুলো পরিবর্তন করতে পারবেন। JSON value
-        সংরক্ষণের আগে যাচাই করা হয়।
+        Only users with settings.manage permission can change these values. JSON values
+        are validated before saving.
       </p>
       {error ? <p role="alert">{error}</p> : null}
       {message ? <p role="status">{message}</p> : null}
