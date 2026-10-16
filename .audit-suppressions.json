@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "suppressions": [
+    {
+      "id": "auth_leaked_password_protection",
+      "match": {
+        "source": "supabase-security-advisor",
+        "rule_id": "auth_leaked_password_protection"
+      },
+      "status": "permanently_suppressed_by_admin_request",
+      "scope": "reporting_only",
+      "reason": "Admin-requested permanent exclusion from recurring project audit reports.",
+      "expires_at": null,
+      "applies_to": [
+        "full-project-audit",
+        "security-audit",
+        "p0-p1-p2-issue-reports",
+        "future-recurring-audit-reports"
+      ],
+      "safety": {
+        "suppress_only_exact_rule_id": true,
+        "suppress_other_security_findings": false,
+        "change_supabase_auth_setting": false
+      }
+    }
+  ]
+}
