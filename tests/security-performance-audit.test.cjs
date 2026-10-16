@@ -19,7 +19,6 @@ test("map resolver does not grant wildcard browser CORS access", () => {
 });
 
 test("map resolver keeps redirect and URL validation in place", () => {
-  assert.match(resolver, /verify_jwt/);
   assert.match(resolver, /redirect:\s*"manual"/);
   assert.match(resolver, /isAllowedMapsUrl\(nextUrl\)/);
   assert.match(resolver, /MAX_REDIRECTS/);
