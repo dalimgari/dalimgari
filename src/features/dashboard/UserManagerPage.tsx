@@ -24,13 +24,13 @@ export function UserManagerPage() {
   const [message, setMessage] = useState("");
 
   const load = useCallback(async () => {
-    if (!supabase) throw new Error("Supabase configuration পাওয়া যায়নি।");
+    if (!supabase) throw new Error("Supabase configuration is missing.");
     const [usersResult, rolesResult, assignmentsResult] = await Promise.all([
       supabase.rpc("admin_list_registered_users"),
       supabase.from("roles").select("id,name,description,created_at,updated_at").order("name"),
       supabase.from("user_roles").select("user_id,role_id,created_at"),
     ]);
-    if (usersResult.error) throw new Error("Admin user list লোড করা যায়নি।");
+    if (usersResult.error) throw new Error("Could not load the admin user list.");
     if (rolesResult.error) throw rolesResult.error;
     if (assignmentsResult.error) throw assignmentsResult.error;
     const userRows = usersResult.data ?? [];
@@ -48,20 +48,20 @@ export function UserManagerPage() {
     let active = true;
     const init = async () => {
       try {
-        if (!supabase) throw new Error("Supabase configuration পাওয়া যায়নি।");
+        if (!supabase) throw new Error("Supabase configuration is missing.");
         const { data: authData, error: authError } = await supabase.auth.getUser();
-        if (authError || !authData.user) throw new Error("User management করতে লগইন করতে হবে।");
+        if (authError || !authData.user) throw new Error("Log in to manage users.");
         if (String(authData.user.app_metadata?.role ?? "").toLowerCase() !== "admin") {
-          throw new Error("এই বিভাগের জন্য trusted admin role প্রয়োজন।");
+          throw new Error("A trusted admin role is required for this section.");
         }
         const { data: grants, error: permissionError } = await supabase.rpc("get_my_permissions");
         if (permissionError || !grants.includes("roles.manage")) {
-          throw new Error("Role assignment-এর জন্য roles.manage permission প্রয়োজন।");
+          throw new Error("The roles.manage permission is required to assign roles.");
         }
         await load();
       } catch (loadError) {
         if (active)
-          setError(loadError instanceof Error ? loadError.message : "User data লোড করা যায়নি।");
+          setError(loadError instanceof Error ? loadError.message : "User data could not be loaded.");
       } finally {
         if (active) setLoading(false);
       }
@@ -110,9 +110,9 @@ export function UserManagerPage() {
         if (insertError) throw insertError;
       }
       await load();
-      setMessage("User role assignments সংরক্ষণ হয়েছে।");
+      setMessage("User role assignments saved.");
     } catch {
-      setError("Role assignment সম্পূর্ণ হয়নি। বর্তমান assignment reload করে যাচাই করুন।");
+      setError("Role assignment did not complete. Reload and verify the current assignments.");
       try {
         await load();
       } catch {
@@ -123,22 +123,22 @@ export function UserManagerPage() {
     }
   };
 
-  if (loading) return <p role="status">Admin ও roles.manage permission যাচাই হচ্ছে…</p>;
+  if (loading) return <p role="status">Checking admin and roles.manage permissions…</p>;
   if (error && users.length === 0)
     return (
       <section className="notice-card">
         <h1>User Management</h1>
         <p role="alert">{error}</p>
-        <Link to="/dashboard">ড্যাশবোর্ডে ফিরুন</Link>
+        <Link to="/dashboard">Return to dashboard</Link>
       </section>
     );
 
   return (
     <section className="user-manager" aria-labelledby="user-manager-title">
       <p>
-        <Link to="/dashboard">← ড্যাশবোর্ড</Link>
+        <Link to="/dashboard">← Dashboard</Link>
       </p>
-      <h1 id="user-manager-title">User ও Role Assignment</h1>
+      <h1 id="user-manager-title">User and Role Assignment</h1>
       <p>
         শুধু trusted admin এই তালিকা দেখতে পারেন। এখানে role assignment করা যায়; Auth user
         delete/ban বা email পরিবর্তন করা হয় না।
@@ -154,7 +154,7 @@ export function UserManagerPage() {
               aria-current={user.user_id === selectedUserId ? "true" : undefined}
               onClick={() => setSelectedUserId(user.user_id)}
             >
-              <strong>{user.full_name || "নাম যোগ করা হয়নি"}</strong>
+              <strong>{user.full_name || "Name not provided"}</strong>
               <small>{user.email}</small>
             </button>
           ))}
@@ -187,11 +187,11 @@ export function UserManagerPage() {
               </label>
             ))}
             <button type="button" disabled={saving} onClick={() => void save()}>
-              {saving ? "সংরক্ষণ হচ্ছে…" : "Role assignments সংরক্ষণ"}
+              {saving ? "Saving…" : "Save role assignments"}
             </button>
           </section>
         ) : (
-          <p>কোনো অন্য নিবন্ধিত ব্যবহারকারী পাওয়া যায়নি।</p>
+          <p>No other registered users were found.</p>
         )}
       </div>
     </section>
