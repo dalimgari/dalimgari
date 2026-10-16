@@ -210,8 +210,8 @@ export function RoleManagerPage() {
       </p>
       <h1 id="role-manager-title">Role and Permission Management</h1>
       <p>
-        এই বিভাগ roles.manage permission-এ সীমাবদ্ধ। Role deletion এই preview-তে ইচ্ছাকৃতভাবে
-        নিষ্ক্রিয়, যাতে user assignment ভেঙে না যায়।
+        This section is restricted to roles.manage. Role deletion is intentionally disabled in this preview
+        to avoid breaking user assignments.
       </p>
       {error ? <p role="alert">{error}</p> : null}
       {message ? <p role="status">{message}</p> : null}
