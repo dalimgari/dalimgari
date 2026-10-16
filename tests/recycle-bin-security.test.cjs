@@ -33,7 +33,7 @@ test("Recycle Bin snapshots role, permission, and album relations before deletio
 test("expired-item cleanup checks live references before removing approved Storage objects", () => {
   const cleanup = read("supabase/functions/cleanup-recycle-bin/index.ts");
   assert.ok(cleanup.includes("enqueueStorageObjects(item"));
-  assert.ok(cleanup.indexOf("enqueueStorageObjects(item") < cleanup.indexOf('admin.from("recycle_bin").delete()'));
+  assert.ok(cleanup.indexOf("const queuedFiles = await enqueueStorageObjects(item") < cleanup.indexOf('admin.from("recycle_bin").delete()'));
   assert.ok(cleanup.includes("storage_cleanup_queue"));
   assert.ok(cleanup.includes("allowedStorageBuckets"));
   assert.ok(cleanup.includes("const liveValues = await loadLiveStorageReferences()"));
