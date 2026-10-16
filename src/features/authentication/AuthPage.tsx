@@ -20,12 +20,12 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
 
   const title =
     mode === "login"
-      ? "লগইন"
+      ? "Login"
       : mode === "create-account"
-        ? "নতুন অ্যাকাউন্ট"
+        ? "Create account"
         : recoveryMode
-          ? "নতুন পাসওয়ার্ড সেট করুন"
-          : "পাসওয়ার্ড পুনরুদ্ধার";
+          ? "Set a new password"
+          : "Password recovery";
 
   useEffect(() => {
     if (mode !== "forgot-password" || !supabase) return;
@@ -44,7 +44,7 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
     setMessage("");
     if (!supabase) {
       setMessageType("error");
-      setMessage("Supabase configuration পাওয়া যায়নি।");
+      setMessage("Supabase configuration is missing.");
       setBusy(false);
       return;
     }
@@ -56,15 +56,15 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
         return;
       }
       if (mode === "create-account") {
-        if (password.length < 12) throw new Error("পাসওয়ার্ড কমপক্ষে ১২ অক্ষরের হতে হবে।");
-        if (password !== confirmPassword) throw new Error("দুটি পাসওয়ার্ড মেলেনি।");
+        if (password.length < 12) throw new Error("Password must be at least 12 characters long.");
+        if (password !== confirmPassword) throw new Error("The passwords do not match.");
         const { data: accessRow, error: accessError } = await supabase
           .from("site_customizations")
           .select("value")
           .eq("key", "ui_settings_users_access")
           .maybeSingle();
         if (accessError)
-          throw new Error("অ্যাকাউন্ট তৈরির নীতি যাচাই করা যায়নি। পরে আবার চেষ্টা করুন।");
+          throw new Error("Could not verify account creation policy. Please try again later.");
         let config = accessRow?.value;
         if (typeof config === "string") {
           try {
@@ -80,7 +80,7 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
           "allow_account_creation" in config &&
           config.allow_account_creation === false
         ) {
-          throw new Error("বর্তমানে নতুন অ্যাকাউন্ট তৈরি বন্ধ আছে।");
+          throw new Error("বর্তমানে Create account তৈরি বন্ধ আছে।");
         }
         const { data, error } = await supabase.auth.signUp({
           email: email.trim(),
@@ -90,13 +90,13 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
         if (error) throw error;
         setMessageType("success");
         setMessage(
-          data.session ? "অ্যাকাউন্ট তৈরি হয়েছে।" : "ইমেইল যাচাই করার জন্য আপনার ইনবক্স দেখুন।",
+          data.session ? "Account created." : "Check your inbox to verify your email address.",
         );
         return;
       }
       if (recoveryMode) {
-        if (password.length < 12) throw new Error("পাসওয়ার্ড কমপক্ষে ১২ অক্ষরের হতে হবে।");
-        if (password !== confirmPassword) throw new Error("দুটি পাসওয়ার্ড মেলেনি।");
+        if (password.length < 12) throw new Error("Password must be at least 12 characters long.");
+        if (password !== confirmPassword) throw new Error("The passwords do not match.");
         const { error } = await supabase.auth.updateUser({ password });
         if (error) throw error;
         window.sessionStorage.removeItem("dalimgari-password-recovery");
@@ -104,18 +104,18 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
         setPassword("");
         setConfirmPassword("");
         setMessageType("success");
-        setMessage("পাসওয়ার্ড পরিবর্তন হয়েছে। এখন লগইন করতে পারেন।");
+        setMessage("Password পরিবর্তন হয়েছে। এখন Login করতে পারেন।");
         return;
       }
       const redirectTo = new URL("forgot-password.html", window.location.href).toString();
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo });
       if (error) throw error;
       setMessageType("success");
-      setMessage("যদি এই ইমেইলটি নিবন্ধিত থাকে, পাসওয়ার্ড রিসেটের নির্দেশনা পাঠানো হবে।");
+      setMessage("If this email is registered, password reset instructions will be sent.");
     } catch (error) {
       setMessageType("error");
       setMessage(
-        error instanceof Error ? error.message : "অনুরোধ সম্পন্ন করা যায়নি। আবার চেষ্টা করুন।",
+        error instanceof Error ? error.message : "The request could not be completed. Please try again.",
       );
     } finally {
       setBusy(false);
@@ -128,7 +128,7 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
       <form onSubmit={(event) => void submit(event)}>
         {mode !== "forgot-password" || !recoveryMode ? (
           <>
-            <label htmlFor="auth-email">ইমেইল</label>
+            <label htmlFor="auth-email">Email</label>
             <input
               id="auth-email"
               name="email"
@@ -142,7 +142,7 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
         ) : null}
         {mode !== "forgot-password" || recoveryMode ? (
           <>
-            <label htmlFor="auth-password">পাসওয়ার্ড</label>
+            <label htmlFor="auth-password">Password</label>
             <input
               id="auth-password"
               name="password"
@@ -157,7 +157,7 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
         ) : null}
         {mode === "create-account" || (mode === "forgot-password" && recoveryMode) ? (
           <>
-            <label htmlFor="auth-confirm-password">পাসওয়ার্ড নিশ্চিত করুন</label>
+            <label htmlFor="auth-confirm-password">Password নিশ্চিত করুন</label>
             <input
               id="auth-confirm-password"
               name="confirm-password"
@@ -171,7 +171,7 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
           </>
         ) : null}
         <button type="submit" disabled={busy}>
-          {busy ? "অপেক্ষা করুন…" : title}
+          {busy ? "Please wait…" : title}
         </button>
       </form>
       {message ? (
@@ -179,11 +179,11 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
           {message}
         </p>
       ) : null}
-      <nav className="auth-links" aria-label="অ্যাকাউন্টের লিংক">
-        {mode !== "login" ? <Link to="/login">লগইন</Link> : null}
-        {mode !== "create-account" ? <Link to="/create-account">অ্যাকাউন্ট তৈরি</Link> : null}
+      <nav className="auth-links" aria-label="Account links">
+        {mode !== "login" ? <Link to="/login">Login</Link> : null}
+        {mode !== "create-account" ? <Link to="/create-account">Create account</Link> : null}
         {mode !== "forgot-password" ? (
-          <Link to="/forgot-password">পাসওয়ার্ড ভুলে গেছেন?</Link>
+          <Link to="/forgot-password">Password ভুলে গেছেন?</Link>
         ) : null}
       </nav>
     </section>
