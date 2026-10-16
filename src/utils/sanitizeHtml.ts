@@ -28,7 +28,7 @@ const TAG_ATTRIBUTES: Record<string, Set<string>> = {
 /** Sanitizes public custom-page HTML before it is inserted into the DOM. */
 export function sanitizeHtml(input: string): string {
   const document = new DOMParser().parseFromString(input, "text/html");
-  const clean = (parent: ParentNode) => {
+  const clean = (parent: Node) => {
     for (const node of Array.from(parent.childNodes)) {
       if (!(node instanceof Element)) continue;
       if (DROP_CONTENT_TAGS.has(node.tagName)) {
