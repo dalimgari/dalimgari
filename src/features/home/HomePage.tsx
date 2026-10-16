@@ -6,7 +6,6 @@ import {
   getPublicAlbums,
   getPublicHero,
   getHomepageIncludes,
-  getPublicPageByUrl,
   getPublicPages,
   getPublicPosts,
   getVisibleWidgets,
@@ -57,10 +56,6 @@ export function HomePage() {
   const pillRef = useRef<HTMLDivElement>(null);
   const [paused, setPaused] = useState(false);
   const [pillPaused, setPillPaused] = useState(false);
-  const [selectedPage, setSelectedPage] = useState<PublicContentItem | null>(null);
-  const [pageContent, setPageContent] = useState("");
-  const [pageLoading, setPageLoading] = useState(false);
-  const [pageError, setPageError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -173,23 +168,6 @@ export function HomePage() {
     });
   };
 
-  const openPage = async (page: PublicContentItem) => {
-    if (!page.url) return;
-    setSelectedPage(page);
-    setPageContent("");
-    setPageError(null);
-    setPageLoading(true);
-    try {
-      const result = await getPublicPageByUrl(page.url);
-      setPageContent(result?.content ?? "");
-      if (!result) setPageError("This page was not found or is no longer public.");
-    } catch {
-      setPageError("The page content could not be loaded.");
-    } finally {
-      setPageLoading(false);
-    }
-  };
-
   if (state.settings?.maintenanceMode && !state.isAdmin) {
     return (
       <section className="notice-card" aria-labelledby="maintenance-title">
@@ -253,7 +231,7 @@ export function HomePage() {
                 key={page.id}
                 type="button"
                 className="home-page-pill"
-                onClick={() => void openPage(page)}
+                onClick={() => document.getElementById("public-page-card-" + page.id)?.scrollIntoView({ behavior: "smooth", block: "start" })}
               >
                 {page.title}
               </button>
@@ -262,30 +240,15 @@ export function HomePage() {
         </section>
       ) : null}
 
-      {selectedPage ? (
-        <section className="public-page-panel" aria-labelledby="public-page-title">
-          <div className="section-heading">
-            <h2 id="public-page-title">{selectedPage.title}</h2>
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedPage(null);
-                setPageContent("");
-                setPageError(null);
-              }}
-              aria-label="Close page"
-            >
-              Close
-            </button>
-          </div>
-          {pageLoading ? <p role="status">Loading page…</p> : null}
-          {pageError ? <p role="alert">{pageError}</p> : null}
-          {pageContent ? (
-            <div className="public-page-content">{htmlToPlainText(pageContent)}</div>
-          ) : null}
-          {!pageLoading && !pageError && !pageContent ? (
-            <p>There is no text to display on this page.</p>
-          ) : null}
+      {state.pages.length > 0 ? (
+        <section className="home-page-cards" aria-label="Public page cards">
+          {state.pages.map((page) => (
+            <article className="home-page-card" id={"public-page-card-" + page.id} key={page.id}>
+              <h2>{page.title}</h2>
+              {page.description ? <p>{page.description}</p> : <p>Open this page to read its content.</p>}
+              {page.url ? <a href={"#/pages/" + encodeURIComponent(page.url)}>See more</a> : null}
+            </article>
+          ))}
         </section>
       ) : null}
 
