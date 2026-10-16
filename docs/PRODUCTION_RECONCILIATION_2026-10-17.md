@@ -71,11 +71,14 @@ The two bilingual migrations previously reconciled remain aligned to their live-
 
 These are **semantic filename reconciliations using available repository SQL**, not proof that the SQL bytes are identical to the original SQL applied in production. The changes are only on this GitHub branch. Production migration ledger rows were not edited, and no SQL migration was replayed.
 
+Five repository-only migration candidates were moved out of the active `supabase/migrations/` directory into `docs/migration-archive/unverified/` as plain-text copies. The live schema showed that some reference absent tables or an obsolete Media Library schema; the others have no proven matching applied version. They were quarantined to prevent accidental application by a future `supabase db push`, not declared resolved. See `docs/migration-archive/README.md`.
+
 Updated repository-vs-live inventory after these changes:
 - Live ledger entries: 52
-- Exact versioned filenames represented in the repository: 21
+- Exact versioned filenames represented in the active migrations directory: 21
 - Live-ledger versions still lacking exact repository filenames: 31
-- Repository migration files without an exact live-ledger version: 5
+- Active repository migration files without an exact live-ledger version: 0
+- Unverified migration candidates preserved outside the active migrations directory: 5
 
 ### Remaining live-ledger versions without exact repository filenames
 
@@ -111,16 +114,6 @@ Updated repository-vs-live inventory after these changes:
 20261011160530 harden_permissions_rpc_and_deduplicate_pages_policy
 20261014103615 add_bangla_profile_fields
 20261014124253 add_bilingual_media_metadata_ui_compat
-```
-
-### Remaining repository-only migration files
-
-```text
-20261010112000_profiles_canonical_source.sql
-20261010195600_create_media_library.sql
-20261010235000_admin_only_home_media_uploads.sql
-20261011050000_english_widget_titles.sql
-20261011143000_secure_cleanup_recycle_bin_authorization.sql
 ```
 
 A spot-check of GitHub's exact-path commit history for ten high-priority missing migrations found no commits at those exact file paths. Some obsolete/unapplied migration artifacts exist in older commits, but they are not safe substitutes for production migrations. The remaining entries must be recovered from other source commits, deployment records, backups, or classified against the live catalog before any further renaming. Do not replay migrations or alter the production ledger to force matching counts.
