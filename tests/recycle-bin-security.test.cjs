@@ -35,5 +35,7 @@ test("expired-item cleanup queues Storage paths but never deletes objects withou
   assert.ok(cleanup.includes("enqueueStorageObjects(item"));
   assert.ok(cleanup.indexOf("enqueueStorageObjects(item") < cleanup.indexOf('admin.from("recycle_bin").delete()'));
   assert.ok(cleanup.includes("storage_cleanup_queue"));
+  assert.ok(cleanup.includes("queuedFiles: queuedFilesTotal"));
+  assert.ok(cleanup.includes("purgedFiles: 0"));
   assert.equal(cleanup.includes(".remove("), false);
 });

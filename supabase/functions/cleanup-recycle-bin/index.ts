@@ -22,8 +22,8 @@ const corsHeaders = {
 function collectStorageObjects(item: Record<string, unknown>) {
   const objects = new Map<string, Set<string>>();
   const add = (bucket: string, path: string) => {
-    const normalized = path.trim().replace(/^\\/+/, "");
-    if (!normalized || /^https?:\\/\\//i.test(normalized)) return;
+    const normalized = path.trim().replace(/^\/+/, "");
+    if (!normalized || /^https?:\/\//i.test(normalized)) return;
     if (!objects.has(bucket)) objects.set(bucket, new Set<string>());
     objects.get(bucket)!.add(normalized);
   };
@@ -119,14 +119,14 @@ Deno.serve(async (req: Request) => {
   }
 
   let purgedItems = 0;
-  let purgedFiles = 0;
+  let queuedFilesTotal = 0;
   let failedItems = 0;
   for (const item of expired || []) {
     try {
       const queuedFiles = await enqueueStorageObjects(item as Record<string, unknown>);
       const { error: deleteError } = await admin.from("recycle_bin").delete().eq("id", item.id);
       if (deleteError) throw deleteError;
-      purgedFiles += queuedFiles;
+      queuedFilesTotal += queuedFiles;
       purgedItems += 1;
     } catch (error) {
       failedItems += 1;
@@ -138,7 +138,7 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  return new Response(JSON.stringify({ purgedItems, purgedFiles, failedItems }), {
+  return new Response(JSON.stringify({ purgedItems, queuedFiles: queuedFilesTotal, purgedFiles: 0, failedItems }), {
     status: 200,
     headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "no-store" },
   });
