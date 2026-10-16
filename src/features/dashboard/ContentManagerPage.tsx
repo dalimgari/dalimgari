@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import type { TablesInsert, TablesUpdate } from "../../types/database.types";
 import { supabase } from "../../services/supabase";
+import { sanitizeHtml } from "../../utils/sanitizeHtml";
 
 type ManagedTable = "hero_items" | "post" | "pages" | "albums" | "widgets";
 type Row = Record<string, unknown>;
@@ -275,7 +276,7 @@ export function ContentManagerPage() {
     setEditingId(String(row.id));
     setTitle(String(row.title ?? ""));
     setDescription(String(row.description ?? ""));
-    setBody(htmlToPlainText(String(row.content ?? "")));
+    setBody(settings.table === "pages" ? sanitizeHtml(String(row.content ?? "")) : htmlToPlainText(String(row.content ?? "")));
     setUrl(String(row.url ?? ""));
     setVisibility(String(row.visibility ?? "private"));
     setWidgetType(String(row.widget_type ?? "datetime"));
@@ -312,7 +313,8 @@ export function ContentManagerPage() {
     }
     const payload: Row = { title: title.trim() };
     if (settings.hasDescription) payload.description = description.trim() || null;
-    if (settings.hasContent) payload.content = plainTextToSafeHtml(body);
+    if (settings.hasContent)
+      payload.content = settings.table === "pages" ? sanitizeHtml(body) : plainTextToSafeHtml(body);
     if (settings.hasUrl) {
       const normalizedUrl = url.trim().replace(/^\/+|\/+$/g, "");
       if (!normalizedUrl) {
@@ -412,17 +414,19 @@ export function ContentManagerPage() {
           ) : null}
           {settings.hasContent ? (
             <>
-              <label htmlFor="managed-content">Content (plain text)</label>
+              <label htmlFor="managed-content">{settings.table === "pages" ? "HTML Code" : "Content (plain text)"}</label>
               <textarea
                 id="managed-content"
-                rows={8}
+                rows={settings.table === "pages" ? 16 : 8}
                 maxLength={50000}
+                spellCheck={settings.table !== "pages"}
                 value={body}
                 onChange={(event) => setBody(event.target.value)}
               />
               <p>
-                This preview stores content as plain text; HTML scripts and unsafe markup
-                are not executed.
+                {settings.table === "pages"
+                  ? "Safe HTML elements are supported. Scripts, embedded documents, event handlers, and unsafe URLs are removed before display."
+                  : "Post content is stored as plain text and displayed without executing HTML."}
               </p>
             </>
           ) : null}
