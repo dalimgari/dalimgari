@@ -60,6 +60,22 @@ A live read-only call to Supabase returned **52 migration ledger entries**. Each
 
 Do not replay migrations, manufacture placeholder SQL, delete ledger rows, or run `supabase db push` to force the counts to match. The safe repair is to recover the exact original SQL and deployment/PR history for each unmatched version, compare its effects with the live schema, then add a reviewed reconciliation baseline without replaying already-applied DDL. This branch intentionally does not mutate production schema or migration history.
 
+## Migration reconciliation update (2026-10-17, follow-up)
+
+Two recent bilingual migration files had recoverable repository SQL with a different version prefix. Their current source contents were preserved and moved to the corresponding live-ledger versioned filenames:
+- `20261014084543_add_bilingual_content_fields.sql`
+- `20261014101715_add_bilingual_media_metadata.sql`
+
+The former repository-only copies at versions `20261014090000` and `20261014140000` were removed to avoid applying the same migration twice on a clean reset. Live catalog inspection confirms the corresponding bilingual columns currently exist. This is a **semantic filename reconciliation using available repository SQL**, not proof that the SQL bytes are identical to the original SQL run in production.
+
+Updated exact-path counts after this change:
+- Live ledger entries: 52
+- Exact versioned filenames now represented in the repository: 17
+- Live ledger versions still lacking exact repository filenames: 35
+- Repository migration files without an exact live-ledger version: 9
+
+The other 35 entries remain unresolved until original SQL is recovered or each is explicitly classified with catalog and history evidence. No production migration ledger rows were edited and no migration was replayed.
+
 ## 3. Profile synchronization trigger
 
 Live catalog inspection currently finds:
