@@ -106,7 +106,7 @@ export function HomePage() {
             String(userResult.value?.app_metadata?.role ?? "").toLowerCase() === "admin",
           loading: false,
           error: failed
-            ? "কিছু কনটেন্ট লোড করা যায়নি। Supabase configuration ও access policy যাচাই করুন।"
+            ? "Some content could not be loaded. Check the Supabase configuration and access policies."
             : null,
         });
       },
@@ -184,7 +184,7 @@ export function HomePage() {
       setPageContent(result?.content ?? "");
       if (!result) setPageError("পেজটি পাওয়া যায়নি অথবা এটি আর পাবলিক নেই।");
     } catch {
-      setPageError("পেজের কনটেন্ট লোড করা যায়নি।");
+      setPageError("The page content could not be loaded.");
     } finally {
       setPageLoading(false);
     }
@@ -193,8 +193,8 @@ export function HomePage() {
   if (state.settings?.maintenanceMode && !state.isAdmin) {
     return (
       <section className="notice-card" aria-labelledby="maintenance-title">
-        <h1 id="maintenance-title">ওয়েবসাইট সাময়িক রক্ষণাবেক্ষণে</h1>
-        <p>কিছু সময় পরে আবার চেষ্টা করুন।</p>
+        <h1 id="maintenance-title">Website temporarily under maintenance</h1>
+        <p>কিছু সময় পরে Try again।</p>
       </section>
     );
   }
@@ -203,8 +203,8 @@ export function HomePage() {
     <section className="home-content" aria-labelledby="home-title">
       {state.settings?.maintenanceMode ? (
         <section className="notice-card">
-          <h1>ওয়েবসাইট সাময়িক রক্ষণাবেক্ষণে</h1>
-          <p>কিছু সময় পরে আবার চেষ্টা করুন।</p>
+          <h1>Website temporarily under maintenance</h1>
+          <p>কিছু সময় পরে Try again।</p>
         </section>
       ) : null}
 
@@ -220,7 +220,7 @@ export function HomePage() {
           <div className="home-hero-copy">
             {state.settings?.tagline ? <p className="eyebrow">{state.settings.tagline}</p> : null}
             <h1 id="home-title">
-              {state.hero.title || state.settings?.siteTitle || "ডালিমগাড়ী কমিউনিটি"}
+              {state.hero.title || state.settings?.siteTitle || "Dalimgari Community"}
             </h1>
             {state.hero.description ? <p>{state.hero.description}</p> : null}
           </div>
@@ -228,18 +228,18 @@ export function HomePage() {
       ) : (
         <>
           <p className="eyebrow">Dalimgari Community</p>
-          <h1 id="home-title">ডালিমগাড়ী কমিউনিটি</h1>
-          <p>ডালিমগাড়ীর স্মৃতি, মানুষ ও ছবির সংগ্রহ।</p>
+          <h1 id="home-title">Dalimgari Community</h1>
+          <p>A collection of Dalimgari memories, people, and photographs.</p>
         </>
       )}
 
       {state.pages.length > 0 ? (
         <section className="home-pages" aria-labelledby="pages-title">
-          <h2 id="pages-title">পেজসমূহ</h2>
+          <h2 id="pages-title">Pages</h2>
           <div
             ref={pillRef}
             className="home-page-pillbar"
-            aria-label="পাবলিক পেজ"
+            aria-label="Public pages"
             onMouseEnter={() => setPillPaused(true)}
             onMouseLeave={() => setPillPaused(false)}
             onFocus={() => setPillPaused(true)}
@@ -273,12 +273,12 @@ export function HomePage() {
                 setPageContent("");
                 setPageError(null);
               }}
-              aria-label="পেজ বন্ধ করুন"
+              aria-label="Close page"
             >
               বন্ধ
             </button>
           </div>
-          {pageLoading ? <p role="status">পেজ লোড হচ্ছে…</p> : null}
+          {pageLoading ? <p role="status">পেজ Loading…</p> : null}
           {pageError ? <p role="alert">{pageError}</p> : null}
           {pageContent ? (
             <div className="public-page-content">{htmlToPlainText(pageContent)}</div>
@@ -289,11 +289,11 @@ export function HomePage() {
         </section>
       ) : null}
 
-      {state.loading ? <p role="status">কনটেন্ট লোড হচ্ছে…</p> : null}
+      {state.loading ? <p role="status">Loading content…</p> : null}
       {state.error ? <p role="alert">{state.error}</p> : null}
 
       {state.includes.length > 0 ? (
-        <section className="home-included-content" aria-label="নির্বাচিত পরিচিতি">
+        <section className="home-included-content" aria-label="Featured content">
           {state.includes.map((item) => (
             <article className="home-content-card" key={item.section}>
               <h2>{item.title}</h2>
@@ -307,7 +307,7 @@ export function HomePage() {
 
       {state.widgets.length > 0 ? (
         <section className="home-widgets" aria-labelledby="widgets-title">
-          <h2 id="widgets-title">কমিউনিটি উইজেট</h2>
+          <h2 id="widgets-title">Community widgets</h2>
           <div className="home-content-grid">
             {state.widgets.map((widget) => (
               <PublicWidgetCard key={widget.id} widget={widget} />
@@ -318,26 +318,26 @@ export function HomePage() {
 
       <section className="home-albums" aria-labelledby="albums-title">
         <div className="section-heading">
-          <h2 id="albums-title">অ্যালবাম</h2>
+          <h2 id="albums-title">Albums</h2>
           {state.albums.length > 1 ? (
-            <div className="carousel-controls" aria-label="অ্যালবাম স্ক্রল নিয়ন্ত্রণ">
-              <button type="button" onClick={() => moveCarousel(-1)} aria-label="আগের অ্যালবাম">
+            <div className="carousel-controls" aria-label="Album carousel controls">
+              <button type="button" onClick={() => moveCarousel(-1)} aria-label="Previous album">
                 ‹
               </button>
-              <button type="button" onClick={() => moveCarousel(1)} aria-label="পরের অ্যালবাম">
+              <button type="button" onClick={() => moveCarousel(1)} aria-label="Next album">
                 ›
               </button>
             </div>
           ) : null}
         </div>
         {!state.loading && !state.error && state.albums.length === 0 ? (
-          <p>এখনো কোনো পাবলিক অ্যালবাম নেই।</p>
+          <p>এখনো কোনো পাবলিক Albums নেই।</p>
         ) : null}
         {state.albums.length > 0 ? (
           <div
             ref={carouselRef}
             className="album-carousel"
-            aria-label="পাবলিক অ্যালবাম"
+            aria-label="পাবলিক Albums"
             onMouseEnter={() => setPaused(true)}
             onMouseLeave={() => setPaused(false)}
             onFocus={() => setPaused(true)}
@@ -362,7 +362,7 @@ export function HomePage() {
 
       {state.posts.length > 0 ? (
         <section className="home-posts" aria-labelledby="posts-title">
-          <h2 id="posts-title">সাম্প্রতিক পোস্ট</h2>
+          <h2 id="posts-title">Recent posts</h2>
           <div className="home-content-grid">
             {state.posts.map((post) => (
               <article className="home-content-card" key={post.id}>
