@@ -152,7 +152,7 @@ export async function getPublicPages(limit = 200): Promise<PublicContentItem[]> 
   const safeLimit = Math.max(1, Math.min(Math.floor(limit), 500));
   const { data, error } = await getClient()
     .from("pages")
-    .select("id,title,url,visibility,created_at")
+    .select("id,title,description,url,visibility,created_at")
     .eq("visibility", "public")
     .order("created_at", { ascending: true })
     .limit(safeLimit);
