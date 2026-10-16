@@ -12,9 +12,13 @@
 - Supabase project is active and healthy.
 - Security Advisor currently reports **Leaked Password Protection Disabled**. This is an Auth dashboard/project setting; the available project/database connector can inspect the finding but cannot toggle this setting. It must be enabled in Supabase Dashboard under Authentication / Security and then re-verified with Security Advisor.
 - Performance Advisor reports 13 unused indexes. These are informational candidates, not proof of defects. They are intentionally not dropped without query-usage review and workload evidence.
-- The live migration ledger currently returns 45 records. Before declaring migration history reconciled, compare the complete repository migration filename/version list with these 45 records and inspect any differences. Do not replay, reset, or rewrite migration history as a shortcut.
+- The fresh exact-version comparison returns 52 live migration ledger entries and 26 repository SQL files: 15 exact version matches, 37 live-only versions, and 11 repository-only versions. Exact comparison is now documented in `docs/P1-P2-remediation-report-2026-10-16.md`; semantic SQL/history reconciliation remains unresolved. Do not replay, reset, repair, or rewrite migration history as a shortcut.
 - All four live Edge Function entrypoints were compared against repository source. `resolve-map-link` v6, `cleanup-recycle-bin` v7, and `translate-bilingual` v2 match byte-for-byte. `admin-user-management` v5 differed: the deployed version supports the `users.manage` permission RPC, while repository source only allowed the admin role. This branch updates the repository source to match the currently deployed v5 implementation and adds a regression check. No Edge Function was redeployed.
 - Existing GitHub Actions include project checks and a three-run mobile Lighthouse audit. This branch adds static regression checks; it does not claim browser tests or a new Lighthouse baseline have run.
+
+## Detailed P1/P2 report
+
+See `docs/P1-P2-remediation-report-2026-10-16.md` for the fresh exact migration diff, live Storage/RLS inventory, index-statistics caveats, and completed vs outstanding P1/P2 gates.
 
 ## Release gates still required
 
