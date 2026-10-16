@@ -275,7 +275,7 @@ export function HomePage() {
               }}
               aria-label="Close page"
             >
-              বন্ধ
+              Close
             </button>
           </div>
           {pageLoading ? <p role="status">Loading page…</p> : null}
