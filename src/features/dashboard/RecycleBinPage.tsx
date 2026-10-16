@@ -57,25 +57,10 @@ export function RecycleBinPage() {
     if (!window.confirm("Restore this item to its original section?")) return;
     setBusyId(item.id); setError(""); setNotice("");
     try {
-      const record = asRecord(item.record_data);
-      const { error: insertError } = await supabase.from(item.original_table).insert(record as never);
-      if (insertError) throw insertError;
-      const related = item.related_data && typeof item.related_data === "object" && !Array.isArray(item.related_data)
-        ? item.related_data as Record<string, Json> : {};
-      const restoreLinks = async (table: "user_roles" | "role_permissions", rows: Json | undefined) => {
-        if (!Array.isArray(rows) || rows.length === 0) return;
-        const conflict = table === "user_roles" ? "user_id" : "role_id,permission_id";
-        const { error: linkError } = await supabase.from(table).upsert(rows as never, { onConflict: conflict, ignoreDuplicates: true });
-        if (linkError) throw linkError;
-      };
-      if (item.original_table === "roles") {
-        await restoreLinks("user_roles", related.user_roles);
-        await restoreLinks("role_permissions", related.role_permissions);
-      } else if (item.original_table === "permissions") {
-        await restoreLinks("role_permissions", related.role_permissions);
-      }
-      const { error: trashError } = await supabase.from("recycle_bin").delete().eq("id", item.id);
-      if (trashError) throw trashError;
+      const { error: restoreError } = await supabase.rpc("restore_from_recycle_bin", {
+        p_recycle_bin_id: item.id,
+      });
+      if (restoreError) throw restoreError;
       await load();
       setNotice("Item restored successfully.");
     } catch (e) {

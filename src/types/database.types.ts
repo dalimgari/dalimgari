@@ -567,6 +567,8 @@ export type Database = {
         }[];
       };
       get_my_permissions: { Args: never; Returns: string[] };
+      move_to_recycle_bin: { Args: { p_id: string; p_table: string }; Returns: string };
+      restore_from_recycle_bin: { Args: { p_recycle_bin_id: string }; Returns: string };
     };
     Enums: {
       [_ in never]: never;
