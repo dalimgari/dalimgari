@@ -92,24 +92,24 @@ export function DashboardPage() {
     const load = async () => {
       if (!supabase) {
         if (active) {
-          setError("Supabase configuration পাওয়া যায়নি।");
+          setError("Supabase configuration is missing.");
           setLoading(false);
         }
         return;
       }
       try {
         const { data, error: userError } = await supabase.auth.getUser();
-        if (userError || !data.user) throw new Error("ড্যাশবোর্ড দেখতে লগইন করতে হবে।");
+        if (userError || !data.user) throw new Error("Log in to access the dashboard.");
         const admin = String(data.user.app_metadata?.role ?? "").toLowerCase() === "admin";
         let granted: string[] = [];
         {
           const { data: permissionData, error: permissionError } =
             await supabase.rpc("get_my_permissions");
-          if (permissionError && !admin) throw new Error("আপনার permission যাচাই করা যায়নি।");
+          if (permissionError && !admin) throw new Error("Your permissions could not be verified.");
           if (Array.isArray(permissionData))
             granted = permissionData.filter((value): value is string => typeof value === "string");
           if (!admin && granted.length === 0)
-            throw new Error("এই অ্যাকাউন্টের ড্যাশবোর্ড ব্যবহারের অনুমতি নেই।");
+            throw new Error("This account is not allowed to access the dashboard.");
         }
         if (!active) return;
         setUserId(data.user.id);
@@ -117,7 +117,7 @@ export function DashboardPage() {
         setPermissions(granted);
       } catch (loadError) {
         if (active)
-          setError(loadError instanceof Error ? loadError.message : "ড্যাশবোর্ড লোড করা যায়নি।");
+          setError(loadError instanceof Error ? loadError.message : "The dashboard could not be loaded.");
       } finally {
         if (active) setLoading(false);
       }
@@ -128,7 +128,7 @@ export function DashboardPage() {
     };
   }, []);
 
-  if (loading) return <p role="status">অনুমতি যাচাই হচ্ছে…</p>;
+  if (loading) return <p role="status">Checking permissions…</p>;
   if (error)
     return (
       <section className="notice-card">
@@ -151,10 +151,10 @@ export function DashboardPage() {
     <section className="dashboard-page" aria-labelledby="dashboard-title">
       <h1 id="dashboard-title">ড্যাশবোর্ড</h1>
       <p>
-        অ্যাকাউন্ট: <code>{userId}</code>
+        Account: <code>{userId}</code>
       </p>
-      <p>ভূমিকা: {isAdmin ? "ADMIN" : "PERMISSION-BASED MEMBER"}</p>
-      <nav className="dashboard-section-nav" aria-label="ড্যাশবোর্ড বিভাগ">
+      <p>Role: {isAdmin ? "ADMIN" : "PERMISSION-BASED MEMBER"}</p>
+      <nav className="dashboard-section-nav" aria-label="Dashboard sections">
         {allowed.map((section) => (
           <button
             key={section.id}
@@ -174,23 +174,23 @@ export function DashboardPage() {
             <Link to="/dashboard/media-library">Media Library খুলুন</Link>
           ) : null}
           {["hero", "post", "page", "album", "widget"].includes(current.id) ? (
-            <Link to={"/dashboard/" + current.id}>এই বিভাগ পরিচালনা করুন</Link>
+            <Link to={"/dashboard/" + current.id}>Manage this section</Link>
           ) : null}
           {current.id === "user" ? (
-            <Link to="/dashboard/user">User ও Role Assignment পরিচালনা করুন</Link>
+            <Link to="/dashboard/user">Manage users and role assignments</Link>
           ) : null}
           {current.id === "role" ? (
-            <Link to="/dashboard/role">Role ও Permission পরিচালনা করুন</Link>
+            <Link to="/dashboard/role">Manage roles and permissions</Link>
           ) : null}
           {["settings", "customization"].includes(current.id) ? (
-            <Link to={"/dashboard/" + current.id}>Settings পরিচালনা করুন</Link>
+            <Link to={"/dashboard/" + current.id}>Manage settings</Link>
           ) : null}
           <p>
-            এই বিভাগের সম্পূর্ণ CRUD UI এখনো মাইগ্রেশনাধীন; legacy dashboard production-এ চালু আছে।
+            Full CRUD for this section is still being migrated; the legacy dashboard remains in production.
           </p>
         </section>
       ) : (
-        <p>এই অ্যাকাউন্টের জন্য কোনো dashboard section অনুমোদিত নয়।</p>
+        <p>No dashboard sections are permitted for this account.</p>
       )}
     </section>
   );
