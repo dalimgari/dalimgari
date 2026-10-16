@@ -370,7 +370,7 @@ export function ContentManagerPage() {
       <p>
         <Link to="/dashboard">← Dashboard</Link>
       </p>
-      <h1 id="manager-title">{settings.title} পরিচালনা</h1>
+      <h1 id="manager-title">Manage {settings.title}</h1>
       {error ? <p role="alert">{error}</p> : null}
       {notice ? <p role="status">{notice}</p> : null}
       {canCreate || (editingId && canEdit) ? (
