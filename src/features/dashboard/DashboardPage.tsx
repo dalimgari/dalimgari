@@ -132,7 +132,7 @@ export function DashboardPage() {
   if (error)
     return (
       <section className="notice-card">
-        <h1>ড্যাশবোর্ড</h1>
+        <h1>Dashboard</h1>
         <p role="alert">{error}</p>
       </section>
     );
@@ -149,7 +149,7 @@ export function DashboardPage() {
 
   return (
     <section className="dashboard-page" aria-labelledby="dashboard-title">
-      <h1 id="dashboard-title">ড্যাশবোর্ড</h1>
+      <h1 id="dashboard-title">Dashboard</h1>
       <p>
         Account: <code>{userId}</code>
       </p>
@@ -171,7 +171,7 @@ export function DashboardPage() {
           <h2 id="dashboard-section-title">{current.title}</h2>
           <p>{current.description}</p>
           {current.id === "media-library" ? (
-            <Link to="/dashboard/media-library">Media Library খুলুন</Link>
+            <Link to="/dashboard/media-library">Open Media Library</Link>
           ) : null}
           {["hero", "post", "page", "album", "widget"].includes(current.id) ? (
             <Link to={"/dashboard/" + current.id}>Manage this section</Link>
