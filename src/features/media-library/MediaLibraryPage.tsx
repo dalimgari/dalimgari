@@ -251,8 +251,7 @@ export function MediaLibraryPage() {
             <option value="public">Public</option>
           </select>
           <p>
-            Private/Public path নির্বাচন Storage policy-কে পরিবর্তন করে না; RLS ও bucket policy-ই
-            চূড়ান্ত অনুমোদন নির্ধারণ করে।
+            Choosing a Private/Public path does not change Storage policy; RLS and bucket policies determine access.
           </p>
           <button type="submit" disabled={uploading || !file}>
             {uploading ? "Uploading…" : "Upload"}
