@@ -77,7 +77,7 @@ export function App() {
       content = <DashboardPage />;
       break;
     default:
-      if (pathname.startsWith("/pages/") && pathname.split("/").filter(Boolean).length === 2) {
+      if (pathname.startsWith("/pages/")) {
         content = <PublicPagePage />;
         break;
       }
