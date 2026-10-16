@@ -16,6 +16,48 @@ This change hardens the map resolver's browser CORS policy, starts independent h
 
 A live read-only call to Supabase returned **52 migration ledger entries**. Each exact `<version>_<name>.sql` path from the live ledger was checked in `main`: **15 exact paths were found and 37 exact paths were not found**. A missing exact path does not prove that the corresponding SQL is absent under a different filename or exists nowhere in Git history; it does prove that a simple name-based reconciliation is incomplete.
 
+### Live-ledger versions without an exact `main` filename
+
+```text
+20261009215349 create_admin_messaging_and_quota
+20261009215416 schedule_admin_message_expiry_cleanup
+20261009215604 enforce_total_message_file_quota
+20261009215709 enable_pg_net_for_message_cleanup
+20261009215731 fix_message_cleanup_cron_schema
+20261009215804 grant_cleanup_function_message_table_access
+20261009224129 remove_messaging_feature
+20261009230258 dashboard_content_management_and_external_media
+20261009230359 secure_site_media_storage_bucket
+20261009230439 post_media_relationships
+20261009231119 rename_url_slug_columns_to_url
+20261009232306 create_admin_recycle_bin
+20261009234533 make_post_media_self_contained
+20261009234559 allow_post_media_recycle_bin
+20261009235134 add_single_media_fields_to_posts
+20261009235213 rename_posts_table_to_post
+20261010001441 prepare_post_media_upload
+20261010095316 remove_message_cleanup_and_optimize_security_performance
+20261010095402 optimize_admin_write_policies
+20261010101635 remove_remaining_messaging_database_artifacts
+20261010103700 repair_existing_profile_sync
+20261010121835 create_admin_media_upload_tests
+20261010132827 add_profile_picture_storage
+20261010143039 public_home_hero_read_access
+20261010182503 grant_admin_full_access_to_app_data_and_storage
+20261010182935 restrict_home_media_uploads_to_admin_only
+20261010185057 protect_super_admin_account
+20261010215858 add_media_column_to_albums
+20261010220303 add_custom_url_to_posts
+20261010222515 remove_dashboard_hidden_fields
+20261010222542 restore_core_customization_storage
+20261011013318 central_media_library
+20261011160530 harden_permissions_rpc_and_deduplicate_pages_policy
+20261014084543 add_bilingual_content_fields
+20261014101715 add_bilingual_media_metadata
+20261014103615 add_bangla_profile_fields
+20261014124253 add_bilingual_media_metadata_ui_compat
+```
+
 Do not replay migrations, manufacture placeholder SQL, delete ledger rows, or run `supabase db push` to force the counts to match. The safe repair is to recover the exact original SQL and deployment/PR history for each unmatched version, compare its effects with the live schema, then add a reviewed reconciliation baseline without replaying already-applied DDL. This branch intentionally does not mutate production schema or migration history.
 
 ## 3. Profile synchronization trigger
