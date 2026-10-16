@@ -7,7 +7,7 @@ import { App } from "./App";
  */
 export const router = createHashRouter([
   { path: "/albums/:albumId", element: <App /> },
-  { path: "/pages/:slug", element: <App /> },
+  { path: "/pages/*", element: <App /> },
   { path: "/dashboard/media-library", element: <App /> },
   { path: "/dashboard/:section", element: <App /> },
   { path: "*", element: <App /> },
