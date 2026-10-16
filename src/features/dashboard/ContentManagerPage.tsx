@@ -421,8 +421,8 @@ export function ContentManagerPage() {
                 onChange={(event) => setBody(event.target.value)}
               />
               <p>
-                এই preview কনটেন্টকে plain text হিসেবে সংরক্ষণ করে; HTML script বা unsafe markup
-                execute করে না।
+                This preview stores content as plain text; HTML scripts and unsafe markup
+                are not executed.
               </p>
             </>
           ) : null}
