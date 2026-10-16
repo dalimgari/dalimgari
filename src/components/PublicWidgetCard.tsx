@@ -21,7 +21,7 @@ export function PublicWidgetCard({ widget }: { widget: PublicWidget }) {
   if (widget.widget_type === "datetime") {
     return (
       <article className="home-content-card">
-        <h3>{widget.title || "বাংলাদেশ সময়"}</h3>
+        <h3>{widget.title || "Bangladesh time"}</h3>
         <p className="widget-datetime">{dateTime}</p>
       </article>
     );
@@ -63,9 +63,9 @@ export function PublicWidgetCard({ widget }: { widget: PublicWidget }) {
     }
     return (
       <article className="home-content-card">
-        <h3>{widget.title || "মানচিত্র"}</h3>
+        <h3>{widget.title || "Map"}</h3>
         <iframe
-          title={widget.title || "মানচিত্র"}
+          title={widget.title || "Map"}
           src={mapUrl}
           loading="lazy"
           referrerPolicy="no-referrer-when-downgrade"
@@ -77,7 +77,7 @@ export function PublicWidgetCard({ widget }: { widget: PublicWidget }) {
 
   return (
     <article className="home-content-card">
-      <h3>{widget.title || "কমিউনিটি উইজেট"}</h3>
+      <h3>{widget.title || "Community widget"}</h3>
     </article>
   );
 }
