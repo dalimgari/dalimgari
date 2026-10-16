@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { getPublicPageByUrl, type PublicContentItem } from "../../services/content";
 import { sanitizeHtml } from "../../utils/sanitizeHtml";
 
 export function PublicPagePage() {
-  const { slug = "" } = useParams();
+  const location = useLocation();
+  const encodedSlug = location.pathname.slice("/pages/".length);
+  let slug = encodedSlug;
+  try { slug = decodeURIComponent(encodedSlug); } catch { /* Invalid encoding will return no match. */ }
   const [page, setPage] = useState<PublicContentItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
