@@ -14,6 +14,7 @@ import { SettingsManagerPage } from "../features/dashboard/SettingsManagerPage";
 import { RoleManagerPage } from "../features/dashboard/RoleManagerPage";
 import { UserManagerPage } from "../features/dashboard/UserManagerPage";
 import { MediaLibraryPage } from "../features/media-library/MediaLibraryPage";
+import { PublicPagePage } from "../features/pages/PublicPagePage";
 
 function NotFoundPage() {
   return (
@@ -76,6 +77,10 @@ export function App() {
       content = <DashboardPage />;
       break;
     default:
+      if (pathname.startsWith("/pages/") && pathname.split("/").filter(Boolean).length === 2) {
+        content = <PublicPagePage />;
+        break;
+      }
       if (pathname.startsWith("/albums/") && pathname.split("/").filter(Boolean).length === 2) {
         content = <GalleryPage />;
         break;
