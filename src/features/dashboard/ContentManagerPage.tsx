@@ -273,6 +273,7 @@ export function ContentManagerPage() {
         : permissions.includes("content.edit");
 
   const startEdit = (row: Row) => {
+    if (!settings) return;
     setEditingId(String(row.id));
     setTitle(String(row.title ?? ""));
     setDescription(String(row.description ?? ""));
