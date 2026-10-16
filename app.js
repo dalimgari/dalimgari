@@ -1080,10 +1080,17 @@
         supabaseClient.from("site_customizations").select("value").eq("key","home_page_pill_autoscroll").maybeSingle()
       ]);
 
+      // Start Widget, Album, and Page Card data reads while optional page-includes
+      // configuration and page-pill settings are loading. Included HTML is rendered
+      // only after these cards finish, so an include targeting a section cannot race
+      // with the section renderer or be overwritten by late card rendering.
+      const homepageCardsPromise = renderHomepageContentCards(siteConfig);
+      const includeConfigPromise = supabaseClient.from("site_customizations")
+        .select("value").eq("key", "home_page_includes").maybeSingle();
+
       // Optional homepage placement map, configured in Dashboard > Customizations
       // with key "home_page_includes" and JSON such as {"home-page-card":"about-us"}.
-      const { data: includeConfigRow } = await supabaseClient.from("site_customizations")
-        .select("value").eq("key", "home_page_includes").maybeSingle();
+      const { data: includeConfigRow } = await includeConfigPromise;
       let homeIncludes = includeConfigRow?.value || {};
       if (typeof homeIncludes === "string") {
         try { homeIncludes = JSON.parse(homeIncludes); } catch (_) { homeIncludes = {}; }
@@ -1100,6 +1107,8 @@
             .select("content").eq("url", slug).maybeSingle();
           return !error && data ? { target, content: data.content || "" } : null;
         }));
+        // Prevent a configured HTML include from racing the homepage card renderer.
+        await homepageCardsPromise;
         await Promise.all(includedPages.filter(Boolean).map(({ target, content }) =>
           renderHtmlInto(target, content, null)
         ));
@@ -1186,8 +1195,7 @@
         else if (pillMotion.addListener) pillMotion.addListener(startPillAutoScroll);
         startPillAutoScroll();
       }
-      // Render lower homepage sections after the hero has already started rendering.
-      const homepageCardsPromise = renderHomepageContentCards(siteConfig);
+      // Lower homepage sections were started in parallel with optional include/config reads.
       const heroRendered = await heroRenderPromise;
       if (!heroRendered) {
         await homepageCardsPromise;
