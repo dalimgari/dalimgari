@@ -21,7 +21,7 @@ export function EditProfilePage() {
     const load = async () => {
       if (!supabase) {
         if (active) {
-          setError("Supabase configuration পাওয়া যায়নি।");
+          setError("Supabase configuration is missing.");
           setLoading(false);
         }
         return;
@@ -44,7 +44,7 @@ export function EditProfilePage() {
       setBio(profile?.bio ?? "");
       setAvatarUrl(profile?.avatar_url ?? null);
       if (profileError)
-        setError("প্রোফাইল তথ্য পড়া যায়নি। সংরক্ষণ করলে database policy অনুমতি দিতে হবে।");
+        setError("Could not read profile data. Database policies must allow updates to save changes.");
       setLoading(false);
     };
     void load();
@@ -68,7 +68,7 @@ export function EditProfilePage() {
         (!["image/jpeg", "image/png", "image/webp"].includes(avatarFile.type) ||
           avatarFile.size > 5 * 1024 * 1024)
       ) {
-        throw new Error("Avatar অবশ্যই JPEG, PNG বা WebP হতে হবে এবং ৫ MB-এর মধ্যে হতে হবে।");
+        throw new Error("Avatar must be JPEG, PNG, or WebP and no larger than 5 MB.");
       }
       if (avatarFile) {
         const extension =
@@ -118,7 +118,7 @@ export function EditProfilePage() {
       });
       if (metadataError) throw metadataError;
       setAvatarFile(null);
-      setMessage("প্রোফাইল সংরক্ষণ হয়েছে।");
+      setMessage("Profile saved.");
     } catch {
       if (uploadedPath && !profileSaved && supabase) {
         await supabase.storage.from("profile-pictures").remove([uploadedPath]);
@@ -130,29 +130,29 @@ export function EditProfilePage() {
       } else {
         setAvatarUrl(previousAvatarUrl);
       }
-      setError("প্রোফাইল সংরক্ষণ করা যায়নি। RLS policy এবং profiles table schema যাচাই করুন।");
+      setError("Could not save profile. Verify the RLS policy and profiles table schema.");
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <p role="status">প্রোফাইল লোড হচ্ছে…</p>;
+  if (loading) return <p role="status">Loading profile…</p>;
 
   return (
     <section className="auth-card" aria-labelledby="edit-profile-title">
-      <h1 id="edit-profile-title">প্রোফাইল সম্পাদনা</h1>
+      <h1 id="edit-profile-title">Edit profile</h1>
       {avatarUrl ? (
-        <img className="profile-avatar-image" src={avatarUrl} alt="প্রোফাইল ছবি" />
+        <img className="profile-avatar-image" src={avatarUrl} alt="Profile photo" />
       ) : null}
       <form onSubmit={(event) => void save(event)}>
-        <label htmlFor="profile-avatar">প্রোফাইল ছবি (JPEG/PNG/WebP, সর্বোচ্চ ৫ MB)</label>
+        <label htmlFor="profile-avatar">Profile photo (JPEG/PNG/WebP, maximum 5 MB)</label>
         <input
           id="profile-avatar"
           type="file"
           accept="image/jpeg,image/png,image/webp"
           onChange={(event) => setAvatarFile(event.target.files?.[0] ?? null)}
         />
-        <label htmlFor="profile-full-name">পূর্ণ নাম</label>
+        <label htmlFor="profile-full-name">Full name</label>
         <input
           id="profile-full-name"
           autoComplete="name"
@@ -160,7 +160,7 @@ export function EditProfilePage() {
           value={fullName}
           onChange={(event) => setFullName(event.target.value)}
         />
-        <label htmlFor="profile-phone">ফোন</label>
+        <label htmlFor="profile-phone">Phone</label>
         <input
           id="profile-phone"
           type="tel"
@@ -169,14 +169,14 @@ export function EditProfilePage() {
           value={phone}
           onChange={(event) => setPhone(event.target.value)}
         />
-        <label htmlFor="profile-dob">জন্মতারিখ</label>
+        <label htmlFor="profile-dob">Date of birth</label>
         <input
           id="profile-dob"
           type="date"
           value={dateOfBirth}
           onChange={(event) => setDateOfBirth(event.target.value)}
         />
-        <label htmlFor="profile-bio">পরিচিতি</label>
+        <label htmlFor="profile-bio">Bio</label>
         <textarea
           id="profile-bio"
           rows={5}
@@ -185,12 +185,12 @@ export function EditProfilePage() {
           onChange={(event) => setBio(event.target.value)}
         />
         <button type="submit" disabled={saving}>
-          {saving ? "সংরক্ষণ হচ্ছে…" : "পরিবর্তন সংরক্ষণ"}
+          {saving ? "Saving…" : "Save changes"}
         </button>
       </form>
       {message ? <p role="status">{message}</p> : null}
       {error ? <p role="alert">{error}</p> : null}
-      <Link to="/profile">প্রোফাইলে ফিরুন</Link>
+      <Link to="/profile">Return to profile</Link>
     </section>
   );
 }
