@@ -75,7 +75,7 @@ const sections: DashboardSection[] = [
     id: "recycle-bin",
     title: "Recycle Bin",
     description: "Recoverable deleted content.",
-    permissions: ["content.delete", "users.manage", "roles.manage", "settings.manage"],
+    permissions: ["roles.manage"],
   },
 ];
 
@@ -138,6 +138,7 @@ export function DashboardPage() {
     );
 
   const allowed = sections.filter((section) => {
+    if (section.id === "recycle-bin") return isAdmin;
     if (section.id === "user") return isAdmin && permissions.includes("roles.manage");
     if (section.id === "overview")
       return isAdmin || section.permissions.some((permission) => permissions.includes(permission));
@@ -176,6 +177,7 @@ export function DashboardPage() {
           {["hero", "post", "page", "album", "widget"].includes(current.id) ? (
             <Link to={"/dashboard/" + current.id}>Manage this section</Link>
           ) : null}
+          {current.id === "recycle-bin" ? <Link to="/dashboard/recycle-bin">Open Recycle Bin</Link> : null}
           {current.id === "user" ? (
             <Link to="/dashboard/user">Manage users and role assignments</Link>
           ) : null}

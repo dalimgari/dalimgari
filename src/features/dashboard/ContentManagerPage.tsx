@@ -265,6 +265,7 @@ export function ContentManagerPage() {
       : settings?.table === "pages"
         ? isAdmin || permissions.includes("content.create")
         : permissions.includes("content.create");
+  const canDelete = isAdmin && ["hero_items", "post", "pages", "albums"].includes(settings?.table ?? "");
   const canEdit =
     settings?.table === "widgets"
       ? permissions.includes("settings.manage")
@@ -289,6 +290,43 @@ export function ContentManagerPage() {
     setWidgetVisible(row.is_visible !== false);
     setError("");
     setNotice("");
+  };
+
+
+  const deleteRow = async (row: Row) => {
+    if (!supabase || !settings || !canDelete || !row.id) return;
+    if (!window.confirm("Move this record to the Recycle Bin? It can be restored for 30 days.")) return;
+    setError(""); setNotice(""); setSaving(true);
+    let trashId = "";
+    try {
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData.user || String(userData.user.app_metadata?.role ?? "").toLowerCase() !== "admin") {
+        throw new Error("Administrator permission is required to delete content.");
+      }
+      const table = settings.table as "hero_items" | "post" | "pages" | "albums";
+      const { data: fullRow, error: rowError } = await supabase.from(table).select("*").eq("id", String(row.id)).maybeSingle();
+      if (rowError) throw rowError;
+      if (!fullRow) throw new Error("This record no longer exists. Reload and try again.");
+      const { data: trash, error: trashError } = await supabase.from("recycle_bin").insert({
+        original_table: table,
+        original_id: String(row.id),
+        record_data: fullRow as unknown as import("../../types/database.types").Json,
+        related_data: {},
+        deleted_by: userData.user.id,
+      }).select("id").single();
+      if (trashError) throw trashError;
+      trashId = trash.id;
+      const { error: deleteError } = await supabase.from(table).delete().eq("id", String(row.id));
+      if (deleteError) {
+        await supabase.from("recycle_bin").delete().eq("id", trashId);
+        throw deleteError;
+      }
+      await load();
+      if (editingId === String(row.id)) resetForm();
+      setNotice("Record moved to the Recycle Bin.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not move this record to the Recycle Bin.");
+    } finally { setSaving(false); }
   };
 
   const resetForm = () => {
@@ -512,11 +550,10 @@ export function ContentManagerPage() {
                   {String(row.visibility ?? (row.is_visible === true ? "visible" : "hidden"))}
                 </small>
               </div>
-              {canEdit ? (
-                <button type="button" onClick={() => startEdit(row)}>
-                  Edit
-                </button>
-              ) : null}
+              <div className="profile-actions">
+                {canEdit ? <button type="button" onClick={() => startEdit(row)}>Edit</button> : null}
+                {canDelete ? <button type="button" disabled={saving} onClick={() => void deleteRow(row)}>Move to Recycle Bin</button> : null}
+              </div>
             </article>
           ))}
         </div>

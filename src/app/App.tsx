@@ -14,6 +14,7 @@ import { SettingsManagerPage } from "../features/dashboard/SettingsManagerPage";
 import { RoleManagerPage } from "../features/dashboard/RoleManagerPage";
 import { UserManagerPage } from "../features/dashboard/UserManagerPage";
 import { MediaLibraryPage } from "../features/media-library/MediaLibraryPage";
+import { RecycleBinPage } from "../features/dashboard/RecycleBinPage";
 import { PublicPagePage } from "../features/pages/PublicPagePage";
 
 function NotFoundPage() {
@@ -72,6 +73,9 @@ export function App() {
       break;
     case "/dashboard/media-library":
       content = <MediaLibraryPage />;
+      break;
+    case "/dashboard/recycle-bin":
+      content = <RecycleBinPage />;
       break;
     case "/dashboard":
       content = <DashboardPage />;
