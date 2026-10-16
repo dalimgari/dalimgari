@@ -1,15 +1,27 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
-const headers = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Content-Type": "application/json; charset=utf-8",
-  "Cache-Control": "no-store",
-};
+// GitHub Pages is the production origin for this repository. JWT verification
+// remains the authorization boundary; CORS only restricts which browser origins
+// may read responses. Requests without an Origin header remain usable by trusted
+// non-browser callers that provide a valid JWT.
+const ALLOWED_ORIGINS = new Set(["https://dalimgari.github.io"]);
 
-const json = (body: Record<string, unknown>, status = 200) =>
-  new Response(JSON.stringify(body), { status, headers });
+function responseHeaders(origin: string | null): HeadersInit {
+  const headers: Record<string, string> = {
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Content-Type": "application/json; charset=utf-8",
+    "Cache-Control": "no-store",
+    "Vary": "Origin",
+  };
+  if (origin && ALLOWED_ORIGINS.has(origin)) {
+    headers["Access-Control-Allow-Origin"] = origin;
+  }
+  return headers;
+}
+
+const json = (body: Record<string, unknown>, status = 200, origin: string | null = null) =>
+  new Response(JSON.stringify(body), { status, headers: responseHeaders(origin) });
 
 const ALLOWED_HOSTS = new Set([
   "maps.app.goo.gl",
@@ -134,28 +146,35 @@ async function fetchGoogleMapsHtml(startUrl: URL): Promise<{ finalUrl: URL; html
 }
 
 Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers });
-  if (req.method !== "POST") return json({ error: "Use POST." }, 405);
+  const origin = req.headers.get("origin");
+  if (origin && !ALLOWED_ORIGINS.has(origin)) {
+    return new Response(JSON.stringify({ error: "Origin not allowed." }), {
+      status: 403,
+      headers: responseHeaders(null),
+    });
+  }
+  if (req.method === "OPTIONS") return new Response("ok", { headers: responseHeaders(origin) });
+  if (req.method !== "POST") return json({ error: "Use POST." }, 405, origin);
 
   let body: { url?: string };
   try {
     body = await req.json();
   } catch {
-    return json({ error: "Invalid JSON body." }, 400);
+    return json({ error: "Invalid JSON body." }, 400, origin);
   }
 
   const input = String(body.url || "").trim();
-  if (input.length > 4096) return json({ error: "The Google Maps link is too long." }, 400);
+  if (input.length > 4096) return json({ error: "The Google Maps link is too long." }, 400, origin);
 
   let startUrl: URL;
   try {
     startUrl = new URL(input);
   } catch {
-    return json({ error: "Enter a valid Google Maps link." }, 400);
+    return json({ error: "Enter a valid Google Maps link." }, 400, origin);
   }
 
   if (!isAllowedMapsUrl(startUrl)) {
-    return json({ error: "Enter a supported HTTPS Google Maps link." }, 400);
+    return json({ error: "Enter a supported HTTPS Google Maps link." }, 400, origin);
   }
 
   try {
@@ -171,7 +190,7 @@ Deno.serve(async (req: Request) => {
     if (!location) {
       return json({
         error: "This share link does not expose the exact pin coordinates. Enter the pin's latitude,longitude to save it exactly.",
-      }, 422);
+      }, 422, origin);
     }
 
     return json({
@@ -179,18 +198,18 @@ Deno.serve(async (req: Request) => {
       embed_url: "https://maps.google.com/maps?q=" + encodeURIComponent(location) + "&z=19&output=embed",
       exact_coordinates: true,
       resolved_url: finalUrl.toString(),
-    });
+    }, 200, origin);
   } catch (error) {
     const message = error instanceof Error ? error.message : "";
     if (message === "The link redirected to an unsupported destination." ||
         message === "Too many redirects." ||
         message === "Google Maps response exceeded the allowed size.") {
-      return json({ error: message }, 422);
+      return json({ error: message }, 422, origin);
     }
     if (message === "Google Maps could not open this share link.") {
-      return json({ error: message }, 502);
+      return json({ error: message }, 502, origin);
     }
     console.error("resolve-map-link failed:", message);
-    return json({ error: "Could not resolve this Google Maps link. Check the link and try again." }, 502);
+    return json({ error: "Could not resolve this Google Maps link. Check the link and try again." }, 502, origin);
   }
 });
