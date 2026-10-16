@@ -62,19 +62,68 @@ Do not replay migrations, manufacture placeholder SQL, delete ledger rows, or ru
 
 ## Migration reconciliation update (2026-10-17, follow-up)
 
-Two recent bilingual migration files had recoverable repository SQL with a different version prefix. Their current source contents were preserved and moved to the corresponding live-ledger versioned filenames:
-- `20261014084543_add_bilingual_content_fields.sql`
-- `20261014101715_add_bilingual_media_metadata.sql`
+The two bilingual migrations previously reconciled remain aligned to their live-ledger version prefixes. Four additional repository SQL files were renamed on this branch after checking their purpose against the live schema and deployed objects:
 
-The former repository-only copies at versions `20261014090000` and `20261014140000` were removed to avoid applying the same migration twice on a clean reset. Live catalog inspection confirms the corresponding bilingual columns currently exist. This is a **semantic filename reconciliation using available repository SQL**, not proof that the SQL bytes are identical to the original SQL run in production.
+- `20261010182503_grant_admin_full_access_to_app_data_and_storage.sql`: the live storage policy and admin role predicate match the available SQL's intended policy.
+- `20261010185057_protect_super_admin_account.sql`: the live trigger definitions and function body match the available SQL.
+- `20261010215858_add_media_column_to_albums.sql`: the live `albums.media` column exists as `jsonb`, matching the migration's intended column.
+- `20261010220303_add_custom_url_to_posts.sql`: the live `post.custom_url` column exists as `text`, matching the migration's intended column.
 
-Updated exact-path counts after this change:
+These are **semantic filename reconciliations using available repository SQL**, not proof that the SQL bytes are identical to the original SQL applied in production. The changes are only on this GitHub branch. Production migration ledger rows were not edited, and no SQL migration was replayed.
+
+Updated repository-vs-live inventory after these changes:
 - Live ledger entries: 52
-- Exact versioned filenames now represented in the repository: 17
-- Live ledger versions still lacking exact repository filenames: 35
-- Repository migration files without an exact live-ledger version: 9
+- Exact versioned filenames represented in the repository: 21
+- Live-ledger versions still lacking exact repository filenames: 31
+- Repository migration files without an exact live-ledger version: 5
 
-The other 35 entries remain unresolved until original SQL is recovered or each is explicitly classified with catalog and history evidence. No production migration ledger rows were edited and no migration was replayed.
+### Remaining live-ledger versions without exact repository filenames
+
+```text
+20261009215349 create_admin_messaging_and_quota
+20261009215416 schedule_admin_message_expiry_cleanup
+20261009215604 enforce_total_message_file_quota
+20261009215709 enable_pg_net_for_message_cleanup
+20261009215731 fix_message_cleanup_cron_schema
+20261009215804 grant_cleanup_function_message_table_access
+20261009224129 remove_messaging_feature
+20261009230258 dashboard_content_management_and_external_media
+20261009230359 secure_site_media_storage_bucket
+20261009230439 post_media_relationships
+20261009231119 rename_url_slug_columns_to_url
+20261009232306 create_admin_recycle_bin
+20261009234533 make_post_media_self_contained
+20261009234559 allow_post_media_recycle_bin
+20261009235134 add_single_media_fields_to_posts
+20261009235213 rename_posts_table_to_post
+20261010001441 prepare_post_media_upload
+20261010095316 remove_message_cleanup_and_optimize_security_performance
+20261010095402 optimize_admin_write_policies
+20261010101635 remove_remaining_messaging_database_artifacts
+20261010103700 repair_existing_profile_sync
+20261010121835 create_admin_media_upload_tests
+20261010132827 add_profile_picture_storage
+20261010143039 public_home_hero_read_access
+20261010182935 restrict_home_media_uploads_to_admin_only
+20261010222515 remove_dashboard_hidden_fields
+20261010222542 restore_core_customization_storage
+20261011013318 central_media_library
+20261011160530 harden_permissions_rpc_and_deduplicate_pages_policy
+20261014103615 add_bangla_profile_fields
+20261014124253 add_bilingual_media_metadata_ui_compat
+```
+
+### Remaining repository-only migration files
+
+```text
+20261010112000_profiles_canonical_source.sql
+20261010195600_create_media_library.sql
+20261010235000_admin_only_home_media_uploads.sql
+20261011050000_english_widget_titles.sql
+20261011143000_secure_cleanup_recycle_bin_authorization.sql
+```
+
+A spot-check of GitHub's exact-path commit history for ten high-priority missing migrations found no commits at those exact file paths. Some obsolete/unapplied migration artifacts exist in older commits, but they are not safe substitutes for production migrations. The remaining entries must be recovered from other source commits, deployment records, backups, or classified against the live catalog before any further renaming. Do not replay migrations or alter the production ledger to force matching counts.
 
 ## 3. Profile synchronization trigger
 
