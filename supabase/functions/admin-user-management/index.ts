@@ -34,8 +34,15 @@ Deno.serve(async (req: Request) => {
   const { data: callerData, error: callerError } = await authClient.auth.getUser(token);
   const caller = callerData?.user;
   if (callerError || !caller) return response({ error: "Invalid session." }, 401);
-  if (String(caller.app_metadata?.role || "").toLowerCase() !== "admin") {
-    return response({ error: "Administrator access required." }, 403);
+
+  const callerRole = String(caller.app_metadata?.role || "").toLowerCase();
+  let hasUsersManagePermission = false;
+  if (callerRole !== "admin") {
+    const { data: permissions, error: permissionError } = await authClient.rpc("get_my_permissions");
+    hasUsersManagePermission = !permissionError && Array.isArray(permissions) && permissions.includes("users.manage");
+  }
+  if (callerRole !== "admin" && !hasUsersManagePermission) {
+    return response({ error: "User-management permission required." }, 403);
   }
 
   const isSuperAdmin = caller.id === SUPER_ADMIN_ID;
@@ -81,7 +88,7 @@ Deno.serve(async (req: Request) => {
       const userId = String(body?.user_id || "");
       if (!userId) return response({ error: "User ID is required." }, 400);
       if (userId === SUPER_ADMIN_ID) return response({ error: "The Super Admin account is permanently protected from deletion through this service." }, 403);
-      if (userId === caller.id) return response({ error: "You cannot delete the currently signed-in administrator." }, 400);
+      if (userId === caller.id) return response({ error: "You cannot delete the currently signed-in account." }, 400);
       const { data: targetData, error: targetError } = await admin.auth.admin.getUserById(userId);
       if (targetError) throw targetError;
       if (String(targetData.user.app_metadata?.role || "").toLowerCase() === "admin" && !isSuperAdmin) return response({ error: "Only the Super Admin can delete another administrator." }, 403);

@@ -99,3 +99,44 @@ test("admin dashboard implementation is a deployed, on-demand asset", () => {
   assert.match(dashboard, /window\.DalimgariDashboard = \{ renderDashboard \}/);
   assert.doesNotMatch(app, /get_my_permissions/);
 });
+
+
+test("browser-delivered files never reference a Supabase service-role secret", () => {
+  const browserFiles = ["index.html", "app.js", "header.js", "dashboard.js", "config.js"];
+  for (const file of browserFiles) {
+    const source = read(file);
+    assert.doesNotMatch(source, /SUPABASE_SERVICE_ROLE_KEY|service_role_secret|sb_secret_[A-Za-z0-9_-]{16,}/i,
+      `Privileged Supabase credentials must never be shipped to the browser: ${file}`);
+  }
+});
+
+test("production deployment excludes source, tests, backups, and repository metadata", () => {
+  const workflow = read(".github/workflows/deploy.yml");
+  for (const excluded of ["/.git/", "/.github/", "/backup/", "/docs/", "/tests/", "/supabase/", "/node_modules/", "/_site/"]) {
+    assert.ok(workflow.includes(`--exclude='${excluded}'`), `Production artifact must exclude ${excluded}`);
+  }
+  assert.match(workflow, /path:\s*"_site"/);
+});
+
+test("privileged Edge Functions enforce authorization and protect destructive operations", () => {
+  const userManagement = read("supabase/functions/admin-user-management/index.ts");
+  assert.match(userManagement, /auth\.getUser\(token\)/);
+  assert.match(userManagement, /get_my_permissions/);
+  assert.match(userManagement, /userId === SUPER_ADMIN_ID/);
+  assert.match(userManagement, /Only the designated Super Admin/);
+
+  const cleanup = read("supabase/functions/cleanup-recycle-bin/index.ts");
+  assert.match(cleanup, /x-cleanup-secret/);
+  assert.match(cleanup, /ALLOWED_STORAGE_BUCKETS/);
+  assert.match(cleanup, /isStorageObjectReferenced/);
+  assert.match(cleanup, /purge_after/);
+});
+
+test("map-link resolver rejects untrusted hosts and validates every redirect", () => {
+  const resolver = read("supabase/functions/resolve-map-link/index.ts");
+  assert.match(resolver, /const ALLOWED_HOSTS = new Set/);
+  assert.match(resolver, /url\.protocol !== "https:"/);
+  assert.match(resolver, /Validate every redirect destination BEFORE making the next request/);
+  assert.match(resolver, /MAX_REDIRECTS/);
+  assert.match(resolver, /FETCH_TIMEOUT_MS/);
+});
