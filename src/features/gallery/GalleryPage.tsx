@@ -17,18 +17,18 @@ export function GalleryPage() {
   useEffect(() => {
     let active = true;
     if (!albumId) {
-      setError("অ্যালবামের ঠিকানা সঠিক নয়।");
+      setError("Invalid album address.");
       setLoading(false);
       return;
     }
     getPublicAlbumById(albumId)
       .then((result) => {
         if (!active) return;
-        if (!result) setError("অ্যালবামটি পাওয়া যায়নি অথবা এটি আর পাবলিক নেই।");
+        if (!result) setError("This album was not found or is no longer public.");
         setAlbum(result);
       })
       .catch(() => {
-        if (active) setError("অ্যালবাম লোড করা যায়নি।");
+        if (active) setError("The album could not be loaded.");
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -45,13 +45,13 @@ export function GalleryPage() {
 
   return (
     <section className="gallery-page" aria-labelledby="gallery-title">
-      {loading ? <p role="status">অ্যালবাম লোড হচ্ছে…</p> : null}
+      {loading ? <p role="status">Loading album…</p> : null}
       {error ? <p role="alert">{error}</p> : null}
       {album ? (
         <>
           <h1 id="gallery-title">{album.title}</h1>
           {album.description ? <p>{album.description}</p> : null}
-          {visibleMedia.length === 0 ? <p>এই অ্যালবামে প্রদর্শনযোগ্য ছবি বা ভিডিও নেই।</p> : null}
+          {visibleMedia.length === 0 ? <p>There are no images or videos to display in this album.</p> : null}
           <div className="gallery-grid">
             {visibleMedia.map((item, index) => {
               const title =
@@ -60,7 +60,7 @@ export function GalleryPage() {
                 return (
                   <article className="gallery-item" key={item.path}>
                     <video controls preload="metadata" src={item.signedUrl ?? undefined}>
-                      আপনার ব্রাউজার ভিডিও চালাতে পারে না।
+                      Your browser cannot play this video.
                     </video>
                     <p>{title}</p>
                   </article>
@@ -78,7 +78,7 @@ export function GalleryPage() {
                       mimeType: item.mime_type ?? "image/*",
                     })
                   }
-                  aria-label={"ছবি দেখুন: " + title}
+                  aria-label={"View image: " + title}
                 >
                   <img
                     src={item.signedUrl ?? undefined}
@@ -94,7 +94,7 @@ export function GalleryPage() {
         </>
       ) : null}
       <Modal
-        title={selectedMedia?.title ?? "ছবি"}
+        title={selectedMedia?.title ?? "Image"}
         open={selectedMedia !== null}
         onClose={() => setSelectedMedia(null)}
       >
