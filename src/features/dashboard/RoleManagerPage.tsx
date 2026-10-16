@@ -22,7 +22,7 @@ export function RoleManagerPage() {
   const [message, setMessage] = useState("");
 
   const load = useCallback(async () => {
-    if (!supabase) throw new Error("Supabase configuration পাওয়া যায়নি।");
+    if (!supabase) throw new Error("Supabase configuration is missing.");
     const [rolesResult, permissionsResult, assignmentResult] = await Promise.all([
       supabase.from("roles").select("id,name,description,created_at,updated_at").order("name"),
       supabase
@@ -49,12 +49,12 @@ export function RoleManagerPage() {
     let active = true;
     const init = async () => {
       try {
-        if (!supabase) throw new Error("Supabase configuration পাওয়া যায়নি।");
+        if (!supabase) throw new Error("Supabase configuration is missing.");
         const { data: userData, error: authError } = await supabase.auth.getUser();
-        if (authError || !userData.user) throw new Error("Role management করতে লগইন করতে হবে।");
+        if (authError || !userData.user) throw new Error("Log in to manage roles.");
         const { data: grants, error: permissionError } = await supabase.rpc("get_my_permissions");
         if (permissionError || !grants.includes("roles.manage")) {
-          throw new Error("এই বিভাগের জন্য roles.manage permission প্রয়োজন।");
+          throw new Error("The roles.manage permission is required for this section.");
         }
         const { data: ownAssignments, error: ownRoleError } = await supabase
           .from("user_roles")
@@ -65,7 +65,7 @@ export function RoleManagerPage() {
         await load();
       } catch (loadError) {
         if (active)
-          setError(loadError instanceof Error ? loadError.message : "Role data লোড করা যায়নি।");
+          setError(loadError instanceof Error ? loadError.message : "Role data could not be loaded.");
       } finally {
         if (active) setLoading(false);
       }
@@ -100,7 +100,7 @@ export function RoleManagerPage() {
     const normalizedName = name.trim().toLowerCase();
     if (!/^[a-z0-9_-]{2,80}$/.test(normalizedName)) {
       setError(
-        "Role name ২–৮০ অক্ষরের ইংরেজি ছোট হাতের অক্ষর, সংখ্যা, hyphen বা underscore হতে হবে।",
+        "Role name must be 2–80 characters and use lowercase English letters, numbers, hyphens, or underscores.",
       );
       return;
     }
@@ -132,9 +132,9 @@ export function RoleManagerPage() {
         setSelectedRoleId(data.id);
       }
       await load();
-      setMessage("Role সংরক্ষণ হয়েছে।");
+      setMessage("Role saved.");
     } catch {
-      setError("Role সংরক্ষণ করা যায়নি। একই নাম আছে কিনা এবং RLS policy যাচাই করুন।");
+      setError("Could not save the role. Check for duplicate names and verify the RLS policy.");
     } finally {
       setSaving(false);
     }
@@ -149,7 +149,7 @@ export function RoleManagerPage() {
       )
     ) {
       setError(
-        "নিজের সক্রিয় role থেকে roles.manage সরানো যাবে না; এতে আপনি নিজেকে lock out করতে পারেন।",
+        "You cannot remove roles.manage from your active role; doing so could lock you out.",
       );
       return;
     }
@@ -180,9 +180,9 @@ export function RoleManagerPage() {
         if (insertError) throw insertError;
       }
       await load();
-      setMessage("Role permissions সংরক্ষণ হয়েছে।");
+      setMessage("Role permissions saved.");
     } catch {
-      setError("Permission assignment সম্পূর্ণ হয়নি। বর্তমান অবস্থা reload করে আবার যাচাই করুন।");
+      setError("Permission assignment did not complete. Reload and verify the current state.");
       try {
         await load();
       } catch {
@@ -193,22 +193,22 @@ export function RoleManagerPage() {
     }
   };
 
-  if (loading) return <p role="status">roles.manage permission যাচাই হচ্ছে…</p>;
+  if (loading) return <p role="status">Checking roles.manage permission…</p>;
   if (error && roles.length === 0)
     return (
       <section className="notice-card">
         <h1>Role Management</h1>
         <p role="alert">{error}</p>
-        <Link to="/dashboard">ড্যাশবোর্ডে ফিরুন</Link>
+        <Link to="/dashboard">Return to dashboard</Link>
       </section>
     );
 
   return (
     <section className="role-manager" aria-labelledby="role-manager-title">
       <p>
-        <Link to="/dashboard">← ড্যাশবোর্ড</Link>
+        <Link to="/dashboard">← Dashboard</Link>
       </p>
-      <h1 id="role-manager-title">Role ও Permission Management</h1>
+      <h1 id="role-manager-title">Role and Permission Management</h1>
       <p>
         এই বিভাগ roles.manage permission-এ সীমাবদ্ধ। Role deletion এই preview-তে ইচ্ছাকৃতভাবে
         নিষ্ক্রিয়, যাতে user assignment ভেঙে না যায়।
@@ -218,7 +218,7 @@ export function RoleManagerPage() {
       <div className="role-manager-layout">
         <nav className="role-list" aria-label="Role list">
           <button type="button" onClick={() => setSelectedRoleId("")}>
-            + নতুন role
+            + New role
           </button>
           {roles.map((role) => (
             <button
@@ -234,7 +234,7 @@ export function RoleManagerPage() {
         </nav>
         <div className="role-editor">
           <form className="role-form" onSubmit={(event) => void saveRole(event)}>
-            <h2>{selectedRole ? "Role সম্পাদনা" : "নতুন role"}</h2>
+            <h2>{selectedRole ? "Edit role" : "New role"}</h2>
             <label htmlFor="role-name">Role name</label>
             <input
               id="role-name"
@@ -244,7 +244,7 @@ export function RoleManagerPage() {
               value={name}
               onChange={(event) => setName(event.target.value)}
             />
-            <label htmlFor="role-description">বিবরণ</label>
+            <label htmlFor="role-description">Description</label>
             <textarea
               id="role-description"
               rows={3}
@@ -253,7 +253,7 @@ export function RoleManagerPage() {
               onChange={(event) => setDescription(event.target.value)}
             />
             <button type="submit" disabled={saving}>
-              {saving ? "সংরক্ষণ হচ্ছে…" : "Role সংরক্ষণ"}
+              {saving ? "Saving…" : "Save role"}
             </button>
           </form>
           {selectedRole ? (
@@ -279,11 +279,11 @@ export function RoleManagerPage() {
                 </label>
               ))}
               <button type="button" disabled={saving} onClick={() => void savePermissions()}>
-                {saving ? "সংরক্ষণ হচ্ছে…" : "Permissions সংরক্ষণ"}
+                {saving ? "Saving…" : "Save permissions"}
               </button>
             </section>
           ) : (
-            <p>নতুন role তৈরি করার পর permission বরাদ্দ করতে পারবেন।</p>
+            <p>You can assign permissions after creating a role.</p>
           )}
         </div>
       </div>
