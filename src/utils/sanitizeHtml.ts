@@ -5,7 +5,16 @@ const ALLOWED_TAGS = new Set([
   "SUB", "SUMMARY", "SUP", "TABLE", "TBODY", "TD", "TFOOT", "TH", "THEAD",
   "TR", "U", "UL",
 ]);
-const DROP_CONTENT_TAGS = new Set(["SCRIPT", "STYLE", "IFRAME", "OBJECT", "EMBED", "SVG", "MATH", "TEMPLATE"]);
+const DROP_CONTENT_TAGS = new Set([
+  "SCRIPT",
+  "STYLE",
+  "IFRAME",
+  "OBJECT",
+  "EMBED",
+  "SVG",
+  "MATH",
+  "TEMPLATE",
+]);
 const GLOBAL_ATTRIBUTES = new Set(["class", "title", "lang", "dir"]);
 const TAG_ATTRIBUTES: Record<string, Set<string>> = {
   A: new Set(["href", "target", "rel"]),
