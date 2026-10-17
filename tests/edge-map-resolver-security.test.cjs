@@ -44,3 +44,9 @@ test("map resolver accepts POST only and returns safe error responses", () => {
   assert.match(source, /Could not resolve this Google Maps link/);
   assert.match(source, /"Cache-Control": "no-store"/);
 });
+
+test("map resolver restricts browser CORS to the production origin", () => {
+  assert.match(source, /const ALLOWED_ORIGINS = new Set\(\["https:\/\/dalimgari\.github\.io"\]\)/);
+  assert.match(source, /if \(origin && !ALLOWED_ORIGINS\.has\(origin\)\)/);
+  assert.match(source, /"Vary": "Origin"/);
+});
