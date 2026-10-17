@@ -41,16 +41,19 @@ export default async function HomeWidgetsPage({
             <input type="checkbox" name="mapVisible" defaultChecked={map?.is_visible ?? true} />
             Show village map
           </label>
-          <label>Latitude
+          <label>Google Maps share link (optional)
+            <input name="mapUrl" type="url" inputMode="url" defaultValue={typeof settings.mapUrl === "string" ? settings.mapUrl : ""} placeholder="https://maps.app.goo.gl/..." />
+          </label>
+          <label>Latitude (optional when a share link is provided)
             <input name="latitude" inputMode="decimal" defaultValue={settings.latitude == null ? "" : String(settings.latitude)} placeholder="e.g. 23.8103" />
           </label>
-          <label>Longitude
+          <label>Longitude (optional when a share link is provided)
             <input name="longitude" inputMode="decimal" defaultValue={settings.longitude == null ? "" : String(settings.longitude)} placeholder="e.g. 90.4125" />
           </label>
           <label>Default map zoom (1–20)
             <input name="zoom" type="number" min={1} max={20} step={1} defaultValue={typeof settings.zoom === "number" ? settings.zoom : 12} required />
           </label>
-          <p className="muted-note">Use a Google Maps share link or enter both coordinates. The map opens externally only when a visitor clicks it.</p>
+          <p className="muted-note">Use a Google Maps share link or enter both coordinates. Only HTTPS Google Maps destinations are accepted. The map opens externally only when a visitor clicks it.</p>
           <button className="button" type="submit">Save widget settings</button>
         </form>
       </article>
