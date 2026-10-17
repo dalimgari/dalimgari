@@ -1,12 +1,19 @@
 # Dalimgari — Full-Stack Dynamic Web Application
 
-Next.js App Router, React, TypeScript, and Supabase.
+Dalimgari is a Next.js App Router application built with React, TypeScript, and Supabase.
 
-## Requirements
+## Production website
+
+**Open:** https://dalimgari.vercel.app/
+
+The legacy GitHub Pages address redirects visitors to the production website. GitHub Pages cannot run the Next.js server routes and Server Actions used by this application; Vercel is the application host.
+
+## Stack and requirements
 
 - Node.js 22.12 or newer
 - npm
-- Supabase project URL and publishable key
+- Next.js App Router, React, TypeScript
+- Supabase Auth, PostgreSQL, and Storage
 
 ## Local development
 
@@ -15,51 +22,54 @@ Next.js App Router, React, TypeScript, and Supabase.
 3. Run `npm ci`.
 4. Run `npm run dev`.
 
-Never paste secrets into ChatGPT or commit local environment files. Do not use a Supabase service-role key in browser code.
+Never paste secrets into ChatGPT or commit local environment files. Never use a Supabase service-role key in browser code or any `NEXT_PUBLIC_*` variable.
 
 ## Quality checks
+
+Run:
 
 - `npm run lint`
 - `npm run typecheck`
 - `npm run build`
 
-GitHub Actions runs all three checks on the rebuild branch and pull requests. Dependencies are pinned and the npm lockfile is committed.
+GitHub Actions runs these checks on pushes to `main`, rebuild branches, and pull requests. These checks validate code quality and compilation; they do not replace browser-level authentication, role, storage, and recovery tests.
 
-## Current application features
+## Implemented application areas
 
-- Responsive Next.js shell with role-aware navigation
-- Supabase SSR session refresh and secure callback flow
+- Responsive application shell and role-aware navigation
+- Supabase SSR session handling and auth callback flow
 - Login, signup, password reset, and protected profile
-- Server-protected Admin dashboard and live counts
-- Database-managed public pages, server-side HTML sanitization, page editor, and private-page visibility rules
-- Page Recycle Bin with atomic restore and 30-day expiry
-- Protected User Management backed by the existing admin-user-management Edge Function, with Member defaults and Super Admin role/deletion protections
-- Public album/gallery routes driven by public media relationships
-- Admin album CRUD with transactional media linking and public/private asset validation
-- Admin controls for Bangladesh date/time and configurable map widgets
-- Media Library with explicit title, public/private visibility, file type/size checks, SHA-256 duplicate detection, and private storage paths
-- Baseline security headers, privacy page, and health endpoint
+- Server-protected admin dashboard and counts
+- Database-managed public/private pages, sanitized HTML, page editor, and recycle bin
+- Role-protected user management and Super Admin safeguards
+- Public album/gallery routes and media relationships
+- Admin-managed widgets for Bangladesh date/time and map configuration
+- Media Library with title, visibility, file validation, duplicate detection, and storage paths
+- Security headers, privacy page, and health endpoint
 
-## Roles
+Implementation presence does not mean every flow has passed a live end-to-end test.
 
-- Guest: unauthenticated visitor; can read only public content.
-- Member: authenticated account; assigned the member role by the database trigger.
-- Admin: explicitly trusted account with server-verified app metadata and database RBAC assignment.
+## Authorization model
 
-Never assign Admin based on user-editable profile metadata. RLS and server-side checks remain authoritative.
+- **Guest:** unauthenticated visitor; public content only.
+- **Member:** authenticated account assigned the member role by database logic.
+- **Admin:** trusted account with server-verified app metadata and database RBAC assignment.
+
+Never grant administrator access based on user-editable profile metadata. RLS and server-side checks must remain authoritative.
+
+## Database and migrations
+
+Migrations are tracked in `supabase/migrations`. The existing Supabase database has a longer legacy migration history than the rebuilt application history. Therefore, the repository is **not yet a verified clean-room bootstrap** for creating a new production database. Do not apply its migrations to a fresh production project until the full schema, RLS policies, functions, storage configuration, and required seed data have been exported and verified.
+
+## Remaining production-readiness checks
+
+- Complete automated integration and browser tests for guest/member/admin authorization.
+- Verify Auth security settings, including leaked-password protection, in Supabase Auth configuration.
+- Test public/private storage access and upload/delete behavior using real test accounts.
+- Verify recycle-bin restore and 30-day cleanup end to end.
+- Establish and test a database backup/export and recovery procedure.
+- Confirm production runtime routes and error logs through the hosting provider.
 
 ## Free-tier and privacy constraints
 
-The current Supabase organization is on the Free plan. Free tiers have quotas and may pause idle projects or change their terms. A Vercel connection is needed for deployment; a custom domain may cost money, so use a provider subdomain to stay at zero cost. Hosting/database providers necessarily process technical data. The application does not intentionally add advertising or analytics.
-
-## Deployment
-
-The application requires a host that supports the Next.js server runtime. GitHub Pages alone cannot run the server routes and Server Actions used here. Set the two public Supabase environment variables in the hosting provider's environment settings; never commit them.
-
-## Database migrations
-
-New migrations are tracked under `supabase/migrations`. The existing Supabase project has a longer legacy migration history than the new rebuild branch, so this branch is not yet a complete clean-room database bootstrap. Do not point a fresh production project at it until a full schema/policy/function/storage baseline is exported and verified.
-
-## Development policy
-
-The rebuild is isolated on `rebuild/nextjs-foundation`; `main` is not replaced by this work. Production deployment remains blocked until role-based integration tests, Auth security settings, storage permissions, and restore/backup procedures are verified.
+Supabase Free has quotas and may pause idle projects or change its terms. The application uses a provider subdomain to avoid the need for a paid custom domain. Hosting and database providers necessarily process technical data. The application does not intentionally add advertising or analytics.
