@@ -31,7 +31,7 @@ test("homepage album covers use bounded concurrent URL generation and avoid unbo
 test("homepage animation timers stop after their owning elements are removed", () => {
   const app = read("app.js");
   assert.match(app, /if \(!pillBar\.isConnected\)\s*\{\s*stopPillAutoScroll\(\);/);
-  assert.match(app, /const slideshowTimer=setInterval\(\(\)=>\{\s*if\(!cover\.isConnected\)\{clearInterval\(slideshowTimer\);return;\}/);
+  assert.match(app, /const slideshowTimer=setInterval\((?:async)?\(\)=>\{\s*if\(!cover\.isConnected\)\{clearInterval\(slideshowTimer\);return;\}/);
 });
 
 test("Pages artifact excludes project-only files and uploads staged public assets", () => {
