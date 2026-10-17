@@ -154,6 +154,7 @@ export type Database = {
           title_bn: string | null
           title_en: string | null
           updated_at: string
+          visibility: string
         }
         Insert: {
           alt_text?: string | null
@@ -177,6 +178,7 @@ export type Database = {
           title_bn?: string | null
           title_en?: string | null
           updated_at?: string
+          visibility?: string
         }
         Update: {
           alt_text?: string | null
@@ -200,6 +202,7 @@ export type Database = {
           title_bn?: string | null
           title_en?: string | null
           updated_at?: string
+          visibility?: string
         }
         Relationships: []
       }
