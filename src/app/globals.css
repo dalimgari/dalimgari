@@ -22,7 +22,10 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid 
 .site-header nav { display: flex; align-items: center; flex-wrap: wrap; gap: clamp(.65rem, 2.5vw, 1.5rem); color: var(--muted); font-size: .94rem; }
 .site-header nav a:hover { color: var(--accent-strong); }
 #main-content { flex: 1; width: min(100% - 2rem, var(--content-width)); margin-inline: auto; padding-block: clamp(2rem, 6vw, 5rem); }
-.hero { overflow: hidden; padding: clamp(1.5rem, 5vw, 4.5rem); border: 1px solid var(--border); border-radius: calc(var(--radius) + .5rem); background: linear-gradient(135deg, #e7eee9 0%, #fdfdfb 60%, #e9efeb 100%); }
+.hero { position: relative; isolation: isolate; display: grid; align-items: end; min-height: clamp(24rem, 50vw, 38rem); aspect-ratio: 16 / 9; overflow: hidden; padding: 0; border: 1px solid var(--border); border-radius: calc(var(--radius) + .5rem); background: linear-gradient(135deg, #e7eee9 0%, #fdfdfb 60%, #e9efeb 100%); }
+.hero-visual { position: absolute; inset: 0; z-index: -1; background: radial-gradient(ellipse at 78% 22%, rgb(93 128 108 / 24%), transparent 35%), radial-gradient(ellipse at 84% 84%, rgb(133 156 139 / 28%), transparent 40%), linear-gradient(135deg, #dce7df, #f2f4ef 56%, #d9e3dc); }
+.hero-visual::after { position: absolute; inset: 0; content: ""; background: linear-gradient(90deg, rgb(245 246 244 / 96%) 0%, rgb(245 246 244 / 84%) 40%, rgb(245 246 244 / 18%) 100%); }
+.hero-copy { position: relative; z-index: 1; padding: clamp(1.5rem, 5vw, 4.5rem); max-width: 66rem; }
 .eyebrow { color: var(--accent-strong); font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
 h1 { max-width: 15ch; margin: .5rem 0 1rem; font-size: clamp(2.3rem, 7vw, 5rem); line-height: 1.05; letter-spacing: -.055em; }
 h2 { line-height: 1.2; letter-spacing: -.025em; }
@@ -43,6 +46,8 @@ h2 { line-height: 1.2; letter-spacing: -.025em; }
   .site-header { background: rgb(24 32 28 / 94%); }
   .brand-mark, .button { color: #142019; }
   .hero { background: linear-gradient(135deg, #202d26, #1a221e 60%, #27352d); }
+  .hero-visual { background: radial-gradient(ellipse at 78% 22%, rgb(93 128 108 / 20%), transparent 35%), radial-gradient(ellipse at 84% 84%, rgb(133 156 139 / 20%), transparent 40%), linear-gradient(135deg, #202d26, #1a221e 56%, #27352d); }
+  .hero-visual::after { background: linear-gradient(90deg, rgb(18 24 21 / 96%) 0%, rgb(18 24 21 / 82%) 40%, rgb(18 24 21 / 20%) 100%); }
 }
 @media (max-width: 520px) { .site-header { align-items: flex-start; flex-direction: column; } .site-header nav { width: 100%; } .site-footer { flex-direction: column; } }
 
