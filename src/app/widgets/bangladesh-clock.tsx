@@ -32,7 +32,6 @@ export function BangladeshClock() {
 
   return (
     <article className="card clock-widget" aria-live="off">
-      <p className="eyebrow">Bangladesh time</p>
       <p className="clock-time">{now ? formatTime(now) : "—:—"}</p>
       <p>{now ? formatDate(now) : "Local date and time"}</p>
     </article>
