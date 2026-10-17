@@ -1225,7 +1225,7 @@
       // Only configured widgets belong in the homepage Widget section.
       if(widget){
         const {data:widgets,error}=await widgetRowsPromise;
-        widget.querySelector(".home-widget-skeleton")?.remove();
+        widget.querySelector(".widget-loading-skeleton")?.remove();
         widget.classList.remove("is-loading");
         if(!error&&Array.isArray(widgets)&&widgets.length){
           const grid=makeGrid();
