@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
 export function SiteHeader() {
+  const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -42,6 +44,10 @@ export function SiteHeader() {
   }
 
   const isAdmin = user?.app_metadata?.role === "admin";
+  const isHome = pathname === "/";
+  const isProfile = pathname === "/profile";
+  const isLogin = pathname === "/login";
+  const isDashboard = pathname === "/dashboard";
 
   return (
     <header className="site-header">
@@ -49,16 +55,22 @@ export function SiteHeader() {
         <span className="brand-mark" aria-hidden="true">D</span>
         <span>Dalimgari</span>
       </Link>
-      <nav aria-label="Main navigation">
-        <Link href="/">Home</Link>
-        <Link href="/about">About</Link>
-        <Link href="/pages">Pages</Link>
-        <Link href="/albums">Albums</Link>
-        <Link href="/privacy">Privacy</Link>
-        {user ? <Link href="/profile">Profile</Link> : <><Link href="/login">Login</Link><Link href="/signup">Sign up</Link></>}
-        {isAdmin && <Link href="/dashboard">Dashboard</Link>}
-        {user && <button className="nav-button" type="button" onClick={logout}>Logout</button>}
-      </nav>
+      <div className="site-header-actions">
+        <nav aria-label="Main navigation">
+          {!isHome && <Link href="/">Home</Link>}
+          {!isProfile && <Link href="/profile">Profile</Link>}
+          {user ? (
+            <button className="nav-button" type="button" onClick={logout}>Logout</button>
+          ) : (
+            !isLogin && <Link href="/login">Login</Link>
+          )}
+        </nav>
+        {isAdmin && !isDashboard && (
+          <div className="site-header-admin">
+            <Link href="/dashboard">Dashboard</Link>
+          </div>
+        )}
+      </div>
     </header>
   );
 }
