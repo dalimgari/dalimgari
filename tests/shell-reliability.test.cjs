@@ -86,9 +86,9 @@ test("homepage widget reserves layout space until widget data is ready", () => {
   const css = read("site.css");
   const app = read("app.js");
   assert.match(template, /class="home-section home-widget is-loading"/);
-  assert.match(template, /class="home-widget-skeleton"/);
+  assert.match(template, /class="widget-loading-skeleton"/);
   assert.match(css, /\.home-page > \.home-widget\.is-loading \{ min-height:320px; \}/);
   assert.match(css, /\.home-page > \.home-widget\.is-loading \{ min-height:492px; \}/);
-  assert.match(app, /widget\.querySelector\("\.home-widget-skeleton"\)\?\.remove\(\)/);
+  assert.match(app, /widget\.querySelector\("\.widget-loading-skeleton"\)\?\.remove\(\)/);
   assert.match(app, /widget\.classList\.remove\("is-loading"\)/);
 });
