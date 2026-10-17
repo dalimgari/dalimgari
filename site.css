@@ -766,7 +766,7 @@
 
 /* Reserve the widget section footprint while its date/time and map data loads. */
 .home-page > .home-widget.is-loading { min-height:320px; }
-.home-page > .home-widget.is-loading > .home-widget-skeleton {
+.home-page > .home-widget.is-loading > .widget-loading-skeleton {
   min-height:inherit;
   width:100%;
   border:1px solid rgba(148,163,184,.28);
