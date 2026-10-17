@@ -34,12 +34,16 @@ export function AuthForm() {
         if (password.length < 12) {
           throw new Error("Use a password with at least 12 characters.");
         }
-        const { error: authError } = await supabase.auth.signUp({
+        const { data, error: authError } = await supabase.auth.signUp({
           email,
           password,
           options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=/profile` },
         });
         if (authError) throw authError;
+        if (data.session) {
+          window.location.assign("/profile");
+          return;
+        }
         setMessage("If registration is allowed, check your email for the confirmation link.");
       } else {
         const { error: authError } = await supabase.auth.resetPasswordForEmail(email, {
