@@ -53,6 +53,7 @@ export function SiteHeader() {
         <Link href="/">Home</Link>
         <Link href="/about">About</Link>
         <Link href="/pages">Pages</Link>
+        <Link href="/albums">Albums</Link>
         <Link href="/privacy">Privacy</Link>
         {user ? <Link href="/profile">Profile</Link> : <Link href="/login">Login</Link>}
         {isAdmin && <Link href="/dashboard">Dashboard</Link>}
