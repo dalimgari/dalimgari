@@ -51,11 +51,11 @@ export function SiteHeader() {
       </Link>
       <nav aria-label="Main navigation">
         <Link href="/">Home</Link>
-        <a href="/about">About</a>
-        <a href="/pages">Pages</a>
-        <a href="/privacy">Privacy</a>
-        {user ? <a href="/profile">Profile</a> : <a href="/login">Login</a>}
-        {isAdmin && <a href="/dashboard">Dashboard</a>}
+        <Link href="/about">About</Link>
+        <Link href="/pages">Pages</Link>
+        <Link href="/privacy">Privacy</Link>
+        {user ? <Link href="/profile">Profile</Link> : <Link href="/login">Login</Link>}
+        {isAdmin && <Link href="/dashboard">Dashboard</Link>}
         {user && <button className="nav-button" type="button" onClick={logout}>Logout</button>}
       </nav>
     </header>
