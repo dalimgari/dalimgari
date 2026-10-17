@@ -32,7 +32,8 @@ export default function RootLayout({
             <nav aria-label="Main navigation">
               <a href="/">Home</a>
               <a href="/about">About</a>
-              <a href="/login">Login</a>
+              <a href="/login">Account</a>
+              <a href="/privacy">Privacy</a>
             </nav>
           </header>
           <main id="main-content">{children}</main>
