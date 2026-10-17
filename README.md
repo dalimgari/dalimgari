@@ -33,6 +33,7 @@ GitHub Actions runs all three checks on the rebuild branch and pull requests. De
 - Server-protected Admin dashboard and live counts
 - Database-managed public pages, server-side HTML sanitization, page editor, and private-page visibility rules
 - Page Recycle Bin with atomic restore and 30-day expiry
+- Protected User Management backed by the existing admin-user-management Edge Function, with Member defaults and Super Admin role/deletion protections
 - Public album/gallery routes driven by public media relationships
 - Media Library with explicit title, public/private visibility, file type/size checks, SHA-256 duplicate detection, and private storage paths
 - Baseline security headers, privacy page, and health endpoint
