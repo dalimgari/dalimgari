@@ -43,12 +43,12 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function GalleryPage({ params }: Props) {
   const { slug } = await params;
-  let album: { title: string; title_en: string | null; description: string | null; description_en: string | null; media: unknown } | null = null;
+  let album: { title: string; title_en: string | null; description: string | null; description_en: string | null } | null = null;
   let projectUrl = "";
   try {
     const supabase = await createSupabaseServerClient();
     const { data, error } = await supabase.from("albums")
-      .select("title,title_en,description,description_en,media")
+      .select("id,title,title_en,description,description_en")
       .eq("url", slug)
       .eq("visibility", "public")
       .maybeSingle();
@@ -60,12 +60,21 @@ export default async function GalleryPage({ params }: Props) {
   }
   if (!album) notFound();
 
-  const entries = Array.isArray(album.media) ? album.media : [];
-  const photos = entries.map((entry) => {
-    const source = stringValue(entry, ["url", "src", "publicUrl", "public_url"]);
-    const src = safeImageSource(source, projectUrl);
-    return { src, alt: stringValue(entry, ["alt", "alt_text", "title"]) || album!.title_en || album!.title };
-  }).filter((photo): photo is { src: string; alt: string } => Boolean(photo.src));
+  const supabase = await createSupabaseServerClient();
+  const { data: links } = await supabase.from("media_links")
+    .select("sort_order,media_assets(id,title,title_en,original_filename,mime_type,storage_bucket,storage_path,visibility)")
+    .eq("source_table", "albums")
+    .eq("source_id", (await supabase.from("albums").select("id").eq("url", slug).eq("visibility", "public").single()).data?.id ?? "")
+    .order("sort_order", { ascending: true });
+
+  const photos = (links ?? []).flatMap((link) => {
+    const asset = link.media_assets;
+    if (!asset || asset.visibility !== "public") return [];
+    const publicUrl = supabase.storage.from(asset.storage_bucket).getPublicUrl(asset.storage_path).data.publicUrl;
+    const src = safeImageSource(publicUrl, projectUrl);
+    if (!src) return [];
+    return [{ src, alt: asset.title_en || asset.title || album!.title_en || album!.title }];
+  });
 
   return (
     <section>
