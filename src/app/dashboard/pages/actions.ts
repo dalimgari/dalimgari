@@ -76,7 +76,7 @@ export async function updatePage(formData: FormData) {
   redirect("/dashboard/pages?updated=1");
 }
 
-export async function recyclePage(formData: FormData) {
+export async function archivePage(formData: FormData) {
   const { supabase } = await requireAdmin();
   const id = readText(formData, "id", 36);
   if (!/^[0-9a-f-]{36}$/i.test(id)) redirect("/dashboard/pages?error=invalid");
