@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { normalizeGoogleMapsShareUrl } from "@/lib/google-maps-url";
 
 export const metadata = { title: "Village map" };
 export const dynamic = "force-dynamic";
@@ -26,6 +27,10 @@ export default async function MapPage() {
   const valid = Number.isFinite(latitude) && Number.isFinite(longitude)
     && latitude >= -90 && latitude <= 90
     && longitude >= -180 && longitude <= 180;
+  const mapUrl = typeof settings.mapUrl === "string" ? normalizeGoogleMapsShareUrl(settings.mapUrl) : null;
+  const rawZoom = Number(settings.zoom);
+  const zoom = Number.isInteger(rawZoom) && rawZoom >= 1 && rawZoom <= 20 ? rawZoom : 12;
+  const destination = mapUrl ?? (valid ? `https://www.google.com/maps?q=${latitude},${longitude}&z=${zoom}` : null);
 
   return (
     <section className="card">
