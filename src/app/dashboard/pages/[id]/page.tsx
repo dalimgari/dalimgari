@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/require-admin";
-import { updatePage } from "../actions";
+import { updatePage, archivePage } from "../actions";
 
 export const metadata = { title: "Edit page" };
 export const dynamic = "force-dynamic";
@@ -44,6 +44,10 @@ export default async function EditPage({
             <textarea name="content" defaultValue={page.content_en || page.content} rows={14} maxLength={100000} required />
           </label>
           <button className="button" type="submit">Save changes</button>
+        </form>
+        <form action={archivePage} className="actions">
+          <input type="hidden" name="id" value={page.id} />
+          <button className="button secondary" type="submit">Move to Recycle Bin</button>
         </form>
       </article>
     </section>
