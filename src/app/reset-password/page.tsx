@@ -1,13 +1,11 @@
-import { ResetForm } from "./reset-form";
+import type { Metadata } from "next";
+import { ResetPasswordForm } from "./reset-password-form";
 
-export const metadata = { title: "Reset password" };
+export const metadata: Metadata = {
+  title: "Reset password",
+  robots: { index: false, follow: false },
+};
 
 export default function ResetPasswordPage() {
-  return (
-    <section className="card">
-      <h1>Choose a new password</h1>
-      <p className="lead">Open this page using the password-reset link sent to your email.</p>
-      <ResetForm />
-    </section>
-  );
+  return <ResetPasswordForm />;
 }
