@@ -51,3 +51,9 @@ test("homepage album slideshow defers signed URLs for non-initial cover images",
   assert.match(app, /const nextUrl=nextImage\.url\|\|\(nextImage\.path\?await createContentMediaUrl\(nextImage\.path\):""\)/);
   assert.match(app, /image\.fetchPriority="low"/);
 });
+
+test("initial document preconnects to Supabase storage and the Supabase SDK CDN", () => {
+  const html = read("index.html");
+  assert.match(html, /rel="preconnect" href="https:\/\/yopfogoyjxwxplnabqii\.supabase\.co" crossorigin/);
+  assert.match(html, /rel="preconnect" href="https:\/\/cdn\.jsdelivr\.net" crossorigin/);
+});
