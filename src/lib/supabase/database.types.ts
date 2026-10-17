@@ -675,6 +675,8 @@ export type Database = {
         }[]
       }
       get_my_permissions: { Args: never; Returns: string[] }
+      recycle_page: { Args: { p_page_id: string }; Returns: undefined }
+      restore_page: { Args: { p_recycle_id: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
