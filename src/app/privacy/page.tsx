@@ -1,23 +1,25 @@
-export const metadata = { title: "Privacy" };
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Privacy",
+  description: "Privacy and data handling information for the Dalimgari community website.",
+};
 
 export default function PrivacyPage() {
   return (
     <article className="card">
-      <p className="eyebrow">Privacy and data handling</p>
-      <h1>Privacy by design</h1>
-      <p className="lead">The application is being designed to collect as little personal information as practical.</p>
-      <h2>Data handling</h2>
-      <ul>
-        <li>Account details are used to provide sign-in and account features.</li>
-        <li>Profile details should be optional unless a feature clearly requires them.</li>
-        <li>Private content must be protected by server-side authorization and database Row Level Security.</li>
-        <li>Passwords are handled by the authentication provider and must never be stored in application tables or logs.</li>
-        <li>Public pages and public media can be viewed by anyone; do not publish sensitive information in them.</li>
-      </ul>
-      <h2>Service providers</h2>
-      <p>Hosting, database, authentication, and email services necessarily process technical data to operate the application. This project will not intentionally sell personal information or send it to advertising or analytics providers. Absolute secrecy from every service provider cannot be promised when hosted services are used.</p>
-      <h2>Security</h2>
-      <p>Security controls will be tested before production. No internet-connected system can guarantee zero risk, so access controls, dependency updates, backups, and incident recovery remain ongoing responsibilities.</p>
+      <p className="eyebrow">Privacy and safety</p>
+      <h1>Privacy</h1>
+      <h2>Information we store</h2>
+      <p>The application stores account details, profile information, and files that members or administrators choose to submit. Public pages and public media are visible to visitors. Private pages and private media are restricted by database and storage access policies.</p>
+      <h2>Who processes technical data</h2>
+      <p>The hosting provider and Supabase necessarily process technical information needed to deliver the website, authenticate accounts, and store data. This project does not intentionally add advertising trackers or third-party analytics.</p>
+      <h2>External services</h2>
+      <p>The village map opens an external map service only when a visitor chooses to open it. That service may receive ordinary connection information when visited.</p>
+      <h2>Account safety</h2>
+      <p>Use a unique password and do not share it. Administrators should grant elevated access only to trusted people. Public content should not contain private contact details or information that its owner did not intend to share.</p>
+      <h2>Data requests</h2>
+      <p>Contact a trusted site administrator to request account or profile corrections. Deleting content or an account may affect related pages, albums, or files.</p>
     </article>
   );
 }
