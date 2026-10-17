@@ -680,6 +680,16 @@ export type Database = {
           user_id: string
         }[]
       }
+      create_album: {
+        Args: {
+          p_description: string
+          p_media_ids: string[]
+          p_title: string
+          p_url: string
+          p_visibility: string
+        }
+        Returns: string
+      }
       get_my_permissions: { Args: never; Returns: string[] }
       recycle_page: { Args: { p_page_id: string }; Returns: undefined }
       restore_page: { Args: { p_recycle_id: string }; Returns: undefined }
