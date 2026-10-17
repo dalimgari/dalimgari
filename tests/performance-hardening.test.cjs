@@ -31,7 +31,7 @@ test("homepage album covers use bounded concurrent URL generation and avoid unbo
 test("homepage animation timers stop after their owning elements are removed", () => {
   const app = read("app.js");
   assert.match(app, /if \(!pillBar\.isConnected\)\s*\{\s*stopPillAutoScroll\(\);/);
-  assert.match(app, /const slideshowTimer=setInterval\(\(\)=>\{\s*if\(!cover\.isConnected\)\{clearInterval\(slideshowTimer\);return;\}/);
+  assert.match(app, /const slideshowTimer=setInterval\((?:async)?\(\)=>\{\s*if\(!cover\.isConnected\)\{clearInterval\(slideshowTimer\);return;\}/);
 });
 
 test("Pages artifact excludes project-only files and uploads staged public assets", () => {
@@ -43,4 +43,17 @@ test("Pages artifact excludes project-only files and uploads staged public asset
   assert.match(workflow, /--exclude='\/supabase\/'/);
   assert.match(workflow, /path: "_site"/);
   assert.doesNotMatch(workflow, /path: "\."/);
+});
+
+test("homepage album slideshow defers signed URLs for non-initial cover images", () => {
+  const app = read("app.js");
+  assert.match(app, /map\(\(\{ album, items \}\) => \(\{ album, item: items\[0\], items \}\)\)/);
+  assert.match(app, /const nextUrl=nextImage\.url\|\|\(nextImage\.path\?await createContentMediaUrl\(nextImage\.path\):""\)/);
+  assert.match(app, /image\.fetchPriority="low"/);
+});
+
+test("initial document preconnects to Supabase storage and the Supabase SDK CDN", () => {
+  const html = read("index.html");
+  assert.match(html, /rel="preconnect" href="https:\/\/yopfogoyjxwxplnabqii\.supabase\.co" crossorigin/);
+  assert.match(html, /rel="preconnect" href="https:\/\/cdn\.jsdelivr\.net" crossorigin/);
 });

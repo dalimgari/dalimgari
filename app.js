@@ -1375,18 +1375,28 @@
               .sort(() => Math.random() - 0.5)
               .slice(0, 4)
           }));
-          const coverRequests = coverCandidates.flatMap(({ album, items }) =>
-            items.map(item => ({ album, item }))
-          );
-          const resolvedCoverRequests = await mapWithConcurrency(coverRequests, 6, async ({ album, item }) => {
+          // Resolve only the first randomized cover for each album during initial render.
+          // Additional slideshow images get signed URLs when they are actually needed.
+          const coverRequests = coverCandidates
+            .filter(({ items }) => items.length)
+            .map(({ album, items }) => ({ album, item: items[0], items }));
+          const resolvedCoverRequests = await mapWithConcurrency(coverRequests, 6, async ({ album, item, items }) => {
             const url = await createContentMediaUrl(item.path);
-            return url ? { albumId: String(album.id), url, alt: localizedMediaValue(item,"alt_text") || localizedMediaValue(item,"title") || localizedRecordValue(album,"title") || "" } : null;
+            if (!url) return null;
+            return {
+              albumId: String(album.id),
+              url,
+              path: item.path,
+              candidates: items.map(candidate => ({
+                path: candidate.path,
+                alt: localizedMediaValue(candidate,"alt_text") || localizedMediaValue(candidate,"title") || localizedRecordValue(album,"title") || "",
+                url: candidate.path === item.path ? url : ""
+              }))
+            };
           });
           const coverImagesByAlbum = new Map();
           for (const resolved of resolvedCoverRequests) {
-            if (!resolved) continue;
-            if (!coverImagesByAlbum.has(resolved.albumId)) coverImagesByAlbum.set(resolved.albumId, []);
-            coverImagesByAlbum.get(resolved.albumId).push({ url: resolved.url, alt: resolved.alt });
+            if (resolved) coverImagesByAlbum.set(resolved.albumId, resolved.candidates);
           }
           const albumsNeedingFallback = albums.filter(album => !(coverImagesByAlbum.get(String(album.id)) || []).length && album.cover_path);
           const fallbackCovers = await mapWithConcurrency(albumsNeedingFallback, 6, async album => {
@@ -1421,24 +1431,35 @@
               cover.className="home-album-cover-slideshow";
               cover.setAttribute("aria-label",(albumTitle||"Album")+" cover slideshow");
               cover.style.cssText="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:10px;margin:0 0 14px;background:#f3f4f6";
-              let currentIndex=Math.floor(Math.random()*coverImages.length);
+              let currentIndex=0;
               let front=document.createElement("img"),back=document.createElement("img");
-              const styleSlide=(image)=>{image.alt="";image.loading="lazy";image.decoding="async";image.style.cssText="position:absolute;inset:0;width:100%;height:100%;max-height:none;object-fit:cover;margin:0;border-radius:0;transition:opacity .7s ease";};
+              const styleSlide=(image)=>{image.alt="";image.loading="lazy";image.decoding="async";image.fetchPriority="low";image.style.cssText="position:absolute;inset:0;width:100%;height:100%;max-height:none;object-fit:cover;margin:0;border-radius:0;transition:opacity .7s ease";};
               styleSlide(front);styleSlide(back);
               front.src=coverImages[currentIndex].url;front.alt=coverImages[currentIndex].alt;front.style.opacity="1";back.style.opacity="0";
               cover.append(front,back);
               if(coverImages.length>1){
-                const slideshowTimer=setInterval(()=>{
+                let loadingNext=false;
+                const slideshowTimer=setInterval(async()=>{
                   if(!cover.isConnected){clearInterval(slideshowTimer);return;}
+                  if(loadingNext)return;
+                  loadingNext=true;
                   let nextIndex=currentIndex;
                   while(nextIndex===currentIndex)nextIndex=Math.floor(Math.random()*coverImages.length);
+                  const nextImage=coverImages[nextIndex];
+                  const nextUrl=nextImage.url||(nextImage.path?await createContentMediaUrl(nextImage.path):"");
+                  if(!cover.isConnected){clearInterval(slideshowTimer);loadingNext=false;return;}
+                  if(!nextUrl){loadingNext=false;return;}
+                  nextImage.url=nextUrl;
                   back.onload=()=>{
                     back.style.opacity="1";front.style.opacity="0";
                     const previousFront=front;front=back;back=previousFront;
                     currentIndex=nextIndex;
+                    loadingNext=false;
                     back.onload=null;
+                    back.onerror=null;
                   };
-                  back.src=coverImages[nextIndex].url;
+                  back.onerror=()=>{loadingNext=false;back.onload=null;back.onerror=null;};
+                  back.src=nextUrl;
                 },4500);
               }
               const heading=card.querySelector("h3");
