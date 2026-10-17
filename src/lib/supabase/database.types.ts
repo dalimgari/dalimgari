@@ -704,6 +704,16 @@ export type Database = {
         }
         Returns: string
       }
+      save_home_widgets: {
+        Args: {
+          p_clock_visible: boolean
+          p_latitude: string
+          p_longitude: string
+          p_map_visible: boolean
+          p_zoom: number
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
