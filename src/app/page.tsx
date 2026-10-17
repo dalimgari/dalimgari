@@ -24,7 +24,6 @@ type AlbumRecord = {
   description: string | null;
   description_en: string | null;
   url: string;
-  media: unknown;
 };
 
 export default async function HomePage() {
@@ -38,12 +37,20 @@ export default async function HomePage() {
     const [heroResult, pageResult, albumResult, widgetResult] = await Promise.all([
       supabase.from("hero_items").select("title,title_en,description,description_en").eq("visibility", "public").order("created_at", { ascending: false }).limit(1).maybeSingle(),
       supabase.from("pages").select("id,title,title_en,description,description_en,content,content_en,url,visibility").eq("visibility", "public").order("created_at", { ascending: false }).limit(6),
-      supabase.from("albums").select("id,title,title_en,description,description_en,url,media").eq("visibility", "public").order("created_at", { ascending: false }).limit(8),
+      supabase.from("albums").select("id,title,title_en,description,description_en,url").eq("visibility", "public").order("created_at", { ascending: false }).limit(8),
       supabase.from("widgets").select("widget_type,settings,is_visible").eq("is_visible", true).eq("widget_type", "map").limit(1).maybeSingle(),
     ]);
     hero = heroResult.data;
     pages = pageResult.data ?? [];
-    albums = (albumResult.data ?? []).filter((album) => Array.isArray(album.media) && album.media.length > 0);
+    const albumRows = albumResult.data ?? [];
+    if (albumRows.length > 0) {
+      const { data: links } = await supabase.from("media_links")
+        .select("source_id")
+        .eq("source_table", "albums")
+        .in("source_id", albumRows.map((album) => album.id));
+      const linkedAlbumIds = new Set((links ?? []).map((link) => link.source_id));
+      albums = albumRows.filter((album) => linkedAlbumIds.has(album.id));
+    }
     mapWidget = widgetResult.data;
   } catch {
     // Public fallback keeps the site usable until environment variables are configured.
