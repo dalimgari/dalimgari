@@ -31,6 +31,7 @@ export default async function HomePage() {
   let pages: HomePageRecord[] = [];
   let albums: AlbumRecord[] = [];
   let mapWidget: { settings: unknown } | null = null;
+  let showClock = true;
 
   try {
     const supabase = await createSupabaseServerClient();
@@ -38,7 +39,7 @@ export default async function HomePage() {
       supabase.from("hero_items").select("title,title_en,description,description_en").eq("visibility", "public").order("created_at", { ascending: false }).limit(1).maybeSingle(),
       supabase.from("pages").select("id,title,title_en,description,description_en,content,content_en,url,visibility").eq("visibility", "public").order("created_at", { ascending: false }).limit(6),
       supabase.from("albums").select("id,title,title_en,description,description_en,url").eq("visibility", "public").order("created_at", { ascending: false }).limit(8),
-      supabase.from("widgets").select("widget_type,settings,is_visible").eq("is_visible", true).eq("widget_type", "map").limit(1).maybeSingle(),
+      supabase.from("widgets").select("widget_type,settings,is_visible").in("widget_type", ["map", "datetime"]),
     ]);
     hero = heroResult.data;
     pages = pageResult.data ?? [];
@@ -51,7 +52,9 @@ export default async function HomePage() {
       const linkedAlbumIds = new Set((links ?? []).map((link) => link.source_id));
       albums = albumRows.filter((album) => linkedAlbumIds.has(album.id));
     }
-    mapWidget = widgetResult.data;
+    const visibleWidgets = (widgetResult.data ?? []).filter((widget) => widget.is_visible);
+    mapWidget = visibleWidgets.find((widget) => widget.widget_type === "map") ?? null;
+    showClock = visibleWidgets.some((widget) => widget.widget_type === "datetime");
   } catch {
     // Public fallback keeps the site usable until environment variables are configured.
   }
@@ -80,11 +83,10 @@ export default async function HomePage() {
       )}
 
       <section className="section widget-grid" aria-label="Community widgets">
-        <BangladeshClock />
+        {showClock && <BangladeshClock />}
         {mapWidget && (
           <article className="card">
-            <p className="eyebrow">Village map</p>
-            <p className="muted-note">The map widget is enabled. Open it to view the saved location.</p>
+            <p className="muted-note">Open the saved village location.</p>
             <Link className="button secondary" href="/map">Open map</Link>
           </article>
         )}
