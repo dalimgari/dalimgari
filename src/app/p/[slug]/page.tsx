@@ -1,4 +1,4 @@
-import sanitizeHtml from "sanitize-html";
+import { sanitizeManagedHtml } from "@/lib/sanitize-managed-html";
 import { notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -48,19 +48,7 @@ export default async function ManagedContentPage({ params }: DynamicPageProps) {
 
   if (!row) notFound();
 
-  const safeHtml = sanitizeHtml(row.content_en || row.content || "", {
-    allowedTags: sanitizeHtml.defaults.allowedTags.concat(["img", "h1", "h2", "h3", "figure", "figcaption"]),
-    allowedAttributes: {
-      a: ["href", "name", "target", "rel"],
-      img: ["src", "alt", "title", "width", "height", "loading"],
-      "*": ["class"],
-    },
-    allowedSchemes: ["http", "https", "mailto"],
-    allowedSchemesByTag: { img: ["https"] },
-    transformTags: {
-      a: sanitizeHtml.simpleTransform("a", { rel: "noopener noreferrer" }, true),
-    },
-  });
+  const safeHtml = sanitizeManagedHtml(row.content_en || row.content || "");
 
   return (
     <article className="card managed-page">
