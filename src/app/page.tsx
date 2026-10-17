@@ -65,12 +65,15 @@ export default async function HomePage() {
   return (
     <>
       <section className="hero" aria-labelledby="hero-title">
-        <p className="eyebrow">A connected village community</p>
-        <h1 id="hero-title">{heroTitle}</h1>
-        <p className="lead">{heroDescription}</p>
-        <div className="actions">
-          <Link className="button" href="/pages">Explore village pages</Link>
-          <Link className="button secondary" href="/login">Community account</Link>
+        <div className="hero-visual" aria-hidden="true" />
+        <div className="hero-copy">
+          <p className="eyebrow">A connected village community</p>
+          <h1 id="hero-title">{heroTitle}</h1>
+          <p className="lead">{heroDescription}</p>
+          <div className="actions">
+            <Link className="button" href="/pages">Explore village pages</Link>
+            <Link className="button secondary" href="/login">Community account</Link>
+          </div>
         </div>
       </section>
 
