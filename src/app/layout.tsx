@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { SiteHeader } from "./site-header";
 
 export const metadata: Metadata = {
   title: {
@@ -24,19 +25,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <div className="site-shell">
-          <header className="site-header">
-            <a className="brand" href="/" aria-label="Dalimgari home">
-              <span className="brand-mark" aria-hidden="true">D</span>
-              <span>Dalimgari</span>
-            </a>
-            <nav aria-label="Main navigation">
-              <a href="/">Home</a>
-              <a href="/about">About</a>
-              <a href="/pages">Pages</a>
-              <a href="/login">Account</a>
-              <a href="/privacy">Privacy</a>
-            </nav>
-          </header>
+          <SiteHeader />
           <main id="main-content">{children}</main>
           <footer className="site-footer">
             <span>Dalimgari Community</span>
