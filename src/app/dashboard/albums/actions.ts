@@ -31,8 +31,7 @@ export async function createAlbum(formData: FormData) {
   const selectedMedia = mediaIds(formData);
 
   if (!valid(title, url, visibility)) redirect("/dashboard/albums?error=invalid");
-  const { error } = await supabase.rpc("save_album", {
-    p_album_id: null,
+  const { error } = await supabase.rpc("create_album", {
     p_title: title,
     p_description: description,
     p_url: url,
