@@ -63,3 +63,15 @@ h2 { line-height: 1.2; letter-spacing: -.025em; }
 .form select, .form textarea { width: 100%; padding: .7rem .8rem; border: 1px solid var(--border); border-radius: .7rem; background: var(--surface); color: var(--text); font: inherit; }
 .form textarea { resize: vertical; min-height: 10rem; line-height: 1.5; }
 .wide-form { max-width: 820px; }
+
+.page-pills { position: sticky; top: 4.5rem; z-index: 10; display: flex; gap: .6rem; overflow-x: auto; padding: .8rem 0; margin-top: 1rem; background: var(--background); scrollbar-width: thin; }
+.page-pills a { flex: 0 0 auto; padding: .45rem .85rem; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); white-space: nowrap; }
+.page-card-content { max-height: 15rem; overflow: auto; overscroll-behavior: contain; margin-block: .75rem 1rem; }
+.page-card-content img { max-width: 100%; height: auto; }
+.widget-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 1rem; }
+.clock-time { margin: .2rem 0; font-size: clamp(1.8rem, 5vw, 2.8rem); font-weight: 750; letter-spacing: -.04em; }
+.card-link { display: block; transition: transform .15s ease, border-color .15s ease; }
+.card-link:hover { transform: translateY(-2px); border-color: var(--accent); }
+.gallery-photo { margin: 0; }
+.gallery-photo img { display: block; width: 100%; height: auto; border-radius: .7rem; }
+@media (max-width: 520px) { .page-pills { top: 6.8rem; } }
