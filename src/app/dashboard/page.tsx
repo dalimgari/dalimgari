@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "Dashboard" };
@@ -37,6 +38,10 @@ export default async function DashboardPage() {
             <h2>{stat.value ?? "—"}</h2>
           </article>
         ))}
+      </div>
+      <div className="actions">
+        <Link className="button" href="/dashboard/pages">Manage Pages</Link>
+        <Link className="button secondary" href="/dashboard/recycle-bin">Recycle Bin</Link>
       </div>
       <p className="muted-note">Only a server-verified account with the trusted Admin role can access this page. The navigation visibility is only a convenience; authorization is enforced on the server.</p>
     </section>
