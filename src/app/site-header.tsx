@@ -55,7 +55,7 @@ export function SiteHeader() {
         <Link href="/pages">Pages</Link>
         <Link href="/albums">Albums</Link>
         <Link href="/privacy">Privacy</Link>
-        {user ? <Link href="/profile">Profile</Link> : <Link href="/login">Login</Link>}
+        {user ? <Link href="/profile">Profile</Link> : <><Link href="/login">Login</Link><Link href="/signup">Sign up</Link></>}
         {isAdmin && <Link href="/dashboard">Dashboard</Link>}
         {user && <button className="nav-button" type="button" onClick={logout}>Logout</button>}
       </nav>
