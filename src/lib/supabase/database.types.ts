@@ -136,6 +136,7 @@ export type Database = {
           alt_text: string | null
           alt_text_bn: string | null
           alt_text_en: string | null
+          content_hash: string | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -160,6 +161,7 @@ export type Database = {
           alt_text?: string | null
           alt_text_bn?: string | null
           alt_text_en?: string | null
+          content_hash?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -184,6 +186,7 @@ export type Database = {
           alt_text?: string | null
           alt_text_bn?: string | null
           alt_text_en?: string | null
+          content_hash?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
