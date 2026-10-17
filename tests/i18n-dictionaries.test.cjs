@@ -7,7 +7,7 @@ const path = require("node:path");
 function readBilingualContentMigration() {
   const migrationDir = path.join(__dirname, "..", "supabase", "migrations");
   const candidates = fs.readdirSync(migrationDir).filter((name) =>
-    /^\\d+_add_bilingual_content_fields\\.sql$/.test(name)
+    /^\d+_add_bilingual_content_fields\.sql$/.test(name)
   );
   assert.equal(candidates.length, 1, "Expected one canonical bilingual content migration");
   return fs.readFileSync(path.join(migrationDir, candidates[0]), "utf8");
