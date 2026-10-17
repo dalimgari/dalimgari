@@ -83,3 +83,12 @@ h2 { line-height: 1.2; letter-spacing: -.025em; }
 .media-picker { display: grid; gap: .65rem; max-height: 18rem; overflow: auto; padding: 1rem; border: 1px solid var(--border); border-radius: .8rem; }
 .media-picker legend { padding-inline: .35rem; font-weight: 700; }
 .media-picker small { color: var(--muted); }
+
+.auth-card { width: min(100%, 560px); margin-inline: auto; }
+.auth-links { display: flex; flex-wrap: wrap; gap: .75rem 1.25rem; margin-top: 1rem; color: var(--accent-strong); }
+.form-error { color: #b42318; }
+.form-success { color: var(--accent-strong); }
+.profile-layout { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 1rem; margin-top: 1.5rem; }
+.profile-summary { display: flex; flex-direction: column; align-items: flex-start; }
+.profile-avatar { width: 7.5rem; height: 7.5rem; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); }
+.profile-avatar-placeholder { display: grid; place-items: center; background: var(--accent); color: white; font-size: 2rem; font-weight: 750; }
