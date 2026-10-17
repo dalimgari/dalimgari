@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/auth/require-admin";
-import { createPage } from "./actions";
+import { createPage, archivePage } from "./actions";
 
 export const metadata = { title: "Manage pages" };
 export const dynamic = "force-dynamic";
@@ -64,6 +64,10 @@ export default async function ManagePagesPage({
               <p className="muted-note">/p/{page.url}</p>
               <div className="actions">
                 <Link className="button secondary" href={`/dashboard/pages/${page.id}`}>Edit</Link>
+                <form action={archivePage}>
+                  <input type="hidden" name="id" value={page.id} />
+                  <button className="button secondary" type="submit">Move to Recycle Bin</button>
+                </form>
                 {page.visibility === "public" && <Link className="button secondary" href={`/p/${page.url}`}>View</Link>}
               </div>
             </article>
