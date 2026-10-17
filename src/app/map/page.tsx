@@ -34,7 +34,7 @@ export default async function MapPage() {
       {valid ? (
         <>
           <p className="lead">Open the saved location in your map service. The map is not embedded, so no third-party map request is made until you choose to open it.</p>
-          <a className="button" href={`https://www.google.com/maps?q=${latitude},${longitude}`} target="_blank" rel="noopener noreferrer">Open map</a>
+          <a className="button" href={`https://www.google.com/maps?q=${latitude},${longitude}&z=${Number(settings.zoom) || 12}`} target="_blank" rel="noopener noreferrer">Open map</a>
         </>
       ) : (
         <p className="lead">The map location has not been configured by an administrator yet.</p>
