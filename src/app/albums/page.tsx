@@ -5,16 +5,24 @@ export const metadata = { title: "Albums" };
 export const dynamic = "force-dynamic";
 
 export default async function AlbumsPage() {
-  let albums: { id: string; title: string; title_en: string | null; description: string | null; description_en: string | null; url: string; media: unknown }[] = [];
+  let albums: { id: string; title: string; title_en: string | null; description: string | null; description_en: string | null; url: string }[] = [];
   try {
     const supabase = await createSupabaseServerClient();
     const { data } = await supabase
       .from("albums")
-      .select("id,title,title_en,description,description_en,url,media")
+      .select("id,title,title_en,description,description_en,url")
       .eq("visibility", "public")
       .order("created_at", { ascending: false })
       .limit(100);
-    albums = (data ?? []).filter((album) => Array.isArray(album.media) && album.media.length > 0);
+    const rows = data ?? [];
+    if (rows.length > 0) {
+      const { data: links } = await supabase.from("media_links")
+        .select("source_id")
+        .eq("source_table", "albums")
+        .in("source_id", rows.map((album) => album.id));
+      const linkedAlbumIds = new Set((links ?? []).map((link) => link.source_id));
+      albums = rows.filter((album) => linkedAlbumIds.has(album.id));
+    }
   } catch {
     albums = [];
   }
