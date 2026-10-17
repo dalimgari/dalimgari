@@ -44,3 +44,10 @@ test("Pages artifact excludes project-only files and uploads staged public asset
   assert.match(workflow, /path: "_site"/);
   assert.doesNotMatch(workflow, /path: "\."/);
 });
+
+test("homepage album slideshow defers signed URLs for non-initial cover images", () => {
+  const app = read("app.js");
+  assert.match(app, /map\(\(\{ album, items \}\) => \(\{ album, item: items\[0\], items \}\)\)/);
+  assert.match(app, /const nextUrl=nextImage\.url\|\|\(nextImage\.path\?await createContentMediaUrl\(nextImage\.path\):""\)/);
+  assert.match(app, /image\.fetchPriority="low"/);
+});
