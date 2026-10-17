@@ -4,6 +4,15 @@ const fs = require("node:fs");
 const vm = require("node:vm");
 const path = require("node:path");
 
+function readBilingualContentMigration() {
+  const migrationDir = path.join(__dirname, "..", "supabase", "migrations");
+  const candidates = fs.readdirSync(migrationDir).filter((name) =>
+    /^\\d+_add_bilingual_content_fields\\.sql$/.test(name)
+  );
+  assert.equal(candidates.length, 1, "Expected one canonical bilingual content migration");
+  return fs.readFileSync(path.join(migrationDir, candidates[0]), "utf8");
+}
+
 function loadDictionary(file, globalName) {
   const context = { window: {} };
   const source = fs.readFileSync(path.join(__dirname, "..", "i18n", file), "utf8");
@@ -62,7 +71,7 @@ test("Dictionaries cover dashboard settings, account flows, and recovery actions
 
 test("content editor and database migration support Bengali and English fields", () => {
   const app = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8") + "\n" + fs.readFileSync(path.join(__dirname, "..", "dashboard.js"), "utf8");
-  const migration = fs.readFileSync(path.join(__dirname, "..", "supabase", "migrations", "20261014090000_add_bilingual_content_fields.sql"), "utf8");
+  const migration = readBilingualContentMigration();
   for (const field of ["title_bn", "title_en", "description_bn", "description_en"]) {
     assert.ok(migration.includes("ADD COLUMN IF NOT EXISTS " + field), "Missing migration column: " + field);
   }
@@ -82,7 +91,7 @@ test("content editor and database migration support Bengali and English fields",
 });
 
 test("existing custom pages have English title, description, and HTML seed translations", () => {
-  const migration = fs.readFileSync(path.join(__dirname, "..", "supabase", "migrations", "20261014090000_add_bilingual_content_fields.sql"), "utf8");
+  const migration = readBilingualContentMigration();
   for (const slug of [
     "population-occupation",
     "education-religious-institutions",
