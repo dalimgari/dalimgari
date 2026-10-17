@@ -22,7 +22,7 @@ test("leaked-password warning is permanently suppressed from project audit repor
 
 test("audit suppression policy requires registry filtering without claiming the security setting is fixed", () => {
   const policy = fs.readFileSync(path.join(root, "docs/AUDIT_SUPPRESSION_POLICY.md"), "utf8");
-  assert.match(policy, /consult \.audit-suppressions\.json/);
+  assert.match(policy, /consult\s+`?\.audit-suppressions\.json`?/);
   assert.match(policy, /does not change the live Supabase Auth setting/);
   assert.match(policy, /Other security findings remain reportable/);
 });
