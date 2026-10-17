@@ -79,3 +79,7 @@ h2 { line-height: 1.2; letter-spacing: -.025em; }
 .inline-checkbox { display: flex !important; grid-template-columns: auto 1fr; align-items: center; justify-content: flex-start; gap: .6rem !important; }
 .inline-checkbox input { width: 1.1rem; min-height: 1.1rem; }
 .user-management { margin-top: 1.5rem; }
+
+.media-picker { display: grid; gap: .65rem; max-height: 18rem; overflow: auto; padding: 1rem; border: 1px solid var(--border); border-radius: .8rem; }
+.media-picker legend { padding-inline: .35rem; font-weight: 700; }
+.media-picker small { color: var(--muted); }
