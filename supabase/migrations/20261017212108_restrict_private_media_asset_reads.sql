@@ -6,4 +6,5 @@ to authenticated
 using (
   visibility = 'public'
   or created_by = (select auth.uid())
+  or (((select auth.jwt()) -> 'app_metadata' ->> 'role') = 'admin')
 );
