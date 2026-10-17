@@ -41,6 +41,7 @@ export default async function DashboardPage() {
       </div>
       <div className="actions">
         <Link className="button" href="/dashboard/pages">Manage Pages</Link>
+        <Link className="button secondary" href="/dashboard/albums">Manage Albums</Link>
         <Link className="button secondary" href="/dashboard/media">Media Library</Link>
         <Link className="button secondary" href="/dashboard/users">User Management</Link>
         <Link className="button secondary" href="/dashboard/recycle-bin">Recycle Bin</Link>
