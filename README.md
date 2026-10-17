@@ -64,7 +64,7 @@ Migrations are tracked in `supabase/migrations`. The existing Supabase database 
 ## Remaining production-readiness checks
 
 - Complete automated integration and browser tests for guest/member/admin authorization.
-- Verify Auth security settings, including leaked-password protection, in Supabase Auth configuration.
+- Verify the configured Auth security settings in Supabase Auth.
 - Test public/private storage access and upload/delete behavior using real test accounts.
 - Verify recycle-bin restore and 30-day cleanup end to end.
 - Establish and test a database backup/export and recovery procedure.
