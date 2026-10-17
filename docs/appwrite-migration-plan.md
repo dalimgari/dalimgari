@@ -2,7 +2,7 @@
 
 ## Status
 
-This branch prepares a safe migration from the current Supabase-backed Next.js application to Appwrite. It does not switch production, remove Supabase dependencies, alter Supabase, or contain credentials.
+This branch prepares a safe migration from the current Supabase-backed Next.js application to Appwrite. The schema map, Appwrite environment template, and environment preflight check are committed. It does not switch production, remove Supabase dependencies, alter Supabase, or contain credentials.
 
 - Current production application: Next.js App Router + React + TypeScript on Vercel.
 - Current backend: active Supabase project; do not delete or modify during migration preparation.
@@ -71,6 +71,13 @@ This branch prepares a safe migration from the current Supabase-backed Next.js a
 - Keep Supabase intact and read-only during the agreed observation period.
 - Document rollback steps and confirm a tested backup before changing production environment variables.
 - Remove old Supabase code and resources only after production stability is demonstrated and the owner approves final retirement.
+
+## Current implementation status
+
+- Added `docs/appwrite-schema-map.md` with the 16-table inventory, identity/authorization rules, storage notes, and cutover acceptance gates.
+- Expanded `.env.example` with placeholders for Appwrite project settings; no real values or credentials are committed.
+- Added `npm run appwrite:check` to verify required Appwrite environment variables are present and that the endpoint uses HTTPS. This is a local preflight only; it does not validate remote credentials.
+- The existing application still uses Supabase. No Appwrite SDK/data-access implementation or production provider switch has been made because a real Appwrite project and its identifiers/credentials are not available in this connection.
 
 ## Blocking requirements
 
