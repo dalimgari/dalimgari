@@ -44,6 +44,7 @@ export default async function DashboardPage() {
         <Link className="button secondary" href="/dashboard/albums">Manage Albums</Link>
         <Link className="button secondary" href="/dashboard/media">Media Library</Link>
         <Link className="button secondary" href="/dashboard/users">User Management</Link>
+        <Link className="button secondary" href="/dashboard/widgets">Home Widgets</Link>
         <Link className="button secondary" href="/dashboard/recycle-bin">Recycle Bin</Link>
       </div>
       <p className="muted-note">Only a server-verified account with the trusted Admin role can access this page. The navigation visibility is only a convenience; authorization is enforced on the server.</p>
