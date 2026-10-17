@@ -63,7 +63,8 @@ export function ProfileForm({ email, role, fullName, bio, phone, avatarUrl: init
     setBusy(true);
     setMessage("");
     setError("");
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     const selected = form.get("avatar");
     const file = selected instanceof File ? selected : null;
     if (!file || !AVATAR_TYPES[file.type] || file.size <= 0 || file.size > MAX_AVATAR_SIZE) {
@@ -91,7 +92,7 @@ export function ProfileForm({ email, role, fullName, bio, phone, avatarUrl: init
       if (updateError) throw updateError;
       setAvatarUrl(publicUrl);
       setMessage("Profile picture updated.");
-      event.currentTarget.reset();
+      formElement.reset();
       router.refresh();
     } catch {
       setError("The profile picture could not be uploaded. Check the file and storage permissions.");
