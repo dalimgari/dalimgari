@@ -21,8 +21,9 @@ export default async function HomeWidgetsPage({
   const clock = data?.find((item) => item.widget_type === "datetime");
   const settings = asRecord(map?.settings);
   const notice = query.saved ? "Widget settings saved." :
-    query.error === "coordinates" ? "Enter latitude and longitude before showing the map." :
-    query.error ? "The settings could not be saved. Verify the coordinates and try again." : "";
+    query.error === "coordinates" ? "Enter a Google Maps share link or both coordinates before showing the map." :
+    query.error === "map_url" ? "Enter a valid HTTPS Google Maps share link." :
+    query.error ? "The settings could not be saved. Verify the map settings and try again." : "";
 
   return (
     <section>
@@ -40,16 +41,19 @@ export default async function HomeWidgetsPage({
             <input type="checkbox" name="mapVisible" defaultChecked={map?.is_visible ?? true} />
             Show village map
           </label>
-          <label>Latitude
+          <label>Google Maps share link (optional)
+            <input name="mapUrl" type="url" inputMode="url" defaultValue={typeof settings.mapUrl === "string" ? settings.mapUrl : ""} placeholder="https://maps.app.goo.gl/..." />
+          </label>
+          <label>Latitude (optional when a share link is provided)
             <input name="latitude" inputMode="decimal" defaultValue={settings.latitude == null ? "" : String(settings.latitude)} placeholder="e.g. 23.8103" />
           </label>
-          <label>Longitude
+          <label>Longitude (optional when a share link is provided)
             <input name="longitude" inputMode="decimal" defaultValue={settings.longitude == null ? "" : String(settings.longitude)} placeholder="e.g. 90.4125" />
           </label>
           <label>Default map zoom (1–20)
             <input name="zoom" type="number" min={1} max={20} step={1} defaultValue={typeof settings.zoom === "number" ? settings.zoom : 12} required />
           </label>
-          <p className="muted-note">Coordinates must be supplied before the map can be shown. The map opens externally only when a visitor clicks it.</p>
+          <p className="muted-note">Use a Google Maps share link or enter both coordinates. Only HTTPS Google Maps destinations are accepted. The map opens externally only when a visitor clicks it.</p>
           <button className="button" type="submit">Save widget settings</button>
         </form>
       </article>
