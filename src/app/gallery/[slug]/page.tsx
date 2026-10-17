@@ -6,14 +6,6 @@ export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ slug: string }> };
 
-function stringValue(value: unknown, keys: string[]) {
-  if (typeof value === "string") return value;
-  if (!value || typeof value !== "object" || Array.isArray(value)) return "";
-  const record = value as Record<string, unknown>;
-  for (const key of keys) if (typeof record[key] === "string") return record[key] as string;
-  return "";
-}
-
 function safeImageSource(value: string, projectUrl: string) {
   if (!value) return null;
   if (value.startsWith("/storage/v1/object/public/") && !value.startsWith("//")) {
