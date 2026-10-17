@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function GalleryPage({ params }: Props) {
   const { slug } = await params;
-  let album: { title: string; title_en: string | null; description: string | null; description_en: string | null } | null = null;
+  let album: { id: string; title: string; title_en: string | null; description: string | null; description_en: string | null } | null = null;
   let projectUrl = "";
   try {
     const supabase = await createSupabaseServerClient();
@@ -64,7 +64,7 @@ export default async function GalleryPage({ params }: Props) {
   const { data: links } = await supabase.from("media_links")
     .select("sort_order,media_assets(id,title,title_en,original_filename,mime_type,storage_bucket,storage_path,visibility)")
     .eq("source_table", "albums")
-    .eq("source_id", (await supabase.from("albums").select("id").eq("url", slug).eq("visibility", "public").single()).data?.id ?? "")
+    .eq("source_id", album.id)
     .order("sort_order", { ascending: true });
 
   const photos = (links ?? []).flatMap((link) => {
