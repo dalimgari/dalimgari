@@ -762,3 +762,18 @@
   background:linear-gradient(135deg,#e2e8f0,#f8fafc);
   box-sizing:border-box;
 }
+
+
+/* Reserve the widget section footprint while its date/time and map data loads. */
+.home-page > .home-widget.is-loading { min-height:320px; }
+.home-page > .home-widget.is-loading > .home-widget-skeleton {
+  min-height:inherit;
+  width:100%;
+  border:1px solid rgba(148,163,184,.28);
+  border-radius:var(--dg-card-radius,16px);
+  background:linear-gradient(135deg,rgba(148,163,184,.08),rgba(148,163,184,.16));
+  box-sizing:border-box;
+}
+@media(max-width:600px) {
+  .home-page > .home-widget.is-loading { min-height:492px; }
+}
