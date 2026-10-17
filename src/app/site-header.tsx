@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
@@ -44,12 +45,12 @@ export function SiteHeader() {
 
   return (
     <header className="site-header">
-      <a className="brand" href="/" aria-label="Dalimgari home">
+      <Link className="brand" href="/" aria-label="Dalimgari home">
         <span className="brand-mark" aria-hidden="true">D</span>
         <span>Dalimgari</span>
-      </a>
+      </Link>
       <nav aria-label="Main navigation">
-        <a href="/">Home</a>
+        <Link href="/">Home</Link>
         <a href="/about">About</a>
         <a href="/pages">Pages</a>
         <a href="/privacy">Privacy</a>
