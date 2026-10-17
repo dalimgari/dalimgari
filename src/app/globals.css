@@ -16,7 +16,7 @@ body { margin: 0; background: var(--background); color: var(--text); font-family
 a { color: inherit; text-decoration: none; }
 a:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid #7da994; outline-offset: 3px; }
 .site-shell { min-height: 100vh; display: flex; flex-direction: column; }
-.site-header { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .8rem clamp(1rem, 4vw, 2.5rem); background: rgb(255 255 255 / 94%); border-bottom: 1px solid var(--border); backdrop-filter: blur(14px); }
+.site-header { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .8rem clamp(1rem, 4vw, 2.5rem); background: rgb(255 255 255 / 94%); border-bottom: 1px solid var(--border); backdrop-filter: blur(14px); }\n.site-header-actions { display: flex; flex-direction: column; align-items: flex-end; gap: .65rem; }\n.site-header-admin { display: flex; justify-content: flex-end; padding-top: .1rem; font-size: .9rem; }\n.site-header-admin a { color: var(--accent-strong); font-weight: 650; }
 .brand { display: inline-flex; align-items: center; gap: .65rem; font-weight: 750; letter-spacing: -.02em; }
 .brand-mark { display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: .7rem; color: white; background: var(--accent); }
 .site-header nav { display: flex; align-items: center; flex-wrap: wrap; gap: clamp(.65rem, 2.5vw, 1.5rem); color: var(--muted); font-size: .94rem; }
@@ -49,7 +49,7 @@ h2 { line-height: 1.2; letter-spacing: -.025em; }
   .hero-visual { background: radial-gradient(ellipse at 78% 22%, rgb(93 128 108 / 20%), transparent 35%), radial-gradient(ellipse at 84% 84%, rgb(133 156 139 / 20%), transparent 40%), linear-gradient(135deg, #202d26, #1a221e 56%, #27352d); }
   .hero-visual::after { background: linear-gradient(90deg, rgb(18 24 21 / 96%) 0%, rgb(18 24 21 / 82%) 40%, rgb(18 24 21 / 20%) 100%); }
 }
-@media (max-width: 520px) { .site-header { align-items: flex-start; flex-direction: column; } .site-header nav { width: 100%; } .site-footer { flex-direction: column; } }
+@media (max-width: 520px) { .site-header { align-items: flex-start; flex-direction: column; } .site-header-actions { align-items: flex-start; width: 100%; } .site-header nav { width: 100%; } .site-header-admin { justify-content: flex-start; } .site-footer { flex-direction: column; } }
 
 .form-error { color: #a32626; font-weight: 600; }
 .form-success { color: var(--accent-strong); font-weight: 600; }
