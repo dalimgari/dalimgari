@@ -14,9 +14,21 @@ This change hardens the map resolver's browser CORS policy, starts independent h
 
 ## 2. Migration-history reconciliation
 
-A live read-only call to Supabase returned **52 migration ledger entries**. Each exact `<version>_<name>.sql` path from the live ledger was checked in `main`: **15 exact paths were found and 37 exact paths were not found**. A missing exact path does not prove that the corresponding SQL is absent under a different filename or exists nowhere in Git history; it does prove that a simple name-based reconciliation is incomplete.
+A live read-only call to Supabase returned **52 migration ledger entries**. After reconciliation, **21 exact versioned filenames** are represented in the active repository migrations directory. The remaining **31 live-ledger versions** have no exact filename in the repository. Five unverified repository-only SQL candidates were moved to `docs/migration-archive/unverified/` as plain-text copies and removed from the active migration directory so they cannot be unexpectedly applied by `supabase db push`.
 
-### Live-ledger versions without an exact `main` filename
+### Semantic filename reconciliations
+
+The following six files now use the matching live-ledger version prefix:
+- `20261014084543_add_bilingual_content_fields.sql`
+- `20261014101715_add_bilingual_media_metadata.sql`
+- `20261010182503_grant_admin_full_access_to_app_data_and_storage.sql`
+- `20261010185057_protect_super_admin_account.sql`
+- `20261010215858_add_media_column_to_albums.sql`
+- `20261010220303_add_custom_url_to_posts.sql`
+
+The available SQL was compared with relevant live schema objects, columns, policies, or function/trigger definitions. These are **semantic filename reconciliations using available repository SQL**, not proof that the SQL bytes are identical to the original SQL applied in production.
+
+### Live-ledger versions still lacking exact repository filenames
 
 ```text
 20261009215349 create_admin_messaging_and_quota
@@ -43,22 +55,30 @@ A live read-only call to Supabase returned **52 migration ledger entries**. Each
 20261010121835 create_admin_media_upload_tests
 20261010132827 add_profile_picture_storage
 20261010143039 public_home_hero_read_access
-20261010182503 grant_admin_full_access_to_app_data_and_storage
 20261010182935 restrict_home_media_uploads_to_admin_only
-20261010185057 protect_super_admin_account
-20261010215858 add_media_column_to_albums
-20261010220303 add_custom_url_to_posts
 20261010222515 remove_dashboard_hidden_fields
 20261010222542 restore_core_customization_storage
 20261011013318 central_media_library
 20261011160530 harden_permissions_rpc_and_deduplicate_pages_policy
-20261014084543 add_bilingual_content_fields
-20261014101715 add_bilingual_media_metadata
 20261014103615 add_bangla_profile_fields
 20261014124253 add_bilingual_media_metadata_ui_compat
 ```
 
-Do not replay migrations, manufacture placeholder SQL, delete ledger rows, or run `supabase db push` to force the counts to match. The safe repair is to recover the exact original SQL and deployment/PR history for each unmatched version, compare its effects with the live schema, then add a reviewed reconciliation baseline without replaying already-applied DDL. This branch intentionally does not mutate production schema or migration history.
+### Safety decisions
+
+- No production migration ledger rows were edited.
+- No SQL migration was replayed and no production DDL was run.
+- No placeholder migrations were fabricated.
+- Five unverified migration candidates were preserved outside the active migrations directory. See `docs/migration-archive/README.md`.
+- A spot-check of GitHub's exact-path commit history for ten high-priority missing migrations found no commits at those exact file paths. The remaining source SQL must be recovered from other commits, deployment records, or backups, or explicitly classified against the live catalog.
+- Do not run `supabase db push` or migration repair to force the counts to match. The unresolved historical SQL must be addressed before a safe clean-install baseline can be claimed.
+
+Current inventory:
+- Live ledger entries: 52
+- Exact versioned filenames in active migrations directory: 21
+- Live-ledger versions still lacking exact filenames: 31
+- Active repository migration files without an exact live-ledger version: 0
+- Unverified candidates archived outside active migrations: 5
 
 ## 3. Profile synchronization trigger
 
