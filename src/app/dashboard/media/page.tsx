@@ -11,7 +11,7 @@ export default async function MediaLibraryPage() {
     .from("media_assets")
     .select("id,title,title_en,original_filename,mime_type,size_bytes,visibility,created_at,storage_bucket,storage_path")
     .order("created_at", { ascending: false })
-    .limit(100);
+    .limit(24);
 
   const assets = await Promise.all((data ?? []).map(async (asset) => {
     const { data: signed } = await supabase.storage
