@@ -30,7 +30,7 @@ export default async function DashboardPage() {
     <section>
       <p className="eyebrow">Administrator access</p>
       <h1>Dashboard</h1>
-      <p className="lead">A protected overview. Content management modules will be added after the schema and role policies pass integration tests.</p>
+      <p className="lead">Manage published pages, albums, media, member accounts, homepage widgets, and recycled pages.</p>
       <div className="section-grid">
         {stats.map((stat) => (
           <article className="card" key={stat.label}>
